@@ -1,0 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace WhatsAppAPISolutionDL.UserModels
+{
+    public partial class UResponse
+    {
+        public int Status { get; set; }
+        public string Message { get; set; } = "Error in updating data";
+    }
+
+    public partial class UResponseWithID
+    {
+        public int Status { get; set; }
+        public long Id { get; set; }
+        public string Message { get; set; } = "Error in updating data";
+    }
+}
