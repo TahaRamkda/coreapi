@@ -6,9 +6,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class DashboardService : IDashboardService
     {
-        private readonly WhatsAppAPISolutionContext2 _dbContext2;
+        private readonly WhatsAppSolutionContext2 _dbContext2;
 
-        public DashboardService(WhatsAppAPISolutionContext2 dbContext2)
+        public DashboardService(WhatsAppSolutionContext2 dbContext2)
         {
             _dbContext2 = dbContext2;
         }

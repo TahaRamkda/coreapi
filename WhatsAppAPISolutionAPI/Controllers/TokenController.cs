@@ -19,12 +19,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class TokenController : ControllerBase
     {
         public IConfiguration _configuration;
-        private readonly WhatsAppAPISolutionContext _context;
+        private readonly WhatsAppSolutionContext _context;
         private readonly TokenService _tokenService;
-        private readonly WhatsAppAPISolutionContext _dbContext;
+        private readonly WhatsAppSolutionContext _dbContext;
         private readonly IUserService _userService;
 
-        public TokenController(IConfiguration config, WhatsAppAPISolutionContext context, TokenService tokenService, WhatsAppAPISolutionContext dbContext, IUserService userService)
+        public TokenController(IConfiguration config, WhatsAppSolutionContext context, TokenService tokenService, WhatsAppSolutionContext dbContext, IUserService userService)
         {
             _configuration = config;
             _context = context;
@@ -75,10 +75,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
         //    }
         //}
 
-        private async Task<ApiUser> GetUser(string email, string password)
-        {
-            return await _context.ApiUsers.FirstOrDefaultAsync(u => u.UserName == email && u.Password == password);
-        }
+        //private async Task<ApiUser> GetUser(string email, string password)
+        //{
+        //    return await _context.ApiUsers.FirstOrDefaultAsync(u => u.UserName == email && u.Password == password);
+        //}
 
         [HttpGet]
         [Route("refresh")]

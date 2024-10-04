@@ -13,11 +13,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class DashboardController : ControllerBase
     {
         private readonly IDashboardService _dashboardService;
-        private readonly WhatsAppAPISolutionContext _dbContext;
+        private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<DashboardController> _logger;
 
         public DashboardController(IDashboardService dashboardService,
-            WhatsAppAPISolutionContext dbContext,
+            WhatsAppSolutionContext dbContext,
             ILogger<DashboardController> logger)
         {
             _dashboardService = dashboardService;

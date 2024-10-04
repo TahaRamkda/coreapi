@@ -20,10 +20,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
     {
         public IConfiguration _configuration;
         private readonly IUserService _userService;
-        private readonly WhatsAppAPISolutionContext _dbContext;
+        private readonly WhatsAppSolutionContext _dbContext;
         private readonly TokenService _tokenService;
 
-        public UserController(IUserService userservice, WhatsAppAPISolutionContext dbContext, TokenService tokenService, IConfiguration configuration)
+        public UserController(IUserService userservice, WhatsAppSolutionContext dbContext, TokenService tokenService, IConfiguration configuration)
         {
             _userService = userservice;
             _dbContext = dbContext;

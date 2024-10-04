@@ -13,11 +13,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class RoleController : ControllerBase
     {
         private readonly IRoleService _rolesService;
-        private readonly WhatsAppAPISolutionContext _dbContext;
+        private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<RoleController> _logger;
 
         public RoleController(IRoleService rolesService,
-            WhatsAppAPISolutionContext dbContext,
+            WhatsAppSolutionContext dbContext,
             ILogger<RoleController> logger)
         {
             _rolesService = rolesService;

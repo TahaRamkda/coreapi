@@ -15,11 +15,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class PermissionsController : ControllerBase
     {
         private readonly IPermissionService _permissionService;
-        private readonly WhatsAppAPISolutionContext _dbContext;
+        private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<PermissionsController> _logger;
 
         public PermissionsController(IPermissionService permissionService,
-            WhatsAppAPISolutionContext dbContext,
+            WhatsAppSolutionContext dbContext,
             ILogger<PermissionsController> logger)
         {
             _permissionService = permissionService;

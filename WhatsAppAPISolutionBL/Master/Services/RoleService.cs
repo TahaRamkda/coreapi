@@ -15,10 +15,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class RoleService : IRoleService
     {
-        private readonly WhatsAppAPISolutionContext _dbContext;
-        private readonly WhatsAppAPISolutionContext2 _dbContext2;
+        private readonly WhatsAppSolutionContext _dbContext;
+        private readonly WhatsAppSolutionContext2 _dbContext2;
 
-        public RoleService(WhatsAppAPISolutionContext dbContext, WhatsAppAPISolutionContext2 dbContext2)
+        public RoleService(WhatsAppSolutionContext dbContext, WhatsAppSolutionContext2 dbContext2)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;

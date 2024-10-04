@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace WhatsAppAPISolutionDL.UserModels
 {
-    public partial class WhatsAppAPISolutionContext2 : DbContext
+    public partial class WhatsAppSolutionContext2 : DbContext
     {
-        public WhatsAppAPISolutionContext2()
+        public WhatsAppSolutionContext2()
         {
         }
 
-        public WhatsAppAPISolutionContext2(DbContextOptions<WhatsAppAPISolutionContext2> options)
+        public WhatsAppSolutionContext2(DbContextOptions<WhatsAppSolutionContext2> options)
             : base(options)
         {
         }

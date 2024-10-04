@@ -10,9 +10,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class ExportManager : IExportManager
     {
-        private readonly WhatsAppAPISolutionContext _dbContext;
+        private readonly WhatsAppSolutionContext _dbContext;
 
-        public ExportManager(WhatsAppAPISolutionContext dbContext)
+        public ExportManager(WhatsAppSolutionContext dbContext)
         {
             _dbContext = dbContext;
         }

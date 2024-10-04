@@ -12,10 +12,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class UserService : IUserService
     {
-        private readonly WhatsAppAPISolutionContext2 _dbContext2;
-        private readonly WhatsAppAPISolutionContext _dbContext;
+        private readonly WhatsAppSolutionContext2 _dbContext2;
+        private readonly WhatsAppSolutionContext _dbContext;
 
-        public UserService(WhatsAppAPISolutionContext2 dbContext2, WhatsAppAPISolutionContext dbContext)
+        public UserService(WhatsAppSolutionContext2 dbContext2, WhatsAppSolutionContext dbContext)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
