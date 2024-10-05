@@ -17,12 +17,17 @@ namespace WhatsAppAPISolutionDL.Models
         }
 
         public virtual DbSet<Client> Clients { get; set; }
+        public virtual DbSet<Contact> Contacts { get; set; }
+        public virtual DbSet<Group> Groups { get; set; }
         public virtual DbSet<Log> Logs { get; set; }
         public virtual DbSet<Module> Modules { get; set; }
         public virtual DbSet<Page> Pages { get; set; }
         public virtual DbSet<Permission> Permissions { get; set; }
         public virtual DbSet<PermissionTask> PermissionTasks { get; set; }
         public virtual DbSet<Role> Roles { get; set; }
+        public virtual DbSet<SenderName> SenderNames { get; set; }
+        public virtual DbSet<Template> Templates { get; set; }
+        public virtual DbSet<TemplateParameter> TemplateParameters { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<UsersRole> UsersRoles { get; set; }
 
@@ -38,9 +43,19 @@ namespace WhatsAppAPISolutionDL.Models
         {
             modelBuilder.Entity<Client>(entity =>
             {
-                entity.HasNoKey();
-
                 entity.Property(e => e.ClientId).HasColumnName("Client_Id");
+
+                entity.Property(e => e.AccessToken)
+                    .HasMaxLength(250)
+                    .HasColumnName("Access_Token");
+
+                entity.Property(e => e.Balance).HasColumnType("numeric(18, 3)");
+
+                entity.Property(e => e.BalanceAlertLimit)
+                    .HasColumnType("numeric(18, 3)")
+                    .HasColumnName("Balance_Alert_Limit");
+
+                entity.Property(e => e.ClientAddress).HasColumnName("Client_Address");
 
                 entity.Property(e => e.ClientLanguage).HasColumnName("Client_Language");
 
@@ -48,13 +63,85 @@ namespace WhatsAppAPISolutionDL.Models
                     .HasMaxLength(50)
                     .HasColumnName("Client_Name");
 
-                entity.Property(e => e.ClientPrefix)
-                    .HasMaxLength(3)
-                    .HasColumnName("Client_Prefix");
+                entity.Property(e => e.ContactPerson)
+                    .HasMaxLength(150)
+                    .HasColumnName("Contact_Person");
+
+                entity.Property(e => e.ContactPersonEmail)
+                    .HasMaxLength(150)
+                    .HasColumnName("Contact_Person_Email");
+
+                entity.Property(e => e.ContactPersonPhone)
+                    .HasMaxLength(150)
+                    .HasColumnName("Contact_Person_Phone");
 
                 entity.Property(e => e.CreatedDate)
                     .HasColumnType("datetime")
                     .HasColumnName("Created_Date");
+            });
+
+            modelBuilder.Entity<Contact>(entity =>
+            {
+                entity.ToTable("Contact");
+
+                entity.Property(e => e.ContactId).HasColumnName("Contact_Id");
+
+                entity.Property(e => e.AreaName)
+                    .HasMaxLength(50)
+                    .HasColumnName("Area_Name");
+
+                entity.Property(e => e.CreatedBy).HasColumnName("Created_By");
+
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("Created_Date");
+
+                entity.Property(e => e.EmailAddress)
+                    .HasMaxLength(50)
+                    .HasColumnName("Email_Address");
+
+                entity.Property(e => e.FirstName)
+                    .HasMaxLength(50)
+                    .HasColumnName("First_Name");
+
+                entity.Property(e => e.GroupId).HasColumnName("Group_Id");
+
+                entity.Property(e => e.LastName)
+                    .HasMaxLength(50)
+                    .HasColumnName("Last_Name");
+
+                entity.Property(e => e.PhoneNumber)
+                    .HasMaxLength(50)
+                    .HasColumnName("Phone_Number");
+
+                entity.Property(e => e.UpdatedBy).HasColumnName("Updated_By");
+
+                entity.Property(e => e.UpdatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("Updated_Date");
+            });
+
+            modelBuilder.Entity<Group>(entity =>
+            {
+                entity.ToTable("Group");
+
+                entity.Property(e => e.GroupId).HasColumnName("Group_Id");
+
+                entity.Property(e => e.CreatedBy).HasColumnName("Created_By");
+
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("Created_Date");
+
+                entity.Property(e => e.GroupName)
+                    .HasMaxLength(50)
+                    .HasColumnName("Group_Name");
+
+                entity.Property(e => e.UpdatedBy).HasColumnName("Updated_By");
+
+                entity.Property(e => e.UpdatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("Updated_Date");
             });
 
             modelBuilder.Entity<Log>(entity =>
@@ -176,6 +263,122 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.RoleName)
                     .HasMaxLength(250)
                     .HasColumnName("Role_Name");
+
+                entity.Property(e => e.UpdatedBy).HasColumnName("Updated_By");
+
+                entity.Property(e => e.UpdatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("Updated_Date");
+            });
+
+            modelBuilder.Entity<SenderName>(entity =>
+            {
+                entity.HasKey(e => e.SenderId)
+                    .HasName("PK__SenderNa__484F1F3C90706B69");
+
+                entity.ToTable("SenderName");
+
+                entity.Property(e => e.SenderId).HasColumnName("Sender_Id");
+
+                entity.Property(e => e.AppId)
+                    .HasMaxLength(50)
+                    .HasColumnName("App_Id");
+
+                entity.Property(e => e.ClientId).HasColumnName("Client_Id");
+
+                entity.Property(e => e.CreatedBy).HasColumnName("Created_By");
+
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("Created_Date");
+
+                entity.Property(e => e.Limit).HasColumnType("numeric(18, 3)");
+
+                entity.Property(e => e.PhoneId)
+                    .HasMaxLength(50)
+                    .HasColumnName("Phone_Id");
+
+                entity.Property(e => e.PhoneNumber)
+                    .HasMaxLength(50)
+                    .HasColumnName("Phone_Number");
+
+                entity.Property(e => e.Quality).HasColumnType("numeric(18, 3)");
+
+                entity.Property(e => e.SenderName1)
+                    .HasMaxLength(50)
+                    .HasColumnName("Sender_Name");
+
+                entity.Property(e => e.UpdatedBy).HasColumnName("Updated_By");
+
+                entity.Property(e => e.UpdatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("Updated_Date");
+            });
+
+            modelBuilder.Entity<Template>(entity =>
+            {
+                entity.HasKey(e => e.TemplatesId)
+                    .HasName("PK__Template__EF4B6BB8120F29E2");
+
+                entity.Property(e => e.TemplatesId).HasColumnName("Templates_Id");
+
+                entity.Property(e => e.ClientId).HasColumnName("Client_Id");
+
+                entity.Property(e => e.CreatedBy).HasColumnName("Created_By");
+
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("Created_Date");
+
+                entity.Property(e => e.IntegrationId)
+                    .HasMaxLength(50)
+                    .HasColumnName("Integration_Id");
+
+                entity.Property(e => e.TemplateId)
+                    .HasMaxLength(50)
+                    .HasColumnName("Template_Id");
+
+                entity.Property(e => e.TemplateName)
+                    .HasMaxLength(50)
+                    .HasColumnName("Template_Name");
+
+                entity.Property(e => e.TemplateType).HasColumnName("Template_Type");
+
+                entity.Property(e => e.UpdatedBy).HasColumnName("Updated_By");
+
+                entity.Property(e => e.UpdatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("Updated_Date");
+            });
+
+            modelBuilder.Entity<TemplateParameter>(entity =>
+            {
+                entity.HasKey(e => e.ParamId)
+                    .HasName("PK__Template__C4B2843895F26480");
+
+                entity.ToTable("Template_Parameters");
+
+                entity.Property(e => e.ParamId).HasColumnName("Param_Id");
+
+                entity.Property(e => e.ClientId).HasColumnName("Client_Id");
+
+                entity.Property(e => e.CreatedBy).HasColumnName("Created_By");
+
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("Created_Date");
+
+                entity.Property(e => e.ParamDefaultValue)
+                    .HasMaxLength(50)
+                    .HasColumnName("Param_DefaultValue");
+
+                entity.Property(e => e.ParamName)
+                    .HasMaxLength(50)
+                    .HasColumnName("Param_Name");
+
+                entity.Property(e => e.ParamType).HasColumnName("param_Type");
+
+                entity.Property(e => e.TemplatesId).HasColumnName("Templates_Id");
 
                 entity.Property(e => e.UpdatedBy).HasColumnName("Updated_By");
 
