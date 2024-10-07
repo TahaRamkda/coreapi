@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Net.Http.Headers;
 
 namespace WhatsAppAPISolutionDL.UserModels
 {
@@ -28,6 +29,10 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UEntityDto> Entity { get; set; } = null!;
         public virtual DbSet<UDashboardSummary> DashboardSummary { get; set; } = null!;
         public virtual DbSet<UDashboardReportSummary> DashboardReportSummary { get; set; } = null!;
+        public virtual DbSet<UClient> Clients { get; set; } = null!;
+        public virtual DbSet<UGroup> Groups { get; set; } = null!;
+        public virtual DbSet<UContact> Contacts { get; set; } = null!;
+        public virtual DbSet<USenderName> SenderNames { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -39,6 +44,10 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UEntityDto>().HasNoKey();
             modelBuilder.Entity<UDashboardSummary>().HasNoKey();
             modelBuilder.Entity<UDashboardReportSummary>().HasNoKey();
+            modelBuilder.Entity<UClient>().HasNoKey();
+            modelBuilder.Entity<UGroup>().HasNoKey();
+            modelBuilder.Entity<UContact>().HasNoKey();
+            modelBuilder.Entity<USenderName>().HasNoKey();
         }
     }
 }

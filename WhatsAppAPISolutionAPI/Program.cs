@@ -35,6 +35,10 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IExportManager, ExportManager>();
+builder.Services.AddScoped<IClientService, ClientService>();
+builder.Services.AddScoped<IGroupService, GroupService>();
+builder.Services.AddScoped<IContactService, ContactService>();
+builder.Services.AddScoped<ISenderNameService, SenderNameService>();
 
 builder.Services.AddDbContext<WhatsAppSolutionContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("WhatsAppAPISolutionDataBase")));
 builder.Services.AddDbContext<WhatsAppSolutionContext2>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("WhatsAppAPISolutionDataBase")));

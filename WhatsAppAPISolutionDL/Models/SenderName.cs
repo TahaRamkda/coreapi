@@ -5,7 +5,7 @@ namespace WhatsAppAPISolutionDL.Models
 {
     public partial class SenderName
     {
-        public int SenderId { get; set; }
+        public long SenderId { get; set; }
         public int? ClientId { get; set; }
         public string SenderName1 { get; set; }
         public string PhoneNumber { get; set; }
@@ -17,5 +17,6 @@ namespace WhatsAppAPISolutionDL.Models
         public DateTime? CreatedDate { get; set; }
         public int? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
+        public int? RecordStatus { get; set; }
     }
 }

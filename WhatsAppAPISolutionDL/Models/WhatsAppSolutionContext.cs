@@ -16,6 +16,9 @@ namespace WhatsAppAPISolutionDL.Models
         {
         }
 
+        public virtual DbSet<Campaign> Campaigns { get; set; }
+        public virtual DbSet<CampaignContact> CampaignContacts { get; set; }
+        public virtual DbSet<CampaignParam> CampaignParams { get; set; }
         public virtual DbSet<Client> Clients { get; set; }
         public virtual DbSet<Contact> Contacts { get; set; }
         public virtual DbSet<Group> Groups { get; set; }
@@ -41,6 +44,128 @@ namespace WhatsAppAPISolutionDL.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Campaign>(entity =>
+            {
+                entity.Property(e => e.CampaignId).HasColumnName("Campaign_Id");
+
+                entity.Property(e => e.CampaignName)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .HasColumnName("Campaign_Name");
+
+                entity.Property(e => e.CampaignType)
+                    .HasMaxLength(50)
+                    .HasColumnName("Campaign_Type");
+
+                entity.Property(e => e.ClientId).HasColumnName("Client_Id");
+
+                entity.Property(e => e.CreatedBy).HasColumnName("Created_By");
+
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("Created_Date")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.DeliveredCount).HasColumnName("Delivered_Count");
+
+                entity.Property(e => e.FailedCount).HasColumnName("Failed_Count");
+
+                entity.Property(e => e.ScheduleDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("Schedule_Date");
+
+                entity.Property(e => e.SenderId).HasColumnName("Sender_Id");
+
+                entity.Property(e => e.SentCount).HasColumnName("Sent_Count");
+
+                entity.Property(e => e.Status).HasMaxLength(50);
+
+                entity.Property(e => e.TemplateId).HasColumnName("Template_Id");
+
+                entity.Property(e => e.TotalCost)
+                    .HasColumnType("decimal(18, 3)")
+                    .HasColumnName("Total_Cost");
+
+                entity.Property(e => e.UndeliveredCount).HasColumnName("Undelivered_Count");
+            });
+
+            modelBuilder.Entity<CampaignContact>(entity =>
+            {
+                entity.HasKey(e => e.CampaignNumberId)
+                    .HasName("PK__Campaign__2BC9C5EFE1E9708F");
+
+                entity.Property(e => e.CampaignNumberId).HasColumnName("CampaignNumber_Id");
+
+                entity.Property(e => e.Area).HasMaxLength(255);
+
+                entity.Property(e => e.CampaignId).HasColumnName("Campaign_Id");
+
+                entity.Property(e => e.Cost).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.CreatedBy)
+                    .HasMaxLength(255)
+                    .HasColumnName("Created_By");
+
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("Created_Date")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.FirstName)
+                    .HasMaxLength(255)
+                    .HasColumnName("First_Name");
+
+                entity.Property(e => e.GroupId).HasColumnName("Group_Id");
+
+                entity.Property(e => e.LastName)
+                    .HasMaxLength(255)
+                    .HasColumnName("Last_Name");
+
+                entity.Property(e => e.Param1).HasMaxLength(255);
+
+                entity.Property(e => e.Param2).HasMaxLength(255);
+
+                entity.Property(e => e.Param3).HasMaxLength(255);
+
+                entity.Property(e => e.Param4).HasMaxLength(255);
+
+                entity.Property(e => e.Param5).HasMaxLength(255);
+
+                entity.Property(e => e.Param6).HasMaxLength(255);
+
+                entity.Property(e => e.PhoneNumber)
+                    .HasMaxLength(20)
+                    .HasColumnName("Phone_Number");
+
+                entity.Property(e => e.SendStatus)
+                    .HasMaxLength(50)
+                    .HasColumnName("Send_Status");
+            });
+
+            modelBuilder.Entity<CampaignParam>(entity =>
+            {
+                entity.Property(e => e.CampaignParamId).HasColumnName("CampaignParam_Id");
+
+                entity.Property(e => e.CampaignId).HasColumnName("Campaign_Id");
+
+                entity.Property(e => e.CreatedBy)
+                    .HasMaxLength(255)
+                    .HasColumnName("Created_By");
+
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("Created_Date")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.ParamName)
+                    .HasMaxLength(255)
+                    .HasColumnName("Param_Name");
+
+                entity.Property(e => e.ParamValue)
+                    .HasMaxLength(255)
+                    .HasColumnName("Param_Value");
+            });
+
             modelBuilder.Entity<Client>(entity =>
             {
                 entity.Property(e => e.ClientId).HasColumnName("Client_Id");
@@ -75,9 +200,17 @@ namespace WhatsAppAPISolutionDL.Models
                     .HasMaxLength(150)
                     .HasColumnName("Contact_Person_Phone");
 
+                entity.Property(e => e.CreatedBy).HasColumnName("Created_By");
+
                 entity.Property(e => e.CreatedDate)
                     .HasColumnType("datetime")
                     .HasColumnName("Created_Date");
+
+                entity.Property(e => e.UpdatedBy).HasColumnName("Updated_By");
+
+                entity.Property(e => e.UpdatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("Updated_Date");
             });
 
             modelBuilder.Entity<Contact>(entity =>
