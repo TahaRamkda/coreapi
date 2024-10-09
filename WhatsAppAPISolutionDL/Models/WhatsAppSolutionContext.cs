@@ -503,7 +503,7 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.Property(e => e.ParamDefaultValue)
                     .HasMaxLength(50)
-                    .HasColumnName("Param_DefaultValue");
+                    .HasColumnName("Param_Default_Value");
 
                 entity.Property(e => e.ParamName)
                     .HasMaxLength(50)

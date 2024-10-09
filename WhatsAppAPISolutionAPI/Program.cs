@@ -41,6 +41,7 @@ builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<ISenderNameService, SenderNameService>();
 builder.Services.AddScoped<ITemplateService, TemplateService>();
+builder.Services.AddScoped<ITemplateParameterService, TemplateParameterService>();
 
 builder.Services.AddDbContext<WhatsAppSolutionContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("WhatsAppAPISolutionDataBase")));
 builder.Services.AddDbContext<WhatsAppSolutionContext2>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("WhatsAppAPISolutionDataBase")));

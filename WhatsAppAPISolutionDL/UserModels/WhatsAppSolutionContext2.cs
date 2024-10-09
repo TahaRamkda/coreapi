@@ -34,6 +34,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UContact> Contacts { get; set; } = null!;
         public virtual DbSet<USenderName> SenderNames { get; set; } = null!;
         public virtual DbSet<UTemplate> Templates { get; set; } = null!;
+        public virtual DbSet<UTemplateParameter> TemplateParameters { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -50,6 +51,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UContact>().HasNoKey();
             modelBuilder.Entity<USenderName>().HasNoKey();
             modelBuilder.Entity<UTemplate>().HasNoKey();
+            modelBuilder.Entity<UTemplateParameter>().HasNoKey();
         }
     }
 }
