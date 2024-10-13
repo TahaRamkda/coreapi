@@ -33,6 +33,7 @@ namespace WhatsAppAPISolutionDL.Models
         public virtual DbSet<TemplateParameter> TemplateParameters { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<UsersRole> UsersRoles { get; set; }
+        public virtual DbSet<WhatsAppPricing> WhatsAppPricings { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -455,6 +456,14 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.Property(e => e.TemplatesId).HasColumnName("Templates_Id");
 
+                entity.Property(e => e.BodyParamCount).HasColumnName("Body_Param_Count");
+
+                entity.Property(e => e.BodyText)
+                    .HasMaxLength(250)
+                    .HasColumnName("Body_Text");
+
+                entity.Property(e => e.Category).HasMaxLength(50);
+
                 entity.Property(e => e.ClientId).HasColumnName("Client_Id");
 
                 entity.Property(e => e.CreatedBy).HasColumnName("Created_By");
@@ -463,9 +472,33 @@ namespace WhatsAppAPISolutionDL.Models
                     .HasColumnType("datetime")
                     .HasColumnName("Created_Date");
 
+                entity.Property(e => e.FooterText)
+                    .HasMaxLength(250)
+                    .HasColumnName("Footer_Text");
+
+                entity.Property(e => e.HeaderParamCount).HasColumnName("Header_Param_Count");
+
+                entity.Property(e => e.HeaderText)
+                    .HasMaxLength(250)
+                    .HasColumnName("Header_Text");
+
+                entity.Property(e => e.HeaderType).HasColumnName("Header_Type");
+
                 entity.Property(e => e.IntegrationId)
                     .HasMaxLength(50)
                     .HasColumnName("Integration_Id");
+
+                entity.Property(e => e.IsApproved).HasColumnName("Is_Approved");
+
+                entity.Property(e => e.Language).HasMaxLength(50);
+
+                entity.Property(e => e.Status).HasMaxLength(50);
+
+                entity.Property(e => e.SubCategory).HasMaxLength(50);
+
+                entity.Property(e => e.TemplateAttachmentUrl)
+                    .HasMaxLength(250)
+                    .HasColumnName("Template_Attachment_URL");
 
                 entity.Property(e => e.TemplateId)
                     .HasMaxLength(50)
@@ -475,7 +508,9 @@ namespace WhatsAppAPISolutionDL.Models
                     .HasMaxLength(50)
                     .HasColumnName("Template_Name");
 
-                entity.Property(e => e.TemplateType).HasColumnName("Template_Type");
+                entity.Property(e => e.TemplateSendType).HasColumnName("Template_Send_Type");
+
+                entity.Property(e => e.TransactionType).HasMaxLength(50);
 
                 entity.Property(e => e.UpdatedBy).HasColumnName("Updated_By");
 
@@ -509,7 +544,11 @@ namespace WhatsAppAPISolutionDL.Models
                     .HasMaxLength(50)
                     .HasColumnName("Param_Name");
 
-                entity.Property(e => e.ParamType).HasColumnName("param_Type");
+                entity.Property(e => e.ParamText)
+                    .HasMaxLength(250)
+                    .HasColumnName("Param_Text");
+
+                entity.Property(e => e.ParamType).HasColumnName("Param_Type");
 
                 entity.Property(e => e.TemplatesId).HasColumnName("Templates_Id");
 
@@ -575,6 +614,51 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.UpdatedDate)
                     .HasColumnType("datetime")
                     .HasColumnName("Updated_Date");
+            });
+
+            modelBuilder.Entity<WhatsAppPricing>(entity =>
+            {
+                entity.HasKey(e => e.PricingId);
+
+                entity.ToTable("WhatsAppPricing");
+
+                entity.Property(e => e.PricingId).HasColumnName("Pricing_Id");
+
+                entity.Property(e => e.Authentication).HasColumnType("decimal(18, 3)");
+
+                entity.Property(e => e.AuthenticationCommission)
+                    .HasColumnType("decimal(18, 3)")
+                    .HasColumnName("Authentication_Commission");
+
+                entity.Property(e => e.AuthenticationInternational)
+                    .HasColumnType("decimal(18, 3)")
+                    .HasColumnName("Authentication_International");
+
+                entity.Property(e => e.AuthenticationInternationalCommission)
+                    .HasColumnType("decimal(18, 3)")
+                    .HasColumnName("Authentication_International_Commission");
+
+                entity.Property(e => e.Currency).HasMaxLength(50);
+
+                entity.Property(e => e.Market).HasMaxLength(250);
+
+                entity.Property(e => e.Marketing).HasColumnType("decimal(18, 3)");
+
+                entity.Property(e => e.MarketingCommission)
+                    .HasColumnType("decimal(18, 3)")
+                    .HasColumnName("Marketing_Commission");
+
+                entity.Property(e => e.Service).HasColumnType("decimal(18, 3)");
+
+                entity.Property(e => e.ServiceCommission)
+                    .HasColumnType("decimal(18, 3)")
+                    .HasColumnName("Service_Commission");
+
+                entity.Property(e => e.Utility).HasColumnType("decimal(18, 3)");
+
+                entity.Property(e => e.UtilityCommission)
+                    .HasColumnType("decimal(18, 3)")
+                    .HasColumnName("Utility_Commission");
             });
 
             OnModelCreatingPartial(modelBuilder);
