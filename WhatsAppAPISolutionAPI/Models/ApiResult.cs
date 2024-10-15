@@ -7,4 +7,11 @@
         public string Message { get; set; } = "";
         public int StatusCode { get; set; }
     }
+    public class SyncResult
+    {
+        public bool success { get; set; }
+        public Object result { get; set; }
+        public string message { get; set; } = "";
+        public int statusCode { get; set; }
+    }
 }

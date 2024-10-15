@@ -27,22 +27,22 @@ namespace WhatsAppAPISolutionDL.Dto
         {
             public HeaderComponent()
             {
-                Values = new List<string>();
+                Values = new List<KeyValue>();
             }
             public string Format { get; set; } = String.Empty;
             public string Text { get; set; } = String.Empty;
             public int TextCount { get; set; }
-            public List<string> Values { get; set; }
+            public List<KeyValue> Values { get; set; }
         }
         public partial class BodyComponent
         {
             public BodyComponent()
             {
-                Values = new List<string>();
+                Values = new List<KeyValue>();
             }
             public string Text { get; set; } = String.Empty;
             public int TextCount { get; set; }
-            public List<string> Values { get; set; }
+            public List<KeyValue> Values { get; set; }
         }
         public partial class FooterComponent
         {
@@ -52,14 +52,19 @@ namespace WhatsAppAPISolutionDL.Dto
         {
             public ButtonComponent()
             {
-                Values = new List<string>();
+                Values = new List<KeyValue>();
             }
             public string Type { get; set; }
             public string Text { get; set; } = String.Empty;
             public string PhoneNumber { get; set; } = String.Empty;
             public int TextCount { get; set; }
             public string Url { get; set; } = String.Empty;
-            public List<string> Values { get; set; }
+            public List<KeyValue> Values { get; set; }
+        }
+        public class KeyValue
+        {
+            public string value { get; set; } = String.Empty;
+            public int index { get; set; }
         }
     }
 }

@@ -11,6 +11,9 @@ using WhatsAppAPISolutionDL.UserModels;
 using Serilog;
 using System.Text;
 using Microsoft.AspNetCore.Http.Features;
+using WhatsAppAPISolutionAPI.Setting;
+using Microsoft.Extensions.Options;
+using WhatsAppAPISolutionAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 ConfigurationManager configuration = builder.Configuration;
@@ -45,6 +48,16 @@ builder.Services.AddScoped<ITemplateParameterService, TemplateParameterService>(
 
 builder.Services.AddDbContext<WhatsAppSolutionContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("WhatsAppAPISolutionDataBase")));
 builder.Services.AddDbContext<WhatsAppSolutionContext2>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("WhatsAppAPISolutionDataBase")));
+
+builder.Services.Configure<BridgeConfigurationSettings>(builder.Configuration.GetSection(BridgeConfigurationSettings.ConfigKey));
+
+builder.Services.AddHttpClient(HttpClientType.bridge_api, (serviceProvider, httpClient) =>
+{
+    var whatsAppConfiguration = serviceProvider.GetRequiredService<IOptions<BridgeConfigurationSettings>>().Value;
+
+    httpClient.BaseAddress = new Uri(whatsAppConfiguration.BaseURL);
+    httpClient.Timeout = TimeSpan.FromSeconds(whatsAppConfiguration.TimeOutInSeconds);
+});
 
 // Adding Authentication
 builder.Services.AddAuthentication(options =>
