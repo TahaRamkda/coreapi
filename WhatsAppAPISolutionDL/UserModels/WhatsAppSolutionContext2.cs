@@ -35,6 +35,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<USenderName> SenderNames { get; set; } = null!;
         public virtual DbSet<UTemplate> Templates { get; set; } = null!;
         public virtual DbSet<UTemplateParameter> TemplateParameters { get; set; } = null!;
+        public virtual DbSet<UMediaUpload> UMediaUploads { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,6 +53,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<USenderName>().HasNoKey();
             modelBuilder.Entity<UTemplate>().HasNoKey();
             modelBuilder.Entity<UTemplateParameter>().HasNoKey();
+            modelBuilder.Entity<UMediaUpload>().HasNoKey();
         }
     }
 }

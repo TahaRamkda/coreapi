@@ -18,5 +18,6 @@ namespace WhatsAppAPISolutionDL.Models
         public decimal? AuthenticationInternationalCommission { get; set; }
         public decimal? Service { get; set; }
         public decimal? ServiceCommission { get; set; }
+        public int? ClientId { get; set; }
     }
 }

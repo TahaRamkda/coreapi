@@ -25,4 +25,8 @@
     <ProjectReference Include="..\WhatsAppAPISolutionBL\WhatsAppAPISolutionBL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Uploads\" />
+  </ItemGroup>
+
 </Project>

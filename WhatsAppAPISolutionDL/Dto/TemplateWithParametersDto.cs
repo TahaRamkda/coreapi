@@ -58,6 +58,7 @@ namespace WhatsAppAPISolutionDL.Dto
             public string Text { get; set; } = String.Empty;
             public string PhoneNumber { get; set; } = String.Empty;
             public int TextCount { get; set; }
+            public int index { get; set; }
             public string Url { get; set; } = String.Empty;
             public List<KeyValue> Values { get; set; }
         }

@@ -8,20 +8,69 @@ namespace WhatsAppAPISolutionDL.Dto
 {
     public partial class TemplateDto
     {
+
+        public TemplateDto()
+        {
+            Buttons = new List<ButtonComponent>();
+        }
         public long Templates_Id { get; set; }
-        public int? Client_Id { get; set; }
-        public string Template_Name { get; set; }
-        public string Category { get; set; }
-        public string Sub_Category { get; set; }
-        public string Integration_Id { get; set; }
-        public string Template_Id { get; set; }
-        public string Language { get; set; }
-        public string Status { get; set; }
+        public int Client_Id { get; set; }
+        public string Id { get; set; }
+        public string Name { get; set; } = String.Empty;
+        public string Category { get; set; } = String.Empty;
+        public string SubCategory { get; set; } = String.Empty;
+        public string Language { get; set; } = String.Empty;
+        public string Status { get; set; } = String.Empty;
         public bool IsApproved { get; set; }
-        public int Header_Type { get; set; }
-        public int Header_Param_Count { get; set; }
-        public string Header_Text { get; set; }
-        public int? Template_Type { get; set; }
-        public int? ActionBy { get; set; }
+        public int Template_Type { get; set; }
+        public int ActionBy { get; set; }
+        public HeaderComponent Header { get; set; }
+        public BodyComponent Body { get; set; }
+        public FooterComponent Footer { get; set; }
+        public List<ButtonComponent> Buttons { get; set; }
+        public partial class HeaderComponent
+        {
+            public HeaderComponent()
+            {
+                Values = new List<KeyValue>();
+            }
+            public string Format { get; set; } = String.Empty;
+            public string Text { get; set; } = String.Empty;
+            public int TextCount { get; set; }
+            public List<KeyValue> Values { get; set; }
+        }
+        public partial class BodyComponent
+        {
+            public BodyComponent()
+            {
+                Values = new List<KeyValue>();
+            }
+            public string Text { get; set; } = String.Empty;
+            public int TextCount { get; set; }
+            public List<KeyValue> Values { get; set; }
+        }
+        public partial class FooterComponent
+        {
+            public string Text { get; set; } = String.Empty;
+        }
+        public partial class ButtonComponent
+        {
+            public ButtonComponent()
+            {
+                Values = new List<KeyValue>();
+            }
+            public string Type { get; set; }
+            public string Text { get; set; } = String.Empty;
+            public string PhoneNumber { get; set; } = String.Empty;
+            public int TextCount { get; set; }
+            public int index { get; set; }
+            public string Url { get; set; } = String.Empty;
+            public List<KeyValue> Values { get; set; }
+        }
+        public class KeyValue
+        {
+            public string value { get; set; } = String.Empty;
+            public int index { get; set; }
+        }
     }
 }

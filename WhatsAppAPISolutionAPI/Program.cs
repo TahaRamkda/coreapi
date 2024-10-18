@@ -45,6 +45,7 @@ builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<ISenderNameService, SenderNameService>();
 builder.Services.AddScoped<ITemplateService, TemplateService>();
 builder.Services.AddScoped<ITemplateParameterService, TemplateParameterService>();
+builder.Services.AddScoped<IMediaService, MediaService>();
 
 builder.Services.AddDbContext<WhatsAppSolutionContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("WhatsAppAPISolutionDataBase")));
 builder.Services.AddDbContext<WhatsAppSolutionContext2>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("WhatsAppAPISolutionDataBase")));
@@ -142,6 +143,7 @@ else
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseAuthentication();
+app.UseStaticFiles();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

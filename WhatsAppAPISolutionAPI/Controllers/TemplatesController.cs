@@ -133,14 +133,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpDelete("deletetemplate")]
-        public async Task<IActionResult> DeleteTemplateAsync(int template_Id)
+        public async Task<IActionResult> DeleteTemplateAsync(int templates_Id)
         {
-            if (template_Id <= 0)
+            if (templates_Id <= 0)
             {
                 return NotFound("not found");
             }
 
-            var response = await _templateService.DeleteTemplateAsync(template_Id);
+            var response = await _templateService.DeleteTemplateAsync(templates_Id);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -202,6 +202,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("templatesyncbyid")]
         public async Task<IActionResult> TemplateSyncById(string templateId)
         {

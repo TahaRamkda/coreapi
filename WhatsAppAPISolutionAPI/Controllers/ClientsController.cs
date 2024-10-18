@@ -142,5 +142,35 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data deleted successfully"
             });
         }
+
+        [AllowAnonymous]
+        [HttpGet("getclientaccesstoken")]
+        public ActionResult GetClientAccessTokenAsync(int client_Id)
+        {
+            if (client_Id <= 0)
+            {
+                return NotFound("not found");
+            }
+
+            var response = _dbContext.Clients.Where(x => x.ClientId == client_Id && x.RecordStatus != -1).FirstOrDefault();
+
+            if (response == null)
+            {
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Result = "",
+                    Message = "No record found with this id"
+                });
+            }
+
+            return Ok(new ApiResult()
+            {
+                Success = true,
+                Result = response.AccessToken,
+                Message = "Data fetch successfully"
+            });
+        }
+
     }
 }

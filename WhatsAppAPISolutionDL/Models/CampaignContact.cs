@@ -12,15 +12,9 @@ namespace WhatsAppAPISolutionDL.Models
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Area { get; set; }
-        public string Param1 { get; set; }
-        public string Param2 { get; set; }
-        public string Param3 { get; set; }
-        public string Param4 { get; set; }
-        public string Param5 { get; set; }
-        public string Param6 { get; set; }
         public decimal? Cost { get; set; }
         public string SendStatus { get; set; }
         public DateTime? CreatedDate { get; set; }
-        public string CreatedBy { get; set; }
+        public int? CreatedBy { get; set; }
     }
 }

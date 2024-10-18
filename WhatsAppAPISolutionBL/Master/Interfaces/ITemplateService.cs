@@ -13,7 +13,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         public Task<List<UTemplate>> GetTemplateListAsync();
         public Task<UResponse> AddTemplateAsync(TemplateDto template);
         public Task<UResponse> UpdateTemplateAsync(TemplateDto template);
-        public Task<UResponse> DeleteTemplateAsync(int templateId);
+        public Task<UResponse> DeleteTemplateAsync(int templates_Id);
         public Task<UResponse> AddTemplateWithParameterAsync(TemplateWithParametersDto templateWithParameter);
     }
 }
