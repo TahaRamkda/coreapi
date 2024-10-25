@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WhatsAppAPISolutionBL.Master.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
@@ -36,6 +38,59 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response[0];
         }
+        public async Task<UResponse> AddBulkContactAsync(BulkContactDto contact)
+        {
+            if (contact == null) throw new ArgumentNullException(nameof(contact));
+
+            if (contact.Group_Id == 0)
+                return new UResponse()
+                {
+                    Status = 0,
+                    Message = "Please insert group"
+                };
+
+            if (!contact.PhoneNumbers.Any())
+                return new UResponse()
+                {
+                    Status = 0,
+                    Message = "Please add phone numbers"
+                };
+
+            //foreach (var phoneNumber in contact.PhoneNumbers.Select(num => num.Replace("+", "")).ToList())
+            //{
+            //    var contactInfo = new ContactDto()
+            //    {
+            //        Group_Id = contact.Group_Id,
+            //        Phone_Number = phoneNumber,
+            //        ActionBy = 1
+            //    };
+            //    await AddContactAsync(contactInfo);
+            //}
+
+            contact.PhoneNumbers = contact.PhoneNumbers.Where(x => !String.IsNullOrWhiteSpace(x)).Select(x => x.Replace("+", "").Trim()).ToList();
+            var batches = contact.PhoneNumbers.ChunkBy(50);
+
+            foreach (var batch in batches)
+            {
+                foreach (var phoneNumber in batch)
+                {
+                    var contactInfo = new ContactDto()
+                    {
+                        Group_Id = contact.Group_Id,
+                        Phone_Number = phoneNumber,
+                        ActionBy = 1
+                    };
+
+                    await AddContactAsync(contactInfo);
+                }
+            }
+            return new UResponse()
+            {
+                Status = 1,
+                Message = "Data added successfully"
+            };
+        }
+
         public async Task<UResponse> UpdateContactAsync(ContactDto contact)
         {
             var query = string.Format(@"exec usp_Contacts_Ops @ActionId={0}, @Contact_Id={1}, @Group_Id={2}, @First_Name='{3}', @Last_Name='{4}', @Phone_Number='{5}', @Email_Address='{6}', @Area_Name='{7}', @Action_By={8}", (int)CrudEnum.Update, contact.Contact_Id, contact.Group_Id, contact.First_Name, contact.Last_Name, contact.Phone_Number, contact.Email_Address, contact.Area_Name, contact.ActionBy);

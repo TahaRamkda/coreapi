@@ -9,7 +9,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class ContactsController : ControllerBase
     {
         private readonly IContactService _contactService;
@@ -74,6 +74,32 @@ namespace WhatsAppAPISolutionAPI.Controllers
             }
 
             var response = await _contactService.AddContactAsync(contact);
+            if (response == null || response.Status <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Result = response,
+                    Message = response?.Message
+                });
+            }
+            return Ok(new ApiResult()
+            {
+                Success = true,
+                Result = response,
+                Message = "Data added successfully"
+            });
+        }
+
+        [HttpPost("addbulkcontacts")]
+        public async Task<IActionResult> AddBulkContactAsync([FromBody] BulkContactDto contact)
+        {
+            if (contact == null)
+            {
+                return BadRequest();
+            }
+
+            var response = await _contactService.AddBulkContactAsync(contact);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult

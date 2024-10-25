@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
@@ -27,48 +28,236 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UTemplate>> GetTemplateListAsync()
         {
-            var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}", (int)CrudEnum.List);
+            var query = string.Format(@"exec usp_Templates_Ops_Bak @ActionId={0}", (int)CrudEnum.List);
             var response = await _dbContext2.Templates.FromSqlRaw(query).ToListAsync();
 
             return response;
         }
         public async Task<UResponse> AddTemplateAsync(TemplateDto template)
         {
-            var headerJson = JsonSerializer.Serialize(template.Header);
-            var bodyJson = JsonSerializer.Serialize(template.Body);
-            var buttonJson = JsonSerializer.Serialize(template.Buttons);
-
+            int headerType = 0;
+            var headerText = "";
+            int headerParamCount = 0;
+            var bodyText = "";
+            int bodyParamCount = 0;
             var footer = "";
+            var headerValues = new List<TemplateDto.KeyValue>();
+            var bodyValues = new List<TemplateDto.KeyValue>();
+            var buttonValues = new List<TemplateParameter>();
+            Regex regex = new Regex(@"{{\d+}}");
+
+            if (template.Header != null)
+            {
+                if (!string.IsNullOrEmpty(template.Header.Text))
+                {
+                    MatchCollection matches = regex.Matches(template.Header.Text);
+                    if (!(template.Header.TextCount == matches.Count))
+                        return new UResponse()
+                        {
+                            Status = 0,
+                            Message = "Header text parameters is not matching with header text count"
+                        };
+                }
+
+                headerType = template.Header.Format;
+                headerText = template.Header.Text;
+                headerParamCount = template.Header.TextCount;
+            }
+            if (template.Body != null)
+            {
+                MatchCollection matches = regex.Matches(template.Body.Text);
+                if (!(template.Body.TextCount == matches.Count))
+                    return new UResponse()
+                    {
+                        Status = 0,
+                        Message = "Boddy text parameters is not matching with body text count"
+                    };
+
+                bodyText = template.Body.Text;
+                bodyParamCount = template.Body.TextCount;
+            }
             if (template.Footer != null)
                 footer = template.Footer.Text;
 
-            //var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @Client_Id={1}, @Template_Id='{2}', @Template_Name='{3}', @Category='{4}', SubCategory='{5}', Language='{6}', @Status='{7}', IsApproved={8}, @HeaderJson={headerJson}, @Template_Type={9}, @Action_By={10}", (int)CrudEnum.Add, template.Client_Id, template.Id, template.Name, template.Category, template.SubCategory, template.Language, template.Status, template.IsApproved, template.Template_Type, template.ActionBy);
-            //var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
+            if (template.Header != null && template.Header.Values.Any())
+            {
+                foreach (var val in template.Header.Values)
+                {
+                    var param = new TemplateDto.KeyValue()
+                    {
+                        index = val.index,
+                        value = val.value,
+                        defaultValue = val.defaultValue
+                    };
+                    headerValues.Add(param);
+                }
+            }
 
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Add}, @Client_Id={template.Client_Id}, @Template_Id={template.Id}, @Template_Name={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderJson={headerJson}, @BodyJson={bodyJson}, @Footer={footer}, @ButtonJson={buttonJson}, @Template_Type={template.Template_Type}, @Action_By={template.ActionBy}").ToListAsync();
+            if (template.Body != null && template.Body.Values.Any())
+            {
+                foreach (var val in template.Body.Values)
+                {
+                    var param = new TemplateDto.KeyValue()
+                    {
+                        index = val.index,
+                        value = val.value,
+                        defaultValue = val.defaultValue
+                    };
+                    bodyValues.Add(param);
+                }
+            }
+            if (template.Buttons != null && template.Buttons.Any())
+            {
+                foreach (var button in template.Buttons)
+                {
+                    if (Enum.TryParse(button.Type, true, out ButtonTypeEnum parsedEnum))
+                    {
+                        var param = new TemplateParameter()
+                        {
+                            Sequence = button.index,
+                            ParamName = button.Text,
+                            ParamText = string.Empty,
+                            ParamDefaultValue = button.Url,
+                            IsDynamic = false,
+                            ParamType = (int)TemplateParamEnum.Button,
+                            ButtonType = (int)parsedEnum
+                        };
+
+                        // Handle URL button cases
+                        if (parsedEnum == ButtonTypeEnum.URL)
+                        {
+                            if (button.TextCount == 0)
+                            {
+                                param.ParamText = button.Url; // Use URL as text
+                            }
+                            else if (button.TextCount == 1)
+                            {
+                                param.ParamText = button.Url; // Use URL as text
+                                param.ParamDefaultValue = button.Values.Any() ? button.Values[0].value : "";
+                                param.IsDynamic = true; // Mark as dynamic
+                            }
+                        }
+                        else if (parsedEnum == ButtonTypeEnum.PHONE_NUMBER)
+                        {
+                            param.ParamDefaultValue = button.PhoneNumber;
+                        }
+                        buttonValues.Add(param);
+                    }
+                }
+            }
+
+            var headerJson = JsonSerializer.Serialize(headerValues);
+            var bodyJson = JsonSerializer.Serialize(bodyValues);
+            var buttonJson = JsonSerializer.Serialize(buttonValues);
+
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Templates_Ops_Bak @ActionId={(int)CrudEnum.Add}, @ClientId={template.Client_Id}, @TemplateId={template.Id}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.Template_Type}, @Action_By={template.ActionBy}").ToListAsync();
 
             return response[0];
         }
         public async Task<UResponse> UpdateTemplateAsync(TemplateDto template)
         {
-            var headerJson = JsonSerializer.Serialize(template.Header);
-            var bodyJson = JsonSerializer.Serialize(template.Body);
-            var buttonJson = JsonSerializer.Serialize(template.Buttons);
-
+            int headerType = 0;
+            var headerText = "";
+            int headerParamCount = 0;
+            var bodyText = "";
+            int bodyParamCount = 0;
             var footer = "";
+            var headerValues = new List<TemplateDto.KeyValue>();
+            var bodyValues = new List<TemplateDto.KeyValue>();
+            var buttonValues = new List<TemplateParameter>();
+
+            if (template.Header != null)
+            {
+                headerType = template.Header.Format;
+                headerText = template.Header.Text;
+                headerParamCount = template.Header.TextCount;
+            }
+            if (template.Body != null)
+            {
+                bodyText = template.Body.Text;
+                bodyParamCount = template.Body.TextCount;
+            }
             if (template.Footer != null)
                 footer = template.Footer.Text;
 
-            //var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @Templates_Id={1}, @Client_Id={2}, @Template_Name='{3}', @Integration_Id='{4}', @Template_Id='{5}', @Status={6}, @Template_Type={7}, @Action_By={8}", (int)CrudEnum.Update, template.Templates_Id, template.Client_Id, template.Template_Name, template.Integration_Id, template.Template_Id, template.Status, template.Template_Type, template.ActionBy);
-            //var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
+            if (template.Header != null && template.Header.Values.Any())
+            {
+                foreach (var val in template.Header.Values)
+                {
+                    var param = new TemplateDto.KeyValue()
+                    {
+                        index = val.index,
+                        value = val.value,
+                        defaultValue = val.defaultValue
+                    };
+                    headerValues.Add(param);
+                }
+            }
 
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Update}, Templates_Id={template.Templates_Id}, @Client_Id={template.Client_Id}, @Template_Id={template.Id}, @Template_Name={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderJson={headerJson}, @BodyJson={bodyJson}, @Footer={footer}, @ButtonJson={buttonJson}, @Template_Type={template.Template_Type}, @Action_By={template.ActionBy}").ToListAsync();
+            if (template.Body != null && template.Body.Values.Any())
+            {
+                foreach (var val in template.Body.Values)
+                {
+                    var param = new TemplateDto.KeyValue()
+                    {
+                        index = val.index,
+                        value = val.value,
+                        defaultValue = val.defaultValue
+                    };
+                    bodyValues.Add(param);
+                }
+            }
+            if (template.Buttons != null && template.Buttons.Any())
+            {
+                foreach (var button in template.Buttons)
+                {
+                    if (Enum.TryParse(button.Type, true, out ButtonTypeEnum parsedEnum))
+                    {
+                        var param = new TemplateParameter()
+                        {
+                            Sequence = button.index,
+                            ParamName = button.Text,
+                            ParamText = string.Empty,
+                            ParamDefaultValue = button.Url,
+                            IsDynamic = false,
+                            ParamType = (int)TemplateParamEnum.Button,
+                            ButtonType = (int)parsedEnum
+                        };
+
+                        // Handle URL button cases
+                        if (parsedEnum == ButtonTypeEnum.URL)
+                        {
+                            if (button.TextCount == 0)
+                            {
+                                param.ParamText = button.Url; // Use URL as text
+                            }
+                            else if (button.TextCount == 1)
+                            {
+                                param.ParamText = button.Url; // Use URL as text
+                                param.ParamDefaultValue = button.Values.Any() ? button.Values[0].value : "";
+                                param.IsDynamic = true; // Mark as dynamic
+                            }
+                        }
+                        else if (parsedEnum == ButtonTypeEnum.PHONE_NUMBER)
+                        {
+                            param.ParamDefaultValue = button.PhoneNumber;
+                        }
+                        buttonValues.Add(param);
+                    }
+                }
+            }
+
+            var headerJson = JsonSerializer.Serialize(headerValues);
+            var bodyJson = JsonSerializer.Serialize(bodyValues);
+            var buttonJson = JsonSerializer.Serialize(buttonValues);
+
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Templates_Ops_Bak @ActionId={(int)CrudEnum.Update}, @TemplatesId={template.Templates_Id}, @ClientId={template.Client_Id}, @TemplateId={template.Id}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.Template_Type}, @Action_By={template.ActionBy}").ToListAsync();
 
             return response[0];
         }
         public async Task<UResponse> DeleteTemplateAsync(int templates_Id)
         {
-            var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @Templates_Id={1}", (int)CrudEnum.Delete, templates_Id);
+            var query = string.Format(@"exec usp_Templates_Ops_Bak @ActionId={0}, @TemplatesId={1}", (int)CrudEnum.Delete, templates_Id);
             var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
 
             return response[0];

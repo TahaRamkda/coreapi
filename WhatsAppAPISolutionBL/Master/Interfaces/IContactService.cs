@@ -12,6 +12,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
     {
         public Task<List<UContact>> GetContactListAsync();
         public Task<UResponse> AddContactAsync(ContactDto contact);
+        public Task<UResponse> AddBulkContactAsync(BulkContactDto contact);
         public Task<UResponse> UpdateContactAsync(ContactDto contact);
         public Task<UResponse> DeleteContactAsync(int contactId);
     }

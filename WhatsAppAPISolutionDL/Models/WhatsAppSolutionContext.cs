@@ -259,6 +259,8 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.Property(e => e.GroupId).HasColumnName("Group_Id");
 
+                entity.Property(e => e.ClientId).HasColumnName("Client_Id");
+
                 entity.Property(e => e.CreatedBy).HasColumnName("Created_By");
 
                 entity.Property(e => e.CreatedDate)

@@ -34,7 +34,7 @@ namespace WhatsAppAPISolutionDL.Dto
             {
                 Values = new List<KeyValue>();
             }
-            public string Format { get; set; } = String.Empty;
+            public int Format { get; set; }
             public string Text { get; set; } = String.Empty;
             public int TextCount { get; set; }
             public List<KeyValue> Values { get; set; }
@@ -70,6 +70,7 @@ namespace WhatsAppAPISolutionDL.Dto
         public class KeyValue
         {
             public string value { get; set; } = String.Empty;
+            public string defaultValue { get; set; } = String.Empty;
             public int index { get; set; }
         }
     }

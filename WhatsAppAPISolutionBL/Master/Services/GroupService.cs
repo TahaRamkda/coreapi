@@ -31,14 +31,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<UResponse> AddGroupAsync(GroupDto group)
         {
-            var query = string.Format(@"exec usp_Groups_Ops @ActionId={0}, @Group_Name='{1}', @Action_By={2}", (int)CrudEnum.Add, group.Group_Name, group.ActionBy);
+            var query = string.Format(@"exec usp_Groups_Ops @ActionId={0}, @Client_Id={1}, @Group_Name='{2}', @Action_By={3}", (int)CrudEnum.Add, group.Client_Id, group.Group_Name, group.ActionBy);
             var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
 
             return response[0];
         }
         public async Task<UResponse> UpdateGroupAsync(GroupDto group)
         {
-            var query = string.Format(@"exec usp_Groups_Ops @ActionId={0}, @Group_Id={1}, @Group_Name='{2}', @Action_By={3}", (int)CrudEnum.Update, group.Group_Id, group.Group_Name, group.ActionBy);
+            var query = string.Format(@"exec usp_Groups_Ops @ActionId={0}, @Client_Id={1}, @Group_Id={2}, @Group_Name='{3}', @Action_By={4}", (int)CrudEnum.Update, group.Client_Id, group.Group_Id, group.Group_Name, group.ActionBy);
             var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
 
             return response[0];

@@ -16,7 +16,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class TemplatesController : ControllerBase
     {
         private readonly ITemplateService _templateService;
