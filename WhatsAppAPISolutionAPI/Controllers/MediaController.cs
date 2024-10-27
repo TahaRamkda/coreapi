@@ -38,7 +38,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             if (file != null && file.Length > 0)
             {
-                var originalFileName = file.FileName;
+                var originalFileName = file.FileName.Replace(" ","_");
                 var filePath = Path.Combine(_uploadPath, originalFileName);
 
                 // Check if the file already exists and create a unique filename if it does

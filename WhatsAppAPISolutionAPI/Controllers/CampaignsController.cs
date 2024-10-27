@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.ComponentModel;
@@ -7,6 +9,7 @@ using System.Net.Http;
 using WhatsAppAPISolutionAPI.Models;
 using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
@@ -25,12 +28,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly IOptions<BridgeConfigurationSettings> _bridgeConfigurationSettings;
         private readonly HttpClient _httpClient;
         private readonly string baseUrl = String.Empty;
+        private readonly ICampaignService _campaignService;
 
         public CampaignsController(ITemplateService templateService,
             WhatsAppSolutionContext dbContext,
             ILogger<CampaignsController> logger,
           IOptions<BridgeConfigurationSettings> bridgeConfigurationSettings,
-          IHttpClientFactory httpClientFactory)
+          IHttpClientFactory httpClientFactory,
+          ICampaignService campaignService)
         {
             _templateService = templateService;
             _dbContext = dbContext;
@@ -38,9 +43,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _bridgeConfigurationSettings = bridgeConfigurationSettings;
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             baseUrl = _httpClient.BaseAddress.AbsoluteUri;
+            _campaignService = campaignService;
         }
 
-        [HttpPost("addTemplate")]
+        [HttpPost("sendtemplate")]
         public async Task<IActionResult> SendTemplateMessage([FromBody] SendTemplateMessageDto sendTemplateMessage)
         {
             if (sendTemplateMessage == null)
@@ -77,7 +83,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             var templateData = _dbContext.Templates.Where(x => x.TemplateId == sendTemplateMessage.Template_Id).FirstOrDefault();
             if (templateData != null)
             {
-                var tempParam = _dbContext.TemplateParameters.Where(x => x.TemplatesId == templateData.TemplatesId&&x.ParamType==(int)TemplateParamEnum.Header).OrderBy(y => y.ParamType).ThenBy(z => z.Sequence).ToList();
+                var tempParam = _dbContext.TemplateParameters.Where(x => x.TemplatesId == templateData.TemplatesId && x.ParamType == (int)TemplateParamEnum.Header).OrderBy(y => y.ParamType).ThenBy(z => z.Sequence).ToList();
                 if (tempParam.Any())
                 {
                     var comp = new TemplateComponent();
@@ -90,7 +96,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                             val.Type = ((TemplateHeaderEnum)templateData.HeaderType).ToString();
 
                         val.Type = TemplateHeaderEnum.TEXT.ToString();
-                        val.Value =item.ParamDefaultValue;
+                        val.Value = item.ParamDefaultValue;
                         val.Index = item.Sequence.Value;
                         comp.Values.Add(val);
                     }
@@ -163,16 +169,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     });
                 }
             }
-            //var response = await _templateService.AddTemplateAsync(template);
-            //if (response == null || response.Status <= 0)
-            //{
-            //    return Ok(new ApiResult
-            //    {
-            //        Success = false,
-            //        Result = response,
-            //        Message = response?.Message
-            //    });
-            //}
             return Ok(new ApiResult()
             {
                 Success = true,
@@ -181,5 +177,80 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
+        [HttpPost("sendcampaign")]
+        public async Task<IActionResult> SendCampaignMessage([FromBody] SendCampaignDto sendCampaign)
+        {
+            if (sendCampaign == null) return BadRequest();
+
+            if (sendCampaign.Sender_Id == 0)
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Sender Id required"
+                });
+
+            if (sendCampaign.Template_Id == 0)
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Template Id required"
+                });
+
+            if (sendCampaign.Group_Id == 0)
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Group Id required"
+                });
+
+            var group = await _dbContext.Groups.Where(x => x.GroupId == sendCampaign.Group_Id).FirstOrDefaultAsync();
+            if (group == null)
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Group not exist"
+                });
+
+            var contacts = await _dbContext.Contacts.Where(x => x.GroupId == group.GroupId).Select(x => x.PhoneNumber).ToListAsync();
+            if (!contacts.Any())
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "No numbers exist in this group"
+                });
+
+            var sender = await _dbContext.SenderNames.Where(x => x.SenderId == sendCampaign.Sender_Id).FirstOrDefaultAsync();
+            if (sender == null)
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Sender not exist"
+                });
+
+            var template = await _dbContext.Templates.Where(x => x.TemplatesId == sendCampaign.Template_Id).FirstOrDefaultAsync();
+            if (template == null)
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Template not exist"
+                });
+
+            var response = await _campaignService.SendCampaignAsync(sendCampaign);
+            if (response == null || response.Status <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Result = response,
+                    Message = response?.Message
+                });
+            }
+            return Ok(new ApiResult()
+            {
+                Success = true,
+                Result = response,
+                Message = "Data added successfully"
+            });
+        }
     }
 }

@@ -16,5 +16,8 @@ namespace WhatsAppAPISolutionDL.Models
         public string SendStatus { get; set; }
         public DateTime? CreatedDate { get; set; }
         public int? CreatedBy { get; set; }
+        public string WaId { get; set; }
+        public string SentTime { get; set; }
+        public string DeliveredTime { get; set; }
     }
 }

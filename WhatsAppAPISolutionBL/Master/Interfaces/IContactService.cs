@@ -10,7 +10,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface IContactService
     {
-        public Task<List<UContact>> GetContactListAsync();
+        public Task<List<UContact>> GetContactListAsync(int client_Id, string searchStr = "");
         public Task<UResponse> AddContactAsync(ContactDto contact);
         public Task<UResponse> AddBulkContactAsync(BulkContactDto contact);
         public Task<UResponse> UpdateContactAsync(ContactDto contact);

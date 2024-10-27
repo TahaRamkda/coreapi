@@ -28,6 +28,7 @@
         ChangePassword = 5,
         SettleDistributorAmount = 5,
         SettleCustomerAmount = 5,
+        SendCampaign = 5,
 
 
         AddUserToken = 6,

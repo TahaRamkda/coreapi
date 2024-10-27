@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.Pkcs;
 using System.Text;
 using System.Threading.Tasks;
 using WhatsAppAPISolutionBL.Master.Helper;
@@ -24,9 +25,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _dbContext2 = dbContext2;
         }
 
-        public async Task<List<UContact>> GetContactListAsync()
+        public async Task<List<UContact>> GetContactListAsync(int client_Id, string searchStr = "")
         {
-            var query = string.Format(@"exec usp_Contacts_Ops @ActionId={0}", (int)CrudEnum.List);
+            var query = string.Format(@"exec usp_Contacts_Ops @ActionId={0}, @Client_Id={1}, @SearchStr={2}", (int)CrudEnum.List, client_Id, searchStr);
             var response = await _dbContext2.Contacts.FromSqlRaw(query).ToListAsync();
 
             return response;
@@ -48,8 +49,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Status = 0,
                     Message = "Please insert group"
                 };
-
-            if (!contact.PhoneNumbers.Any())
+            if (!contact.ContactsInfo.Any())
+                return new UResponse()
+                {
+                    Status = 0,
+                    Message = "Please add atleast one contact"
+                };
+            if (!contact.ContactsInfo.Select(x => x.Phone_Number).Any())
                 return new UResponse()
                 {
                     Status = 0,
@@ -67,21 +73,36 @@ namespace WhatsAppAPISolutionBL.Master.Services
             //    await AddContactAsync(contactInfo);
             //}
 
-            contact.PhoneNumbers = contact.PhoneNumbers.Where(x => !String.IsNullOrWhiteSpace(x)).Select(x => x.Replace("+", "").Trim()).ToList();
-            var batches = contact.PhoneNumbers.ChunkBy(50);
+            contact.ContactsInfo = contact.ContactsInfo
+    .Where(x => !string.IsNullOrWhiteSpace(x.Phone_Number))
+    .Select(x => new ContactInfo
+    {
+        First_Name = x.First_Name,
+        Last_Name = x.Last_Name,
+        Phone_Number = x.Phone_Number.Replace("+", "").Trim(),
+        Email_Address = x.Email_Address,
+        Area_Name = x.Area_Name
+    })
+    .ToList();
+
+            var batches = contact.ContactsInfo.ChunkBy(50);
 
             foreach (var batch in batches)
             {
-                foreach (var phoneNumber in batch)
+                foreach (var contactInfo in batch)
                 {
-                    var contactInfo = new ContactDto()
+                    var newContact = new ContactDto()
                     {
+                        First_Name = contactInfo.First_Name,
+                        Last_Name = contactInfo.Last_Name,
+                        Phone_Number = contactInfo.Phone_Number,
+                        Email_Address = contactInfo.Email_Address,
+                        Area_Name = contactInfo.Area_Name,
                         Group_Id = contact.Group_Id,
-                        Phone_Number = phoneNumber,
-                        ActionBy = 1
+                        ActionBy = contact.ActionBy
                     };
 
-                    await AddContactAsync(contactInfo);
+                    await AddContactAsync(newContact);
                 }
             }
             return new UResponse()

@@ -112,6 +112,8 @@ namespace WhatsAppAPISolutionDL.Models
                     .HasColumnName("Created_Date")
                     .HasDefaultValueSql("(getdate())");
 
+                entity.Property(e => e.DeliveredTime).HasMaxLength(250);
+
                 entity.Property(e => e.FirstName)
                     .HasMaxLength(255)
                     .HasColumnName("First_Name");
@@ -129,6 +131,12 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.SendStatus)
                     .HasMaxLength(50)
                     .HasColumnName("Send_Status");
+
+                entity.Property(e => e.SentTime).HasMaxLength(250);
+
+                entity.Property(e => e.WaId)
+                    .HasMaxLength(250)
+                    .HasColumnName("wa_id");
             });
 
             modelBuilder.Entity<CampaignParam>(entity =>
@@ -221,6 +229,8 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.AreaName)
                     .HasMaxLength(50)
                     .HasColumnName("Area_Name");
+
+                entity.Property(e => e.ClientId).HasColumnName("Client_Id");
 
                 entity.Property(e => e.CreatedBy).HasColumnName("Created_By");
 
