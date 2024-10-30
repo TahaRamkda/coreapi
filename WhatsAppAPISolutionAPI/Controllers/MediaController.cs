@@ -27,16 +27,19 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly IOptions<BridgeConfigurationSettings> _bridgeConfigurationSettings;
         private readonly HttpClient _httpClient;
         private readonly string baseUrl = String.Empty;
+        private readonly IWebHostEnvironment _hostingEnvironment;
 
         public MediaController(IMediaService mediaService,
             WhatsAppSolutionContext dbContext,
             ILogger<MediaController> logger,
           IOptions<BridgeConfigurationSettings> bridgeConfigurationSettings,
-          IHttpClientFactory httpClientFactory)
+          IHttpClientFactory httpClientFactory,
+          IWebHostEnvironment hostingEnvironment)
         {
             _mediaService = mediaService;
             _dbContext = dbContext;
             _logger = logger;
+            _hostingEnvironment = hostingEnvironment;
             _bridgeConfigurationSettings = bridgeConfigurationSettings;
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             baseUrl = _httpClient.BaseAddress.AbsoluteUri;
@@ -109,8 +112,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     await model.File.CopyToAsync(stream);
                 }
 
-                // Create the full URL for the uploaded file
-                var fileUrl = $"{Request.Scheme}://{Request.Host}/Uploads/{Path.GetFileName(filePath)}";
+                var fileUrl = Path.Combine(_hostingEnvironment.ContentRootPath, "Uploads", Path.GetFileName(filePath));
 
                 // Create response details
                 var media = new MediaUploadDto()
