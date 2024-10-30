@@ -4,6 +4,8 @@ using WhatsAppAPISolutionAPI.Models;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.UserModels;
+using System.Linq;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -142,5 +144,46 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data deleted successfully"
             });
         }
-    }
+
+        [AllowAnonymous]
+        [HttpGet("getsendernameinformation")]
+        public ActionResult GetSenderNameInformationAsync(int client_Id, int sender_Name_Id)
+        {
+            if (client_Id <= 0)
+            {
+                return NotFound("not found");
+            }
+
+            var response = (from a in _dbContext.SenderNames
+                            join b in _dbContext.Clients on (long)a.ClientId equals b.ClientId
+                            where a.ClientId == client_Id && a.SenderId == sender_Name_Id && a.RecordStatus != -1 && b.RecordStatus != -1
+                            select new
+                            {
+                                ClientId = a.ClientId,
+                                SenderId = a.SenderId,
+                                SenderName = a.SenderName1,
+                                PhoneNumberId = a.PhoneNumberId,
+                                PhoneNumber = a.PhoneNumber,
+                                BusinessAccountId = a.BusinessAccountId,
+                                AccessToken = b.AccessToken
+                            }).FirstOrDefault();
+
+            if (response == null)
+            {
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Result = "",
+                    Message = "No record found with this id"
+                });
+            }
+
+            return Ok(new ApiResult()
+            {
+                Success = true,
+                Result = response,
+                Message = "Data fetch successfully"
+            });
+        }
+}
 }

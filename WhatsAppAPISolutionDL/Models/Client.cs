@@ -14,13 +14,13 @@ namespace WhatsAppAPISolutionDL.Models
         public string ContactPersonEmail { get; set; }
         public string ContactPersonPhone { get; set; }
         public decimal? BalanceAlertLimit { get; set; }
+        public string BusinessId { get; set; }
+        public string AppId { get; set; }
         public string AccessToken { get; set; }
         public int? CreatedBy { get; set; }
         public DateTime? CreatedDate { get; set; }
         public int? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
         public int? RecordStatus { get; set; }
-        public string WhatsAppBusinessAccountId { get; set; }
-        public string AppId { get; set; }
     }
 }

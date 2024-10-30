@@ -144,8 +144,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("getclientaccesstoken")]
-        public ActionResult GetClientAccessTokenAsync(int client_Id)
+        [HttpGet("getclientinformation")]
+        public ActionResult GetClientInformationAsync(int client_Id)
         {
             if (client_Id <= 0)
             {
@@ -167,7 +167,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
             return Ok(new ApiResult()
             {
                 Success = true,
-                Result = response.AccessToken,
+                Result = new
+                {
+                    ClientId = response.ClientId,
+                    ClientName = response.ClientName,
+                    AccessToken = response.AccessToken
+                },
                 Message = "Data fetch successfully"
             });
         }

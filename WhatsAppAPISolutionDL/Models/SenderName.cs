@@ -9,8 +9,8 @@ namespace WhatsAppAPISolutionDL.Models
         public int? ClientId { get; set; }
         public string SenderName1 { get; set; }
         public string PhoneNumber { get; set; }
-        public string PhoneId { get; set; }
-        public string AppId { get; set; }
+        public string PhoneNumberId { get; set; }
+        public string BusinessAccountId { get; set; }
         public decimal? Limit { get; set; }
         public decimal? Quality { get; set; }
         public int? CreatedBy { get; set; }

@@ -14,4 +14,9 @@
         public string message { get; set; } = "";
         public int statusCode { get; set; }
     }
+    public class MediaResult
+    {
+        public string id { get; set; }
+        public string mediaId { get; set; }
+    }
 }

@@ -175,13 +175,19 @@ namespace WhatsAppAPISolutionDL.Models
                     .HasMaxLength(250)
                     .HasColumnName("Access_Token");
 
-                entity.Property(e => e.AppId).HasMaxLength(100);
+                entity.Property(e => e.AppId)
+                    .HasMaxLength(100)
+                    .HasColumnName("App_Id");
 
                 entity.Property(e => e.Balance).HasColumnType("numeric(18, 3)");
 
                 entity.Property(e => e.BalanceAlertLimit)
                     .HasColumnType("numeric(18, 3)")
                     .HasColumnName("Balance_Alert_Limit");
+
+                entity.Property(e => e.BusinessId)
+                    .HasMaxLength(100)
+                    .HasColumnName("Business_Id");
 
                 entity.Property(e => e.ClientAddress).HasColumnName("Client_Address");
 
@@ -214,10 +220,6 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.UpdatedDate)
                     .HasColumnType("datetime")
                     .HasColumnName("Updated_Date");
-
-                entity.Property(e => e.WhatsAppBusinessAccountId)
-                    .HasMaxLength(100)
-                    .HasColumnName("WhatsAppBusinessAccountID");
             });
 
             modelBuilder.Entity<Contact>(entity =>
@@ -308,6 +310,20 @@ namespace WhatsAppAPISolutionDL.Models
             modelBuilder.Entity<Medium>(entity =>
             {
                 entity.Property(e => e.ClientId).HasColumnName("Client_Id");
+
+                entity.Property(e => e.ContentType)
+                    .HasMaxLength(250)
+                    .HasColumnName("Content_Type");
+
+                entity.Property(e => e.FileExtension)
+                    .HasMaxLength(50)
+                    .HasColumnName("File_Extension");
+
+                entity.Property(e => e.FileName)
+                    .HasMaxLength(250)
+                    .HasColumnName("File_Name");
+
+                entity.Property(e => e.FileSize).HasColumnName("File_Size");
 
                 entity.Property(e => e.MediaId)
                     .HasMaxLength(250)
@@ -447,9 +463,9 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.Property(e => e.SenderId).HasColumnName("Sender_Id");
 
-                entity.Property(e => e.AppId)
+                entity.Property(e => e.BusinessAccountId)
                     .HasMaxLength(50)
-                    .HasColumnName("App_Id");
+                    .HasColumnName("Business_Account_Id");
 
                 entity.Property(e => e.ClientId).HasColumnName("Client_Id");
 
@@ -461,13 +477,13 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.Property(e => e.Limit).HasColumnType("numeric(18, 3)");
 
-                entity.Property(e => e.PhoneId)
-                    .HasMaxLength(50)
-                    .HasColumnName("Phone_Id");
-
                 entity.Property(e => e.PhoneNumber)
                     .HasMaxLength(50)
                     .HasColumnName("Phone_Number");
+
+                entity.Property(e => e.PhoneNumberId)
+                    .HasMaxLength(50)
+                    .HasColumnName("Phone_Number_Id");
 
                 entity.Property(e => e.Quality).HasColumnType("numeric(18, 3)");
 
