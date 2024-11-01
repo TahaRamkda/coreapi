@@ -152,7 +152,19 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 return NotFound("not found");
             }
 
-            var response = _dbContext.Clients.Where(x => x.ClientId == client_Id && x.RecordStatus != -1).FirstOrDefault();
+            //var response = _dbContext.Clients.Where(x => x.ClientId == client_Id && x.RecordStatus != -1).FirstOrDefault();
+
+            var response = (from a in _dbContext.Clients
+                            join b in _dbContext.SenderNames on a.ClientId equals (long)b.ClientId
+                            where a.ClientId == client_Id && a.RecordStatus != -1 && b.RecordStatus != -1
+                            select new
+                            {
+                                ClientId = a.ClientId,
+                                ClientName = a.ClientName,
+                                AccessToken = a.AccessToken,
+                                AppId = a.AppId,
+                                BusinessId = a.BusinessId
+                            }).FirstOrDefault();
 
             if (response == null)
             {
@@ -167,12 +179,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             return Ok(new ApiResult()
             {
                 Success = true,
-                Result = new
-                {
-                    ClientId = response.ClientId,
-                    ClientName = response.ClientName,
-                    AccessToken = response.AccessToken
-                },
+                Result = response,
                 Message = "Data fetch successfully"
             });
         }

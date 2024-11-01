@@ -12,6 +12,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
     {
         public Task<List<UMediaUpload>> GetMediaListAsync(int client_Id);
         public Task<UResponseWithID> AddMediaAsync(MediaUploadDto media);
+        public Task<UResponse> UploadMediaAsync(MediaUploadDto media);
         public Task<UResponseWithID> UpdateMediaAsync(MediaUploadDto media);
         public Task<UResponseWithID> DeleteMediaAsync(int id);
     }

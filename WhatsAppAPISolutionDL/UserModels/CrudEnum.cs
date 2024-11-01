@@ -29,11 +29,13 @@
         SettleDistributorAmount = 5,
         SettleCustomerAmount = 5,
         SendCampaign = 5,
+        BulkContact = 5,
 
 
         AddUserToken = 6,
         GetPurchaseHeader = 6,
         GetQuotationHeader = 6,
+        UpdateTemplateStatus = 6,
 
         CancelOrder = 7,
         SettleDistributorPurchaseWithAmount = 7,

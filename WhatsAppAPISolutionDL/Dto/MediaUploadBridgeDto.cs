@@ -12,7 +12,8 @@ namespace WhatsAppAPISolutionDL.Dto
 
             medias = new List<Media>();
         }
-        public string phoneId {  get; set; }
+        public string clientId {  get; set; }
+        public string senderNameId {  get; set; }
         public List<Media> medias {  get; set; }
         public partial class Media
         {

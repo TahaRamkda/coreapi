@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Http.Features;
 using WhatsAppAPISolutionAPI.Setting;
 using Microsoft.Extensions.Options;
 using WhatsAppAPISolutionAPI.Models;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 ConfigurationManager configuration = builder.Configuration;
@@ -119,7 +120,12 @@ builder.Services.AddSwaggerGen(setup =>
 });
 
 var app = builder.Build();
+app.UseStaticFiles(new StaticFileOptions()
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Uploads/")),
 
+    RequestPath = new PathString("/Uploads")
+});
 app.UseExceptionHandlerMiddleware();
 
 if (app.Environment.IsDevelopment())

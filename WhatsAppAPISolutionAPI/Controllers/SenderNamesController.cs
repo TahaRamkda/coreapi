@@ -165,7 +165,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
                                 PhoneNumberId = a.PhoneNumberId,
                                 PhoneNumber = a.PhoneNumber,
                                 BusinessAccountId = a.BusinessAccountId,
-                                AccessToken = b.AccessToken
+                                AccessToken = b.AccessToken,
+                                AppId = b.AppId,
+                                BusinessId = b.BusinessId
                             }).FirstOrDefault();
 
             if (response == null)
@@ -185,5 +187,5 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data fetch successfully"
             });
         }
-}
+    }
 }

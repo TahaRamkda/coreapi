@@ -11,7 +11,6 @@ namespace WhatsAppAPISolutionDL.UserModels
         TEXT = 1,
         IMAGE = 2,
         VIDEO = 3,
-        DOCUMENT = 4,
-        STICKER = 5
+        DOCUMENT = 4
     }
 }

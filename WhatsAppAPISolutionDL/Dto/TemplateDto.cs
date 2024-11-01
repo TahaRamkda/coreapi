@@ -15,12 +15,14 @@ namespace WhatsAppAPISolutionDL.Dto
         }
         public long Templates_Id { get; set; }
         public int Client_Id { get; set; }
-        public string Id { get; set; }
+        public int Sender_Name_Id { get; set; }
+        public string TemplateId { get; set; }
         public string Name { get; set; } = String.Empty;
         public string Category { get; set; } = String.Empty;
         public string SubCategory { get; set; } = String.Empty;
         public string Language { get; set; } = String.Empty;
         public string Status { get; set; } = String.Empty;
+        public string MediaId { get; set; } = String.Empty;
         public bool IsApproved { get; set; }
         public int Template_Type { get; set; }
         public int ActionBy { get; set; }
