@@ -14,7 +14,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string Template_Name { get; set; }
         //public string Integration_Id { get; set; }
         public string Template_Id { get; set; }
-        public int? Status { get; set; }
+        public string Status { get; set; }
         //public int? Template_Type { get; set; }
         public int? Created_By { get; set; }
         public string Created_Date { get; set; }

@@ -8,6 +8,7 @@ using System.Text.Json;
 using WhatsAppAPISolutionAPI.Models;
 using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
@@ -41,9 +42,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("gettemplateslist")]
-        public async Task<ActionResult> GetTemplatesListAsync()
+        public async Task<ActionResult> GetTemplatesListAsync(int client_Id)
         {
-            var res = await _templateService.GetTemplateListAsync();
+            var res = await _templateService.GetTemplateListAsync(client_Id);
             return Ok(new ApiResult()
             {
                 Success = true,
@@ -87,6 +88,20 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 return BadRequest();
             }
+
+            if(string.IsNullOrEmpty(template.Name))
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Please insert template name"
+                });
+
+            if (template.Sender_Name_Id <= 0)
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Please insert sender Id"
+                });
 
             var response = await _templateService.AddTemplateAsync(template);
             if (response == null || response.Status <= 0)
@@ -245,6 +260,18 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [HttpGet("gettemplatedetails")]
+        public async Task<ActionResult> GetTemplateDetailsAsync(int client_Id, int templates_Id = 0)
+        {
+            var res = await _templateService.GetTemplateDetailsAsync(client_Id, templates_Id);
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = res,
+                Message = "Data fetch successfully"
+            });
         }
     }
 }

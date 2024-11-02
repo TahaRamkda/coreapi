@@ -21,5 +21,6 @@ namespace WhatsAppAPISolutionDL.Models
         public int? UndeliveredCount { get; set; }
         public DateTime? CreatedDate { get; set; }
         public int? CreatedBy { get; set; }
+        public decimal? EstimatedCost { get; set; }
     }
 }

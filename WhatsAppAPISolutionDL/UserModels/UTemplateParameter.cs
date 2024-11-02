@@ -17,11 +17,13 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string Param_Name { get; set; }
         public int? Param_Type { get; set; }
         public string Param_Default_Value { get; set; }
+        public bool IsDynamic { get; set; }
+        public int? Button_Type { get; set; }
         public int? Status { get; set; }
         public int? Created_By { get; set; }
         public string Created_Date { get; set; }
         public int? Updated_By { get; set; }
         public string Updated_Date { get; set; }
-        public int? Total { get; set; }
+        //public int? Total { get; set; }
     }
 }

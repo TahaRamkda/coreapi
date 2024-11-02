@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Data;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -26,9 +27,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _httpClient = httpClientFactory.CreateClient("bridge_api");
         }
 
-        public async Task<List<UTemplate>> GetTemplateListAsync()
+        public async Task<List<UTemplate>> GetTemplateListAsync(int client_Id)
         {
-            var query = string.Format(@"exec usp_Templates_Ops_Bak @ActionId={0}", (int)CrudEnum.List);
+            var query = string.Format(@"exec usp_Templates_Ops_Bak @ActionId={0}, @ClientId={1}", (int)CrudEnum.List, client_Id);
             var response = await _dbContext2.Templates.FromSqlRaw(query).ToListAsync();
 
             return response;
@@ -41,13 +42,258 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var bodyText = "";
             int bodyParamCount = 0;
             var footer = "";
+            var mediaUrl = "";
             var headerValues = new List<TemplateDto.KeyValue>();
             var bodyValues = new List<TemplateDto.KeyValue>();
             var buttonValues = new List<TemplateParameter>();
             Regex regex = new Regex(@"{{\d+}}");
 
+            template.Name = template.Name.Replace(" ", "_");
             if (template.Header != null)
             {
+                if (template.Header.Format != (int)TemplateHeaderEnum.TEXT)
+                {
+                    if (string.IsNullOrEmpty(template.MediaId))
+                        return new UResponseWithID()
+                        {
+                            Status = 0,
+                            Message = "Media Id required when header type is not text"
+                        };
+                    var mediaDetail = await _dbContext.Media.Where(x => x.MediaId == template.MediaId).FirstOrDefaultAsync();
+                    if (mediaDetail == null && string.IsNullOrEmpty(mediaDetail.MediaPath))
+                        return new UResponseWithID()
+                        {
+                            Status = 0,
+                            Message = "Media not exist"
+                        };
+                    else
+                        mediaUrl = mediaDetail.MediaPath;
+                }
+                if (!string.IsNullOrEmpty(template.Header.Text))
+                {
+                    MatchCollection matches = regex.Matches(template.Header.Text);
+                    if (matches.Count() > 1)
+                        return new UResponseWithID()
+                        {
+                            Status = 0,
+                            Message = "Only one header parameters is allowed"
+                        };
+                    if (!(template.Header.TextCount == matches.Count))
+                        return new UResponseWithID()
+                        {
+                            Status = 0,
+                            Message = "Header text parameters is not matching with header text count"
+                        };
+                }
+
+                headerType = template.Header.Format;
+                headerText = template.Header.Text;
+                headerParamCount = template.Header.TextCount;
+            }
+            if (template.Body != null)
+            {
+                MatchCollection matches = regex.Matches(template.Body.Text);
+                if (!(template.Body.TextCount == matches.Count))
+                    return new UResponseWithID()
+                    {
+                        Status = 0,
+                        Message = "Body text parameters is not matching with body text count"
+                    };
+
+                bodyText = template.Body.Text;
+                bodyParamCount = template.Body.TextCount;
+            }
+            if (template.Footer != null)
+                footer = template.Footer.Text;
+
+            if (template.Header != null && template.Header.Values.Any())
+            {
+                foreach (var val in template.Header.Values)
+                {
+                    var param = new TemplateDto.KeyValue()
+                    {
+                        index = val.index,
+                        value = val.value,
+                        defaultValue = val.defaultValue
+                    };
+                    headerValues.Add(param);
+                }
+            }
+
+            if (template.Body != null && template.Body.Values.Any())
+            {
+                foreach (var val in template.Body.Values)
+                {
+                    var param = new TemplateDto.KeyValue()
+                    {
+                        index = val.index,
+                        value = val.value,
+                        defaultValue = val.defaultValue
+                    };
+                    bodyValues.Add(param);
+                }
+            }
+            if (template.Buttons != null && template.Buttons.Any())
+            {
+                foreach (var button in template.Buttons)
+                {
+                    if (Enum.TryParse(button.Type, true, out ButtonTypeEnum parsedEnum))
+                    {
+                        var param = new TemplateParameter()
+                        {
+                            Sequence = button.index,
+                            ParamName = button.Text,
+                            ParamText = string.Empty,
+                            ParamDefaultValue = button.Url,
+                            IsDynamic = false,
+                            ParamType = (int)TemplateParamEnum.Button,
+                            ButtonType = (int)parsedEnum
+                        };
+
+                        // Handle URL button cases
+                        if (parsedEnum == ButtonTypeEnum.URL)
+                        {
+                            if (button.TextCount == 0)
+                            {
+                                param.ParamText = button.Url; // Use URL as text
+                            }
+                            else if (button.TextCount == 1)
+                            {
+                                param.ParamText = button.Url; // Use URL as text
+                                param.ParamDefaultValue = button.Values.Any() ? button.Values[0].value : "";
+                                param.IsDynamic = true; // Mark as dynamic
+                            }                        }
+                        else if (parsedEnum == ButtonTypeEnum.PHONE_NUMBER)
+                        {
+                            param.ParamDefaultValue = button.PhoneNumber;
+                        }
+                        buttonValues.Add(param);
+                    }
+                }
+            }
+
+            var headerJson = JsonSerializer.Serialize(headerValues);
+            var bodyJson = JsonSerializer.Serialize(bodyValues);
+            var buttonJson = JsonSerializer.Serialize(buttonValues);
+
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops_Bak @ActionId={(int)CrudEnum.Add}, @ClientId={template.Client_Id}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.Template_Type}, @MediaId={template.MediaId}, @Action_By={template.ActionBy}").ToListAsync();
+            if (response != null || response[0].Status > 0)
+            {
+                var tempateResponse = new TemplateRequestDto()
+                {
+                    ClientId = template.Client_Id.ToString(),
+                    SenderNameId = template.Sender_Name_Id.ToString(),
+                    Name = template.Name,
+                    Category = template.Category,
+                    LanguageCode = template.Language,
+                };
+                tempateResponse.Header = new TemplateRequestDto.HeaderDto()
+                {
+                    Format = ((TemplateHeaderEnum)template.Header.Format).ToString(),
+                    MediaUrl = mediaUrl,
+                    Text = template.Header.Text,
+                    Example = template.Header.Values.Any() ? template.Header.Values[0].value : string.Empty
+                };
+                tempateResponse.Body = new TemplateRequestDto.BodyDto()
+                {
+                    Text = template.Body.Text,
+                    Examples = template.Body.Values.Select(x => x.value).ToList()
+                };
+                tempateResponse.Footer = new TemplateRequestDto.FooterDto()
+                {
+                    Text = template.Footer.Text
+                };
+                foreach (var item in template.Buttons)
+                {
+                    tempateResponse.Buttons.Add(new TemplateRequestDto.ButtonDto()
+                    {
+                        Type = item.Type,
+                        Text = item.Text,
+                        PhoneNumber = item.PhoneNumber,
+                        Url = item.Url,
+                        Example = item.Values[0].value,
+                    });
+                }
+                var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(tempateResponse), Encoding.UTF8, "application/json");
+                var response1 = await _httpClient.PostAsync($"/api/Template/TemplateMessageOps", res);
+                var content = await response1.Content.ReadAsStringAsync();
+
+                var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
+                if (result != null && result.success)
+                {
+                    var data = System.Text.Json.JsonSerializer.Serialize(result.result);
+                    var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<TemplateResultDto>(data);
+                    if (tempResult != null)
+                    {
+                        if (!string.IsNullOrEmpty(tempResult.id) && !string.IsNullOrEmpty(tempResult.status))
+                        {
+                            var updateTemp = new TemplateDto()
+                            {
+                                Templates_Id = response[0].Id,
+                                TemplateId = tempResult.id,
+                                Status = tempResult.status,
+                                Category = tempResult.category,
+                                ActionBy = template.ActionBy
+                            };
+                            var updateTemplate = await UpdateTemplateStatusByIdAsync(updateTemp);
+                            if (updateTemplate == null || updateTemplate.Status <= 0)
+                            {
+                                return new UResponseWithID()
+                                {
+                                    Status = 0,
+                                    Message = updateTemplate?.Message
+                                };
+                            }
+                            return new UResponseWithID()
+                            {
+                                Status = 1,
+                                Message = "Template added successfully"
+                            };
+                        }
+                    }
+                }
+            }
+            return new UResponseWithID()
+            {
+                Status = 0,
+                Message = "Oops somethng went wrong"
+            };
+        }
+        public async Task<UResponseWithID> UpdateTemplateAsync(TemplateDto template)
+        {
+            int headerType = 0;
+            var headerText = "";
+            int headerParamCount = 0;
+            var bodyText = "";
+            int bodyParamCount = 0;
+            var footer = "";
+            var mediaUrl = "";
+            var headerValues = new List<TemplateDto.KeyValue>();
+            var bodyValues = new List<TemplateDto.KeyValue>();
+            var buttonValues = new List<TemplateParameter>();
+            Regex regex = new Regex(@"{{\d+}}");
+
+            template.Name = template.Name.Replace(" ", "_");
+            if (template.Header != null)
+            {
+                if (template.Header.Format != (int)TemplateHeaderEnum.TEXT)
+                {
+                    if (string.IsNullOrEmpty(template.MediaId))
+                        return new UResponseWithID()
+                        {
+                            Status = 0,
+                            Message = "Media Id required when header type is not text"
+                        };
+                    var mediaDetail = await _dbContext.Media.Where(x => x.MediaId == template.MediaId).FirstOrDefaultAsync();
+                    if (mediaDetail == null && string.IsNullOrEmpty(mediaDetail.MediaPath))
+                        return new UResponseWithID()
+                        {
+                            Status = 0,
+                            Message = "Media not exist"
+                        };
+                    else
+                        mediaUrl = mediaDetail.MediaPath;
+                }
                 if (!string.IsNullOrEmpty(template.Header.Text))
                 {
                     MatchCollection matches = regex.Matches(template.Header.Text);
@@ -156,7 +402,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var bodyJson = JsonSerializer.Serialize(bodyValues);
             var buttonJson = JsonSerializer.Serialize(buttonValues);
 
-            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops_Bak @ActionId={(int)CrudEnum.Add}, @ClientId={template.Client_Id}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.Template_Type}, @Action_By={template.ActionBy}").ToListAsync();
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops_Bak @ActionId={(int)CrudEnum.Update}, @TemplatesId={template.Templates_Id}, @ClientId={template.Client_Id}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.Template_Type}, @MediaId={template.MediaId}, @Action_By={template.ActionBy}").ToListAsync();
             if (response != null || response[0].Status > 0)
             {
                 var tempateResponse = new TemplateRequestDto()
@@ -170,6 +416,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 tempateResponse.Header = new TemplateRequestDto.HeaderDto()
                 {
                     Format = ((TemplateHeaderEnum)template.Header.Format).ToString(),
+                    MediaUrl = mediaUrl,
                     Text = template.Header.Text,
                     Example = template.Header.Values.Any() ? template.Header.Values[0].value : string.Empty
                 };
@@ -196,7 +443,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(tempateResponse), Encoding.UTF8, "application/json");
                 var response1 = await _httpClient.PostAsync($"/api/Template/TemplateMessageOps", res);
                 var content = await response1.Content.ReadAsStringAsync();
-
                 var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
                 if (result != null && result.success)
                 {
@@ -226,114 +472,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             return new UResponseWithID()
                             {
                                 Status = 1,
-                                Message = "Template added successfully"
+                                Message = "Template updated successfully"
                             };
                         }
                     }
                 }
             }
-            return response[0];
-        }
-        public async Task<UResponseWithID> UpdateTemplateAsync(TemplateDto template)
-        {
-            int headerType = 0;
-            var headerText = "";
-            int headerParamCount = 0;
-            var bodyText = "";
-            int bodyParamCount = 0;
-            var footer = "";
-            var headerValues = new List<TemplateDto.KeyValue>();
-            var bodyValues = new List<TemplateDto.KeyValue>();
-            var buttonValues = new List<TemplateParameter>();
-
-            if (template.Header != null)
+            return new UResponseWithID()
             {
-                headerType = template.Header.Format;
-                headerText = template.Header.Text;
-                headerParamCount = template.Header.TextCount;
-            }
-            if (template.Body != null)
-            {
-                bodyText = template.Body.Text;
-                bodyParamCount = template.Body.TextCount;
-            }
-            if (template.Footer != null)
-                footer = template.Footer.Text;
-
-            if (template.Header != null && template.Header.Values.Any())
-            {
-                foreach (var val in template.Header.Values)
-                {
-                    var param = new TemplateDto.KeyValue()
-                    {
-                        index = val.index,
-                        value = val.value,
-                        defaultValue = val.defaultValue
-                    };
-                    headerValues.Add(param);
-                }
-            }
-
-            if (template.Body != null && template.Body.Values.Any())
-            {
-                foreach (var val in template.Body.Values)
-                {
-                    var param = new TemplateDto.KeyValue()
-                    {
-                        index = val.index,
-                        value = val.value,
-                        defaultValue = val.defaultValue
-                    };
-                    bodyValues.Add(param);
-                }
-            }
-            if (template.Buttons != null && template.Buttons.Any())
-            {
-                foreach (var button in template.Buttons)
-                {
-                    if (Enum.TryParse(button.Type, true, out ButtonTypeEnum parsedEnum))
-                    {
-                        var param = new TemplateParameter()
-                        {
-                            Sequence = button.index,
-                            ParamName = button.Text,
-                            ParamText = string.Empty,
-                            ParamDefaultValue = button.Url,
-                            IsDynamic = false,
-                            ParamType = (int)TemplateParamEnum.Button,
-                            ButtonType = (int)parsedEnum
-                        };
-
-                        // Handle URL button cases
-                        if (parsedEnum == ButtonTypeEnum.URL)
-                        {
-                            if (button.TextCount == 0)
-                            {
-                                param.ParamText = button.Url; // Use URL as text
-                            }
-                            else if (button.TextCount == 1)
-                            {
-                                param.ParamText = button.Url; // Use URL as text
-                                param.ParamDefaultValue = button.Values.Any() ? button.Values[0].value : "";
-                                param.IsDynamic = true; // Mark as dynamic
-                            }
-                        }
-                        else if (parsedEnum == ButtonTypeEnum.PHONE_NUMBER)
-                        {
-                            param.ParamDefaultValue = button.PhoneNumber;
-                        }
-                        buttonValues.Add(param);
-                    }
-                }
-            }
-
-            var headerJson = JsonSerializer.Serialize(headerValues);
-            var bodyJson = JsonSerializer.Serialize(bodyValues);
-            var buttonJson = JsonSerializer.Serialize(buttonValues);
-
-            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops_Bak @ActionId={(int)CrudEnum.Update}, @TemplatesId={template.Templates_Id}, @ClientId={template.Client_Id}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.Template_Type}, @Action_By={template.ActionBy}").ToListAsync();
-
-            return response[0];
+                Status = 0,
+                Message = "Oops somethng went wrong"
+            };
         }
         public async Task<UResponseWithID> DeleteTemplateAsync(int templates_Id)
         {
@@ -600,10 +749,31 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<UResponseWithID> UpdateTemplateStatusByIdAsync(TemplateDto template)
         {
-            var query = string.Format(@"exec usp_Templates_Ops_Bak @ActionId={0}, @TemplatesId={1}, @TemplateId='{2}', @Status='{3}', @Category='{4}', @Action_By={5}", (int)CrudEnum.UpdateTemplateStatus, template.Templates_Id, template.Templates_Id, template.Status, template.Category, template.ActionBy);
+            var query = string.Format(@"exec usp_Templates_Ops_Bak @ActionId={0}, @TemplatesId={1}, @TemplateId='{2}', @Status='{3}', @Category='{4}', @Action_By={5}", (int)CrudEnum.UpdateTemplateStatus, template.Templates_Id, template.TemplateId, template.Status, template.Category, template.ActionBy);
             var response = await _dbContext2.ResponseWithID.FromSqlRaw(query).ToListAsync();
 
             return response[0];
+        }
+        public async Task<UTemplateDetails> GetTemplateDetailsAsync(int client_Id, int templates_Id = 0)
+        {
+            UTemplateDetails pDetails = null;
+            var query = string.Format(@"exec usp_Templates_Ops_Bak @ActionId={0}, @ClientId={1}, @TemplatesId={2}", (int)CrudEnum.GetTemplateDetails, client_Id, templates_Id);
+            var response = await _dbContext2.TemplateDetails.FromSqlRaw(query).ToListAsync();
+            if (response != null && response.Any())
+            {
+                pDetails = response[0];
+                if (pDetails.Templates_Id > 0)
+                    pDetails.TemplateParameters = await GetTemplateParametersAsync(client_Id, templates_Id);
+            }
+
+            return pDetails;
+        }
+        public async Task<List<UTemplateParameter>> GetTemplateParametersAsync(int client_Id, int templates_Id = 0)
+        {
+            var query = string.Format(@"exec usp_Templates_Ops_Bak @ActionId={0}, @ClientId={1}, @TemplatesId={2}", (int)CrudEnum.GetTemplateParameterDetails, client_Id, templates_Id);
+            var response = await _dbContext2.TemplateParameters.FromSqlRaw(query).ToListAsync();
+
+            return response;
         }
     }
 }

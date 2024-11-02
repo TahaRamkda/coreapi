@@ -30,6 +30,7 @@
         SettleCustomerAmount = 5,
         SendCampaign = 5,
         BulkContact = 5,
+        GetTemplateDetails = 5,
 
 
         AddUserToken = 6,
@@ -40,6 +41,7 @@
         CancelOrder = 7,
         SettleDistributorPurchaseWithAmount = 7,
         UpdateQuotationStatus = 7,
+        GetTemplateParameterDetails = 7,
 
         PurchaseReturn = 8,
 

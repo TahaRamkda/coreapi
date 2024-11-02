@@ -1,11 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.Pkcs;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
 using WhatsAppAPISolutionBL.Master.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
@@ -62,17 +56,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Message = "Please add phone numbers"
                 };
 
-            //foreach (var phoneNumber in contact.PhoneNumbers.Select(num => num.Replace("+", "")).ToList())
-            //{
-            //    var contactInfo = new ContactDto()
-            //    {
-            //        Group_Id = contact.Group_Id,
-            //        Phone_Number = phoneNumber,
-            //        ActionBy = 1
-            //    };
-            //    await AddContactAsync(contactInfo);
-            //}
-
             contact.ContactsInfo = contact.ContactsInfo
     .Where(x => !string.IsNullOrWhiteSpace(x.Phone_Number))
     .Select(x => new ContactInfo
@@ -85,31 +68,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
     })
     .ToList();
 
-            var batches = contact.ContactsInfo.ChunkBy(50);
-
-            foreach (var batch in batches)
-            {
-                foreach (var contactInfo in batch)
-                {
-                    var newContact = new ContactDto()
-                    {
-                        First_Name = contactInfo.First_Name,
-                        Last_Name = contactInfo.Last_Name,
-                        Phone_Number = contactInfo.Phone_Number,
-                        Email_Address = contactInfo.Email_Address,
-                        Area_Name = contactInfo.Area_Name,
-                        Group_Id = contact.Group_Id,
-                        ActionBy = contact.ActionBy
-                    };
-
-                    await AddContactAsync(newContact);
-                }
-            }
-            return new UResponse()
-            {
-                Status = 1,
-                Message = "Data added successfully"
-            };
+            var response = await InsertBulkContactAsync(contact);
+            return response;
         }
 
         public async Task<UResponse> UpdateContactAsync(ContactDto contact)
@@ -123,6 +83,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var query = string.Format(@"exec usp_Contacts_Ops @ActionId={0}, @Contact_Id={1}", (int)CrudEnum.Delete, contact_Id);
             var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
+
+            return response[0];
+        }
+        public async Task<UResponse> InsertBulkContactAsync(BulkContactDto contact)
+        {
+            var contactJson = JsonSerializer.Serialize(contact.ContactsInfo);
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Contacts_Ops  @ActionId={(int)CrudEnum.BulkContact}, @Group_Id={contact.Group_Id}, @Client_Id={contact.Client_Id}, @BulkContact={contactJson}, @Action_By={contact.ActionBy}").ToListAsync();
 
             return response[0];
         }
