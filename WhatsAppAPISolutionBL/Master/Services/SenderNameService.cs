@@ -22,9 +22,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _dbContext2 = dbContext2;
         }
 
-        public async Task<List<USenderName>> GetSenderNameListAsync()
+        public async Task<List<USenderName>> GetSenderNameListAsync(int client_Id)
         {
-            var query = string.Format(@"exec usp_SenderNames_Ops @ActionId={0}", (int)CrudEnum.List);
+            var query = string.Format(@"exec usp_SenderNames_Ops @ActionId={0}, @Client_Id={1}", (int)CrudEnum.List, client_Id);
             var response = await _dbContext2.SenderNames.FromSqlRaw(query).ToListAsync();
 
             return response;

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileSystemGlobbing;
 using System.Data;
 using System.Net.NetworkInformation;
 using System.Text;
@@ -48,7 +49,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var buttonValues = new List<TemplateParameter>();
             Regex regex = new Regex(@"{{\d+}}");
 
-            template.Name = template.Name.Replace(" ", "_");
+            template.Name = template.Name.Replace(" ", "_").ToLower();
             if (template.Header != null)
             {
                 if (template.Header.Format != (int)TemplateHeaderEnum.TEXT)
@@ -85,6 +86,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             Message = "Header text parameters is not matching with header text count"
                         };
                 }
+                if (template.Header.TextCount == 0)
+                    template.Header.Values = null;
 
                 headerType = template.Header.Format;
                 headerText = template.Header.Text;
@@ -100,13 +103,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         Message = "Body text parameters is not matching with body text count"
                     };
 
+                if (template.Body.TextCount == 0)
+                    template.Body.Values = null;
+
                 bodyText = template.Body.Text;
                 bodyParamCount = template.Body.TextCount;
             }
             if (template.Footer != null)
                 footer = template.Footer.Text;
 
-            if (template.Header != null && template.Header.Values.Any())
+            if (template.Header != null && template.Header.Values != null && template.Header.Values.Any())
             {
                 foreach (var val in template.Header.Values)
                 {
@@ -120,7 +126,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
             }
 
-            if (template.Body != null && template.Body.Values.Any())
+            if (template.Body != null && template.Body.Values != null && template.Body.Values.Any())
             {
                 foreach (var val in template.Body.Values)
                 {
@@ -137,6 +143,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 foreach (var button in template.Buttons)
                 {
+                    if (button.TextCount == 0)
+                        button.Values = null;
                     if (Enum.TryParse(button.Type, true, out ButtonTypeEnum parsedEnum))
                     {
                         var param = new TemplateParameter()
@@ -162,7 +170,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 param.ParamText = button.Url; // Use URL as text
                                 param.ParamDefaultValue = button.Values.Any() ? button.Values[0].value : "";
                                 param.IsDynamic = true; // Mark as dynamic
-                            }                        }
+                            }
+                        }
                         else if (parsedEnum == ButtonTypeEnum.PHONE_NUMBER)
                         {
                             param.ParamDefaultValue = button.PhoneNumber;
@@ -176,7 +185,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var bodyJson = JsonSerializer.Serialize(bodyValues);
             var buttonJson = JsonSerializer.Serialize(buttonValues);
 
-            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops_Bak @ActionId={(int)CrudEnum.Add}, @ClientId={template.Client_Id}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.Template_Type}, @MediaId={template.MediaId}, @Action_By={template.ActionBy}").ToListAsync();
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops_Bak @ActionId={(int)CrudEnum.Add}, @ClientId={template.Client_Id}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.Template_Type}, @MediaId={template.MediaId}, @SenderId={template.Sender_Name_Id}, @Action_By={template.ActionBy}").ToListAsync();
             if (response != null || response[0].Status > 0)
             {
                 var tempateResponse = new TemplateRequestDto()
@@ -192,12 +201,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Format = ((TemplateHeaderEnum)template.Header.Format).ToString(),
                     MediaUrl = mediaUrl,
                     Text = template.Header.Text,
-                    Example = template.Header.Values.Any() ? template.Header.Values[0].value : string.Empty
+                    Example = template.Header.Values?.FirstOrDefault()?.value ?? ""
                 };
                 tempateResponse.Body = new TemplateRequestDto.BodyDto()
                 {
                     Text = template.Body.Text,
-                    Examples = template.Body.Values.Select(x => x.value).ToList()
+                    Examples = template.Body?.Values?.Select(x => x.value).ToList() ?? new List<string>()
                 };
                 tempateResponse.Footer = new TemplateRequestDto.FooterDto()
                 {
@@ -211,7 +220,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         Text = item.Text,
                         PhoneNumber = item.PhoneNumber,
                         Url = item.Url,
-                        Example = item.Values[0].value,
+                        Example = item.Values?.FirstOrDefault()?.value,
                     });
                 }
                 var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(tempateResponse), Encoding.UTF8, "application/json");
@@ -402,7 +411,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var bodyJson = JsonSerializer.Serialize(bodyValues);
             var buttonJson = JsonSerializer.Serialize(buttonValues);
 
-            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops_Bak @ActionId={(int)CrudEnum.Update}, @TemplatesId={template.Templates_Id}, @ClientId={template.Client_Id}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.Template_Type}, @MediaId={template.MediaId}, @Action_By={template.ActionBy}").ToListAsync();
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops_Bak @ActionId={(int)CrudEnum.Update}, @TemplatesId={template.Templates_Id}, @ClientId={template.Client_Id}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.Template_Type}, @MediaId={template.MediaId}, @SenderId={template.Sender_Name_Id}, @Action_By={template.ActionBy}").ToListAsync();
             if (response != null || response[0].Status > 0)
             {
                 var tempateResponse = new TemplateRequestDto()

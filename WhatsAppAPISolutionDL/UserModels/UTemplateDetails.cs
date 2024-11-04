@@ -17,6 +17,7 @@ namespace WhatsAppAPISolutionDL.UserModels
 
         public long Templates_Id { get; set; }
         public int? Client_Id { get; set; }
+        public string Client_Name { get; set; }
         public string Template_Name { get; set; }
         public string Category { get; set; }
         public string SubCategory { get; set; }
@@ -36,6 +37,8 @@ namespace WhatsAppAPISolutionDL.UserModels
         public int? Updated_By { get; set; }
         public string Updated_Date { get; set; }
         public string Media_Id { get; set; }
+        public long Sender_Id { get; set; }
+        public string Sender_Name { get; set; }
 
         [NotMapped]
         public List<UTemplateParameter> TemplateParameters { get; set; }

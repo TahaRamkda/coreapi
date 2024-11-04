@@ -15,5 +15,9 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string Media_Url { get; set; }
         public string Media_Id { get; set; }
         public string Media_Path { get; set; }
+        public string Content_Type { get; set; }
+        public long? File_Size { get; set; }
+        public string File_Name { get; set; }
+        public string File_Extension { get; set; }
     }
 }

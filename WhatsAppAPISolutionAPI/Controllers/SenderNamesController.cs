@@ -11,7 +11,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class SenderNamesController : ControllerBase
     {
         private readonly ISenderNameService _senderNameService;
@@ -28,9 +28,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getsenderNameslist")]
-        public async Task<ActionResult> GetSenderNamesListAsync()
+        public async Task<ActionResult> GetSenderNamesListAsync(int client_Id)
         {
-            var res = await _senderNameService.GetSenderNameListAsync();
+            var res = await _senderNameService.GetSenderNameListAsync(client_Id);
             return Ok(new ApiResult()
             {
                 Success = true,

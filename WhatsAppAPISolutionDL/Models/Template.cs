@@ -30,5 +30,6 @@ namespace WhatsAppAPISolutionDL.Models
         public DateTime? UpdatedDate { get; set; }
         public int? RecordStatus { get; set; }
         public string MediaId { get; set; }
+        public long? SenderId { get; set; }
     }
 }

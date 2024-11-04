@@ -21,6 +21,7 @@ namespace WhatsAppAPISolutionDL.Models
         public virtual DbSet<CampaignParam> CampaignParams { get; set; }
         public virtual DbSet<Client> Clients { get; set; }
         public virtual DbSet<Contact> Contacts { get; set; }
+        public virtual DbSet<Country> Countries { get; set; }
         public virtual DbSet<Group> Groups { get; set; }
         public virtual DbSet<Log> Logs { get; set; }
         public virtual DbSet<Medium> Media { get; set; }
@@ -270,6 +271,46 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.UpdatedDate)
                     .HasColumnType("datetime")
                     .HasColumnName("Updated_Date");
+            });
+
+            modelBuilder.Entity<Country>(entity =>
+            {
+                entity.ToTable("countries");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Fbmarket)
+                    .HasMaxLength(150)
+                    .HasColumnName("FBMarket");
+
+                entity.Property(e => e.Iso)
+                    .IsRequired()
+                    .HasMaxLength(2)
+                    .IsUnicode(false)
+                    .HasColumnName("iso")
+                    .IsFixedLength();
+
+                entity.Property(e => e.Iso3)
+                    .HasMaxLength(3)
+                    .IsUnicode(false)
+                    .HasColumnName("iso3")
+                    .IsFixedLength();
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(80)
+                    .IsUnicode(false)
+                    .HasColumnName("name");
+
+                entity.Property(e => e.Nicename)
+                    .IsRequired()
+                    .HasMaxLength(80)
+                    .IsUnicode(false)
+                    .HasColumnName("nicename");
+
+                entity.Property(e => e.Numcode).HasColumnName("numcode");
+
+                entity.Property(e => e.Phonecode).HasColumnName("phonecode");
             });
 
             modelBuilder.Entity<Group>(entity =>
@@ -590,6 +631,8 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.MediaId)
                     .HasMaxLength(50)
                     .HasColumnName("Media_Id");
+
+                entity.Property(e => e.SenderId).HasColumnName("Sender_Id");
 
                 entity.Property(e => e.Status).HasMaxLength(50);
 

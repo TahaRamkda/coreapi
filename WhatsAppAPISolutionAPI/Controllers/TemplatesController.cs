@@ -89,11 +89,18 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 return BadRequest();
             }
 
-            if(string.IsNullOrEmpty(template.Name))
+            if (string.IsNullOrEmpty(template.Name))
                 return Ok(new ApiResult()
                 {
                     Success = false,
                     Message = "Please insert template name"
+                });
+
+            if (template.Client_Id <= 0)
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Please insert client Id"
                 });
 
             if (template.Sender_Name_Id <= 0)
@@ -101,6 +108,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 {
                     Success = false,
                     Message = "Please insert sender Id"
+                });
+
+            if (template.Body == null && string.IsNullOrEmpty(template.Body.Text))
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Body text required"
                 });
 
             var response = await _templateService.AddTemplateAsync(template);

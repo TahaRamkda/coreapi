@@ -13,8 +13,8 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string Client_Name { get; set; }
         public string Sender_Name { get; set; }
         public string Phone_Number { get; set; }
-        public string Phone_Id { get; set; }
-        public string App_Id { get; set; }
+        public string Phone_Number_Id { get; set; }
+        public string Business_Account_Id { get; set; }
         public decimal? Limit { get; set; }
         public decimal? Quality { get; set; }
         public int? Created_By { get; set; }
