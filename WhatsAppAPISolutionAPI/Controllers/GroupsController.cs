@@ -9,7 +9,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class GroupsController : ControllerBase
     {
         private readonly IGroupService _groupService;
@@ -26,9 +26,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getgroupslist")]
-        public async Task<ActionResult> GetGroupsListAsync()
+        public async Task<ActionResult> GetGroupsListAsync(int client_Id)
         {
-            var res = await _groupService.GetGroupListAsync();
+            var res = await _groupService.GetGroupListAsync(client_Id);
             return Ok(new ApiResult()
             {
                 Success = true,

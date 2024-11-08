@@ -48,8 +48,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var bodyValues = new List<TemplateDto.KeyValue>();
             var buttonValues = new List<TemplateParameter>();
             Regex regex = new Regex(@"{{\d+}}");
-
             template.Name = template.Name.Replace(" ", "_").ToLower();
+            var templateNameExist = await _dbContext.Templates.Where(x => x.TemplateName == template.Name).FirstOrDefaultAsync();
+            if (templateNameExist != null)
+            {
+                return new UResponseWithID()
+                {
+                    Status = 0,
+                    Message = "Template name already exist"
+                };
+            }
             if (template.Header != null)
             {
                 if (template.Header.Format != (int)TemplateHeaderEnum.TEXT)
@@ -261,6 +269,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         }
                     }
                 }
+                else if (result != null && !result.success)
+                {
+                    return new UResponseWithID()
+                    {
+                        Status = 0,
+                        Message = result.message
+                    };
+                }
             }
             return new UResponseWithID()
             {
@@ -283,9 +299,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
             Regex regex = new Regex(@"{{\d+}}");
 
             template.Name = template.Name.Replace(" ", "_");
+            var templateNameExist = await _dbContext.Templates.Where(x => x.TemplateName == template.Name && x.TemplatesId != template.Templates_Id).FirstOrDefaultAsync();
+            if (templateNameExist != null)
+            {
+                return new UResponseWithID()
+                {
+                    Status = 0,
+                    Message = "Template name already exist"
+                };
+            }
             if (template.Header != null)
             {
-                if (template.Header.Format != (int)TemplateHeaderEnum.TEXT)
+                if (template.Header.Format != (int)TemplateHeaderEnum.NONE && template.Header.Format != (int)TemplateHeaderEnum.TEXT)
                 {
                     if (string.IsNullOrEmpty(template.MediaId))
                         return new UResponseWithID()

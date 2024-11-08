@@ -94,7 +94,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPut("updateRole")]
         public async Task<IActionResult> UpdateRoleAsync(RoleDto role)
         {
-            if (role == null)
+            if (role == null && !ModelState.IsValid)
             {
                 return BadRequest();
             }

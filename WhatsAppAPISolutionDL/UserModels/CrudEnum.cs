@@ -10,10 +10,12 @@
         RepayLoan = 2,
         AllocateBonus = 2,
         GetPNL = 2,
+        ActivateCampaign = 2,
 
         Delete = 3,
         AdvanceSalary = 3,
         AdditionalLoan = 3,
+        UpdateCampaign = 3,
 
         List = 4,
 
@@ -31,6 +33,7 @@
         SendCampaign = 5,
         BulkContact = 5,
         GetTemplateDetails = 5,
+        SettleCampaign = 5,
 
 
         AddUserToken = 6,

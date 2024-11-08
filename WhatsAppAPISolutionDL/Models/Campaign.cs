@@ -14,7 +14,6 @@ namespace WhatsAppAPISolutionDL.Models
         public string CampaignType { get; set; }
         public string Status { get; set; }
         public int? TotalContacts { get; set; }
-        public decimal? TotalCost { get; set; }
         public int? SentCount { get; set; }
         public int? FailedCount { get; set; }
         public int? DeliveredCount { get; set; }
@@ -22,5 +21,8 @@ namespace WhatsAppAPISolutionDL.Models
         public DateTime? CreatedDate { get; set; }
         public int? CreatedBy { get; set; }
         public decimal? EstimatedCost { get; set; }
+        public decimal? Cost { get; set; }
+        public decimal? Commission { get; set; }
+        public decimal? TotalCost { get; set; }
     }
 }

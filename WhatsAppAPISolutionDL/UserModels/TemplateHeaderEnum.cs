@@ -8,6 +8,7 @@ namespace WhatsAppAPISolutionDL.UserModels
 {
     public enum TemplateHeaderEnum
     {
+        NONE = 0,
         TEXT = 1,
         IMAGE = 2,
         VIDEO = 3,

@@ -64,6 +64,10 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.Property(e => e.ClientId).HasColumnName("Client_Id");
 
+                entity.Property(e => e.Commission).HasColumnType("numeric(18, 3)");
+
+                entity.Property(e => e.Cost).HasColumnType("numeric(18, 3)");
+
                 entity.Property(e => e.CreatedBy).HasColumnName("Created_By");
 
                 entity.Property(e => e.CreatedDate)
@@ -89,9 +93,7 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.Property(e => e.TemplateId).HasColumnName("Template_Id");
 
-                entity.Property(e => e.TotalCost)
-                    .HasColumnType("decimal(18, 3)")
-                    .HasColumnName("Total_Cost");
+                entity.Property(e => e.TotalCost).HasColumnType("numeric(18, 3)");
 
                 entity.Property(e => e.UndeliveredCount).HasColumnName("Undelivered_Count");
             });
@@ -400,6 +402,8 @@ namespace WhatsAppAPISolutionDL.Models
                     .HasMaxLength(50)
                     .HasColumnName("category");
 
+                entity.Property(e => e.Commission).HasColumnType("decimal(18, 3)");
+
                 entity.Property(e => e.CreatedAt)
                     .HasColumnType("datetime")
                     .HasColumnName("Created_at");
@@ -407,6 +411,8 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.DeliveredDate).HasColumnType("datetime");
 
                 entity.Property(e => e.DeliveredMessage).HasMaxLength(250);
+
+                entity.Property(e => e.EstPrice).HasColumnType("decimal(18, 3)");
 
                 entity.Property(e => e.ParentId).HasColumnName("Parent_Id");
 
