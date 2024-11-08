@@ -8,18 +8,42 @@ namespace WhatsAppAPISolutionDL.Dto
 {
     public partial class WhatsAppMessageStatusUpdateDto
     {
-        public int Client_Id { get; set; }
-        public string Wam_Id { get; set; }
-        public string Status { get; set; }
-        public DateTime Update_DateTime { get; set; }
-        public string Recipient_Id { get; set; }
-        public MessageError Error { get; set; }
-        public partial class MessageError
-        { 
-            public string Code { get; set; }
-            public string Title { get; set; }
-            public string Message { get; set; }
-            public string Error_Details { get; set; }
+        public string client_Id { get; set; }
+        public string wam_Id { get; set; }
+        public string status { get; set; }
+        public string update_dateTime { get; set; }
+        public string recipient_Id { get; set; }
+        public Conversation conversation { get; set; }
+        public Pricing pricing { get; set; }
+        public Error error { get; set; }
+
+        public PhoneNumber phone_number_Id { get; set; }
+
+        public class PhoneNumber
+        {
+            public string display_phone_number { get; set; }
+            public string phone_number_id { get; set; }
+        }
+
+        public class Conversation
+        {
+            public string id { get; set; }
+            public string origin_type { get; set; }
+        }
+
+        public class Pricing
+        {
+            public bool billable { get; set; }
+            public string pricing_model { get; set; }
+            public string category { get; set; }
+        }
+
+        public class Error
+        {
+            public string code { get; set; }
+            public string title { get; set; }
+            public string message { get; set; }
+            public string error_Details { get; set; }
         }
     }
 }

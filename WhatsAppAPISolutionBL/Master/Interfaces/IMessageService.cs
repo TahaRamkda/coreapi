@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.UserModels;
+
+namespace WhatsAppAPISolutionBL.Master.Interfaces
+{
+    public interface IMessageService
+    {
+        public Task<UResponse> UpdateMessageStatusAsync(WhatsAppMessageStatusUpdateDto messageStatus);
+    }
+}
