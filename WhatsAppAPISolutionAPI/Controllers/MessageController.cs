@@ -4,6 +4,7 @@ using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.UserModels;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -34,6 +35,32 @@ namespace WhatsAppAPISolutionAPI.Controllers
             }
 
             var response = await _messageService.UpdateMessageStatusAsync(messageStatus);
+            if (response == null || response.Status <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Result = response,
+                    Message = response?.Message
+                });
+            }
+            return Ok(new ApiResult()
+            {
+                Success = true,
+                Result = response,
+                Message = "Data added successfully"
+            });
+        }
+
+        [HttpPost("whatsappmessagereceive")]
+        public async Task<IActionResult> WhatsAppMessageReceive([FromBody] WhatsAppMessageStatusUpdateDto messageStatus)
+        {
+            if (messageStatus == null)
+            {
+                return BadRequest();
+            }
+
+            var response = new UResponse();
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
