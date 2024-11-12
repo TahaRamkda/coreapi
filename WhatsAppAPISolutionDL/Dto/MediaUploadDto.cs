@@ -11,17 +11,17 @@ namespace WhatsAppAPISolutionDL.Dto
     public partial class MediaUploadDto
     {
         public long Id { get; set; }
-        public int Client_Id { get; set; }
-        public string WhatsApp_BusinessAccount_Id { get; set; }
-        public int Sender_Name_Id { get; set; }
-        public string Media_Url { get; set; }
-        public string Media_Id { get; set; }
-        public string Media_Path { get; set; }
+        public int ClientId { get; set; }
+        public string WhatsAppBusinessAccountId { get; set; }
+        public int SenderNameId { get; set; }
+        public string MediaUrl { get; set; }
+        public string MediaId { get; set; }
+        public string MediaPath { get; set; }
         public IFormFile File { get; set; }
-        public string Content_Type { get; set; }
-        public long File_Size { get; set; }
-        public string File_Name { get; set; }
-        public string File_Extension { get; set; }
+        public string ContentType { get; set; }
+        public long FileSize { get; set; }
+        public string FileName { get; set; }
+        public string FileExtension { get; set; }
         public int ActionBy { get; set; }
     }
 }

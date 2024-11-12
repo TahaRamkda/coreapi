@@ -26,9 +26,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getcontactslist")]
-        public async Task<ActionResult> GetContactsListAsync(int client_Id, string searchStr = "")
+        public async Task<ActionResult> GetContactsListAsync(int ClientId, string SearchStr = "")
         {
-            var res = await _contactService.GetContactListAsync(client_Id, searchStr);
+            var res = await _contactService.GetContactListAsync(ClientId, SearchStr);
             return Ok(new ApiResult()
             {
                 Success = true,
@@ -38,14 +38,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getcontactbyid")]
-        public ActionResult GetContactByIdAsync(int id)
+        public ActionResult GetContactByIdAsync(int Id)
         {
-            if (id <= 0)
+            if (Id <= 0)
             {
                 return NotFound("not found");
             }
 
-            var response = _dbContext.Contacts.Where(x => x.ContactId == id).FirstOrDefault();
+            var response = _dbContext.Contacts.Where(x => x.ContactId == Id).FirstOrDefault();
 
             if (response == null)
             {
@@ -144,14 +144,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpDelete("deletecontact")]
-        public async Task<IActionResult> DeleteContactAsync(int contact_Id)
+        public async Task<IActionResult> DeleteContactAsync(int ContactId)
         {
-            if (contact_Id <= 0)
+            if (ContactId <= 0)
             {
                 return NotFound("not found");
             }
 
-            var response = await _contactService.DeleteContactAsync(contact_Id);
+            var response = await _contactService.DeleteContactAsync(ContactId);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult

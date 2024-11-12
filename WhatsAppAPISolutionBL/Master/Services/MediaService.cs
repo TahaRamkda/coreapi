@@ -42,23 +42,23 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
         }
 
-        public async Task<List<UMediaUpload>> GetMediaListAsync(int client_Id)
+        public async Task<List<UMediaUpload>> GetMediaListAsync(int ClientId)
         {
-            var query = string.Format(@"exec usp_Media_Ops @ActionId={0}, @Client_Id={1}", (int)CrudEnum.List, client_Id);
+            var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @ClientId={1}", (int)CrudEnum.List, ClientId);
             var response = await _dbContext2.UMediaUploads.FromSqlRaw(query).ToListAsync();
 
             return response;
         }
         public async Task<UResponseWithID> AddMediaAsync(MediaUploadDto media)
         {
-            var query = string.Format(@"exec usp_Media_Ops @ActionId={0}, @Client_Id={1}, @WhatsApp_BusinessAccount_Id='{2}', @Sender_Name_Id={3}, @Media_Path='{4}', @Content_Type='{5}', @File_Size='{6}', @File_Name='{7}', @File_Extension='{8}', @Action_By={9}", (int)CrudEnum.Add, media.Client_Id, media.WhatsApp_BusinessAccount_Id, media.Sender_Name_Id, media.Media_Path, media.Content_Type, media.File_Size, media.File_Name, media.File_Extension, media.ActionBy);
+            var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @ClientId={1}, @WhatsAppBusinessAccountId='{2}', @SenderName_Id={3}, @MediaPath='{4}', @ContentType='{5}', @FileSize='{6}', @FileName='{7}', @FileExtension='{8}', @ActionBy={9}", (int)CrudEnum.Add, media.ClientId, media.WhatsAppBusinessAccountId, media.SenderNameId, media.MediaPath, media.ContentType, media.FileSize, media.FileName, media.FileExtension, media.ActionBy);
             var response = await _dbContext2.ResponseWithID.FromSqlRaw(query).ToListAsync();
 
             return response[0];
         }
         public async Task<UResponse> UploadMediaAsync(MediaUploadDto model)
         {
-            var senderName = await _dbContext.SenderNames.Where(x => x.SenderId == model.Sender_Name_Id).FirstOrDefaultAsync();
+            var senderName = await _dbContext.SenderNames.Where(x => x.SenderId == model.SenderNameId).FirstOrDefaultAsync();
             if (senderName == null)
                 return new UResponse()
                 {
@@ -105,13 +105,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 // Create response details
                 var media = new MediaUploadDto()
                 {
-                    Sender_Name_Id = model.Sender_Name_Id,
-                    Client_Id = model.Client_Id,
-                    File_Name = Path.GetFileName(filePath),
-                    File_Size = model.File.Length,
-                    File_Extension = fileExtension,
-                    Content_Type = model.File.ContentType,
-                    Media_Path = fileUrl,
+                    SenderNameId = model.SenderNameId,
+                    ClientId = model.ClientId,
+                    FileName = Path.GetFileName(filePath),
+                    FileSize = model.File.Length,
+                    FileExtension = fileExtension,
+                    ContentType = model.File.ContentType,
+                    MediaPath = fileUrl,
                     ActionBy = model.ActionBy
                 };
                 var insMedia = await AddMediaAsync(media);
@@ -119,7 +119,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     var mediaUpload = new MediaUploadBridgeDto()
                     {
-                        clientId = model.Client_Id.ToString(),
+                        clientId = model.ClientId.ToString(),
                         senderNameId = senderName.SenderId.ToString()
                     };
                     mediaUpload.medias.Add(new MediaUploadBridgeDto.Media()
@@ -144,7 +144,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 var updateDto = new MediaUploadDto()
                                 {
                                     Id = Convert.ToInt64(mediaResult[0].id),
-                                    Media_Id = mediaResult[0].mediaId
+                                    MediaId = mediaResult[0].mediaId
                                 };
                                 var updateMedia = await UpdateMediaAsync(updateDto);
                                 if (updateMedia == null || updateMedia.Status <= 0)
@@ -183,14 +183,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<UResponseWithID> UpdateMediaAsync(MediaUploadDto media)
         {
-            var query = string.Format(@"exec usp_Media_Ops @ActionId={0}, @Id={1}, @Media_Id='{2}', @Action_By={3}", (int)CrudEnum.Update, media.Id, media.Media_Id, media.ActionBy);
+            var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @Id={1}, @Media_Id='{2}', @Action_By={3}", (int)CrudEnum.Update, media.Id, media.MediaId, media.ActionBy);
             var response = await _dbContext2.ResponseWithID.FromSqlRaw(query).ToListAsync();
 
             return response[0];
         }
-        public async Task<UResponseWithID> DeleteMediaAsync(int id)
+        public async Task<UResponseWithID> DeleteMediaAsync(int Id)
         {
-            var query = string.Format(@"exec usp_Media_Ops @ActionId={0}, @Id={1}", (int)CrudEnum.Delete, id);
+            var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @Id={1}", (int)CrudEnum.Delete, Id);
             var response = await _dbContext2.ResponseWithID.FromSqlRaw(query).ToListAsync();
 
             return response[0];

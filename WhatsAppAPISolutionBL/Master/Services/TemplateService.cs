@@ -68,7 +68,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             Status = 0,
                             Message = "Media Id required when header type is not text"
                         };
-                    var mediaDetail = await _dbContext.Media.Where(x => x.MediaId == template.MediaId).FirstOrDefaultAsync();
+                    var mediaDetail = await _dbContext.Medias.Where(x => x.MediaId == template.MediaId).FirstOrDefaultAsync();
                     if (mediaDetail == null && string.IsNullOrEmpty(mediaDetail.MediaPath))
                         return new UResponseWithID()
                         {
@@ -318,7 +318,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             Status = 0,
                             Message = "Media Id required when header type is not text"
                         };
-                    var mediaDetail = await _dbContext.Media.Where(x => x.MediaId == template.MediaId).FirstOrDefaultAsync();
+                    var mediaDetail = await _dbContext.Medias.Where(x => x.MediaId == template.MediaId).FirstOrDefaultAsync();
                     if (mediaDetail == null && string.IsNullOrEmpty(mediaDetail.MediaPath))
                         return new UResponseWithID()
                         {

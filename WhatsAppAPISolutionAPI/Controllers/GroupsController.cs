@@ -26,9 +26,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getgroupslist")]
-        public async Task<ActionResult> GetGroupsListAsync(int client_Id)
+        public async Task<ActionResult> GetGroupsListAsync(int ClientId)
         {
-            var res = await _groupService.GetGroupListAsync(client_Id);
+            var res = await _groupService.GetGroupListAsync(ClientId);
             return Ok(new ApiResult()
             {
                 Success = true,
@@ -38,14 +38,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getgroupbyid")]
-        public ActionResult GetGroupByIdAsync(int id)
+        public ActionResult GetGroupByIdAsync(int Id)
         {
-            if (id <= 0)
+            if (Id <= 0)
             {
                 return NotFound("not found");
             }
 
-            var response = _dbContext.Groups.Where(x => x.GroupId == id).FirstOrDefault();
+            var response = _dbContext.Groups.Where(x => x.GroupId == Id).FirstOrDefault();
 
             if (response == null)
             {
@@ -118,14 +118,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpDelete("deletegroup")]
-        public async Task<IActionResult> DeleteGroupAsync(int group_Id)
+        public async Task<IActionResult> DeleteGroupAsync(int GroupId)
         {
-            if (group_Id <= 0)
+            if (GroupId <= 0)
             {
                 return NotFound("not found");
             }
 
-            var response = await _groupService.DeleteGroupAsync(group_Id);
+            var response = await _groupService.DeleteGroupAsync(GroupId);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult

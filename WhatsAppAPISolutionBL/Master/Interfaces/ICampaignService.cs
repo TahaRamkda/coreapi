@@ -10,10 +10,10 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface ICampaignService
     {
-        public Task<List<UCampaign>> GetCampaignListAsync(int client_Id);
+        public Task<List<UCampaign>> GetCampaignListAsync(int ClientId);
         public Task<UResponse> AddCampaignAsync(CampaignDto campaign);
         public Task<UResponse> ActivateCampaignAsync(CampaignDto campaign);
         public Task<UResponse> UpdateCampaignAsync(CampaignDto campaign);
-        public Task<UResponse> SettleCampaignAsync(int client_Id, int campaign_Id);
+        public Task<UResponse> SettleCampaignAsync(int ClientId, int CampaignId);
     }
 }

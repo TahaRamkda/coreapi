@@ -8,18 +8,18 @@ namespace WhatsAppAPISolutionDL.UserModels
 {
     public partial class UContact
     {
-        public long Contact_Id { get; set; }
-        public int? Group_Id { get; set; }
-        public string Group_Name { get; set; }
-        public string First_Name { get; set; }
-        public string Last_Name { get; set; }
-        public string Phone_Number { get; set; }
-        public string Email_Address { get; set; }
-        public string Area_Name { get; set; }
-        public int? Created_By { get; set; }
-        public string Created_Date { get; set; }
-        public int? Updated_By { get; set; }
-        public string Updated_Date { get; set; }
+        public long ContactId { get; set; }
+        public int? GroupId { get; set; }
+        public string GroupName { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string PhoneNumber { get; set; }
+        public string EmailAddress { get; set; }
+        public string AreaName { get; set; }
+        public int? CreatedBy { get; set; }
+        public string CreatedDate { get; set; }
+        public int? UpdatedBy { get; set; }
+        public string UpdatedDate { get; set; }
         public int? Total { get; set; }
     }
 }

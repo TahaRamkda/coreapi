@@ -37,6 +37,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public int? Updated_By { get; set; }
         public string Updated_Date { get; set; }
         public string Media_Id { get; set; }
+        public string MediaURL { get; set; }
         public long Sender_Id { get; set; }
         public string Sender_Name { get; set; }
 

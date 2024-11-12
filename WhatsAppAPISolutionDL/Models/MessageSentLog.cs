@@ -27,6 +27,6 @@ namespace WhatsAppAPISolutionDL.Models
         public string Category { get; set; }
         public decimal? EstPrice { get; set; }
         public decimal? Commission { get; set; }
-        public DateTime? CreatedAt { get; set; }
+        public DateTime? CreatedDate { get; set; }
     }
 }

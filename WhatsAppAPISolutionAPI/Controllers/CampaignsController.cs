@@ -45,9 +45,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getcampaignlist")]
-        public async Task<ActionResult> GetCampaignListAsync(int clientId)
+        public async Task<ActionResult> GetCampaignListAsync(int ClientId)
         {
-            var res = await _campaignService.GetCampaignListAsync(clientId);
+            var res = await _campaignService.GetCampaignListAsync(ClientId);
             return Ok(new ApiResult()
             {
                 Success = true,
@@ -57,14 +57,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getcampaignbyid")]
-        public ActionResult GetCampaignByIdAsync(int id)
+        public ActionResult GetCampaignByIdAsync(int Id)
         {
-            if (id <= 0)
+            if (Id <= 0)
             {
                 return NotFound("not found");
             }
 
-            var response = _dbContext.Campaigns.Where(x => x.CampaignId == id).FirstOrDefault();
+            var response = _dbContext.Campaigns.Where(x => x.CampaignId == Id).FirstOrDefault();
 
             if (response == null)
             {
@@ -161,15 +161,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
         [HttpPost("settlecampaign")]
-
-        public async Task<IActionResult> SettleCampaignAsync(int client_Id, int campaign_Id)
+        public async Task<IActionResult> SettleCampaignAsync(int ClientId, int CampaignId)
         {
-            if (client_Id <= 0 || campaign_Id <= 0)
+            if (ClientId <= 0 || CampaignId <= 0)
             {
                 return NotFound("not found");
             }
 
-            var response = await _campaignService.SettleCampaignAsync(client_Id, campaign_Id);
+            var response = await _campaignService.SettleCampaignAsync(ClientId, CampaignId);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult

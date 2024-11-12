@@ -65,7 +65,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Success = false,
                     Message = "Please upload file"
                 });
-            if (model.Sender_Name_Id == 0)
+            if (model.SenderNameId == 0)
                 return Ok(new ApiResult()
                 {
                     Success = false,
@@ -90,9 +90,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getmedialist")]
-        public async Task<ActionResult> GetMediaListAsync(int client_Id)
+        public async Task<ActionResult> GetMediaListAsync(int ClientId)
         {
-            var res = await _mediaService.GetMediaListAsync(client_Id);
+            var res = await _mediaService.GetMediaListAsync(ClientId);
             return Ok(new ApiResult()
             {
                 Success = true,
@@ -101,67 +101,15 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
-        //[HttpPost("addmedia")]
-        //public async Task<IActionResult> AddMediaAsync([FromBody] MediaUploadDto media)
-        //{
-        //    if (media == null)
-        //    {
-        //        return BadRequest();
-        //    }
-
-        //    var response = await _mediaService.AddMediaAsync(media);
-        //    if (response == null || response.Status <= 0)
-        //    {
-        //        return Ok(new ApiResult
-        //        {
-        //            Success = false,
-        //            Result = response,
-        //            Message = response?.Message
-        //        });
-        //    }
-        //    return Ok(new ApiResult()
-        //    {
-        //        Success = true,
-        //        Result = response,
-        //        Message = "Data added successfully"
-        //    });
-        //}
-
-        //[HttpPut("updatemedia")]
-        //public async Task<IActionResult> UpdateMediaAsync([FromBody] MediaUploadDto media)
-        //{
-        //    if (media == null)
-        //    {
-        //        return BadRequest();
-        //    }
-
-        //    var response = await _mediaService.UpdateMediaAsync(media);
-        //    if (response == null || response.Status <= 0)
-        //    {
-        //        return Ok(new ApiResult
-        //        {
-        //            Success = false,
-        //            Result = response,
-        //            Message = response?.Message
-        //        });
-        //    }
-        //    return Ok(new ApiResult()
-        //    {
-        //        Success = true,
-        //        Result = response,
-        //        Message = "Data updated successfully"
-        //    });
-        //}
-
         [HttpDelete("deletemedia")]
-        public async Task<IActionResult> DeleteMediaAsync(int id)
+        public async Task<IActionResult> DeleteMediaAsync(int Id)
         {
-            if (id <= 0)
+            if (Id <= 0)
             {
                 return NotFound("not found");
             }
 
-            var response = await _mediaService.DeleteMediaAsync(id);
+            var response = await _mediaService.DeleteMediaAsync(Id);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
