@@ -2,6 +2,7 @@
 using Microsoft.Extensions.FileSystemGlobbing;
 using System.Data;
 using System.Net.NetworkInformation;
+using System.Security.Policy;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -797,7 +798,53 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 pDetails = response[0];
                 if (pDetails.Templates_Id > 0)
-                    pDetails.TemplateParameters = await GetTemplateParametersAsync(client_Id, templates_Id);
+                {
+                    var templateParameters = await GetTemplateParametersAsync(client_Id, templates_Id);
+                    if (templateParameters.Any())
+                    {
+                        var headerValue = templateParameters.Where(x => x.Param_Type == (int)TemplateParamEnum.Header).FirstOrDefault();
+                        if (headerValue != null)
+                        {
+                            pDetails.HeaderValue = new KeyValue()
+                            {
+                                Index = headerValue.Sequence,
+                                Value = headerValue.Param_Name,
+                                DefaultValue = headerValue.Param_Default_Value
+                            };
+                        }
+                        var bodyValue = templateParameters.Where(x => x.Param_Type == (int)TemplateParamEnum.Body).ToList();
+                        if (bodyValue != null)
+                        {
+                            foreach (var item in bodyValue)
+                            {
+                                pDetails.BodyValues.Add(new KeyValue()
+                                {
+                                    Index = item.Sequence,
+                                    Value = item.Param_Name,
+                                    DefaultValue = item.Param_Default_Value
+                                });
+                            }
+                        }
+                        var buttonValues = templateParameters.Where(x => x.Param_Type == (int)TemplateParamEnum.Button).ToList();
+                        if (buttonValues != null)
+                        {
+                            foreach (var item in buttonValues)
+                            {
+                                var buttonValue = new ButtonValue()
+                                {
+                                    Type = ((ButtonTypeEnum)item.Button_Type).ToString(),
+                                    Text = item.Param_Name,
+                                    PhoneNumber = item.Param_Default_Value,
+                                    Url = item.Param_Name,
+                                    IsDynamic = item.IsDynamic,
+                                    Sequence = item.Sequence
+                                };
+                                buttonValue.Values.Value = item.Param_Default_Value;
+                                pDetails.ButtonValues.Add(buttonValue);
+                            }
+                        }
+                    }
+                }
             }
 
             return pDetails;

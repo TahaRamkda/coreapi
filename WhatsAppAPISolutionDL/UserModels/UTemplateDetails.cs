@@ -12,7 +12,10 @@ namespace WhatsAppAPISolutionDL.UserModels
     {
         public UTemplateDetails()
         {
-            TemplateParameters = new List<UTemplateParameter>();
+            //TemplateParameters = new List<UTemplateParameter>();
+            //HeaderValue = new KeyValue();
+            BodyValues = new List<KeyValue>();
+            ButtonValues = new List<ButtonValue>();
         }
 
         public long Templates_Id { get; set; }
@@ -41,7 +44,37 @@ namespace WhatsAppAPISolutionDL.UserModels
         public long Sender_Id { get; set; }
         public string Sender_Name { get; set; }
 
+        //[NotMapped]
+        //public List<UTemplateParameter> TemplateParameters { get; set; }
+
         [NotMapped]
-        public List<UTemplateParameter> TemplateParameters { get; set; }
+        public KeyValue HeaderValue { get; set; }
+
+        [NotMapped]
+        public List<KeyValue> BodyValues { get; set; }
+
+        [NotMapped]
+        public List<ButtonValue> ButtonValues { get; set; }
+    }
+    public partial class ButtonValue
+    {
+        public ButtonValue()
+        {
+            Values = new KeyValue();
+        }
+        public string Type { get; set; }
+        public string Text { get; set; } = String.Empty;
+        public string PhoneNumber { get; set; } = String.Empty;
+        public int Index { get; set; }
+        public string Url { get; set; } = String.Empty;
+        public bool IsDynamic { get; set; }
+        public int? Sequence { get; set; }
+        public KeyValue Values { get; set; }
+    }
+    public class KeyValue
+    {
+        public string Value { get; set; } = String.Empty;
+        public string DefaultValue { get; set; } = String.Empty;
+        public int? Index { get; set; }
     }
 }
