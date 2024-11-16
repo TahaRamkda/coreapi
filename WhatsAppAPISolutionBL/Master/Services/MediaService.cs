@@ -51,7 +51,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<UResponseWithID> AddMediaAsync(MediaUploadDto media)
         {
-            var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @ClientId={1}, @WhatsAppBusinessAccountId='{2}', @SenderName_Id={3}, @MediaPath='{4}', @ContentType='{5}', @FileSize='{6}', @FileName='{7}', @FileExtension='{8}', @ActionBy={9}", (int)CrudEnum.Add, media.ClientId, media.WhatsAppBusinessAccountId, media.SenderNameId, media.MediaPath, media.ContentType, media.FileSize, media.FileName, media.FileExtension, media.ActionBy);
+            var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @ClientId={1}, @WhatsAppBusinessAccountId='{2}', @SenderNameId={3}, @MediaPath='{4}', @ContentType='{5}', @FileSize='{6}', @FileName='{7}', @FileExtension='{8}', @ActionBy={9}", (int)CrudEnum.Add, media.ClientId, media.WhatsAppBusinessAccountId, media.SenderNameId, media.MediaPath, media.ContentType, media.FileSize, media.FileName, media.FileExtension, media.ActionBy);
             var response = await _dbContext2.ResponseWithID.FromSqlRaw(query).ToListAsync();
 
             return response[0];
@@ -183,7 +183,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<UResponseWithID> UpdateMediaAsync(MediaUploadDto media)
         {
-            var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @Id={1}, @Media_Id='{2}', @Action_By={3}", (int)CrudEnum.Update, media.Id, media.MediaId, media.ActionBy);
+            var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @Id={1}, @MediaId='{2}', @ActionBy={3}", (int)CrudEnum.Update, media.Id, media.MediaId, media.ActionBy);
             var response = await _dbContext2.ResponseWithID.FromSqlRaw(query).ToListAsync();
 
             return response[0];

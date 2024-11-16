@@ -27,8 +27,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> SendSmsAsync(SendSmsDto sendSms, int ClientId)
         {
-            sendSms.BrandName = sendSms.BrandName.Replace(" ", "");
-            var templateName = string.Concat(sendSms.BrandName, "_", sendSms.TemplateName);
+            sendSms.BrandName = sendSms.BrandName.Replace(" ", "_");
+            var templateName = string.Concat(sendSms.BrandName, "_", sendSms.TemplateName).ToLower();
             var templateDetails = await _dbContext.Templates.Where(x => x.TemplateName == templateName && x.ClientId == ClientId).FirstOrDefaultAsync();
 
 
