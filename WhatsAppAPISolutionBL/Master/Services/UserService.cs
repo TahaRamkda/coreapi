@@ -31,7 +31,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var query = string.Format(@"exec usp_Users_Login @UserName='{0}', @Password='{1}'", userName, password);
             var userDetails = await _dbContext2.Users.FromSqlRaw(query).IgnoreQueryFilters().ToListAsync();
             if (userDetails != null && userDetails[0].Status > 0)
-                userDetails[0].Permission = await _dbContext2.Permissions.FromSqlRaw(@"exec usp_GetUserPermission @User_Id={0}", userDetails[0].UserId).IgnoreQueryFilters().ToListAsync();
+                userDetails[0].Permission = await _dbContext2.Permissions.FromSqlRaw(@"exec usp_GetUserPermission @UserId={0}", userDetails[0].UserId).IgnoreQueryFilters().ToListAsync();
 
             return userDetails[0];
         }
@@ -83,7 +83,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> AddUserTokenAsync(UserDto user)
         {
-            var query = string.Format(@"exec usp_Users_Ops @ActionId={0}, @Client_Id={1}, @User_Id={2}, @AccessToken='{3}', @RefreshToken='{4}', @RefreshTokenExpiry='{5}'", (int)CrudEnum.AddUserToken, user.Client_Id, user.User_Id, user.AccessToken, user.RefreshToken, user.RefreshTokenExpiry);
+            var query = string.Format(@"exec usp_Users_Ops @ActionId={0}, @ClientId={1}, @UserId={2}, @AccessToken='{3}', @RefreshToken='{4}', @RefreshTokenExpiry='{5}'", (int)CrudEnum.AddUserToken, user.Client_Id, user.User_Id, user.AccessToken, user.RefreshToken, user.RefreshTokenExpiry);
             var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
 
             return response[0];
