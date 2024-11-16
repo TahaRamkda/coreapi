@@ -8,18 +8,18 @@ namespace WhatsAppAPISolutionDL.UserModels
 {
     public partial class UTemplate
     {
-        public long Templates_Id { get; set; }
-        public int? Client_Id { get; set; }
-        public string Client_Name { get; set; }
-        public long? Sender_Id { get; set; }
-        public string Sender_Name { get; set; }
-        public string Template_Name { get; set; }
-        public string Template_Id { get; set; }
+        public long TemplatesId { get; set; }
+        public int? ClientId { get; set; }
+        public string ClientName { get; set; }
+        public long? SenderId { get; set; }
+        public string SenderName { get; set; }
+        public string TemplateName { get; set; }
+        public string TemplateId { get; set; }
         public string Status { get; set; }
-        public int? Created_By { get; set; }
-        public string Created_Date { get; set; }
-        public int? Updated_By { get; set; }
-        public string Updated_Date { get; set; }
+        public int? CreatedBy { get; set; }
+        public string CreatedDate { get; set; }
+        public int? UpdatedBy { get; set; }
+        public string UpdatedDate { get; set; }
         public int? Total { get; set; }
     }
 }

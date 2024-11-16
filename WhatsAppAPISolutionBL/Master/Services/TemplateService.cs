@@ -797,22 +797,22 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (response != null && response.Any())
             {
                 pDetails = response[0];
-                if (pDetails.Templates_Id > 0)
+                if (pDetails.TemplatesId > 0)
                 {
                     var templateParameters = await GetTemplateParametersAsync(client_Id, templates_Id);
                     if (templateParameters.Any())
                     {
-                        var headerValue = templateParameters.Where(x => x.Param_Type == (int)TemplateParamEnum.Header).FirstOrDefault();
+                        var headerValue = templateParameters.Where(x => x.ParamType == (int)TemplateParamEnum.Header).FirstOrDefault();
                         if (headerValue != null)
                         {
                             pDetails.HeaderValue = new KeyValue()
                             {
                                 Index = headerValue.Sequence,
-                                Value = headerValue.Param_Name,
-                                DefaultValue = headerValue.Param_Default_Value
+                                Value = headerValue.ParamName,
+                                DefaultValue = headerValue.ParamDefaultValue
                             };
                         }
-                        var bodyValue = templateParameters.Where(x => x.Param_Type == (int)TemplateParamEnum.Body).ToList();
+                        var bodyValue = templateParameters.Where(x => x.ParamType == (int)TemplateParamEnum.Body).ToList();
                         if (bodyValue != null)
                         {
                             foreach (var item in bodyValue)
@@ -820,26 +820,26 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 pDetails.BodyValues.Add(new KeyValue()
                                 {
                                     Index = item.Sequence,
-                                    Value = item.Param_Name,
-                                    DefaultValue = item.Param_Default_Value
+                                    Value = item.ParamName,
+                                    DefaultValue = item.ParamDefaultValue
                                 });
                             }
                         }
-                        var buttonValues = templateParameters.Where(x => x.Param_Type == (int)TemplateParamEnum.Button).ToList();
+                        var buttonValues = templateParameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button).ToList();
                         if (buttonValues != null)
                         {
                             foreach (var item in buttonValues)
                             {
                                 var buttonValue = new ButtonValue()
                                 {
-                                    Type = ((ButtonTypeEnum)item.Button_Type).ToString(),
-                                    Text = item.Param_Name,
-                                    PhoneNumber = item.Param_Default_Value,
-                                    Url = item.Param_Name,
+                                    Type = ((ButtonTypeEnum)item.ButtonType).ToString(),
+                                    Text = item.ParamName,
+                                    PhoneNumber = item.ParamDefaultValue,
+                                    Url = item.ParamName,
                                     IsDynamic = item.IsDynamic,
                                     Sequence = item.Sequence
                                 };
-                                buttonValue.Values.Value = item.Param_Default_Value;
+                                buttonValue.Values.Value = item.ParamDefaultValue;
                                 pDetails.ButtonValues.Add(buttonValue);
                             }
                         }

@@ -31,7 +31,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var query = string.Format(@"exec usp_Users_Login @UserName='{0}', @Password='{1}'", userName, password);
             var userDetails = await _dbContext2.Users.FromSqlRaw(query).IgnoreQueryFilters().ToListAsync();
             if (userDetails != null && userDetails[0].Status > 0)
-                userDetails[0].Permission = await _dbContext2.Permissions.FromSqlRaw(@"exec usp_GetUserPermission @User_Id={0}", userDetails[0].User_Id).IgnoreQueryFilters().ToListAsync();
+                userDetails[0].Permission = await _dbContext2.Permissions.FromSqlRaw(@"exec usp_GetUserPermission @User_Id={0}", userDetails[0].UserId).IgnoreQueryFilters().ToListAsync();
 
             return userDetails[0];
         }
