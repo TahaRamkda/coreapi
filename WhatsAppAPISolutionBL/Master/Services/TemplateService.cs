@@ -789,7 +789,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response[0];
         }
-        public async Task<UTemplateDetails> GetTemplateDetailsAsync(int client_Id, int templates_Id = 0)
+        public async Task<UTemplateDetails> GetTemplateDetailsAsync(int client_Id, int templates_Id = 0, string searchStr = "")
         {
             UTemplateDetails pDetails = null;
             var query = string.Format(@"exec usp_Templates_Ops_Bak @ActionId={0}, @ClientId={1}, @TemplatesId={2}", (int)CrudEnum.GetTemplateDetails, client_Id, templates_Id);
