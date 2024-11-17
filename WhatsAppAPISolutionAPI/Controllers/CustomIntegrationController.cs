@@ -33,17 +33,17 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             if (sendSms == null)
                 return Ok("error - Data required");
-            if (!string.IsNullOrEmpty(sendSms.Phone))
+            if (string.IsNullOrEmpty(sendSms.Phone))
                 return Ok("error - Phone number required");
-            if (!string.IsNullOrEmpty(sendSms.BrandName))
+            if (string.IsNullOrEmpty(sendSms.BrandName))
                 return Ok("error - Brand name required");
             if (sendSms.Amount <= 0)
                 return Ok("error - Amount required");
-            if (!string.IsNullOrEmpty(sendSms.TemplateName))
+            if (string.IsNullOrEmpty(sendSms.TemplateName))
                 return Ok("error - Template name required");
-            if (!string.IsNullOrEmpty(sendSms.Username))
+            if (string.IsNullOrEmpty(sendSms.Username))
                 return Ok("error - User name required");
-            if (!string.IsNullOrEmpty(sendSms.Password))
+            if (string.IsNullOrEmpty(sendSms.Password))
                 return Ok("error - Password required");
 
             var res = await _userService.Login(sendSms.Username.Trim(), sendSms.Password.Trim());

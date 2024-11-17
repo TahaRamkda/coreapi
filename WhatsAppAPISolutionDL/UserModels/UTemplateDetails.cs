@@ -41,6 +41,10 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string UpdatedDate { get; set; }
         public string MediaId { get; set; }
         public string MediaURL { get; set; }
+        public string ContentType { get; set; }
+        public string FileExtension { get; set; }
+        public string FileName { get; set; }
+        public string FileSize { get; set; }
         public long SenderId { get; set; }
         public string SenderName { get; set; }
 
@@ -75,6 +79,6 @@ namespace WhatsAppAPISolutionDL.UserModels
     {
         public string Value { get; set; } = String.Empty;
         public string DefaultValue { get; set; } = String.Empty;
-        public int? Index { get; set; }
+        public int Index { get; set; }
     }
 }

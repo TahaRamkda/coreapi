@@ -13,7 +13,6 @@ using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
-using static WhatsAppAPISolutionDL.Dto.SendTemplateMessageDto;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {

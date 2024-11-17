@@ -59,6 +59,8 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
+                entity.Property(e => e.PhoneNumber).HasMaxLength(15);
+
                 entity.Property(e => e.ScheduleTime).HasColumnType("datetime");
 
                 entity.Property(e => e.TrxType).HasMaxLength(250);
@@ -74,6 +76,10 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.Url)
                     .HasMaxLength(250)
                     .HasColumnName("URL");
+
+                entity.Property(e => e.WaId)
+                    .HasMaxLength(250)
+                    .HasColumnName("WaID");
             });
 
             modelBuilder.Entity<Campaign>(entity =>
