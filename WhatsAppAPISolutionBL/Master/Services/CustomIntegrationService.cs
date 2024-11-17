@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -100,7 +101,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     {
                         buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
                         {
-                            Type = button.Type,
+                            Type = ((ButtonTypeEnum)button.Type).ToString(),
                             Value = sendSms.OrderId,
                             Index = button.Index
                         });
@@ -132,6 +133,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         Message = result.message
                     };
                 }
+            }
+            else
+            {
+                return new UResponse()
+                {
+                    Status = 0,
+                    Message = "Template name is not exist"
+                };
             }
 
             var query = "";// string.Format(@"exec usp_Clients_Ops @ActionId={0}, @Client_Name='{1}', @Client_Language={2}, @Client_Address='{3}', @Balance={4}, @Contact_Person='{5}', @Contact_Person_Email='{6}', @Contact_Person_Phone='{7}', @Balance_Alert_Limit={8}, @Access_Token='{9}', @Action_By={10}", (int)CrudEnum.Add, client.Client_Name, client.Client_Language, client.Client_Address, client.Balance, client.Contact_Person, client.Contact_Person_Email, client.Contact_Person_Phone, client.Balance_Alert_Limit, client.Access_Token, client.ActionBy);

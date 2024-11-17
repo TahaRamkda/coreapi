@@ -59,7 +59,7 @@ namespace WhatsAppAPISolutionDL.Dto
 
             }
 
-            public string Type { get; set; }
+            public int? Type { get; set; }
             public string Text { get; set; }
             public string PhoneNumber { get; set; }
             public string Url { get; set; }

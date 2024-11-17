@@ -44,7 +44,6 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string ContentType { get; set; }
         public string FileExtension { get; set; }
         public string FileName { get; set; }
-        public string FileSize { get; set; }
         public long SenderId { get; set; }
         public string SenderName { get; set; }
 
@@ -66,7 +65,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         {
             Values = new KeyValue();
         }
-        public string Type { get; set; }
+        public int? Type { get; set; }
         public string Text { get; set; } = String.Empty;
         public string PhoneNumber { get; set; } = String.Empty;
         public int Index { get; set; }
