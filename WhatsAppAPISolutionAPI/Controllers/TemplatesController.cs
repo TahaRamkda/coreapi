@@ -1,6 +1,7 @@
 ﻿using Azure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using OfficeOpenXml.Export.HtmlExport.StyleCollectors.StyleContracts;
@@ -198,25 +199,47 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use this if your JSON is in camelCase
                     PropertyNameCaseInsensitive = true // Ignore case when matching property names
                 };
-                TemplateWithParametersDto tempParam = System.Text.Json.JsonSerializer.Deserialize<TemplateWithParametersDto>(data, options);
-                if (tempParam != null)
+                var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(data, options);
+                if (result != null && result.success)
                 {
-                    var response = await _templateService.AddTemplateWithParameterAsync(tempParam);
-                    if (response == null || response.Status <= 0)
+                    var data1 = System.Text.Json.JsonSerializer.Serialize(result.result);
+                    TemplateWithParametersDto tempParam = System.Text.Json.JsonSerializer.Deserialize<TemplateWithParametersDto>(data1, options);
+                    if (tempParam != null)
                     {
-                        return Ok(new ApiResult
+                        var template = await _dbContext.Templates.Where(x => x.TemplateId == tempParam.Id).FirstOrDefaultAsync();
+                        if (template == null)
                         {
-                            Success = false,
+                            return Ok(new ApiResult
+                            {
+                                Success = false,
+                                Message = "Template id not exist"
+                            });
+                        }
+                        var tempDto = new TemplateDto()
+                        {
+                            Templates_Id = template.TemplatesId,
+                            TemplateId = tempParam.Id,
+                            Status = tempParam.Status,
+                            Category = tempParam.Category,
+                            ActionBy = template.UpdatedBy != null ? template.UpdatedBy.Value : 0
+                        };
+                        var response = await _templateService.UpdateTemplateStatusByIdAsync(tempDto);
+                        if (response == null || response.Status <= 0)
+                        {
+                            return Ok(new ApiResult
+                            {
+                                Success = false,
+                                Result = response,
+                                Message = response?.Message
+                            });
+                        }
+                        return Ok(new ApiResult()
+                        {
+                            Success = true,
                             Result = response,
-                            Message = response?.Message
+                            Message = ""//Data added successfully"
                         });
                     }
-                    return Ok(new ApiResult()
-                    {
-                        Success = true,
-                        Result = response,
-                        Message = ""//Data added successfully"
-                    });
                 }
                 //_logger.LogInformation("webhook received with data={data}", data);
                 return Ok(new ApiResult

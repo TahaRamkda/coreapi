@@ -223,7 +223,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     tempateResponse.Buttons.Add(new TemplateRequestDto.ButtonDto()
                     {
-                        Type = item.Type,
+                        Type = ((ButtonTypeEnum)item.Type).ToString(),
                         Text = item.Text,
                         PhoneNumber = item.PhoneNumber,
                         Url = item.Url,
@@ -463,7 +463,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     tempateResponse.Buttons.Add(new TemplateRequestDto.ButtonDto()
                     {
-                        Type = item.Type,
+                        Type = ((ButtonTypeEnum)item.Type).ToString(),
                         Text = item.Text,
                         PhoneNumber = item.PhoneNumber,
                         Url = item.Url,
