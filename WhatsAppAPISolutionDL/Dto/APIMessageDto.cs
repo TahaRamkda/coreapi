@@ -8,5 +8,6 @@ namespace WhatsAppAPISolutionDL.Dto
 {
     public partial class APIMessageDto
     {
+
     }
 }

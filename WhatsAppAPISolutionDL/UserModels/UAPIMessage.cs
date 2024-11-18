@@ -18,9 +18,11 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string PhoneNumber { get; set; }
         public string URL { get; set; }
         public int? Status { get; set; }
-        public DateTime? ScheduleTime { get; set; }
-        public DateTime? CreatedDate { get; set; }
-        public int? CreatedBy { get; set; }
         public string WaId { get; set; }
+        public string? ScheduleTime { get; set; }
+        public string? CreatedDate { get; set; }
+        public int? CreatedBy { get; set; }
+        public long? Line { get; set; }
+        public int? TotalItems { get; set; }
     }
 }
