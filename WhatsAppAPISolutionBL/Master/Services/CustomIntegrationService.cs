@@ -19,20 +19,26 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly ITemplateService _templateService;
         private readonly HttpClient _httpClient;
+        private readonly IAPIMessageService _apiMessageService;
+        private readonly IMessageService _messageService;
 
         public CustomIntegrationService(
             WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
             ITemplateService templateService,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            IAPIMessageService apiMessageService,
+            IMessageService messageService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _templateService = templateService;
             _httpClient = httpClientFactory.CreateClient("bridge_api");
+            _apiMessageService = apiMessageService;
+            _messageService = messageService;
         }
 
-        public async Task<UResponse> SendSmsAsync(SendSmsDto sendSms, int ClientId)
+        public async Task<UResponse> SendSmsAsync(SendSmsDto sendSms, int ClientId, int UserId)
         {
             sendSms.BrandName = sendSms.BrandName.Replace(" ", "_");
             var templateName = string.Concat(sendSms.BrandName, "_", sendSms.TemplateName).ToLower();
@@ -43,12 +49,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     ClientId = templateDetails.ClientId.ToString(),
                     SenderNameId = templateDetails.SenderId.ToString(),
-                    PhoneNumbers = new List<string> { sendSms.Phone },
+                    PhoneNumbers = new List<string> { sendSms.PhoneNumber },
                     LanguageCode = templateDetails.Language,
                     TemplateId = templateDetails.TemplateId,
                     TemplateName = templateDetails.TemplateName
                 };
-                if (templateDetails.HeaderParamCount > 0)
+                if (templateDetails.HeaderParamCount > 0 && !string.IsNullOrEmpty(sendSms.HParam))
                 {
                     var headerComponents = new SendTemplateMessageDto.TemplateComponent()
                     {
@@ -57,7 +63,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
                     {
                         Type = ((TemplateHeaderEnum)templateDetails.HeaderType).ToString(),
-                        Value = templateDetails.HeaderValue.Value ?? templateDetails.HeaderValue.DefaultValue,
+                        Value = sendSms.HParam,
                         Index = templateDetails.HeaderValue.Index
                     });
                     sendMessage.Components.Add(headerComponents);
@@ -70,22 +76,40 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     };
                     for (int i = 0; i <= templateDetails.BodyValues.Count(); i++)
                     {
-                        if (i == 0)
+                        if (i == 0 && !string.IsNullOrEmpty(sendSms.BParam1))
                         {
                             bodyComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
                             {
                                 Type = "text",
-                                Value = sendSms.OrderId,
-                                Index = i + 1
+                                Value = sendSms.BParam1,
+                                Index = i
                             });
                         }
-                        if (i == 1)
+                        if (i == 1 && !string.IsNullOrEmpty(sendSms.BParam2))
                         {
                             bodyComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
                             {
                                 Type = "text",
-                                Value = sendSms.Amount.ToString(),
-                                Index = i + 1
+                                Value = sendSms.BParam2,
+                                Index = i
+                            });
+                        }
+                        if (i == 2 && !string.IsNullOrEmpty(sendSms.BParam3))
+                        {
+                            bodyComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                            {
+                                Type = "text",
+                                Value = sendSms.BParam3,
+                                Index = i
+                            });
+                        }
+                        if (i == 3 && !string.IsNullOrEmpty(sendSms.BParam4))
+                        {
+                            bodyComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                            {
+                                Type = "text",
+                                Value = sendSms.BParam4,
+                                Index = i
                             });
                         }
                     }
@@ -97,14 +121,35 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     {
                         ComponentType = TemplateParamEnum.Button.ToString()
                     };
-                    foreach (var button in templateDetails.ButtonValues)
+                    for (int i = 0; i <= templateDetails.ButtonValues.OrderBy(x => x.Sequence).Count(); i++)
                     {
-                        buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                        if (i == 0 && !string.IsNullOrEmpty(sendSms.BtnParam1))
                         {
-                            Type = ((ButtonTypeEnum)button.Type).ToString(),
-                            Value = sendSms.OrderId,
-                            Index = button.Index
-                        });
+                            buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                            {
+                                Type = ((ButtonTypeEnum)templateDetails.ButtonValues[i].Type).ToString(),
+                                Value = sendSms.BtnParam1,
+                                Index = i
+                            });
+                        }
+                        if (i == 1 && !string.IsNullOrEmpty(sendSms.BtnParam2))
+                        {
+                            buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                            {
+                                Type = ((ButtonTypeEnum)templateDetails.ButtonValues[i].Type).ToString(),
+                                Value = sendSms.BtnParam2,
+                                Index = i
+                            });
+                        }
+                        if (i == 2 && !string.IsNullOrEmpty(sendSms.BtnParam3))
+                        {
+                            buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                            {
+                                Type = ((ButtonTypeEnum)templateDetails.ButtonValues[i].Type).ToString(),
+                                Value = sendSms.BtnParam3,
+                                Index = i
+                            });
+                        }
                     }
                     sendMessage.Components.Add(buttonComponents);
                 }
@@ -116,12 +161,49 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 if (result != null && result.success)
                 {
                     var data = System.Text.Json.JsonSerializer.Serialize(result.result);
-                    var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<SendSmsResultDto>(data);
+                    var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
                     if (tempResult != null)
                     {
-                        if (tempResult.Success)
+                        if (tempResult[0].success)
                         {
 
+                        }
+                        foreach (var item in tempResult)
+                        {
+                            var message = new APIMessageDto()
+                            {
+                                ClientId = ClientId,
+                                SenderNameId = (int)templateDetails.SenderId,
+                                TemplateId = (int)templateDetails.TemplatesId,
+                                PhoneNumber = item.phoneNumber,
+                                Status = item.status,
+                                WaId = item.waId,
+                                ActionBy = UserId
+                            };
+                            await _apiMessageService.AddAPIMessageAsync(message);
+
+                            if (item.success)
+                            {
+                                var message1 = new WhatsAppMessageStatusUpdateDto()
+                                {
+                                    client_Id = ClientId.ToString(),
+                                    wam_Id = item.waId,
+                                    recipient_Id = item.phoneNumber,
+                                    status = "sent"
+                                };
+                                var response = await _messageService.UpdateMessageStatusAsync(message1);
+                            }
+                            else
+                            {
+                                var message1 = new WhatsAppMessageStatusUpdateDto()
+                                {
+                                    client_Id = ClientId.ToString(),
+                                    wam_Id = item.waId,
+                                    recipient_Id = item.phoneNumber,
+                                    status = "failed"
+                                };
+                                var response = await _messageService.UpdateMessageStatusAsync(message1);
+                            }
                         }
                     }
                 }
@@ -142,11 +224,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Message = "Template name is not exist"
                 };
             }
-
-            var query = "";// string.Format(@"exec usp_Clients_Ops @ActionId={0}, @Client_Name='{1}', @Client_Language={2}, @Client_Address='{3}', @Balance={4}, @Contact_Person='{5}', @Contact_Person_Email='{6}', @Contact_Person_Phone='{7}', @Balance_Alert_Limit={8}, @Access_Token='{9}', @Action_By={10}", (int)CrudEnum.Add, client.Client_Name, client.Client_Language, client.Client_Address, client.Balance, client.Contact_Person, client.Contact_Person_Email, client.Contact_Person_Phone, client.Balance_Alert_Limit, client.Access_Token, client.ActionBy);
-            var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
-
-            return response[0];
+            return new UResponse()
+            {
+                Status = 1,
+                Message = "Messages sent Successfully"
+            };
         }
     }
 }

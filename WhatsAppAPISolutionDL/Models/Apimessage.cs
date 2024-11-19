@@ -16,8 +16,10 @@ namespace WhatsAppAPISolutionDL.Models
         public string Url { get; set; }
         public int? Status { get; set; }
         public DateTime? ScheduleTime { get; set; }
-        public DateTime? CreatedDate { get; set; }
-        public int? CreatedBy { get; set; }
         public string WaId { get; set; }
+        public int? CreatedBy { get; set; }
+        public DateTime? CreatedDate { get; set; }
+        public int? UpdatedBy { get; set; }
+        public DateTime? UpdatedDate { get; set; }
     }
 }

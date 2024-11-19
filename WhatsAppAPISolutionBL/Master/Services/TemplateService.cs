@@ -297,7 +297,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var buttonValues = new List<TemplateParameter>();
             Regex regex = new Regex(@"{{\d+}}");
 
-            template.Name = template.Name.Replace(" ", "_");
+            template.Name = template.Name.Replace(" ", "_").ToLower();
             var templateNameExist = await _dbContext.Templates.Where(x => x.TemplateName == template.Name && x.TemplatesId != template.Templates_Id).FirstOrDefaultAsync();
             if (templateNameExist != null)
             {
@@ -309,7 +309,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
             if (template.Header != null)
             {
-                if (template.Header.Format != (int)TemplateHeaderEnum.NONE && template.Header.Format != (int)TemplateHeaderEnum.TEXT)
+                if (template.Header.Format != (int)TemplateHeaderEnum.TEXT)
                 {
                     if (string.IsNullOrEmpty(template.MediaId))
                         return new UResponseWithID()
@@ -343,6 +343,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             Message = "Header text parameters is not matching with header text count"
                         };
                 }
+                if (template.Header.TextCount == 0)
+                    template.Header.Values = null;
 
                 headerType = template.Header.Format;
                 headerText = template.Header.Text;
@@ -358,13 +360,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         Message = "Body text parameters is not matching with body text count"
                     };
 
+                if (template.Body.TextCount == 0)
+                    template.Body.Values = null;
+
                 bodyText = template.Body.Text;
                 bodyParamCount = template.Body.TextCount;
             }
             if (template.Footer != null)
                 footer = template.Footer.Text;
 
-            if (template.Header != null && template.Header.Values.Any())
+            if (template.Header != null && template.Header.Values != null && template.Header.Values.Any())
             {
                 foreach (var val in template.Header.Values)
                 {
@@ -378,7 +383,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
             }
 
-            if (template.Body != null && template.Body.Values.Any())
+            if (template.Body != null && template.Body.Values != null && template.Body.Values.Any())
             {
                 foreach (var val in template.Body.Values)
                 {
@@ -395,6 +400,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 foreach (var button in template.Buttons)
                 {
+                    if (button.TextCount == 0)
+                        button.Values = null;
+
                     var param = new TemplateParameter()
                     {
                         Sequence = button.index,
@@ -448,12 +456,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Format = ((TemplateHeaderEnum)template.Header.Format).ToString(),
                     MediaUrl = mediaUrl,
                     Text = template.Header.Text,
-                    Example = template.Header.Values.Any() ? template.Header.Values[0].value : string.Empty
+                    Example = template.Header.Values?.FirstOrDefault()?.value ?? ""
                 };
                 tempateResponse.Body = new TemplateRequestDto.BodyDto()
                 {
                     Text = template.Body.Text,
-                    Examples = template.Body.Values.Select(x => x.value).ToList()
+                    Examples = template.Body?.Values?.Select(x => x.value).ToList() ?? new List<string>()
                 };
                 tempateResponse.Footer = new TemplateRequestDto.FooterDto()
                 {
@@ -467,7 +475,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         Text = item.Text,
                         PhoneNumber = item.PhoneNumber,
                         Url = item.Url,
-                        Example = item.Values[0].value,
+                        Example = item.Values?.FirstOrDefault()?.value,
                     });
                 }
                 var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(tempateResponse), Encoding.UTF8, "application/json");
@@ -506,6 +514,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             };
                         }
                     }
+                }
+                else if (result != null && !result.success)
+                {
+                    return new UResponseWithID()
+                    {
+                        Status = 0,
+                        Message = result.message
+                    };
                 }
             }
             return new UResponseWithID()

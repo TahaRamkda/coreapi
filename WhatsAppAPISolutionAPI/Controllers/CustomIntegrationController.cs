@@ -33,12 +33,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             if (sendSms == null)
                 return Ok("error - Data required");
-            if (string.IsNullOrEmpty(sendSms.Phone))
+            if (string.IsNullOrEmpty(sendSms.PhoneNumber))
                 return Ok("error - Phone number required");
             if (string.IsNullOrEmpty(sendSms.BrandName))
                 return Ok("error - Brand name required");
-            if (sendSms.Amount <= 0)
-                return Ok("error - Amount required");
             if (string.IsNullOrEmpty(sendSms.TemplateName))
                 return Ok("error - Template name required");
             if (string.IsNullOrEmpty(sendSms.Username))
@@ -52,7 +50,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 return Ok("error - Incorrect Username or Password");
             }
 
-            var response = await _customIntegrationService.SendSmsAsync(sendSms, res.ClientId);
+            var response = await _customIntegrationService.SendSmsAsync(sendSms, res.ClientId, (int)res.UserId);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult

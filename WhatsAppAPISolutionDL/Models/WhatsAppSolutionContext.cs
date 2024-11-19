@@ -28,6 +28,7 @@ namespace WhatsAppAPISolutionDL.Models
         public virtual DbSet<Log> Logs { get; set; }
         public virtual DbSet<Media> Medias { get; set; }
         public virtual DbSet<MessageSentLog> MessageSentLogs { get; set; }
+        public virtual DbSet<MessageStatus> MessageStatuses { get; set; }
         public virtual DbSet<Module> Modules { get; set; }
         public virtual DbSet<Page> Pages { get; set; }
         public virtual DbSet<Permission> Permissions { get; set; }
@@ -72,6 +73,8 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.Udf2)
                     .HasMaxLength(50)
                     .HasColumnName("UDF2");
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.Url)
                     .HasMaxLength(250)
@@ -321,6 +324,15 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.WaId).HasMaxLength(250);
 
                 entity.Property(e => e.WaId2).HasMaxLength(250);
+            });
+
+            modelBuilder.Entity<MessageStatus>(entity =>
+            {
+                entity.ToTable("MessageStatus");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
+                entity.Property(e => e.StatusName).HasMaxLength(100);
             });
 
             modelBuilder.Entity<Module>(entity =>

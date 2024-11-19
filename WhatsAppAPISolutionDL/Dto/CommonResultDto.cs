@@ -31,14 +31,14 @@ namespace WhatsAppAPISolutionDL.Dto
     {
         public SendSmsResultDto()
         {
-            Errors = new List<string>();
+            errors = new List<string>();
         }
 
-        public bool Success { get; set; }
-        public int Status { get; set; }
-        public string PhoneNumber { get; set; }
-        public string WAId { get; set; }
-        public string MessageId { get; set; }
-        public List<string> Errors { get; set; }
+        public bool success { get; set; }
+        public int status { get; set; }
+        public string phoneNumber { get; set; }
+        public string waId { get; set; }
+        public string messageId { get; set; }
+        public List<string> errors { get; set; }
     }
 }
