@@ -1,9 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
@@ -42,6 +37,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         senderId = senderName.SenderId;
                 }
             }
+
             if (messageStatus.status.ToLower() == MessageStatusEnum.SENT.ToString().ToLower())
                 eventType = 1;
             else if (messageStatus.status.ToLower() == MessageStatusEnum.DELIVERED.ToString().ToLower())
@@ -53,10 +49,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 eventType = 4;
                 eventStatus = 0;
             }
+
             if (messageStatus.conversation != null)
                 conversationId = messageStatus.conversation.id;
+            
             if (messageStatus.error != null)
                 eventMessage = messageStatus.error.error_Details;
+            
             if (messageStatus.pricing != null)
             {
                 pricingModel = messageStatus.pricing.pricing_model;
@@ -64,7 +63,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 category = messageStatus.pricing.category;
             }
 
-            var query = string.Format(@"exec usp_MessageSentLogs_StatusUpdate @ModuleId={0}, @ClientId={1}, @ParentId={2}, @SenderId={3}, @PhoneNumber='{4}', @WaId='{5}', @WaId2='{6}', @EventType={7}, @EventTime='{8}', @EventStatus={9}, @EventMessage='{10}', @PricingModel='{11}', @Billable={12}, @Category='{13}'", 1, messageStatus.client_Id, 1, senderId, messageStatus.recipient_Id, messageStatus.wam_Id, conversationId, eventType, messageStatus.update_dateTime, eventStatus, eventMessage, pricingModel, billable, category);
+            var query = string.Format(@"exec usp_MessageSentLogs_StatusUpdate @ModuleId={0}, @ClientId={1}, @ParentId={2}, @SenderId={3}, @PhoneNumber='{4}', @WaId='{5}', @WaId2='{6}', @EventType={7}, @EventTime='{8}', @EventStatus={9}, @EventMessage='{10}', @PricingModel='{11}', @Billable={12}, @Category='{13}'", 0, messageStatus.client_Id, 0, senderId, messageStatus.recipient_Id, messageStatus.wam_Id, conversationId, eventType, messageStatus.update_dateTime, eventStatus, eventMessage, pricingModel, billable, category);
             var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
 
             return response[0];
