@@ -41,6 +41,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponse> SendSmsAsync(SendSmsDto sendSms, int ClientId, int UserId)
         {
             sendSms.BrandName = sendSms.BrandName.Replace(" ", "_");
+            sendSms.PhoneNumber = sendSms.PhoneNumber.Replace("+", "");
             var templateName = string.Concat(sendSms.BrandName, "_", sendSms.TemplateName).ToLower();
             var templateDetails = await _templateService.GetTemplateDetailsAsync(client_Id: ClientId, searchStr: templateName);
             if (templateDetails != null)
@@ -68,47 +69,50 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     });
                     sendMessage.Components.Add(headerComponents);
                 }
+                else if (templateDetails.HeaderParamCount > 0 && string.IsNullOrEmpty(sendSms.HParam))
+                {
+                    return new UResponse()
+                    {
+                        Status = 0,
+                        Message = $"error - HParam is required."
+                    };
+                }
                 if (templateDetails.BodyParamCount > 0)
                 {
                     var bodyComponents = new SendTemplateMessageDto.TemplateComponent()
                     {
                         ComponentType = TemplateParamEnum.Body.ToString()
                     };
-                    for (int i = 0; i <= templateDetails.BodyValues.Count(); i++)
+                    var parameters = new Dictionary<int, string>
                     {
-                        if (i == 0 && !string.IsNullOrEmpty(sendSms.BParam1))
+                        { 0, sendSms.BParam1 },
+                        { 1, sendSms.BParam2 },
+                        { 2, sendSms.BParam3 },
+                        { 3, sendSms.BParam4 }
+                    };
+                    for (int i = 0; i < templateDetails.BodyValues.Count(); i++)
+                    {
+                        // Check if the parameter for the given index is null or empty
+                        if (parameters.ContainsKey(i))
                         {
+                            var paramValue = parameters[i];
+
+                            // If parameter is null or empty, throw an error
+                            if (string.IsNullOrEmpty(paramValue))
+                            {
+                                //throw new Exception($"Error: BParam{i + 1} is required when index is {i}.");
+                                return new UResponse()
+                                {
+                                    Status = 0,
+                                    Message = $"error - BParam{i + 1} is required when body parameter is greater than {i + 1}."
+                                };
+                            }
+
+                            // Add the parameter to the bodyComponents if it's valid
                             bodyComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
                             {
                                 Type = "text",
-                                Value = sendSms.BParam1,
-                                Index = i
-                            });
-                        }
-                        if (i == 1 && !string.IsNullOrEmpty(sendSms.BParam2))
-                        {
-                            bodyComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                            {
-                                Type = "text",
-                                Value = sendSms.BParam2,
-                                Index = i
-                            });
-                        }
-                        if (i == 2 && !string.IsNullOrEmpty(sendSms.BParam3))
-                        {
-                            bodyComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                            {
-                                Type = "text",
-                                Value = sendSms.BParam3,
-                                Index = i
-                            });
-                        }
-                        if (i == 3 && !string.IsNullOrEmpty(sendSms.BParam4))
-                        {
-                            bodyComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                            {
-                                Type = "text",
-                                Value = sendSms.BParam4,
+                                Value = paramValue,
                                 Index = i
                             });
                         }
@@ -121,36 +125,45 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     {
                         ComponentType = TemplateParamEnum.Button.ToString()
                     };
-                    for (int i = 0; i <= templateDetails.ButtonValues.OrderBy(x => x.Sequence).Count(); i++)
+
+                    var buttonParams = new Dictionary<int, string>
                     {
-                        if (i == 0 && !string.IsNullOrEmpty(sendSms.BtnParam1))
+                        { 0, sendSms.BtnParam1 },
+                        { 1, sendSms.BtnParam2 },
+                        { 2, sendSms.BtnParam3 }
+                    };
+
+                    // Get the ordered list of ButtonValues
+                    var orderedButtonValues = templateDetails.ButtonValues.OrderBy(x => x.Sequence).ToList();
+
+                    for (int i = 0; i < orderedButtonValues.Count; i++)
+                    {
+                        // Check if the parameter for the given index is null or empty
+                        if (buttonParams.ContainsKey(i))
                         {
+                            var paramValue = buttonParams[i];
+
+                            // If parameter is null or empty, throw an error
+                            if (string.IsNullOrEmpty(paramValue))
+                            {
+                                //throw new Exception($"Error: BtnParam{i + 1} is required when index is {i}.");
+                                return new UResponse()
+                                {
+                                    Status = 0,
+                                    Message = $"error - BParam{i + 1} is required when button parameter is greater than {i + 1}."
+                                };
+                            }
+
+                            // Add the parameter to the buttonComponents if it's valid
                             buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
                             {
-                                Type = ((ButtonTypeEnum)templateDetails.ButtonValues[i].Type).ToString(),
-                                Value = sendSms.BtnParam1,
-                                Index = i
-                            });
-                        }
-                        if (i == 1 && !string.IsNullOrEmpty(sendSms.BtnParam2))
-                        {
-                            buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                            {
-                                Type = ((ButtonTypeEnum)templateDetails.ButtonValues[i].Type).ToString(),
-                                Value = sendSms.BtnParam2,
-                                Index = i
-                            });
-                        }
-                        if (i == 2 && !string.IsNullOrEmpty(sendSms.BtnParam3))
-                        {
-                            buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                            {
-                                Type = ((ButtonTypeEnum)templateDetails.ButtonValues[i].Type).ToString(),
-                                Value = sendSms.BtnParam3,
+                                Type = ((ButtonTypeEnum)orderedButtonValues[i].Type).ToString(),
+                                Value = paramValue,
                                 Index = i
                             });
                         }
                     }
+
                     sendMessage.Components.Add(buttonComponents);
                 }
                 var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(sendMessage), Encoding.UTF8, "application/json");
@@ -221,13 +234,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 return new UResponse()
                 {
                     Status = 0,
-                    Message = "Template name is not exist"
+                    Message = "error - Template name is not exist"
                 };
             }
             return new UResponse()
             {
                 Status = 1,
-                Message = "Messages sent Successfully"
+                Message = "success - Messages sent Successfully"
             };
         }
     }

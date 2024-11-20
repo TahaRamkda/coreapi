@@ -23,9 +23,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _dbContext2 = dbContext2;
         }
 
-        public async Task<List<UCampaign>> GetCampaignListAsync(int ClientId)
+        public async Task<List<UCampaign>> GetCampaignListAsync(int ClientId, int CampaignId = 0, DateTime? FromDate = null, DateTime? ToDate = null, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue, int SenderId = 0)
         {
-            var query = string.Format(@"exec usp_Campaigns_Ops @ActionId={0}, @ClientId={1}", (int)CrudEnum.List, ClientId);
+            var query = string.Format(@"exec usp_Campaigns_Ops @ActionId={0}, @ClientId={1}, @CampaignId={2}, @FromDate='{3}', @ToDate='{4}', @SearchStr='{5}', @SortBy={6}, @PageNo={7}, @PageSize={8}, @SenderId={9}", (int)CrudEnum.List, ClientId, CampaignId, FromDate, ToDate, SearchStr, SortBy, PageNo, PageSize, SenderId);
             var response = await _dbContext2.Campaigns.FromSqlRaw(query).ToListAsync();
 
             return response;

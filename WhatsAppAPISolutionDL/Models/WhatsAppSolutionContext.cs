@@ -309,6 +309,8 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.Property(e => e.EstPrice).HasColumnType("decimal(18, 3)");
 
+                entity.Property(e => e.FailedTime).HasColumnType("datetime");
+
                 entity.Property(e => e.PhoneNumber).HasMaxLength(100);
 
                 entity.Property(e => e.PricingModel).HasMaxLength(100);
@@ -522,9 +524,7 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.Property(e => e.AuthenticationInternational).HasColumnType("decimal(18, 3)");
 
-                entity.Property(e => e.AuthenticationInternationalCommission)
-                    .HasColumnType("decimal(18, 3)")
-                    .HasColumnName("AuthenticationInternational_Commission");
+                entity.Property(e => e.AuthenticationInternationalCommission).HasColumnType("decimal(18, 3)");
 
                 entity.Property(e => e.Currency).HasMaxLength(50);
 

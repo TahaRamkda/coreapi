@@ -44,9 +44,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getcampaignlist")]
-        public async Task<ActionResult> GetCampaignListAsync(int ClientId)
+        public async Task<ActionResult> GetCampaignListAsync(int ClientId, int CampaignId = 0, DateTime? FromDate = null, DateTime? ToDate = null, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue, int SenderId = 0)
         {
-            var res = await _campaignService.GetCampaignListAsync(ClientId);
+            var res = await _campaignService.GetCampaignListAsync(ClientId, CampaignId, FromDate, ToDate, SearchStr, SortBy, PageNo, PageSize, SenderId);
             return Ok(new ApiResult()
             {
                 Success = true,

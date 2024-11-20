@@ -29,5 +29,7 @@ namespace WhatsAppAPISolutionDL.Models
         public decimal? Commission { get; set; }
         public DateTime? CreatedDate { get; set; }
         public int? CurrentStatus { get; set; }
+        public string FailedMessage { get; set; }
+        public DateTime? FailedTime { get; set; }
     }
 }
