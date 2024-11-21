@@ -10,6 +10,7 @@ using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
+using static WhatsAppAPISolutionDL.Dto.WhatsAppMessageStatusUpdateDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -177,10 +178,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
                     if (tempResult != null)
                     {
-                        if (tempResult[0].success)
-                        {
-
-                        }
                         foreach (var item in tempResult)
                         {
                             var message = new APIMessageDto()
@@ -202,8 +199,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                     client_Id = ClientId.ToString(),
                                     wam_Id = item.waId,
                                     recipient_Id = item.phoneNumber,
-                                    status = "sent"
+                                    status = MessageStatusEnum.SENT.ToString()
                                 };
+                                message1.conversation.id = item.messageId;
                                 var response = await _messageService.UpdateMessageStatusAsync(message1);
                             }
                             else
@@ -213,8 +211,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                     client_Id = ClientId.ToString(),
                                     wam_Id = item.waId,
                                     recipient_Id = item.phoneNumber,
-                                    status = "failed"
+                                    status = MessageStatusEnum.FAILED.ToString()
                                 };
+                                message1.conversation.id = item.messageId;
+                                message1.error.error_Details = item.errors.ToString();
                                 var response = await _messageService.UpdateMessageStatusAsync(message1);
                             }
                         }

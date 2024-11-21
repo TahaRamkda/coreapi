@@ -8,6 +8,13 @@ namespace WhatsAppAPISolutionDL.Dto
 {
     public partial class WhatsAppMessageStatusUpdateDto
     {
+        public WhatsAppMessageStatusUpdateDto()
+        {
+            conversation = new Conversation();
+            pricing = new Pricing();
+            error = new Error();
+        }
+
         public string client_Id { get; set; }
         public string wam_Id { get; set; }
         public string status { get; set; }

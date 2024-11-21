@@ -256,14 +256,29 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         [AllowAnonymous]
         [HttpGet("templatesyncbyid")]
-        public async Task<IActionResult> TemplateSyncById(string templateId)
+        public async Task<IActionResult> TemplateSyncById(int templateId)
         {
             try
             {
-                _logger.LogInformation($"Input json: {JsonConvert.SerializeObject(templateId)}");
+                if (templateId <= 0)
+                {
+                    return NotFound("not found");
+                }
 
-                var fullUrl = String.Concat(baseUrl, $"//api/template/synctemplatebyid?messageTemplateId={templateId}");
-                var url = $"/api/template/synctemplatebyid?messageTemplateId={templateId}";
+                var template = _dbContext.Templates.Where(x => x.TemplatesId == templateId).FirstOrDefault();
+                if (template == null)
+                {
+                    return Ok(new ApiResult()
+                    {
+                        Success = false,
+                        Message = "Incorrect template id"
+                    });
+                }
+
+                _logger.LogInformation($"Input json: {JsonConvert.SerializeObject(template.TemplateId)}");
+
+                var fullUrl = String.Concat(baseUrl, $"//api/template/synctemplatebyid?messageTemplateId={template.TemplateId}");
+                var url = $"/api/template/synctemplatebyid?clientId={template.ClientId}&messageTemplateId={template.TemplateId}";
 
                 var response = await _httpClient.GetAsync(url);
                 var content = await response.Content.ReadAsStringAsync();
