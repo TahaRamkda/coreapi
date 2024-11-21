@@ -26,21 +26,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<Role>> GetRoleListAsync(int clientId)
         {
-            var query = string.Format(@"exec usp_Roles_Ops @ActionId={0}, @Client_Id={1}", (int)CrudEnum.List, clientId);
+            var query = string.Format(@"exec usp_Roles_Ops @ActionId={0}, @ClientId={1}", (int)CrudEnum.List, clientId);
             var response = await _dbContext.Roles.FromSqlRaw(query).ToListAsync();
 
             return response;
         }
         public async Task<UResponse> AddRoleAsync(RoleDto role)
         {
-            var query = string.Format(@"exec usp_Roles_Ops @ActionId={0}, @Client_Id={1}, @Role_Name='{2}', @Action_By={3}", (int)CrudEnum.Add, role.Client_Id, role.Role_Name, role.ActionBy);
+            var query = string.Format(@"exec usp_Roles_Ops @ActionId={0}, @ClientId={1}, @RoleName='{2}', @ActionBy={3}", (int)CrudEnum.Add, role.Client_Id, role.Role_Name, role.ActionBy);
             var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
 
             return response[0];
         }
         public async Task<UResponse> UpdateRoleAsync(RoleDto role)
         {
-            var query = string.Format(@"exec usp_Roles_Ops @ActionId={0}, @Client_Id={1}, @Role_Id={2}, @Role_Name='{3}', @Action_By={4}", (int)CrudEnum.Update, role.Client_Id, role.Role_Id, role.Role_Name, role.ActionBy);
+            var query = string.Format(@"exec usp_Roles_Ops @ActionId={0}, @ClientId={1}, @RoleId={2}, @RoleName='{3}', @ActionBy={4}", (int)CrudEnum.Update, role.Client_Id, role.Role_Id, role.Role_Name, role.ActionBy);
             var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
 
             return response[0];

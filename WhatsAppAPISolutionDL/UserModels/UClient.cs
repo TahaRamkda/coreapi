@@ -8,19 +8,19 @@ namespace WhatsAppAPISolutionDL.UserModels
 {
     public partial class UClient
     {
-        public long Client_Id { get; set; }
-        public string Client_Name { get; set; }
-        public int? Client_Language { get; set; }
-        public string Client_Address { get; set; }
+        public long ClientId { get; set; }
+        public string ClientName { get; set; }
+        public int? ClientLanguage { get; set; }
+        public string ClientAddress { get; set; }
         public decimal? Balance { get; set; }
-        public string Contact_Person { get; set; }
-        public string Contact_Person_Email { get; set; }
-        public string Contact_Person_Phone { get; set; }
-        public decimal? Balance_Alert_Limit { get; set; }
-        public int? Created_By { get; set; }
-        public string Created_Date { get; set; }
-        public int? Updated_By { get; set; }
-        public string Updated_Date { get; set; }
+        public string ContactPerson { get; set; }
+        public string ContactPersonEmail { get; set; }
+        public string ContactPersonPhone { get; set; }
+        public decimal? BalanceAlertLimit { get; set; }
+        public int? CreatedBy { get; set; }
+        public string CreatedDate { get; set; }
+        public int? UpdatedBy { get; set; }
+        public string UpdatedDate { get; set; }
         public int? Total { get; set; }
     }
 }
