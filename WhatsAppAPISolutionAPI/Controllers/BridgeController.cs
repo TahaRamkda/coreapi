@@ -17,13 +17,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class BridgeController : ControllerBase
     {
         private readonly IMessageService _messageService;
+        private readonly ITemplateService _templateService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<BridgeController> _logger;
 
         public BridgeController(IMessageService messageService,
+            ITemplateService templateService,
             WhatsAppSolutionContext dbContext,
             ILogger<BridgeController> logger)
         {
+            _templateService = templateService;
             _messageService = messageService;
             _dbContext = dbContext;
             _logger = logger;
