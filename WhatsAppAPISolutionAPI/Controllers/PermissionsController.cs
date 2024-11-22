@@ -28,9 +28,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getpermissionlist")]
-        public async Task<ActionResult> GetPermissionListAsync(int client_Id, int role_Id = 0)
+        public async Task<ActionResult> GetPermissionListAsync(int ClientId, int RoleId = 0)
         {
-            var res = await _permissionService.GetPermissionListAsync(client_Id, role_Id);
+            var res = await _permissionService.GetPermissionListAsync(ClientId, RoleId);
             return Ok(new ApiResult
             {
                 Success = true,

@@ -118,14 +118,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpDelete("deleteclient")]
-        public async Task<IActionResult> DeleteClientAsync(int client_Id)
+        public async Task<IActionResult> DeleteClientAsync(int ClientId)
         {
-            if (client_Id <= 0)
+            if (ClientId <= 0)
             {
                 return NotFound("not found");
             }
 
-            var response = await _clientService.DeleteClientAsync(client_Id);
+            var response = await _clientService.DeleteClientAsync(ClientId);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -145,18 +145,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         [AllowAnonymous]
         [HttpGet("getclientinformation")]
-        public ActionResult GetClientInformationAsync(int client_Id)
+        public ActionResult GetClientInformationAsync(int ClientId)
         {
-            if (client_Id <= 0)
+            if (ClientId <= 0)
             {
                 return NotFound("not found");
             }
 
-            //var response = _dbContext.Clients.Where(x => x.ClientId == client_Id && x.RecordStatus != -1).FirstOrDefault();
-
             var response = (from a in _dbContext.Clients
                             join b in _dbContext.SenderNames on a.ClientId equals (long)b.ClientId
-                            where a.ClientId == client_Id && a.RecordStatus != -1 && b.RecordStatus != -1
+                            where a.ClientId == ClientId && a.RecordStatus != -1 && b.RecordStatus != -1
                             select new
                             {
                                 ClientId = a.ClientId,

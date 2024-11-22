@@ -26,10 +26,6 @@ namespace WhatsAppAPISolutionDL.Dto
 
         public class HeaderDto
         {
-            public HeaderDto()
-            {
-            }
-
             public string Format { get; set; }
             public string MediaUrl { get; set; }
             public string Text { get; set; }
@@ -54,11 +50,6 @@ namespace WhatsAppAPISolutionDL.Dto
 
         public class ButtonDto
         {
-            public ButtonDto()
-            {
-
-            }
-
             public string Type { get; set; }
             public string Text { get; set; }
             public string PhoneNumber { get; set; }

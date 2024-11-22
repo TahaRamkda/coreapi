@@ -10,53 +10,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class ExportManager : IExportManager
     {
-        private readonly WhatsAppSolutionContext _dbContext;
-
-        public ExportManager(WhatsAppSolutionContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
-
-        //public virtual byte[] ExportBankAccountsToXlsx(IEnumerable<UBankAccount> bankAccount)
-        //{
-        //    //property array
-        //    var properties = new[]
-        //    {
-        //        new PropertyByName<UBankAccount>("AccountName", p => p.Account_Name),
-        //        new PropertyByName<UBankAccount>("BankName", p => p.Bank_Name),
-        //        new PropertyByName<UBankAccount>("AccountNumber", p => p.Account_Number),
-        //        new PropertyByName<UBankAccount>("IBAN", p => p.IBAN),
-        //        new PropertyByName<UBankAccount>("BranchCode", p => p.BranchCode),
-        //        new PropertyByName<UBankAccount>("OpeningBalance", p => p.Opening_Balance),
-        //        new PropertyByName<UBankAccount>("CurrentBalance", p => p.Current_Balance),
-        //        new PropertyByName<UBankAccount>("CreatedDate", p => p.Created_Date.Split(new[] { ' ' }, 2)[0]),
-        //        new PropertyByName<UBankAccount>("CreatedTime", p => p.Created_Date.Split(new[] { ' ' }, 2)[1])
-        //    };
-
-        //    return ExportToXlsx(properties, bankAccount);
-        //}
-
-        //public virtual byte[] ExportAssetsToXlsx(IEnumerable<UAssets> assets)
-        //{
-        //    //property array
-        //    var properties = new[]
-        //    {
-        //        new PropertyByName<UAssets>("AssetsName", p => p.Assets_Name),
-        //        new PropertyByName<UAssets>("AssetsType", p => Enum.GetName(typeof(AssetTypeEnum), p.Assets_Type)),
-        //        new PropertyByName<UAssets>("AssetCost", p => p.Asset_Cost),
-        //        new PropertyByName<UAssets>("PurchasedAt", p => p.Purchased_At.Format()),
-        //        new PropertyByName<UAssets>("BankacName", p => p.Bankac_Id>0?_dbContext.BankAccounts.Where(x => x.BankacId == p.Bankac_Id).FirstOrDefault()?.BankName:""),
-        //        new PropertyByName<UAssets>("AssetPaymentType", p => Enum.GetName(typeof(AssetPaymentTypeEnum), p.Asset_Payment_Type)),
-        //        new PropertyByName<UAssets>("Remarks", p => p.Remarks),
-        //        new PropertyByName<UAssets>("ReferenceNo1", p => p.Reference_No1),
-        //        new PropertyByName<UAssets>("ReferenceNo2", p => p.Reference_No2),
-        //        new PropertyByName<UAssets>("CreatedDate", p => p.Created_Date.Split(new[] { ' ' }, 2)[0]),
-        //        new PropertyByName<UAssets>("CreatedTime", p => p.Created_Date.Split(new[] { ' ' }, 2)[1])
-        //    };
-
-        //    return ExportToXlsx(properties, assets);
-        //}
-
         public virtual byte[] ExportToXlsx<T>(PropertyByName<T>[] properties, IEnumerable<T> itemsToExport)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;

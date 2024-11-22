@@ -23,9 +23,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _dbContext2 = dbContext2;
         }
 
-        public async Task<List<UPermissionList>> GetPermissionListAsync(int client_Id, int role_Id = 0)
+        public async Task<List<UPermissionList>> GetPermissionListAsync(int ClientId, int RoleId = 0)
         {
-            var query = string.Format(@"exec usp_Permission_Ops @ActionId={0}, @ClientId={1}, @RoleId={2}", (int)CrudEnum.List, client_Id, role_Id);
+            var query = string.Format(@"exec usp_Permission_Ops @ActionId={0}, @ClientId={1}, @RoleId={2}", (int)CrudEnum.List, ClientId, RoleId);
             var response = await _dbContext2.PermissionsList.FromSqlRaw(query).ToListAsync();
 
             return response;
@@ -35,7 +35,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var permissionJson = JsonSerializer.Serialize(permission.Permissions);
 
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Permission_Ops @ActionId={(int)CrudEnum.Update}, @ClientId={permission.Client_Id}, @RoleId={permission.Role_Id}, @PermissionJson={permissionJson}, @ActionBy={permission.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Permission_Ops @ActionId={(int)CrudEnum.Update}, @ClientId={permission.ClientId}, @RoleId={permission.RoleId}, @PermissionJson={permissionJson}, @ActionBy={permission.ActionBy}").ToListAsync();
 
             return response[0];
         }

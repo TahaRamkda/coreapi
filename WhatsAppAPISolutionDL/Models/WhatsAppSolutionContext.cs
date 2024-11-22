@@ -16,17 +16,23 @@ namespace WhatsAppAPISolutionDL.Models
         {
         }
 
+        public virtual DbSet<Action> Actions { get; set; }
         public virtual DbSet<Apimessage> Apimessages { get; set; }
+        public virtual DbSet<Apiresponse> Apiresponses { get; set; }
         public virtual DbSet<Campaign> Campaigns { get; set; }
         public virtual DbSet<CampaignContact> CampaignContacts { get; set; }
         public virtual DbSet<CampaignParam> CampaignParams { get; set; }
+        public virtual DbSet<CampaignResponse> CampaignResponses { get; set; }
         public virtual DbSet<Client> Clients { get; set; }
         public virtual DbSet<Contact> Contacts { get; set; }
+        public virtual DbSet<Conversation> Conversations { get; set; }
+        public virtual DbSet<ConversationLog> ConversationLogs { get; set; }
         public virtual DbSet<ConversationMessage> ConversationMessages { get; set; }
         public virtual DbSet<Country> Countries { get; set; }
         public virtual DbSet<Group> Groups { get; set; }
         public virtual DbSet<Log> Logs { get; set; }
         public virtual DbSet<Media> Medias { get; set; }
+        public virtual DbSet<MessageReceivedLog> MessageReceivedLogs { get; set; }
         public virtual DbSet<MessageSentLog> MessageSentLogs { get; set; }
         public virtual DbSet<MessageStatus> MessageStatuses { get; set; }
         public virtual DbSet<Module> Modules { get; set; }
@@ -38,6 +44,7 @@ namespace WhatsAppAPISolutionDL.Models
         public virtual DbSet<Template> Templates { get; set; }
         public virtual DbSet<TemplateParameter> TemplateParameters { get; set; }
         public virtual DbSet<TemplateParametersConfig> TemplateParametersConfigs { get; set; }
+        public virtual DbSet<UnsubscribedNumber> UnsubscribedNumbers { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<UsersRole> UsersRoles { get; set; }
         public virtual DbSet<WhatsAppPricing> WhatsAppPricings { get; set; }
@@ -52,6 +59,11 @@ namespace WhatsAppAPISolutionDL.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Action>(entity =>
+            {
+                entity.Property(e => e.ActionName).HasMaxLength(100);
+            });
+
             modelBuilder.Entity<Apimessage>(entity =>
             {
                 entity.ToTable("APIMessages");
@@ -83,6 +95,26 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.WaId)
                     .HasMaxLength(250)
                     .HasColumnName("WaID");
+            });
+
+            modelBuilder.Entity<Apiresponse>(entity =>
+            {
+                entity.ToTable("APIResponses");
+
+                entity.Property(e => e.ApimessageId)
+                    .HasMaxLength(10)
+                    .HasColumnName("APIMessageId")
+                    .IsFixedLength();
+
+                entity.Property(e => e.ContextWaId).HasMaxLength(250);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.PhoneNumber).HasMaxLength(50);
+
+                entity.Property(e => e.Text).HasMaxLength(500);
+
+                entity.Property(e => e.WaId).HasMaxLength(250);
             });
 
             modelBuilder.Entity<Campaign>(entity =>
@@ -151,6 +183,23 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.ParamText).HasMaxLength(255);
             });
 
+            modelBuilder.Entity<CampaignResponse>(entity =>
+            {
+                entity.Property(e => e.CampaignId)
+                    .HasMaxLength(10)
+                    .IsFixedLength();
+
+                entity.Property(e => e.ContextWaId).HasMaxLength(250);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.PhoneNumber).HasMaxLength(50);
+
+                entity.Property(e => e.Text).HasMaxLength(500);
+
+                entity.Property(e => e.WaId).HasMaxLength(250);
+            });
+
             modelBuilder.Entity<Client>(entity =>
             {
                 entity.Property(e => e.AccessToken).HasMaxLength(250);
@@ -197,19 +246,36 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
             });
 
-            modelBuilder.Entity<ConversationMessage>(entity =>
+            modelBuilder.Entity<Conversation>(entity =>
             {
-                entity.HasKey(e => e.MessageId);
-
-                entity.ToTable("ConversationMessage");
+                entity.Property(e => e.Commission).HasColumnType("numeric(18, 3)");
 
                 entity.Property(e => e.ConversationId).HasMaxLength(50);
 
+                entity.Property(e => e.Cost).HasColumnType("numeric(18, 3)");
+
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.From).HasMaxLength(50);
+                entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
 
-                entity.Property(e => e.To).HasMaxLength(50);
+                entity.Property(e => e.PhoneNumber).HasMaxLength(50);
+
+                entity.Property(e => e.WaId).HasMaxLength(50);
+            });
+
+            modelBuilder.Entity<ConversationLog>(entity =>
+            {
+                entity.Property(e => e.Comment).HasMaxLength(250);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<ConversationMessage>(entity =>
+            {
+                entity.HasKey(e => e.MessageId)
+                    .HasName("PK_ConversationMessage");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             });
 
             modelBuilder.Entity<Country>(entity =>
@@ -293,6 +359,23 @@ namespace WhatsAppAPISolutionDL.Models
                     .HasColumnName("MediaURL");
 
                 entity.Property(e => e.WhatsAppBusinessAccountId).HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<MessageReceivedLog>(entity =>
+            {
+                entity.Property(e => e.Commission).HasColumnType("numeric(18, 3)");
+
+                entity.Property(e => e.ContextWaId).HasMaxLength(250);
+
+                entity.Property(e => e.ConversationId).HasMaxLength(250);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.MessageSentDate).HasColumnType("datetime");
+
+                entity.Property(e => e.PhoneNumber).HasMaxLength(50);
+
+                entity.Property(e => e.WaId).HasMaxLength(250);
             });
 
             modelBuilder.Entity<MessageSentLog>(entity =>
@@ -416,9 +499,6 @@ namespace WhatsAppAPISolutionDL.Models
 
             modelBuilder.Entity<Template>(entity =>
             {
-                entity.HasKey(e => e.TemplatesId)
-                    .HasName("PK__Template__EF4B6BB8120F29E2");
-
                 entity.Property(e => e.BodyText).HasMaxLength(250);
 
                 entity.Property(e => e.Category).HasMaxLength(50);
@@ -457,6 +537,8 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.HasKey(e => e.ParamId)
                     .HasName("PK__Template__C4B2843895F26480");
 
+                entity.Property(e => e.ActionText).HasMaxLength(250);
+
                 entity.Property(e => e.ContactLevelField).HasMaxLength(100);
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
@@ -477,6 +559,15 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.ParamName).HasMaxLength(200);
 
                 entity.Property(e => e.ParamText).HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<UnsubscribedNumber>(entity =>
+            {
+                entity.Property(e => e.BlockType).HasMaxLength(100);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.PhoneNumber).HasMaxLength(20);
             });
 
             modelBuilder.Entity<User>(entity =>

@@ -10,7 +10,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface IGroupService
     {
-        public Task<List<UGroup>> GetGroupListAsync(int client_Id);
+        public Task<List<UGroup>> GetGroupListAsync(int ClientId);
         public Task<UResponse> AddGroupAsync(GroupDto group);
         public Task<UResponse> UpdateGroupAsync(GroupDto group);
         public Task<UResponse> DeleteGroupAsync(int groupId);

@@ -8,14 +8,14 @@ namespace WhatsAppAPISolutionDL.Dto
 {
     public partial class SendCampaignDto
     {
-        public long Campaign_Id { get; set; }
-        public string Campaign_Name { get; set; }
-        public long Client_Id { get; set; }
-        public long Sender_Id { get; set; }
-        public long Template_Id { get; set; }
-        public DateTime Schedule_Date { get; set; }
-        public int Campaign_Type {  get; set; }
-        public long Group_Id {  get; set; }
+        public long CampaignId { get; set; }
+        public string CampaignName { get; set; }
+        public long ClientId { get; set; }
+        public long SenderId { get; set; }
+        public long TemplateId { get; set; }
+        public DateTime ScheduleDate { get; set; }
+        public int CampaignType {  get; set; }
+        public long GroupId {  get; set; }
         public string Status {  get; set; }
         public int TotalContacts {  get; set; }
     }

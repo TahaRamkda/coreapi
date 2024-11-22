@@ -66,7 +66,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                         }
                         var tempDto = new TemplateDto()
                         {
-                            Templates_Id = template.TemplatesId,
+                            Id = template.Id,
                             TemplateId = tempParam.Id,
                             Status = tempParam.Status,
                             Category = tempParam.Category,

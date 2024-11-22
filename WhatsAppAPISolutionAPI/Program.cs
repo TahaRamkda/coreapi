@@ -45,7 +45,6 @@ builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<ISenderNameService, SenderNameService>();
 builder.Services.AddScoped<ITemplateService, TemplateService>();
-builder.Services.AddScoped<ITemplateParameterService, TemplateParameterService>();
 builder.Services.AddScoped<IMediaService, MediaService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<IMessageService, MessageService>();

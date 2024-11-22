@@ -11,14 +11,14 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface IUserService
     {
-        public Task<List<User>> GetUserListAsync(int clientId);
-        public Task<User> RegisterUser(int clientId);
-        public  Task<UUser> Login(string userName,string password);
+        public Task<List<User>> GetUserListAsync(int ClientId);
+        public Task<User> RegisterUser(int ClientId);
+        public  Task<UUser> Login(string UserName,string Password);
         public Task<UResponse> AddUserAsync(UserDto user);
         public Task<UResponse> UpdateUserAsync(UserDto user);
         public Task<UResponse> AddUserTokenAsync(UserDto user);
-        public Task<UResponse> DeleteUserAsync(int user_Id, int clientId);
+        public Task<UResponse> DeleteUserAsync(int UserId, int ClientId);
         public Task<UResponse> ChangePasswordAsync(UserDto user);
-        public Task<List<User>> GetUsersListAsync(int clientId);
+        public Task<List<User>> GetUsersListAsync(int ClientId);
     }
 }

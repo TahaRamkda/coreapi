@@ -31,21 +31,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<UResponse> AddClientAsync(ClientDto client)
         {
-            var query = string.Format(@"exec usp_Clients_Ops @ActionId={0}, @ClientName='{1}', @ClientLanguage={2}, @ClientAddress='{3}', @Balance={4}, @ContactPerson='{5}', @ContactPersonEmail='{6}', @ContactPersonPhone='{7}', @BalanceAlertLimit={8}, @AccessToken='{9}', @ActionBy={10}", (int)CrudEnum.Add, client.Client_Name, client.Client_Language, client.Client_Address, client.Balance, client.Contact_Person, client.Contact_Person_Email, client.Contact_Person_Phone, client.Balance_Alert_Limit, client.Access_Token, client.ActionBy);
+            var query = string.Format(@"exec usp_Clients_Ops @ActionId={0}, @ClientName='{1}', @ClientLanguage={2}, @ClientAddress='{3}', @Balance={4}, @ContactPerson='{5}', @ContactPersonEmail='{6}', @ContactPersonPhone='{7}', @BalanceAlertLimit={8}, @AccessToken='{9}', @ActionBy={10}", (int)CrudEnum.Add, client.ClientName, client.ClientLanguage, client.ClientAddress, client.Balance, client.ContactPerson, client.ContactPersonEmail, client.ContactPersonPhone, client.BalanceAlertLimit, client.AccessToken, client.ActionBy);
             var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
 
             return response[0];
         }
         public async Task<UResponse> UpdateClientAsync(ClientDto client)
         {
-            var query = string.Format(@"exec usp_Clients_Ops @ActionId={0}, @ClientId={1}, @ClientName='{2}', @ClientLanguage={3}, @ClientAddress='{4}', @Balance={5}, @ContactPerson='{6}', @ContactPersonEmail='{7}', @ContactPersonPhone='{8}', @BalanceAlertLimit={9}, @AccessToken='{10}', @ActionBy={11}", (int)CrudEnum.Update, client.Client_Id, client.Client_Name, client.Client_Language, client.Client_Address, client.Balance, client.Contact_Person, client.Contact_Person_Email, client.Contact_Person_Phone, client.Balance_Alert_Limit, client.Access_Token, client.ActionBy);
+            var query = string.Format(@"exec usp_Clients_Ops @ActionId={0}, @ClientId={1}, @ClientName='{2}', @ClientLanguage={3}, @ClientAddress='{4}', @Balance={5}, @ContactPerson='{6}', @ContactPersonEmail='{7}', @ContactPersonPhone='{8}', @BalanceAlertLimit={9}, @AccessToken='{10}', @ActionBy={11}", (int)CrudEnum.Update, client.ClientId, client.ClientName, client.ClientLanguage, client.ClientAddress, client.Balance, client.ContactPerson, client.ContactPersonEmail, client.ContactPersonPhone, client.BalanceAlertLimit, client.AccessToken, client.ActionBy);
             var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
 
             return response[0];
         }
-        public async Task<UResponse> DeleteClientAsync( int client_Id)
+        public async Task<UResponse> DeleteClientAsync( int ClientId)
         {
-            var query = string.Format(@"exec usp_Clients_Ops @ActionId={0}, @ClientId={1}", (int)CrudEnum.Delete, client_Id);
+            var query = string.Format(@"exec usp_Clients_Ops @ActionId={0}, @ClientId={1}", (int)CrudEnum.Delete, ClientId);
             var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
 
             return response[0];

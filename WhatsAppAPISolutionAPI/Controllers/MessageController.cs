@@ -26,56 +26,5 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger = logger;
         }
 
-        [HttpPost("whatsappmessagestatusupdate")]
-        public async Task<IActionResult> WhatsAppMessageStatusUpdate([FromBody] WhatsAppMessageStatusUpdateDto messageStatus)
-        {
-            if (messageStatus == null)
-            {
-                return BadRequest();
-            }
-
-            var response = await _messageService.UpdateMessageStatusAsync(messageStatus);
-            if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Success = false,
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
-            return Ok(new ApiResult()
-            {
-                Success = true,
-                Result = response,
-                Message = "Data added successfully"
-            });
-        }
-
-        [HttpPost("whatsappmessagereceive")]
-        public async Task<IActionResult> WhatsAppMessageReceive([FromBody] WhatsAppMessageStatusUpdateDto messageStatus)
-        {
-            if (messageStatus == null)
-            {
-                return BadRequest();
-            }
-
-            var response = new UResponse();
-            if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Success = false,
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
-            return Ok(new ApiResult()
-            {
-                Success = true,
-                Result = response,
-                Message = "Data added successfully"
-            });
-        }
     }
 }

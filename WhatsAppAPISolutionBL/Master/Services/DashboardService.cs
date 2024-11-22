@@ -13,18 +13,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _dbContext2 = dbContext2;
         }
 
-        public async Task<List<UDashboardSummary>> GetDashboardSummaryListAsync(int client_Id, int dashboardType_Id = 0, DateTime? fromDate = null, DateTime? toDate = null)
+        public async Task<List<UDashboardSummary>> GetDashboardSummaryListAsync(int ClientId, int DashboardTypeId = 0, DateTime? FromDate = null, DateTime? ToDate = null)
         {
-            var response = await _dbContext2.DashboardSummary.FromSqlInterpolated($"exec usp_Dashboard_Ops  @Client_Id={client_Id}, @Dashboard_TypeId={dashboardType_Id}, @From_Date={fromDate}, @To_Date={toDate}").ToListAsync();
+            var response = await _dbContext2.DashboardSummary.FromSqlInterpolated($"exec usp_Dashboard_Ops  @ClientId={ClientId}, @DashboardTypeId={DashboardTypeId}, @FromDate={FromDate}, @ToDate={ToDate}").ToListAsync();
             return response;
         }
 
-        public async Task<List<UDashboardReportSummary>> GetDashboardReportSummaryListAsync(int client_Id, int dashboardType_Id = 0, DateTime? fromDate = null, DateTime? toDate = null)
+        public async Task<List<UDashboardReportSummary>> GetDashboardReportSummaryListAsync(int ClientId, int DashboardTypeId = 0, DateTime? FromDate = null, DateTime? ToDate = null)
         {
-            if (!fromDate.HasValue && !toDate.HasValue)
+            if (!FromDate.HasValue && !ToDate.HasValue)
                 return new List<UDashboardReportSummary>();
 
-            var response = await _dbContext2.DashboardReportSummary.FromSqlInterpolated($"exec usp_Dashboard_Report_Ops @Client_Id={client_Id}, @Dashboard_TypeId={dashboardType_Id}, @From_Date={fromDate}, @To_Date={toDate}").ToListAsync();
+            var response = await _dbContext2.DashboardReportSummary.FromSqlInterpolated($"exec usp_Dashboard_Report_Ops @ClientId={ClientId}, @DashboardTypeId={DashboardTypeId}, @FromDate={FromDate}, @ToDate={ToDate}").ToListAsync();
             return response;
         }
 

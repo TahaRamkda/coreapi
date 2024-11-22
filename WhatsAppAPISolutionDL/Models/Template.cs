@@ -5,7 +5,7 @@ namespace WhatsAppAPISolutionDL.Models
 {
     public partial class Template
     {
-        public long TemplatesId { get; set; }
+        public long Id { get; set; }
         public int? ClientId { get; set; }
         public string TemplateName { get; set; }
         public string Category { get; set; }
@@ -31,5 +31,6 @@ namespace WhatsAppAPISolutionDL.Models
         public int? RecordStatus { get; set; }
         public string MediaId { get; set; }
         public long? SenderId { get; set; }
+        public int? IsDefault { get; set; }
     }
 }

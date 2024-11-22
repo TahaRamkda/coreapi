@@ -9,8 +9,8 @@ namespace WhatsAppAPISolutionDL.Dto
 {
     public partial class UserDto
     {
-        public long User_Id { get; set; }
-        public int? Client_Id { get; set; }
+        public long UserId { get; set; }
+        public int? ClientId { get; set; }
         public string UserName { get; set; }
         public bool? IsActive { get; set; }
         public string FullName { get; set; }

@@ -33,11 +33,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         [AllowAnonymous]
         [HttpGet("Login")]
-        public async Task<ActionResult> Login(string username, string password)
+        public async Task<ActionResult> Login(string Username, string Password)
         {
-            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+            if (!string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password))
             {
-                var res = await _userService.Login(username.Trim(), password.Trim());
+                var res = await _userService.Login(Username.Trim(), Password.Trim());
                 if (res == null || res.Status <= 0)
                 {
                     return Ok(new ApiResult
@@ -57,8 +57,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 var refreshTokenExpiryTime = DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["Jwt:TokenExpiryTimeInMinutes"]));
                 var user = new UserDto
                 {
-                    User_Id = res.UserId,
-                    Client_Id = res.ClientId,
+                    UserId = res.UserId,
+                    ClientId = res.ClientId,
                     AccessToken = accessToken,
                     RefreshToken = refreshToken,
                     RefreshTokenExpiry = refreshTokenExpiryTime
@@ -86,9 +86,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getuserbyid")]
-        public async Task<ActionResult> GetUserByIdAsync(int id)
+        public async Task<ActionResult> GetUserByIdAsync(int Id)
         {
-            var user = _dbContext.Users.Where(x => x.UserId == id && x.RecordStatus != -1).FirstOrDefault();
+            var user = _dbContext.Users.Where(x => x.UserId == Id && x.RecordStatus != -1).FirstOrDefault();
 
             if (user == null)
             {
@@ -106,8 +106,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Success = true,
                 Result = new UserDto
                 {
-                    User_Id = user.UserId,
-                    Client_Id = user.ClientId,
+                    UserId = user.UserId,
+                    ClientId = user.ClientId,
                     UserName = user.UserName,
                     IsActive = user.IsActive,
                     FullName = user.FullName,
@@ -170,14 +170,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpDelete("deleteuser")]
-        public async Task<IActionResult> DeleteUserAsync(int user_Id, int client_Id)
+        public async Task<IActionResult> DeleteUserAsync(int UserId, int ClientId)
         {
-            if (user_Id <= 0)
+            if (UserId <= 0)
             {
                 return NotFound("not found");
             }
 
-            var response = await _userService.DeleteUserAsync(user_Id, client_Id);
+            var response = await _userService.DeleteUserAsync(UserId, ClientId);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult()

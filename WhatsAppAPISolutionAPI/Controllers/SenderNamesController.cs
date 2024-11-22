@@ -28,9 +28,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getsenderNameslist")]
-        public async Task<ActionResult> GetSenderNamesListAsync(int client_Id)
+        public async Task<ActionResult> GetSenderNamesListAsync(int ClientId)
         {
-            var res = await _senderNameService.GetSenderNameListAsync(client_Id);
+            var res = await _senderNameService.GetSenderNameListAsync(ClientId);
             return Ok(new ApiResult()
             {
                 Success = true,
@@ -120,14 +120,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpDelete("deletesenderName")]
-        public async Task<IActionResult> DeleteSenderNameAsync(int senderName_Id)
+        public async Task<IActionResult> DeleteSenderNameAsync(int SenderNameId)
         {
-            if (senderName_Id <= 0)
+            if (SenderNameId <= 0)
             {
                 return NotFound("not found");
             }
 
-            var response = await _senderNameService.DeleteSenderNameAsync(senderName_Id);
+            var response = await _senderNameService.DeleteSenderNameAsync(SenderNameId);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -147,16 +147,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         [AllowAnonymous]
         [HttpGet("getsendernameinformation")]
-        public ActionResult GetSenderNameInformationAsync(int client_Id, int sender_Name_Id)
+        public ActionResult GetSenderNameInformationAsync(int ClientId, int SenderNameId)
         {
-            if (client_Id <= 0)
+            if (ClientId <= 0)
             {
                 return NotFound("not found");
             }
 
             var response = (from a in _dbContext.SenderNames
                             join b in _dbContext.Clients on (long)a.ClientId equals b.ClientId
-                            where a.ClientId == client_Id && a.SenderId == sender_Name_Id && a.RecordStatus != -1 && b.RecordStatus != -1
+                            where a.ClientId == ClientId && a.SenderId == SenderNameId && a.RecordStatus != -1 && b.RecordStatus != -1
                             select new
                             {
                                 ClientId = a.ClientId,

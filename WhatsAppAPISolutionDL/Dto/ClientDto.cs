@@ -8,16 +8,16 @@ namespace WhatsAppAPISolutionDL.Dto
 {
     public partial class ClientDto
     {
-        public int Client_Id { get; set; }
-        public string Client_Name { get; set; }
-        public int? Client_Language { get; set; }
-        public string Client_Address { get; set; }
+        public int ClientId { get; set; }
+        public string ClientName { get; set; }
+        public int? ClientLanguage { get; set; }
+        public string ClientAddress { get; set; }
         public decimal? Balance { get; set; }
-        public string Contact_Person { get; set; }
-        public string Contact_Person_Email { get; set; }
-        public string Contact_Person_Phone { get; set; }
-        public decimal? Balance_Alert_Limit { get; set; }
-        public string Access_Token { get; set; }
+        public string ContactPerson { get; set; }
+        public string ContactPersonEmail { get; set; }
+        public string ContactPersonPhone { get; set; }
+        public decimal? BalanceAlertLimit { get; set; }
+        public string AccessToken { get; set; }
         public int? ActionBy { get; set; }
     }
 }

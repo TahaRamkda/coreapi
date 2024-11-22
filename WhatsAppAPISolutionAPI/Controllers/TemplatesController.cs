@@ -43,9 +43,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("gettemplateslist")]
-        public async Task<ActionResult> GetTemplatesListAsync(int client_Id)
+        public async Task<ActionResult> GetTemplatesListAsync(int ClientId)
         {
-            var res = await _templateService.GetTemplateListAsync(client_Id);
+            var res = await _templateService.GetTemplateListAsync(ClientId);
             return Ok(new ApiResult()
             {
                 Success = true,
@@ -55,14 +55,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("gettemplatebyid")]
-        public ActionResult GetTemplateByIdAsync(int id)
+        public ActionResult GetTemplateByIdAsync(int Id)
         {
-            if (id <= 0)
+            if (Id <= 0)
             {
                 return NotFound("not found");
             }
 
-            var response = _dbContext.Templates.Where(x => x.TemplatesId == id).FirstOrDefault();
+            var response = _dbContext.Templates.Where(x => x.Id == Id).FirstOrDefault();
 
             if (response == null)
             {
@@ -97,14 +97,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = "Please insert template name"
                 });
 
-            if (template.Client_Id <= 0)
+            if (template.ClientId <= 0)
                 return Ok(new ApiResult()
                 {
                     Success = false,
                     Message = "Please insert client Id"
                 });
 
-            if (template.Sender_Name_Id <= 0)
+            if (template.SenderNameId <= 0)
                 return Ok(new ApiResult()
                 {
                     Success = false,
@@ -163,14 +163,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpDelete("deletetemplate")]
-        public async Task<IActionResult> DeleteTemplateAsync(int templates_Id)
+        public async Task<IActionResult> DeleteTemplateAsync(int Id)
         {
-            if (templates_Id <= 0)
+            if (Id <= 0)
             {
                 return NotFound("not found");
             }
 
-            var response = await _templateService.DeleteTemplateAsync(templates_Id);
+            var response = await _templateService.DeleteTemplateAsync(Id);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -187,85 +187,19 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data deleted successfully"
             });
         }
-        [AllowAnonymous]
-        [HttpPost("templatesync")]
-        public async Task<IActionResult> TemplateSync(object templateData)
-        {
-            try
-            {
-                var data = System.Text.Json.JsonSerializer.Serialize(templateData);
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use this if your JSON is in camelCase
-                    PropertyNameCaseInsensitive = true // Ignore case when matching property names
-                };
-                var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(data, options);
-                if (result != null && result.success)
-                {
-                    var data1 = System.Text.Json.JsonSerializer.Serialize(result.result);
-                    TemplateWithParametersDto tempParam = System.Text.Json.JsonSerializer.Deserialize<TemplateWithParametersDto>(data1, options);
-                    if (tempParam != null)
-                    {
-                        var template = await _dbContext.Templates.Where(x => x.TemplateId == tempParam.Id).FirstOrDefaultAsync();
-                        if (template == null)
-                        {
-                            return Ok(new ApiResult
-                            {
-                                Success = false,
-                                Message = "Template id not exist"
-                            });
-                        }
-                        var tempDto = new TemplateDto()
-                        {
-                            Templates_Id = template.TemplatesId,
-                            TemplateId = tempParam.Id,
-                            Status = tempParam.Status,
-                            Category = tempParam.Category,
-                            ActionBy = template.UpdatedBy != null ? template.UpdatedBy.Value : 0
-                        };
-                        var response = await _templateService.UpdateTemplateStatusByIdAsync(tempDto);
-                        if (response == null || response.Status <= 0)
-                        {
-                            return Ok(new ApiResult
-                            {
-                                Success = false,
-                                Result = response,
-                                Message = response?.Message
-                            });
-                        }
-                        return Ok(new ApiResult()
-                        {
-                            Success = true,
-                            Result = response,
-                            Message = ""//Data added successfully"
-                        });
-                    }
-                }
-                //_logger.LogInformation("webhook received with data={data}", data);
-                return Ok(new ApiResult
-                {
-                    Success = false,
-                    Message = "error in fetching template"
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
 
         [AllowAnonymous]
         [HttpGet("templatesyncbyid")]
-        public async Task<IActionResult> TemplateSyncById(int templateId)
+        public async Task<IActionResult> TemplateSyncById(int Id)
         {
             try
             {
-                if (templateId <= 0)
+                if (Id <= 0)
                 {
                     return NotFound("not found");
                 }
 
-                var template = _dbContext.Templates.Where(x => x.TemplatesId == templateId).FirstOrDefault();
+                var template = _dbContext.Templates.Where(x => x.Id == Id).FirstOrDefault();
                 if (template == null)
                 {
                     return Ok(new ApiResult()
@@ -315,9 +249,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("gettemplatedetails")]
-        public async Task<ActionResult> GetTemplateDetailsAsync(int client_Id, int templates_Id = 0)
+        public async Task<ActionResult> GetTemplateDetailsAsync(int ClientId, int Id = 0)
         {
-            var res = await _templateService.GetTemplateDetailsAsync(client_Id, templates_Id);
+            var res = await _templateService.GetTemplateDetailsAsync(ClientId, Id);
             return Ok(new ApiResult
             {
                 Success = true,

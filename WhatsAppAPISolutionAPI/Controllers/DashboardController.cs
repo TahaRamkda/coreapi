@@ -26,9 +26,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getdashboardsummary")]
-        public async Task<ActionResult> GetDashboardSummaryListAsync(int client_Id, int dashboardType_Id = 0, DateTime? fromDate = null, DateTime? toDate = null)
+        public async Task<ActionResult> GetDashboardSummaryListAsync(int ClientId, int DashboardTypeId = 0, DateTime? FromDate = null, DateTime? ToDate = null)
         {
-            var res = await _dashboardService.GetDashboardSummaryListAsync(client_Id, dashboardType_Id, fromDate, toDate);
+            var res = await _dashboardService.GetDashboardSummaryListAsync(ClientId, DashboardTypeId, FromDate, ToDate);
             return Ok(new ApiResult
             {
                 Success = true,
@@ -38,9 +38,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getdashboardreportsummary")]
-        public async Task<ActionResult> GetDashboardReportSummaryListAsync(int client_Id, int dashboardType_Id = 0, DateTime? fromDate = null, DateTime? toDate = null)
+        public async Task<ActionResult> GetDashboardReportSummaryListAsync(int ClientId, int DashboardTypeId = 0, DateTime? FromDate = null, DateTime? ToDate = null)
         {
-            var res = await _dashboardService.GetDashboardReportSummaryListAsync(client_Id, dashboardType_Id, fromDate, toDate);
+            var res = await _dashboardService.GetDashboardReportSummaryListAsync(ClientId, DashboardTypeId, FromDate, ToDate);
             return Ok(new ApiResult
             {
                 Success = true,

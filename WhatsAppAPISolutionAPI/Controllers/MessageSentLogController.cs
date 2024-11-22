@@ -24,9 +24,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getmessagesentloglist")]
-        public async Task<ActionResult> GetMessageSentLogListAsync(int clientId, int id = 0, int moduleId = 0, int parentId = 0, string phoneNumber = "", string waId = "", string waId2 = "", int senderId = 0, DateTime? fromSentDate = null, DateTime? toSentDate = null, DateTime? fromDeliveredDate = null, DateTime? toDeliveredDate = null, DateTime? fromReadDate = null, DateTime? toReadDate = null, DateTime? fromDate = null, DateTime? toDate = null, int currentStatus = 0, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        public async Task<ActionResult> GetMessageSentLogListAsync(int ClientId, int Id = 0, int ModuleId = 0, int ParentId = 0, string PhoneNumber = "", string WaId = "", string WaId2 = "", int SenderId = 0, DateTime? FromSentDate = null, DateTime? ToSentDate = null, DateTime? FromDeliveredDate = null, DateTime? ToDeliveredDate = null, DateTime? FromReadDate = null, DateTime? ToReadDate = null, DateTime? FromDate = null, DateTime? ToDate = null, int CurrentStatus = 0, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
         {
-            var res = await _messageSentLogsService.GetMessageSentLogListAsync(clientId, id, moduleId, parentId, phoneNumber, waId, waId2, senderId, fromSentDate, toSentDate, fromDeliveredDate, toDeliveredDate, fromReadDate, toReadDate, fromDate, toDate, currentStatus, searchStr, sortBy, pageNo, pageSize);
+            var res = await _messageSentLogsService.GetMessageSentLogListAsync(ClientId, Id, ModuleId, ParentId, PhoneNumber, WaId, WaId2, SenderId, FromSentDate, ToSentDate, FromDeliveredDate, ToDeliveredDate, FromReadDate, ToReadDate, FromDate, ToDate, CurrentStatus, SearchStr, SortBy, PageNo, PageSize);
             return Ok(new ApiResult
             {
                 Success = true,

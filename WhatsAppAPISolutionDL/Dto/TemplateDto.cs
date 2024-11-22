@@ -13,9 +13,9 @@ namespace WhatsAppAPISolutionDL.Dto
         {
             Buttons = new List<ButtonComponent>();
         }
-        public long Templates_Id { get; set; }
-        public int Client_Id { get; set; }
-        public int Sender_Name_Id { get; set; }
+        public long Id { get; set; }
+        public int ClientId { get; set; }
+        public int SenderNameId { get; set; }
         public string TemplateId { get; set; }
         public string Name { get; set; } = String.Empty;
         public string Category { get; set; } = String.Empty;
@@ -24,7 +24,7 @@ namespace WhatsAppAPISolutionDL.Dto
         public string Status { get; set; } = String.Empty;
         public string MediaId { get; set; } = String.Empty;
         public bool IsApproved { get; set; }
-        public int Template_Type { get; set; }
+        public int TemplateType { get; set; }
         public int ActionBy { get; set; }
         public HeaderComponent Header { get; set; }
         public BodyComponent Body { get; set; }
@@ -65,15 +65,15 @@ namespace WhatsAppAPISolutionDL.Dto
             public string Text { get; set; } = String.Empty;
             public string PhoneNumber { get; set; } = String.Empty;
             public int TextCount { get; set; }
-            public int index { get; set; }
+            public int Index { get; set; }
             public string Url { get; set; } = String.Empty;
             public List<KeyValue> Values { get; set; }
         }
         public class KeyValue
         {
-            public string value { get; set; } = String.Empty;
-            public string defaultValue { get; set; } = String.Empty;
-            public int index { get; set; }
+            public string Value { get; set; } = String.Empty;
+            public string DefaultValue { get; set; } = String.Empty;
+            public int Index { get; set; }
         }
     }
 }

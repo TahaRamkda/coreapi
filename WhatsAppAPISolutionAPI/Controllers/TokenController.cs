@@ -82,13 +82,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         [HttpGet]
         [Route("refresh")]
-        public async Task<IActionResult> Refresh(string accessTokenData, string refreshTokenData)
+        public async Task<IActionResult> Refresh(string AccessTokenData, string RefreshTokenData)
         {
-            if (String.IsNullOrEmpty(accessTokenData) || String.IsNullOrEmpty(refreshTokenData))
+            if (String.IsNullOrEmpty(AccessTokenData) || String.IsNullOrEmpty(RefreshTokenData))
                 return BadRequest("Invalid client request");
 
-            string accessToken = accessTokenData;
-            string refreshToken = refreshTokenData;
+            string accessToken = AccessTokenData;
+            string refreshToken = RefreshTokenData;
             var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken);
             var username = principal.Identity.Name;
             var newAccessToken = _tokenService.GenerateAccessToken(principal.Claims);
@@ -106,8 +106,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var user = new UserDto
             {
-                User_Id = exist.UserId,
-                Client_Id = exist.ClientId,
+                UserId = exist.UserId,
+                ClientId = exist.ClientId,
                 AccessToken = newAccessToken,
                 RefreshToken = newRefreshToken,
                 RefreshTokenExpiry = refreshTokenExpiryTime
@@ -130,16 +130,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         [HttpPost, Authorize]
         [Route("revoke")]
-        public async Task<IActionResult> Revoke(int userId)
+        public async Task<IActionResult> Revoke(int UserId)
         {
-            var data = _dbContext.Users.Where(x => x.UserId == userId && x.RecordStatus != -1).FirstOrDefault();
+            var data = _dbContext.Users.Where(x => x.UserId == UserId && x.RecordStatus != -1).FirstOrDefault();
             if (data == null)
                 return BadRequest();
 
             var user = new UserDto
             {
-                User_Id = userId,
-                Client_Id = data.ClientId,
+                UserId = UserId,
+                ClientId = data.ClientId,
                 AccessToken = "",
                 RefreshToken = "",
                 RefreshTokenExpiry = DateTime.Now

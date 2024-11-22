@@ -23,11 +23,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _dbContext2 = dbContext2;
         }
 
-        public async Task<List<UAPIMessage>> GetAPIMessageListAsync(int clientId,int aPIMessageId = 0, int templateId = 0, int status = 0, string waID = "", DateTime? fromDate = null, DateTime? toDate = null, string searchStr = "", string trxType = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        public async Task<List<UAPIMessage>> GetAPIMessageListAsync(int ClientId, int APIMessageId = 0, int TemplateId = 0, int Status = 0, string WaID = "", DateTime? FromDate = null, DateTime? ToDate = null, string SearchStr = "", string TrxType = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
         {
            // var query = string.Format(@"exec usp_APIMessages_Ops @ActionId={0}, @ClientId={1}, @TemplateId={2},@Status={3}, @WaID={4},@TrxType='{5}',, @From_Date='{4}', @To_Date='{5}', @SearchStr='{6}', @SortBy={7}, @PageNo={8}, @PageSize={9}", (int)CrudEnum.List, client_Id, order_Id, customer_Id, fromDate, toDate, searchStr, sortBy, pageNo, pageSize);
             
-            var response = await _dbContext2.APIMessages.FromSqlInterpolated($"exec usp_APIMessages_Ops @ActionId={(int)CrudEnum.List}, @APIMessageId={aPIMessageId}, @ClientId={clientId}, @TemplateId={templateId}, @Status={status}, @WaID={waID}, @TrxType={trxType}, @SearchStr={searchStr}, @FromDate={fromDate}, @ToDate={toDate}, @SortBy={sortBy}, @PageNumber={pageNo}, @PageSize={pageSize}").ToListAsync();
+            var response = await _dbContext2.APIMessages.FromSqlInterpolated($"exec usp_APIMessages_Ops @ActionId={(int)CrudEnum.List}, @APIMessageId={APIMessageId}, @ClientId={ClientId}, @TemplateId={TemplateId}, @Status={Status}, @WaID={WaID}, @TrxType={TrxType}, @SearchStr={SearchStr}, @FromDate={FromDate}, @ToDate={ToDate}, @SortBy={SortBy}, @PageNumber={PageNo}, @PageSize={PageSize}").ToListAsync();
 
             return response;
         }

@@ -10,9 +10,9 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface ISenderNameService
     {
-        public Task<List<USenderName>> GetSenderNameListAsync(int client_Id);
+        public Task<List<USenderName>> GetSenderNameListAsync(int ClientId);
         public Task<UResponse> AddSenderNameAsync(SenderNameDto senderName);
         public Task<UResponse> UpdateSenderNameAsync(SenderNameDto senderName);
-        public Task<UResponse> DeleteSenderNameAsync(int senderNameId);
+        public Task<UResponse> DeleteSenderNameAsync(int SenderNameId);
     }
 }

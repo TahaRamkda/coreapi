@@ -11,9 +11,9 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface IRoleService
     {
-        public Task<List<Role>> GetRoleListAsync(int clientId);
+        public Task<List<Role>> GetRoleListAsync(int ClientId);
         public Task<UResponse> AddRoleAsync(RoleDto role);
         public Task<UResponse> UpdateRoleAsync(RoleDto role);
-        public Task<UResponse> DeleteRoleAsync(int roleId, int clientId);
+        public Task<UResponse> DeleteRoleAsync(int RoleId, int ClientId);
     }
 }
