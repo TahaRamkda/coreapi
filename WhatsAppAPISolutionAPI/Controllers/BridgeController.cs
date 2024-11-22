@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Serilog.Events;
 using System.Text.Json;
 using WhatsAppAPISolutionAPI.Models;
 using WhatsAppAPISolutionBL.Master.Interfaces;
@@ -108,6 +110,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("whatsappmessagestatusupdate")]
         public async Task<IActionResult> WhatsAppMessageStatusUpdate([FromBody] WhatsAppMessageStatusUpdateDto messageStatus)
         {
+            _logger.LogInformation("Calling api WhatsAppMessageStatusUpdate with data={messageStatus}", JsonConvert.SerializeObject(messageStatus));
+
             if (messageStatus == null)
             {
                 return BadRequest();
