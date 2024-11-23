@@ -11,5 +11,12 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
     public interface IMessageService
     {
         public Task<UResponse> UpdateMessageStatusAsync(WhatsAppMessageStatusUpdateDto messageStatus);
+
+        /// <summary>
+        /// Add message received logs
+        /// </summary>
+        /// <param name="messageReceive"></param>
+        /// <returns></returns>
+        Task<UMessageReceived> AddMessageReceivedLogAsync(WhatsAppMessageReceiveDto messageReceive);
     }
 }

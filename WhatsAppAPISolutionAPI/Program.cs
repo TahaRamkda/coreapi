@@ -1,20 +1,19 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using WhatsAppAPISolutionAPI.Middleware;
+using Serilog;
+using System.Text;
+using WhatsAppAPISolutionAPI.Helper;
+using WhatsAppAPISolutionAPI.Models;
 using WhatsAppAPISolutionAPI.Security;
+using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
-using Serilog;
-using System.Text;
-using Microsoft.AspNetCore.Http.Features;
-using WhatsAppAPISolutionAPI.Setting;
-using Microsoft.Extensions.Options;
-using WhatsAppAPISolutionAPI.Models;
-using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 ConfigurationManager configuration = builder.Configuration;
@@ -93,10 +92,13 @@ builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+//builder.Services.AddSwaggerGen();
 
 builder.Services.AddSwaggerGen(setup =>
 {
+    var schemaHelper = new SwashbuckleSchemaHelper();
+    setup.CustomSchemaIds(type => schemaHelper.GetSchemaId(type));
+
     // Include 'SecurityScheme' to use JWT Authentication
     var jwtSecurityScheme = new OpenApiSecurityScheme
     {

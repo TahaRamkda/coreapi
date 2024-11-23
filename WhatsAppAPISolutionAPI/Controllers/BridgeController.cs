@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Serilog.Events;
 using System.Text.Json;
 using WhatsAppAPISolutionAPI.Models;
+using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto;
@@ -136,23 +138,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpPost("whatsappmessagereceive")]
-        public async Task<IActionResult> WhatsAppMessageReceive([FromBody] WhatsAppMessageStatusUpdateDto messageStatus)
+        public async Task<IActionResult> WhatsAppMessageReceive([FromBody] WhatsAppMessageReceiveDto messageReceive)
         {
-            if (messageStatus == null)
-            {
+            if (messageReceive == null)
                 return BadRequest();
-            }
 
-            var response = new UResponse();
-            if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Success = false,
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
+            var response = await _messageService.AddMessageReceivedLogAsync(messageReceive);
+
             return Ok(new ApiResult()
             {
                 Success = true,

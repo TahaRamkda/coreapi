@@ -40,6 +40,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UCampaign> Campaigns { get; set; } = null!;
         public virtual DbSet<UAPIMessage> APIMessages { get; set; } = null!;
         public virtual DbSet<UMessageSentLog> MessageSentLogs { get; set; } = null!;
+        public virtual DbSet<UMessageReceived> UMessageReceiveds { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -62,6 +63,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UCampaign>().HasNoKey();
             modelBuilder.Entity<UAPIMessage>().HasNoKey();
             modelBuilder.Entity<UMessageSentLog>().HasNoKey();
+            modelBuilder.Entity<UMessageReceived>().HasNoKey();
         }
     }
 }

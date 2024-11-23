@@ -10,11 +10,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
     {
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
+        private readonly IMediaService _mediaService;
 
-        public MessageService(WhatsAppSolutionContext dbContext, WhatsAppSolutionContext2 dbContext2)
+        public MessageService(WhatsAppSolutionContext dbContext,
+            WhatsAppSolutionContext2 dbContext2,
+            IMediaService mediaService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
+            _mediaService = mediaService;
         }
 
         public async Task<UResponse> UpdateMessageStatusAsync(WhatsAppMessageStatusUpdateDto messageStatus)
@@ -52,10 +56,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (messageStatus.conversation != null)
                 conversationId = messageStatus.conversation.id;
-            
+
             if (messageStatus.error != null)
                 eventMessage = messageStatus.error.error_Details;
-            
+
             if (messageStatus.pricing != null)
             {
                 pricingModel = messageStatus.pricing.pricing_model;
@@ -68,5 +72,52 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response[0];
         }
+
+        /// <summary>
+        /// Add message received logs
+        /// </summary>
+        /// <param name="messageReceive"></param>
+        /// <returns></returns>
+        public async Task<UMessageReceived> AddMessageReceivedLogAsync(WhatsAppMessageReceiveDto messageReceive)
+        {
+            var client = await _dbContext.Clients.FirstOrDefaultAsync(x => x.ClientId == Convert.ToInt64(messageReceive.client_Id));
+            var senderName = await _dbContext.SenderNames.FirstOrDefaultAsync(x => x.PhoneNumberId == messageReceive.phone_number_Id.phone_number_id);
+
+            int messageType = 0;
+            string messageText = String.Empty;
+            long mediaId = 0;
+            messageReceive.type = messageReceive.type.ToUpper();
+            if (messageReceive.type == MessageReceiveTypeEnum.TEXT.ToString())
+            {
+                messageType = Convert.ToInt32(MessageReceiveTypeEnum.TEXT);
+                messageText = messageReceive.text.body;
+            }
+            else if (messageReceive.type == MessageReceiveTypeEnum.IMAGE.ToString())
+            {
+                messageType = Convert.ToInt32(MessageReceiveTypeEnum.IMAGE);
+                mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.image.id);
+                messageText = messageReceive.image.caption;
+            }
+            else if (messageReceive.type == MessageReceiveTypeEnum.VIDEO.ToString())
+            {
+                messageType = Convert.ToInt32(MessageReceiveTypeEnum.VIDEO);
+                mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.video.id);
+                messageText = messageReceive.video.caption;
+            }
+            else if (messageReceive.type == MessageReceiveTypeEnum.DOCUMENT.ToString())
+            {
+                messageType = Convert.ToInt32(MessageReceiveTypeEnum.DOCUMENT);
+                mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.document.id);
+                messageText = messageReceive.document.caption;
+            }
+
+            var query = string.Format(@"exec usp_MessageReceivedLogs_ops @ClientId={0}, @SenderId={1}, @WaId='{2}', @ContextWaId='{3}', @PhoneNumber='{4}', @ResponseType={5}, @ResponseText='{6}', @MediaId={7}",
+                messageReceive.client_Id, senderName?.SenderId, messageReceive.wam_Id, messageReceive.context?.wam_Id, messageReceive.from, messageType, messageText, mediaId);
+
+            var response = await _dbContext2.UMessageReceiveds.FromSqlRaw(query).ToListAsync();
+            return response != null && response.Any() ? response[0] : null;
+        }
+
+
     }
 }

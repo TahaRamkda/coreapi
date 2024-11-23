@@ -3,7 +3,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System.Net.Http.Headers;
+using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
@@ -20,13 +23,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly ILogger<MediaService> _logger;
         private readonly IHostEnvironment _hostEnvironment;
+        private readonly IOptions<BridgeConfigurationSettings> _bridgeConfigurationSettings;
 
         public MediaService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
           IHttpClientFactory httpClientFactory,
           IWebHostEnvironment hostingEnvironment,
           ILogger<MediaService> logger,
-          IHostEnvironment hostEnvironment)
+          IHostEnvironment hostEnvironment,
+          IOptions<BridgeConfigurationSettings> bridgeConfigurationSettings)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -34,6 +39,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _httpClient = httpClientFactory.CreateClient("bridge_api");
             _logger = logger;
             _hostEnvironment = hostEnvironment;
+            _bridgeConfigurationSettings = bridgeConfigurationSettings;
 
             _uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
             if (!Directory.Exists(_uploadPath))
@@ -51,7 +57,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<UResponseWithID> AddMediaAsync(MediaUploadDto media)
         {
-            var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @ClientId={1}, @WhatsAppBusinessAccountId='{2}', @SenderNameId={3}, @MediaPath='{4}', @ContentType='{5}', @FileSize='{6}', @FileName='{7}', @FileExtension='{8}', @ActionBy={9}", (int)CrudEnum.Add, media.ClientId, media.WhatsAppBusinessAccountId, media.SenderNameId, media.MediaPath, media.ContentType, media.FileSize, media.FileName, media.FileExtension, media.ActionBy);
+            var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @ClientId={1}, @WhatsAppBusinessAccountId='{2}', @SenderNameId={3}, @MediaPath='{4}', @ContentType='{5}', @FileSize='{6}', @FileName='{7}', @FileExtension='{8}', @ActionBy={9}, @MediaId='{10}'", (int)CrudEnum.Add, media.ClientId, media.WhatsAppBusinessAccountId, media.SenderNameId, media.MediaPath, media.ContentType, media.FileSize, media.FileName, media.FileExtension, media.ActionBy, media.MediaId);
             var response = await _dbContext2.ResponseWithID.FromSqlRaw(query).ToListAsync();
 
             return response[0];
@@ -194,6 +200,87 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var response = await _dbContext2.ResponseWithID.FromSqlRaw(query).ToListAsync();
 
             return response[0];
+        }
+
+        /// <summary>
+        /// Download media to local
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="senderName"></param>
+        /// <param name="mediaId"></param>
+        /// <returns></returns>
+        public async Task<long> DownloadWhatsAppMediaToLocal(Client client, SenderName senderName, string mediaId)
+        {
+            try
+            {
+                // Ensure the local folder exists
+                if (!Directory.Exists(_uploadPath))
+                    Directory.CreateDirectory(_uploadPath);
+
+                GetMediaResult mediaResult = null;
+                using (var httpClient = new HttpClient())
+                {
+                    // Step 1: Get the media information
+                    string mediaInfoUrl = $"{_bridgeConfigurationSettings.Value.WhatsappBaseURL}/{mediaId}";
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", client?.AccessToken);
+
+                    var mediaInfoResponse = await httpClient.GetAsync(mediaInfoUrl);
+                    if (!mediaInfoResponse.IsSuccessStatusCode)
+                        return 0;
+
+                    var responseStr = await mediaInfoResponse.Content.ReadAsStringAsync();
+                    mediaResult = JsonConvert.DeserializeObject<GetMediaResult>(responseStr);
+                }
+
+                if (mediaResult != null)
+                {
+                    using (var httpClient = new HttpClient())
+                    {
+                        var request = new HttpRequestMessage(HttpMethod.Get, mediaResult.url);
+                        request.Headers.Add("Authorization", $"Bearer {client?.AccessToken}");
+                        request.Headers.Add("User-Agent", $"node");
+                        var mediaResponse = await httpClient.SendAsync(request);
+                        if (!mediaResponse.IsSuccessStatusCode)
+                            return 0;
+
+                        string contentDisposition = mediaResponse.Content.Headers.ContentDisposition?.FileName ?? $"media_{mediaId}";
+                        string fileExtension = Path.GetExtension(contentDisposition) ?? ".dat";
+                        string fileName = $"media_{mediaId}{fileExtension}";
+                        string localFilePath = Path.Combine(_uploadPath, fileName);
+
+                        if (File.Exists(localFilePath))
+                            File.Delete(localFilePath);
+
+                        using (var fileStream = new FileStream(localFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                        {
+                            await mediaResponse.Content.CopyToAsync(fileStream);
+                        }
+
+                        string absoluteFilePath = "/uploads/";
+                        var media = await AddMediaAsync(new MediaUploadDto
+                        {
+                            ClientId = Convert.ToInt32(client.ClientId),
+                            SenderNameId = Convert.ToInt32(senderName.SenderId),
+                            ContentType = mediaResult.mime_type,
+                            FileExtension = Path.GetExtension(localFilePath),
+                            FileName = Path.GetFileName(localFilePath),
+                            FileSize = mediaResult.file_size,
+                            MediaId = mediaId,
+                            MediaPath = String.Concat(absoluteFilePath, Path.GetFileName(localFilePath)),
+                            WhatsAppBusinessAccountId = senderName.BusinessAccountId
+                        });
+
+                        if (media != null)
+                            return media.Id;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return 0;
         }
     }
 }
