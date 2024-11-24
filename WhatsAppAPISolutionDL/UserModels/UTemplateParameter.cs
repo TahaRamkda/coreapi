@@ -13,7 +13,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string TemplateName { get; set; }
         public int? ClientId { get; set; }
         public string ClientName { get; set; }
-        public int Sequence { get; set; }
+        public int? Sequence { get; set; }
         public string ParamName { get; set; }
         public int? ParamType { get; set; }
         public string ParamDefaultValue { get; set; }

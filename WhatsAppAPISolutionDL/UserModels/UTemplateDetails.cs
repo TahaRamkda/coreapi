@@ -78,6 +78,6 @@ namespace WhatsAppAPISolutionDL.UserModels
     {
         public string Value { get; set; } = String.Empty;
         public string DefaultValue { get; set; } = String.Empty;
-        public int Index { get; set; }
+        public int? Index { get; set; }
     }
 }

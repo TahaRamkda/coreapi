@@ -33,7 +33,7 @@ namespace WhatsAppAPISolutionDL.Dto
         {
             public string Type { get; set; } = String.Empty;
             public string Value { get; set; } = String.Empty;
-            public int Index { get; set; }
+            public int? Index { get; set; }
         }
     }
 }
