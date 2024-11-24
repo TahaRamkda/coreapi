@@ -18,7 +18,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             ButtonValues = new List<ButtonValue>();
         }
 
-        public long TemplatesId { get; set; }
+        public long Id { get; set; }
         public int? ClientId { get; set; }
         public string ClientName { get; set; }
         public string TemplateName { get; set; }

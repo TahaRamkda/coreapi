@@ -8,7 +8,7 @@ namespace WhatsAppAPISolutionDL.UserModels
 {
     public partial class UTemplate
     {
-        public long TemplatesId { get; set; }
+        public long Id { get; set; }
         public int? ClientId { get; set; }
         public string ClientName { get; set; }
         public long? SenderId { get; set; }

@@ -184,7 +184,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             {
                                 ClientId = ClientId,
                                 SenderNameId = (int)templateDetails.SenderId,
-                                TemplateId = (int)templateDetails.TemplatesId,
+                                TemplateId = (int)templateDetails.Id,
                                 PhoneNumber = item.phoneNumber,
                                 Status = item.status,
                                 WaId = item.waId,
