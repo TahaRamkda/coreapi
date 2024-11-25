@@ -128,17 +128,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 messageText = messageReceive.sticker.caption;
             }
 
-            var query = string.Format(@"exec usp_MessageReceivedLogs_ops @ClientId={0}, @SenderId={1}, @WaId='{2}', @ContextWaId='{3}', @PhoneNumber='{4}', @ResponseType={5}, @ResponseText='{6}', @MediaId={7}",
-                messageReceive.client_Id, senderName?.SenderId, messageReceive.wam_Id, messageReceive.context?.wam_Id, messageReceive.from, messageType, messageText, mediaId);
-
-            var response = await _dbContext2.UMessageReceiveds.FromSqlRaw(query).ToListAsync();
+            var response = await _dbContext2.UMessageReceiveds.FromSqlInterpolated($"exec usp_MessageReceivedLogs_ops @ClientId={messageReceive.client_Id}, @SenderId={senderName?.SenderId}, @WaId={messageReceive.wam_Id}, @ContextWaId={messageReceive.context?.wam_Id}, @PhoneNumber={messageReceive.from}, @ResponseType={messageType}, @ResponseText={messageText}, @MediaId={mediaId}").ToListAsync();
 
             //Central service call
+            if (response != null & response.Any())
+            {
 
+            }
 
             return response != null && response.Any() ? response[0] : null;
-        }
-
-
+        } 
     }
 }
