@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Text;
 using WhatsAppAPISolutionAPI.Helper;
+using WhatsAppAPISolutionAPI.Middleware;
 using WhatsAppAPISolutionAPI.Models;
 using WhatsAppAPISolutionAPI.Security;
 using WhatsAppAPISolutionAPI.Setting;
@@ -132,7 +133,11 @@ app.UseStaticFiles(new StaticFileOptions()
 
     RequestPath = new PathString("/Uploads")
 });
-//app.UseExceptionHandlerMiddleware();
+
+bool enableGlobalExceptionHandler = Convert.ToBoolean(builder.Configuration["EnableGlobalExceptionHandler"]);
+
+if (enableGlobalExceptionHandler)
+    app.UseExceptionHandlerMiddleware();
 
 if (app.Environment.IsDevelopment())
 {
