@@ -87,7 +87,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
             string messageText = String.Empty;
             long mediaId = 0;
             messageReceive.type = messageReceive.type.ToUpper();
-            if (messageReceive.type == MessageReceiveTypeEnum.TEXT.ToString())
+
+            if (messageReceive.type == MessageReceiveTypeEnum.BUTTON.ToString())
+            {
+                messageType = Convert.ToInt32(MessageReceiveTypeEnum.BUTTON);
+                messageText = messageReceive.button.payload;
+            }
+            else if (messageReceive.type == MessageReceiveTypeEnum.TEXT.ToString())
             {
                 messageType = Convert.ToInt32(MessageReceiveTypeEnum.TEXT);
                 messageText = messageReceive.text.body;
@@ -110,11 +116,26 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.document.id);
                 messageText = messageReceive.document.caption;
             }
+            else if (messageReceive.type == MessageReceiveTypeEnum.LOCATION.ToString())
+            {
+                messageType = Convert.ToInt32(MessageReceiveTypeEnum.LOCATION);
+                messageText = String.Concat(messageReceive.location.latitude, ",", messageReceive.location.longitude);
+            }
+            else if (messageReceive.type == MessageReceiveTypeEnum.STICKER.ToString())
+            {
+                messageType = Convert.ToInt32(MessageReceiveTypeEnum.STICKER);
+                mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.sticker.id);
+                messageText = messageReceive.sticker.caption;
+            }
 
             var query = string.Format(@"exec usp_MessageReceivedLogs_ops @ClientId={0}, @SenderId={1}, @WaId='{2}', @ContextWaId='{3}', @PhoneNumber='{4}', @ResponseType={5}, @ResponseText='{6}', @MediaId={7}",
                 messageReceive.client_Id, senderName?.SenderId, messageReceive.wam_Id, messageReceive.context?.wam_Id, messageReceive.from, messageType, messageText, mediaId);
 
             var response = await _dbContext2.UMessageReceiveds.FromSqlRaw(query).ToListAsync();
+
+            //Central service call
+
+
             return response != null && response.Any() ? response[0] : null;
         }
 

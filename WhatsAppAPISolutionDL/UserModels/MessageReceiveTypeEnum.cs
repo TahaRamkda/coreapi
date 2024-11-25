@@ -9,9 +9,12 @@ namespace WhatsAppAPISolutionDL.UserModels
     public enum MessageReceiveTypeEnum
     {
         NONE = 0,
-        TEXT = 1,
-        IMAGE = 2,
-        VIDEO = 3,
-        DOCUMENT = 4
+        BUTTON = 1,
+        TEXT = 2,
+        IMAGE = 3,
+        VIDEO = 4,
+        DOCUMENT = 5,
+        LOCATION = 6,
+        STICKER = 7
     }
 }
