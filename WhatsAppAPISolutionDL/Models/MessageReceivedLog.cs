@@ -19,5 +19,6 @@ namespace WhatsAppAPISolutionDL.Models
         public decimal? Commission { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? MessageSentDate { get; set; }
+        public long? MediaId { get; set; }
     }
 }

@@ -22,6 +22,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly HttpClient _httpClient;
         private readonly IAPIMessageService _apiMessageService;
         private readonly IMessageService _messageService;
+        private readonly ICommunicationService _communicationService;
 
         public CustomIntegrationService(
             WhatsAppSolutionContext dbContext,
@@ -29,7 +30,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             ITemplateService templateService,
             IHttpClientFactory httpClientFactory,
             IAPIMessageService apiMessageService,
-            IMessageService messageService)
+            IMessageService messageService,
+            ICommunicationService communicationService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -37,6 +39,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _httpClient = httpClientFactory.CreateClient("bridge_api");
             _apiMessageService = apiMessageService;
             _messageService = messageService;
+            _communicationService = communicationService;
         }
 
         public async Task<UResponse> SendSmsAsync(SendSmsDto sendSms, int ClientId, int UserId)
@@ -194,28 +197,32 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                             if (item.success)
                             {
-                                var message1 = new WhatsAppMessageStatusUpdateDto()
+                                var message1 = new InsertMessageDto()
                                 {
-                                    client_Id = ClientId.ToString(),
+                                    client_Id = ClientId,
                                     wam_Id = item.waId,
                                     recipient_Id = item.phoneNumber,
-                                    status = MessageStatusEnum.SENT.ToString()
+                                    status = MessageStatusEnum.SENT.ToString(),
+                                    module_Id = (int)ModuleEnum.Campaign,
+                                    template_Id = (int)templateDetails.Id
                                 };
                                 message1.conversation.id = item.messageId;
-                                var response = await _messageService.UpdateMessageStatusAsync(message1);
+                                var response = await _communicationService.AddMessageSentLogAsync(message1);
                             }
                             else
                             {
-                                var message1 = new WhatsAppMessageStatusUpdateDto()
+                                var message1 = new InsertMessageDto()
                                 {
-                                    client_Id = ClientId.ToString(),
+                                    client_Id = ClientId,
                                     wam_Id = item.waId,
                                     recipient_Id = item.phoneNumber,
-                                    status = MessageStatusEnum.FAILED.ToString()
+                                    status = MessageStatusEnum.FAILED.ToString(),
+                                    module_Id = (int)ModuleEnum.Campaign,
+                                    template_Id = (int)templateDetails.Id
                                 };
                                 message1.conversation.id = item.messageId;
                                 message1.error.error_Details = item.errors.ToString();
-                                var response = await _messageService.UpdateMessageStatusAsync(message1);
+                                var response = await _communicationService.AddMessageSentLogAsync(message1);
                             }
                         }
                     }

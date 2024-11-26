@@ -31,5 +31,6 @@ namespace WhatsAppAPISolutionDL.Models
         public int? CurrentStatus { get; set; }
         public string FailedMessage { get; set; }
         public DateTime? FailedTime { get; set; }
+        public int? TemplateId { get; set; }
     }
 }

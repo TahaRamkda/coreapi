@@ -31,6 +31,6 @@ namespace WhatsAppAPISolutionDL.Models
         public int? RecordStatus { get; set; }
         public string MediaId { get; set; }
         public long? SenderId { get; set; }
-        public int? IsDefault { get; set; }
+        public int? DefaultType { get; set; }
     }
 }

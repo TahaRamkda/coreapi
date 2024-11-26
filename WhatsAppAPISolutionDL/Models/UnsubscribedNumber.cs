@@ -12,5 +12,6 @@ namespace WhatsAppAPISolutionDL.Models
         public int? ParentId { get; set; }
         public int? TemplateId { get; set; }
         public DateTime? CreatedDate { get; set; }
+        public int? SenderId { get; set; }
     }
 }
