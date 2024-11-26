@@ -9,7 +9,6 @@ namespace WhatsAppAPISolutionDL.Dto
 {
     public partial class RoleDto
     {
-        [Required]
         public long? RoleId { get; set; }
         [Required]
         public int? ClientId { get; set; }
