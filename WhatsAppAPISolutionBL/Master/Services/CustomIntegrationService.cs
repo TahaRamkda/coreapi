@@ -23,6 +23,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IAPIMessageService _apiMessageService;
         private readonly IMessageService _messageService;
         private readonly ICommunicationService _communicationService;
+        private readonly IMessageSentLogsService _messageSentLogsService;
 
         public CustomIntegrationService(
             WhatsAppSolutionContext dbContext,
@@ -31,7 +32,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IHttpClientFactory httpClientFactory,
             IAPIMessageService apiMessageService,
             IMessageService messageService,
-            ICommunicationService communicationService)
+            ICommunicationService communicationService,
+            IMessageSentLogsService messageSentLogsService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -40,6 +42,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _apiMessageService = apiMessageService;
             _messageService = messageService;
             _communicationService = communicationService;
+            _messageSentLogsService = messageSentLogsService;
         }
 
         public async Task<UResponse> SendSmsAsync(SendSmsDto sendSms, int ClientId, int UserId)
@@ -47,6 +50,32 @@ namespace WhatsAppAPISolutionBL.Master.Services
             sendSms.BrandName = sendSms.BrandName.Replace(" ", "_");
             sendSms.PhoneNumber = sendSms.PhoneNumber.Replace("+", "");
             var templateName = string.Concat(sendSms.BrandName, "_", sendSms.TemplateName).ToLower();
+
+            var tempPayload = new TemplateMessagePayloadDto()
+            {
+                ClientId = ClientId,
+                UserId = UserId,
+                TemplateName = templateName,
+                PhoneNumbers = new List<string> { sendSms.PhoneNumber },
+                IsApiMessage = true,
+                Url = sendSms.Url
+            };
+            var paramList = new List<ParamData>
+            {
+                new ParamData { ParamText = sendSms.HParam, ParamType = 1 },
+                new ParamData { ParamText = sendSms.BParam1, ParamType = 2 },
+                new ParamData { ParamText = sendSms.BParam2, ParamType = 2 },
+                new ParamData { ParamText = sendSms.BParam3, ParamType = 2 },
+                new ParamData { ParamText = sendSms.BParam4, ParamType = 2 },
+                new ParamData { ParamText = sendSms.BtnParam1, ParamType = 3 },
+                new ParamData { ParamText = sendSms.BtnParam2, ParamType = 3 },
+                new ParamData { ParamText = sendSms.BtnParam3, ParamType = 3 }
+            };
+
+            // Add each ParamData object to tempPayload.Params
+            tempPayload.Params.AddRange(paramList);
+            return await _communicationService.SendTemplateMessageAsync(tempPayload);
+
             var templateDetails = await _templateService.GetTemplateDetailsAsync(client_Id: ClientId, searchStr: templateName);
             if (templateDetails != null)
             {
@@ -207,7 +236,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                     template_Id = (int)templateDetails.Id
                                 };
                                 message1.conversation.id = item.messageId;
-                                var response = await _communicationService.AddMessageSentLogAsync(message1);
+                                await _messageSentLogsService.AddMessageSentLogAsync(message1);
                             }
                             else
                             {
@@ -222,7 +251,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 };
                                 message1.conversation.id = item.messageId;
                                 message1.error.error_Details = item.errors.ToString();
-                                var response = await _communicationService.AddMessageSentLogAsync(message1);
+                                await _messageSentLogsService.AddMessageSentLogAsync(message1);
                             }
                         }
                     }

@@ -10,7 +10,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface ICommunicationService
     {
-        public Task<UResponse> AddMessageSentLogAsync(InsertMessageDto messageStatus);
         public Task<UResponse> SendTemplateMessageAsync(TemplateMessagePayloadDto templateMessage);
     }
 }

@@ -21,5 +21,6 @@ namespace WhatsAppAPISolutionDL.Dto
         public string BtnParam3 { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+        public string Url { get; set; }
     }
 }
