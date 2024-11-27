@@ -147,7 +147,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 for (int i = 0; i < orderedButtonValues.Count; i++)
                 {
-                    if (orderedButtonValues[i].Type == (int)ButtonTypeEnum.URL)
+                    if (orderedButtonValues[i].Type == (int)ButtonTypeEnum.URL && orderedButtonValues[i].IsDynamic)
                     {
                         // Check if the parameter for the given index is null or empty
                         if (buttonParameters.ContainsKey(i))

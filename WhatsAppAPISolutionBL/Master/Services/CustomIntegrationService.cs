@@ -50,6 +50,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
             sendSms.BrandName = sendSms.BrandName.Replace(" ", "_");
             sendSms.PhoneNumber = sendSms.PhoneNumber.Replace("+", "");
             var templateName = string.Concat(sendSms.BrandName, "_", sendSms.TemplateName).ToLower();
+            string url = $"https://whatsappapi.consulttechies.com/CustomIntegration/sendsms?" +
+                $"HParam={sendSms.HParam}&" +
+                $"BParam1={sendSms.BParam1}&" +
+                $"BParam2={sendSms.BParam2}&" +
+                $"BParam3={sendSms.BParam3}&" +
+                $"BParam4={sendSms.BParam4}&" +
+                $"BtnParam1={sendSms.BtnParam1}&" +
+                $"BtnParam2={sendSms.BtnParam2}&" +
+                $"BtnParam3={sendSms.BtnParam3}";
 
             var tempPayload = new TemplateMessagePayloadDto()
             {
@@ -58,7 +67,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 TemplateName = templateName,
                 PhoneNumbers = new List<string> { sendSms.PhoneNumber },
                 IsApiMessage = true,
-                Url = sendSms.Url
+                Url = url
             };
             var paramList = new List<ParamData>
             {
@@ -76,208 +85,208 @@ namespace WhatsAppAPISolutionBL.Master.Services
             tempPayload.Params.AddRange(paramList);
             return await _communicationService.SendTemplateMessageAsync(tempPayload);
 
-            var templateDetails = await _templateService.GetTemplateDetailsAsync(client_Id: ClientId, searchStr: templateName);
-            if (templateDetails != null)
-            {
-                var sendMessage = new SendTemplateMessageDto()
-                {
-                    ClientId = templateDetails.ClientId.ToString(),
-                    SenderNameId = templateDetails.SenderId.ToString(),
-                    PhoneNumbers = new List<string> { sendSms.PhoneNumber },
-                    LanguageCode = templateDetails.Language,
-                    TemplateId = templateDetails.TemplateId,
-                    TemplateName = templateDetails.TemplateName
-                };
-                if (templateDetails.HeaderParamCount > 0 && !string.IsNullOrEmpty(sendSms.HParam))
-                {
-                    var headerComponents = new SendTemplateMessageDto.TemplateComponent()
-                    {
-                        ComponentType = TemplateParamEnum.Header.ToString()
-                    };
-                    headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                    {
-                        Type = ((TemplateHeaderEnum)templateDetails.HeaderType).ToString(),
-                        Value = sendSms.HParam,
-                        Index = templateDetails.HeaderValue.Index
-                    });
-                    sendMessage.Components.Add(headerComponents);
-                }
-                else if (templateDetails.HeaderParamCount > 0 && string.IsNullOrEmpty(sendSms.HParam))
-                {
-                    return new UResponse()
-                    {
-                        Status = 0,
-                        Message = $"error - HParam is required."
-                    };
-                }
-                if (templateDetails.BodyParamCount > 0)
-                {
-                    var bodyComponents = new SendTemplateMessageDto.TemplateComponent()
-                    {
-                        ComponentType = TemplateParamEnum.Body.ToString()
-                    };
-                    var parameters = new Dictionary<int, string>
-                    {
-                        { 0, sendSms.BParam1 },
-                        { 1, sendSms.BParam2 },
-                        { 2, sendSms.BParam3 },
-                        { 3, sendSms.BParam4 }
-                    };
-                    for (int i = 0; i < templateDetails.BodyValues.Count(); i++)
-                    {
-                        // Check if the parameter for the given index is null or empty
-                        if (parameters.ContainsKey(i))
-                        {
-                            var paramValue = parameters[i];
+            //var templateDetails = await _templateService.GetTemplateDetailsAsync(client_Id: ClientId, searchStr: templateName);
+            //if (templateDetails != null)
+            //{
+            //    var sendMessage = new SendTemplateMessageDto()
+            //    {
+            //        ClientId = templateDetails.ClientId.ToString(),
+            //        SenderNameId = templateDetails.SenderId.ToString(),
+            //        PhoneNumbers = new List<string> { sendSms.PhoneNumber },
+            //        LanguageCode = templateDetails.Language,
+            //        TemplateId = templateDetails.TemplateId,
+            //        TemplateName = templateDetails.TemplateName
+            //    };
+            //    if (templateDetails.HeaderParamCount > 0 && !string.IsNullOrEmpty(sendSms.HParam))
+            //    {
+            //        var headerComponents = new SendTemplateMessageDto.TemplateComponent()
+            //        {
+            //            ComponentType = TemplateParamEnum.Header.ToString()
+            //        };
+            //        headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+            //        {
+            //            Type = ((TemplateHeaderEnum)templateDetails.HeaderType).ToString(),
+            //            Value = sendSms.HParam,
+            //            Index = templateDetails.HeaderValue.Index
+            //        });
+            //        sendMessage.Components.Add(headerComponents);
+            //    }
+            //    else if (templateDetails.HeaderParamCount > 0 && string.IsNullOrEmpty(sendSms.HParam))
+            //    {
+            //        return new UResponse()
+            //        {
+            //            Status = 0,
+            //            Message = $"error - HParam is required."
+            //        };
+            //    }
+            //    if (templateDetails.BodyParamCount > 0)
+            //    {
+            //        var bodyComponents = new SendTemplateMessageDto.TemplateComponent()
+            //        {
+            //            ComponentType = TemplateParamEnum.Body.ToString()
+            //        };
+            //        var parameters = new Dictionary<int, string>
+            //        {
+            //            { 0, sendSms.BParam1 },
+            //            { 1, sendSms.BParam2 },
+            //            { 2, sendSms.BParam3 },
+            //            { 3, sendSms.BParam4 }
+            //        };
+            //        for (int i = 0; i < templateDetails.BodyValues.Count(); i++)
+            //        {
+            //            // Check if the parameter for the given index is null or empty
+            //            if (parameters.ContainsKey(i))
+            //            {
+            //                var paramValue = parameters[i];
 
-                            // If parameter is null or empty, throw an error
-                            if (string.IsNullOrEmpty(paramValue))
-                            {
-                                //throw new Exception($"Error: BParam{i + 1} is required when index is {i}.");
-                                return new UResponse()
-                                {
-                                    Status = 0,
-                                    Message = $"error - BParam{i + 1} is required when body parameter is greater than {i + 1}."
-                                };
-                            }
+            //                // If parameter is null or empty, throw an error
+            //                if (string.IsNullOrEmpty(paramValue))
+            //                {
+            //                    //throw new Exception($"Error: BParam{i + 1} is required when index is {i}.");
+            //                    return new UResponse()
+            //                    {
+            //                        Status = 0,
+            //                        Message = $"error - BParam{i + 1} is required when body parameter is greater than {i + 1}."
+            //                    };
+            //                }
 
-                            // Add the parameter to the bodyComponents if it's valid
-                            bodyComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                            {
-                                Type = "text",
-                                Value = paramValue,
-                                Index = i
-                            });
-                        }
-                    }
-                    sendMessage.Components.Add(bodyComponents);
-                }
-                if (templateDetails.ButtonValues.Any())
-                {
-                    var buttonComponents = new SendTemplateMessageDto.TemplateComponent()
-                    {
-                        ComponentType = TemplateParamEnum.Button.ToString()
-                    };
+            //                // Add the parameter to the bodyComponents if it's valid
+            //                bodyComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+            //                {
+            //                    Type = "text",
+            //                    Value = paramValue,
+            //                    Index = i
+            //                });
+            //            }
+            //        }
+            //        sendMessage.Components.Add(bodyComponents);
+            //    }
+            //    if (templateDetails.ButtonValues.Any())
+            //    {
+            //        var buttonComponents = new SendTemplateMessageDto.TemplateComponent()
+            //        {
+            //            ComponentType = TemplateParamEnum.Button.ToString()
+            //        };
 
-                    var buttonParams = new Dictionary<int, string>
-                    {
-                        { 0, sendSms.BtnParam1 },
-                        { 1, sendSms.BtnParam2 },
-                        { 2, sendSms.BtnParam3 }
-                    };
+            //        var buttonParams = new Dictionary<int, string>
+            //        {
+            //            { 0, sendSms.BtnParam1 },
+            //            { 1, sendSms.BtnParam2 },
+            //            { 2, sendSms.BtnParam3 }
+            //        };
 
-                    // Get the ordered list of ButtonValues
-                    var orderedButtonValues = templateDetails.ButtonValues.OrderBy(x => x.Sequence).ToList();
+            //        // Get the ordered list of ButtonValues
+            //        var orderedButtonValues = templateDetails.ButtonValues.OrderBy(x => x.Sequence).ToList();
 
-                    for (int i = 0; i < orderedButtonValues.Count; i++)
-                    {
-                        // Check if the parameter for the given index is null or empty
-                        if (buttonParams.ContainsKey(i))
-                        {
-                            var paramValue = buttonParams[i];
+            //        for (int i = 0; i < orderedButtonValues.Count; i++)
+            //        {
+            //            // Check if the parameter for the given index is null or empty
+            //            if (buttonParams.ContainsKey(i))
+            //            {
+            //                var paramValue = buttonParams[i];
 
-                            // If parameter is null or empty, throw an error
-                            if (string.IsNullOrEmpty(paramValue))
-                            {
-                                //throw new Exception($"Error: BtnParam{i + 1} is required when index is {i}.");
-                                return new UResponse()
-                                {
-                                    Status = 0,
-                                    Message = $"error - BParam{i + 1} is required when button parameter is greater than {i + 1}."
-                                };
-                            }
+            //                // If parameter is null or empty, throw an error
+            //                if (string.IsNullOrEmpty(paramValue))
+            //                {
+            //                    //throw new Exception($"Error: BtnParam{i + 1} is required when index is {i}.");
+            //                    return new UResponse()
+            //                    {
+            //                        Status = 0,
+            //                        Message = $"error - BParam{i + 1} is required when button parameter is greater than {i + 1}."
+            //                    };
+            //                }
 
-                            // Add the parameter to the buttonComponents if it's valid
-                            buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                            {
-                                Type = ((ButtonTypeEnum)orderedButtonValues[i].Type).ToString(),
-                                Value = paramValue,
-                                Index = i
-                            });
-                        }
-                    }
+            //                // Add the parameter to the buttonComponents if it's valid
+            //                buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+            //                {
+            //                    Type = ((ButtonTypeEnum)orderedButtonValues[i].Type).ToString(),
+            //                    Value = paramValue,
+            //                    Index = i
+            //                });
+            //            }
+            //        }
 
-                    sendMessage.Components.Add(buttonComponents);
-                }
-                var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(sendMessage), Encoding.UTF8, "application/json");
-                var response1 = await _httpClient.PostAsync($"/api/Template/SendBatchTemplateMessage", res);
-                var content = await response1.Content.ReadAsStringAsync();
+            //        sendMessage.Components.Add(buttonComponents);
+            //    }
+            //    var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(sendMessage), Encoding.UTF8, "application/json");
+            //    var response1 = await _httpClient.PostAsync($"/api/Template/SendBatchTemplateMessage", res);
+            //    var content = await response1.Content.ReadAsStringAsync();
 
-                var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
-                if (result != null && result.success)
-                {
-                    var data = System.Text.Json.JsonSerializer.Serialize(result.result);
-                    var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
-                    if (tempResult != null)
-                    {
-                        foreach (var item in tempResult)
-                        {
-                            var message = new APIMessageDto()
-                            {
-                                ClientId = ClientId,
-                                SenderNameId = (int)templateDetails.SenderId,
-                                TemplateId = (int)templateDetails.Id,
-                                PhoneNumber = item.phoneNumber,
-                                Status = item.status,
-                                WaId = item.waId,
-                                ActionBy = UserId
-                            };
-                            await _apiMessageService.AddAPIMessageAsync(message);
+            //    var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
+            //    if (result != null && result.success)
+            //    {
+            //        var data = System.Text.Json.JsonSerializer.Serialize(result.result);
+            //        var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
+            //        if (tempResult != null)
+            //        {
+            //            foreach (var item in tempResult)
+            //            {
+            //                var message = new APIMessageDto()
+            //                {
+            //                    ClientId = ClientId,
+            //                    SenderNameId = (int)templateDetails.SenderId,
+            //                    TemplateId = (int)templateDetails.Id,
+            //                    PhoneNumber = item.phoneNumber,
+            //                    Status = item.status,
+            //                    WaId = item.waId,
+            //                    ActionBy = UserId
+            //                };
+            //                await _apiMessageService.AddAPIMessageAsync(message);
 
-                            if (item.success)
-                            {
-                                var message1 = new InsertMessageDto()
-                                {
-                                    client_Id = ClientId,
-                                    wam_Id = item.waId,
-                                    recipient_Id = item.phoneNumber,
-                                    status = MessageStatusEnum.SENT.ToString(),
-                                    module_Id = (int)ModuleEnum.Campaign,
-                                    template_Id = (int)templateDetails.Id
-                                };
-                                message1.conversation.id = item.messageId;
-                                await _messageSentLogsService.AddMessageSentLogAsync(message1);
-                            }
-                            else
-                            {
-                                var message1 = new InsertMessageDto()
-                                {
-                                    client_Id = ClientId,
-                                    wam_Id = item.waId,
-                                    recipient_Id = item.phoneNumber,
-                                    status = MessageStatusEnum.FAILED.ToString(),
-                                    module_Id = (int)ModuleEnum.Campaign,
-                                    template_Id = (int)templateDetails.Id
-                                };
-                                message1.conversation.id = item.messageId;
-                                message1.error.error_Details = item.errors.ToString();
-                                await _messageSentLogsService.AddMessageSentLogAsync(message1);
-                            }
-                        }
-                    }
-                }
-                else if (result != null && !result.success)
-                {
-                    return new UResponse()
-                    {
-                        Status = 0,
-                        Message = result.message
-                    };
-                }
-            }
-            else
-            {
-                return new UResponse()
-                {
-                    Status = 0,
-                    Message = "error - Template name is not exist"
-                };
-            }
-            return new UResponse()
-            {
-                Status = 1,
-                Message = "success - Messages sent Successfully"
-            };
+            //                if (item.success)
+            //                {
+            //                    var message1 = new InsertMessageDto()
+            //                    {
+            //                        client_Id = ClientId,
+            //                        wam_Id = item.waId,
+            //                        recipient_Id = item.phoneNumber,
+            //                        status = MessageStatusEnum.SENT.ToString(),
+            //                        module_Id = (int)ModuleEnum.Campaign,
+            //                        template_Id = (int)templateDetails.Id
+            //                    };
+            //                    message1.conversation.id = item.messageId;
+            //                    await _messageSentLogsService.AddMessageSentLogAsync(message1);
+            //                }
+            //                else
+            //                {
+            //                    var message1 = new InsertMessageDto()
+            //                    {
+            //                        client_Id = ClientId,
+            //                        wam_Id = item.waId,
+            //                        recipient_Id = item.phoneNumber,
+            //                        status = MessageStatusEnum.FAILED.ToString(),
+            //                        module_Id = (int)ModuleEnum.Campaign,
+            //                        template_Id = (int)templateDetails.Id
+            //                    };
+            //                    message1.conversation.id = item.messageId;
+            //                    message1.error.error_Details = item.errors.ToString();
+            //                    await _messageSentLogsService.AddMessageSentLogAsync(message1);
+            //                }
+            //            }
+            //        }
+            //    }
+            //    else if (result != null && !result.success)
+            //    {
+            //        return new UResponse()
+            //        {
+            //            Status = 0,
+            //            Message = result.message
+            //        };
+            //    }
+            //}
+            //else
+            //{
+            //    return new UResponse()
+            //    {
+            //        Status = 0,
+            //        Message = "error - Template name is not exist"
+            //    };
+            //}
+            //return new UResponse()
+            //{
+            //    Status = 1,
+            //    Message = "success - Messages sent Successfully"
+            //};
         }
     }
 }

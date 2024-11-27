@@ -18,7 +18,6 @@ namespace WhatsAppAPISolutionDL.Models
 
         public virtual DbSet<Action> Actions { get; set; }
         public virtual DbSet<Apimessage> Apimessages { get; set; }
-        public virtual DbSet<Apiresponse> Apiresponses { get; set; }
         public virtual DbSet<Campaign> Campaigns { get; set; }
         public virtual DbSet<CampaignContact> CampaignContacts { get; set; }
         public virtual DbSet<CampaignParam> CampaignParams { get; set; }
@@ -88,33 +87,11 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.Url)
-                    .HasMaxLength(250)
-                    .HasColumnName("URL");
+                entity.Property(e => e.Url).HasColumnName("URL");
 
                 entity.Property(e => e.WaId)
                     .HasMaxLength(250)
                     .HasColumnName("WaID");
-            });
-
-            modelBuilder.Entity<Apiresponse>(entity =>
-            {
-                entity.ToTable("APIResponses");
-
-                entity.Property(e => e.ApimessageId)
-                    .HasMaxLength(10)
-                    .HasColumnName("APIMessageId")
-                    .IsFixedLength();
-
-                entity.Property(e => e.ContextWaId).HasMaxLength(250);
-
-                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
-
-                entity.Property(e => e.PhoneNumber).HasMaxLength(50);
-
-                entity.Property(e => e.Text).HasMaxLength(500);
-
-                entity.Property(e => e.WaId).HasMaxLength(250);
             });
 
             modelBuilder.Entity<Campaign>(entity =>

@@ -52,20 +52,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _customIntegrationService.SendSmsAsync(sendSms, res.ClientId, (int)res.UserId);
             if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Success = false,
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
-            return Ok(new ApiResult()
-            {
-                Success = true,
-                Result = response,
-                Message = "Data added successfully"
-            });
+                return Ok($"error - {response?.Message}");
+
+            return Ok("success - Data added successfully");
         }
     }
 }

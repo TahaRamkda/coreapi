@@ -26,6 +26,7 @@ namespace WhatsAppAPISolutionDL.Dto
         public bool IsApproved { get; set; }
         public int TemplateType { get; set; }
         public int ActionBy { get; set; }
+        public int DefaultType { get; set; }
         public HeaderComponent Header { get; set; }
         public BodyComponent Body { get; set; }
         public FooterComponent Footer { get; set; }
@@ -68,6 +69,8 @@ namespace WhatsAppAPISolutionDL.Dto
             public int Index { get; set; }
             public string Url { get; set; } = String.Empty;
             public List<KeyValue> Values { get; set; }
+            public int ActionId { get; set; }
+            public int ActionType { get; set; }
         }
         public class KeyValue
         {
