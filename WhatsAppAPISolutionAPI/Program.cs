@@ -14,6 +14,7 @@ using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -57,6 +58,7 @@ builder.Services.AddDbContext<WhatsAppSolutionContext>(options => options.UseSql
 builder.Services.AddDbContext<WhatsAppSolutionContext2>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("WhatsAppAPISolutionDataBase")));
 
 builder.Services.Configure<BridgeConfigurationSettings>(builder.Configuration.GetSection(BridgeConfigurationSettings.ConfigKey));
+builder.Services.Configure<APISolutionConfigurationSettings>(builder.Configuration.GetSection(APISolutionConfigurationSettings.ConfigKey));
 
 builder.Services.AddHttpClient(HttpClientType.bridge_api, (serviceProvider, httpClient) =>
 {

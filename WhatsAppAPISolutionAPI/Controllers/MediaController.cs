@@ -54,7 +54,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpPost("uploadmedia")]
-        public async Task<ActionResult> UploadMediaAsync([FromForm] MediaUploadDto model)
+        public async Task<ActionResult> UploadMediaAsync([FromForm] MediaFileDto model)
         {
             _logger.LogInformation("calling function UploadMediaAsync");
             if (model == null)
