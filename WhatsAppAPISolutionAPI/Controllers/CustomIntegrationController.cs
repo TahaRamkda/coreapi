@@ -28,9 +28,79 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _userService = userService;
         }
 
-        [HttpPost("sendsms")]
-        public async Task<IActionResult> SendSmsAsync([FromQuery] SendSmsDto sendSms)
+        //[HttpGet("sendsms")]
+        //public async Task<IActionResult> SendSmsAsync([FromQuery] SendSmsDto sendSms)
+        //{
+        //    if (sendSms == null)
+        //        return Ok("error - Data required");
+        //    if (string.IsNullOrEmpty(sendSms.PhoneNumber))
+        //        return Ok("error - Phone number required");
+        //    if (string.IsNullOrEmpty(sendSms.BrandName))
+        //        return Ok("error - Brand name required");
+        //    if (string.IsNullOrEmpty(sendSms.TemplateName))
+        //        return Ok("error - Template name required");
+        //    if (string.IsNullOrEmpty(sendSms.Username))
+        //        return Ok("error - User name required");
+        //    if (string.IsNullOrEmpty(sendSms.Password))
+        //        return Ok("error - Password required");
+
+        //    var res = await _userService.Login(sendSms.Username.Trim(), sendSms.Password.Trim());
+        //    if (res == null || res.Status <= 0)
+        //    {
+        //        return Ok("error - Incorrect Username or Password");
+        //    }
+
+        //    var response = await _customIntegrationService.SendSmsAsync(sendSms, res.ClientId, (int)res.UserId);
+        //    if (response == null || response.Status <= 0)
+        //        return Ok($"error - {response?.Message}");
+
+        //    return Ok("success - Data added successfully");
+        //}
+
+        //[HttpPost("sendsms")]
+        //public async Task<IActionResult> SendSmsAsync(SendSmsDto sendSms)
+        //{
+        //    if (sendSms == null)
+        //        return Ok("error - Data required");
+        //    if (string.IsNullOrEmpty(sendSms.PhoneNumber))
+        //        return Ok("error - Phone number required");
+        //    if (string.IsNullOrEmpty(sendSms.BrandName))
+        //        return Ok("error - Brand name required");
+        //    if (string.IsNullOrEmpty(sendSms.TemplateName))
+        //        return Ok("error - Template name required");
+        //    if (string.IsNullOrEmpty(sendSms.Username))
+        //        return Ok("error - User name required");
+        //    if (string.IsNullOrEmpty(sendSms.Password))
+        //        return Ok("error - Password required");
+
+        //    var res = await _userService.Login(sendSms.Username.Trim(), sendSms.Password.Trim());
+        //    if (res == null || res.Status <= 0)
+        //    {
+        //        return Ok("error - Incorrect Username or Password");
+        //    }
+
+        //    var response = await _customIntegrationService.SendSmsAsync(sendSms, res.ClientId, (int)res.UserId);
+        //    if (response == null || response.Status <= 0)
+        //        return Ok($"error - {response?.Message}");
+
+        //    return Ok("success - Data added successfully");
+        //}
+
+        [HttpGet("sendsms")]
+        public async Task<IActionResult> GetSendSmsAsync([FromQuery] SendSmsDto sendSms)
         {
+            return await ProcessSmsRequest(sendSms);
+        }
+
+        [HttpPost("sendsms")]
+        public async Task<IActionResult> PostSendSmsAsync([FromBody]SendSmsDto sendSms)
+        {
+            return await ProcessSmsRequest(sendSms);
+        }
+
+        private async Task<IActionResult> ProcessSmsRequest(SendSmsDto sendSms)
+        {
+            // Validation checks
             if (sendSms == null)
                 return Ok("error - Data required");
             if (string.IsNullOrEmpty(sendSms.PhoneNumber))
@@ -44,12 +114,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (string.IsNullOrEmpty(sendSms.Password))
                 return Ok("error - Password required");
 
+            // User login validation
             var res = await _userService.Login(sendSms.Username.Trim(), sendSms.Password.Trim());
             if (res == null || res.Status <= 0)
             {
                 return Ok("error - Incorrect Username or Password");
             }
 
+            // Send SMS request
             var response = await _customIntegrationService.SendSmsAsync(sendSms, res.ClientId, (int)res.UserId);
             if (response == null || response.Status <= 0)
                 return Ok($"error - {response?.Message}");

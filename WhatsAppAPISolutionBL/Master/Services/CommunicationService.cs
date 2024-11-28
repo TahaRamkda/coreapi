@@ -111,7 +111,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             return new UResponse()
                             {
                                 Status = 0,
-                                Message = $"error - BParam{i + 1} is required when body parameter is greater than {i + 1}."
+                                Message = $"error - BParam{i + 1} is required when body parameter is greater than {i}."
                             };
                         }
 
@@ -161,7 +161,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 return new UResponse()
                                 {
                                     Status = 0,
-                                    Message = $"error - BtnParam{i + 1} is required when button parameter is greater than {i + 1}."
+                                    Message = $"error - BtnParam{i + 1} is required when button parameter is greater than {i}."
                                 };
                             }
 

@@ -154,7 +154,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     if (button.TextCount == 0)
                         button.Values = null;
-
+                    if (button.ActionType == (int)ActionTypeEnum.TEMPLATE && button.ActionId <= 0)
+                        return new UResponseWithID()
+                        {
+                            Status = 0,
+                            Message = "Template Id required in action id when action type is template"
+                        };
                     var param = new TemplateParameter()
                     {
                         Sequence = button.Index,
@@ -404,6 +409,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     if (button.TextCount == 0)
                         button.Values = null;
+
+                    if (button.ActionType == (int)ActionTypeEnum.TEMPLATE && button.ActionId <= 0)
+                        return new UResponseWithID()
+                        {
+                            Status = 0,
+                            Message = "Template Id required in action id when action type is template"
+                        };
 
                     var param = new TemplateParameter()
                     {
