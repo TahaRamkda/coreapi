@@ -43,9 +43,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("gettemplateslist")]
-        public async Task<ActionResult> GetTemplatesListAsync(int ClientId)
+        public async Task<ActionResult> GetTemplatesListAsync(int ClientId, int TransactionType)
         {
-            var res = await _templateService.GetTemplateListAsync(ClientId);
+            var res = await _templateService.GetTemplateListAsync(ClientId, TransactionType);
             return Ok(new ApiResult()
             {
                 Success = true,
@@ -86,9 +86,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         public async Task<IActionResult> AddTemplateAsync([FromBody] TemplateDto template)
         {
             if (template == null)
-            {
                 return BadRequest();
-            }
 
             if (string.IsNullOrEmpty(template.Name))
                 return Ok(new ApiResult()
@@ -109,6 +107,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 {
                     Success = false,
                     Message = "Please insert sender Id"
+                });
+
+            if (template.TransactionType <= 0)
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Please insert transaction type"
                 });
 
             if (template.Body == null && string.IsNullOrEmpty(template.Body.Text))
@@ -140,9 +145,42 @@ namespace WhatsAppAPISolutionAPI.Controllers
         public async Task<IActionResult> UpdateTemplateAsync(TemplateDto template)
         {
             if (template == null)
-            {
                 return BadRequest();
-            }
+
+            if (string.IsNullOrEmpty(template.Name))
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Please insert template name"
+                });
+
+            if (template.ClientId <= 0)
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Please insert client Id"
+                });
+
+            if (template.SenderNameId <= 0)
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Please insert sender Id"
+                });
+
+            if (template.TransactionType <= 0)
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Please insert transaction type"
+                });
+
+            if (template.Body == null && string.IsNullOrEmpty(template.Body.Text))
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Body text required"
+                });
 
             var response = await _templateService.UpdateTemplateAsync(template);
             if (response == null || response.Status <= 0)

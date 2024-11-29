@@ -13,5 +13,8 @@ namespace WhatsAppAPISolutionDL.Models
         public int? Status { get; set; }
         public int? CreatedBy { get; set; }
         public DateTime? CreatedDate { get; set; }
+        public int? TemplateId { get; set; }
+        public string WaId { get; set; }
+        public string ContextWaId { get; set; }
     }
 }

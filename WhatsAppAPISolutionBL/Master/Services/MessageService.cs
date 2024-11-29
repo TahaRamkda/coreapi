@@ -137,6 +137,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
 
             return response != null && response.Any() ? response[0] : null;
-        } 
+        }
+
+        public async Task<UResponse> SendMessageAsync(SendMessageRequestDto model)
+        {
+            model.Message = model.Message.Trim();
+            model.PhoneNumbers = model.PhoneNumbers.Where(x => !String.IsNullOrWhiteSpace(x)).Select(x => x.Replace("+", "").Trim()).ToList();
+
+            return new UResponse();
+        }
     }
 }

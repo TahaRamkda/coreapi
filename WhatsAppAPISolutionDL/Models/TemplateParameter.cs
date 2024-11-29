@@ -17,6 +17,7 @@ namespace WhatsAppAPISolutionDL.Models
         public int? ButtonType { get; set; }
         public int? ActionId { get; set; }
         public int? ActionType { get; set; }
+        public string ButtonId { get; set; }
         public int? Status { get; set; }
         public int? CreatedBy { get; set; }
         public DateTime? CreatedDate { get; set; }

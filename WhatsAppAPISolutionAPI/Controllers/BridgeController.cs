@@ -44,6 +44,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             try
             {
+                _logger.LogInformation("Recieved Template Sync response from bridge with template data={data}", JsonConvert.SerializeObject(templateData));
+
                 var data = System.Text.Json.JsonSerializer.Serialize(templateData);
                 var options = new JsonSerializerOptions
                 {
@@ -60,6 +62,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                         var template = await _dbContext.Templates.Where(x => x.TemplateId == tempParam.Id).FirstOrDefaultAsync();
                         if (template == null)
                         {
+                            _logger.LogInformation("Recieved Template Sync response from bridge but template not exist in our database with id={id}", tempParam.Id);
                             return Ok(new ApiResult
                             {
                                 Success = false,
@@ -77,6 +80,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                         var response = await _templateService.UpdateTemplateStatusByIdAsync(tempDto);
                         if (response == null || response.Status <= 0)
                         {
+                            _logger.LogInformation("Recieved Template Sync response from bridge but unable to update template status in our database with id={id}", tempParam.Id);
                             return Ok(new ApiResult
                             {
                                 Success = false,
@@ -92,7 +96,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                         });
                     }
                 }
-                //_logger.LogInformation("webhook received with data={data}", data);
+                _logger.LogError("Recieved Template Sync response from bridge with errors data={data}", JsonConvert.SerializeObject(templateData));
                 return Ok(new ApiResult
                 {
                     Success = false,

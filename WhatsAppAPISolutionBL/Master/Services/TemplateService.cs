@@ -29,9 +29,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _httpClient = httpClientFactory.CreateClient("bridge_api");
         }
 
-        public async Task<List<UTemplate>> GetTemplateListAsync(int ClientId)
+        public async Task<List<UTemplate>> GetTemplateListAsync(int ClientId, int TransactionType)
         {
-            var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @ClientId={1}", (int)CrudEnum.List, ClientId);
+            var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @ClientId={1}, @TransactionType={2}", (int)CrudEnum.List, ClientId, TransactionType);
             var response = await _dbContext2.Templates.FromSqlRaw(query).ToListAsync();
 
             return response;
@@ -170,7 +170,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         ParamType = (int)TemplateParamEnum.Button,
                         ButtonType = button.Type,
                         ActionId = button.ActionId,
-                        ActionType = button.ActionType
+                        ActionType = button.ActionType,
+                        ButtonId = button.ButtonId
                     };
 
                     // Handle URL button cases
@@ -199,7 +200,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var bodyJson = JsonSerializer.Serialize(bodyValues);
             var buttonJson = JsonSerializer.Serialize(buttonValues);
 
-            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={template.ClientId}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.TemplateType}, @MediaId={template.MediaId}, @SenderId={template.SenderNameId}, @ActionBy={template.ActionBy}, @DefaultType={template.DefaultType}").ToListAsync();
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={template.ClientId}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.TemplateType}, @MediaId={template.MediaId}, @SenderId={template.SenderNameId}, @ActionBy={template.ActionBy}, @DefaultType={template.DefaultType}, @TransactionType={template.TransactionType}").ToListAsync();
             if (response != null || response[0].Status > 0)
             {
                 var tempateResponse = new TemplateRequestDto()
@@ -427,7 +428,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         ParamType = (int)TemplateParamEnum.Button,
                         ButtonType = button.Type,
                         ActionId = button.ActionId,
-                        ActionType = button.ActionType
+                        ActionType = button.ActionType,
+                        ButtonId = button.ButtonId
                     };
 
                     // Handle URL button cases
@@ -456,7 +458,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var bodyJson = JsonSerializer.Serialize(bodyValues);
             var buttonJson = JsonSerializer.Serialize(buttonValues);
 
-            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Update}, @TemplatesId={template.Id}, @ClientId={template.ClientId}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.TemplateType}, @MediaId={template.MediaId}, @SenderId={template.SenderNameId}, @ActionBy={template.ActionBy}, @DefaultType={template.DefaultType}").ToListAsync();
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Update}, @TemplatesId={template.Id}, @ClientId={template.ClientId}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.TemplateType}, @MediaId={template.MediaId}, @SenderId={template.SenderNameId}, @ActionBy={template.ActionBy}, @DefaultType={template.DefaultType}, @TransactionType={template.TransactionType}").ToListAsync();
             if (response != null || response[0].Status > 0)
             {
                 var tempateResponse = new TemplateRequestDto()

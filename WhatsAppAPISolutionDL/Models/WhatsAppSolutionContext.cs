@@ -254,7 +254,11 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.HasKey(e => e.MessageId)
                     .HasName("PK_ConversationMessage");
 
+                entity.Property(e => e.ContextWaId).HasMaxLength(250);
+
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.WaId).HasMaxLength(250);
             });
 
             modelBuilder.Entity<Country>(entity =>
@@ -489,8 +493,6 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.Property(e => e.TemplateName).HasMaxLength(50);
 
-                entity.Property(e => e.TransactionType).HasMaxLength(50);
-
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
             });
 
@@ -500,6 +502,8 @@ namespace WhatsAppAPISolutionDL.Models
                     .HasName("PK__Template__C4B2843895F26480");
 
                 entity.Property(e => e.ActionText).HasMaxLength(250);
+
+                entity.Property(e => e.ButtonId).HasMaxLength(250);
 
                 entity.Property(e => e.ContactLevelField).HasMaxLength(100);
 

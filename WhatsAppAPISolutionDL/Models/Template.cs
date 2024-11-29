@@ -12,7 +12,7 @@ namespace WhatsAppAPISolutionDL.Models
         public string SubCategory { get; set; }
         public string IntegrationId { get; set; }
         public string TemplateId { get; set; }
-        public string TransactionType { get; set; }
+        public int? TransactionType { get; set; }
         public int? HeaderType { get; set; }
         public int? HeaderParamCount { get; set; }
         public string HeaderText { get; set; }

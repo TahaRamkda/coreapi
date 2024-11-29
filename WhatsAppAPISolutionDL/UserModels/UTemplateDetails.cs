@@ -47,6 +47,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public long SenderId { get; set; }
         public string SenderName { get; set; }
         public int? DefaultType { get; set; }
+        public string ButtonId { get; set; }
 
         //[NotMapped]
         //public List<UTemplateParameter> TemplateParameters { get; set; }
