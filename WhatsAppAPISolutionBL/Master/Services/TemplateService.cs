@@ -70,7 +70,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             Message = "Media Id required when header type is not text"
                         };
                     var mediaDetail = await _dbContext.Medias.Where(x => x.MediaId == template.MediaId).FirstOrDefaultAsync();
-                    if (mediaDetail == null && string.IsNullOrEmpty(mediaDetail.MediaPath))
+                    if (mediaDetail == null || string.IsNullOrEmpty(mediaDetail.MediaPath))
                         return new UResponseWithID()
                         {
                             Status = 0,

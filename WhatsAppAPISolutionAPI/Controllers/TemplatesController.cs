@@ -116,7 +116,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = "Please insert transaction type"
                 });
 
-            if (template.Body == null && string.IsNullOrEmpty(template.Body.Text))
+            if (template.Body == null || string.IsNullOrEmpty(template.Body.Text))
                 return Ok(new ApiResult()
                 {
                     Success = false,

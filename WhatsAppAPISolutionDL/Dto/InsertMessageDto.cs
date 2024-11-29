@@ -22,6 +22,8 @@ namespace WhatsAppAPISolutionDL.Dto
         public string status { get; set; }
         public string update_dateTime { get; set; }
         public string recipient_Id { get; set; }
+        public string message_Text { get; set; }
+        public int message_Type { get; set; }
         public Conversation conversation { get; set; }
         public Pricing pricing { get; set; }
         public Error error { get; set; }

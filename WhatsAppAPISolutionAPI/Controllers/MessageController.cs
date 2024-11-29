@@ -60,6 +60,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = "Please insert message text"
                 });
 
+            if (sendMessage.Type != (int)MessageTypeEnum.TEXT && string.IsNullOrEmpty(sendMessage.MediaId))
+                return Ok(new ApiResult()
+                {
+                    Success = false,
+                    Message = "Please insert media id"
+                });
+
             if (!sendMessage.PhoneNumbers.Any())
                 return Ok(new ApiResult
                 {

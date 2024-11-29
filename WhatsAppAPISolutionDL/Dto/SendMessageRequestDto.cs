@@ -21,4 +21,19 @@ namespace WhatsAppAPISolutionDL.Dto
         public string FileName { get; set; }
         public List<string> PhoneNumbers { get; set; }
     }
+    public partial class SendMessageToBridgeDto
+    {
+        public SendMessageToBridgeDto()
+        {
+            PhoneNumbers = new List<string>();
+        }
+
+        public string ClientId { get; set; }
+        public string SenderNameId { get; set; }
+        public string Type { get; set; }
+        public string Message { get; set; }
+        public string MediaId { get; set; }
+        public string FileName { get; set; }
+        public List<string> PhoneNumbers { get; set; }
+    }
 }

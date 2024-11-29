@@ -252,5 +252,89 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 Message = "Message Sent Successfully"
             };
         }
+
+        public async Task<UResponse> SendMessageAsync(SendMessageRequestDto model)
+        {
+            model.Message = model.Message.Trim();
+            model.PhoneNumbers = model.PhoneNumbers.Where(x => !String.IsNullOrWhiteSpace(x)).Select(x => x.Replace("+", "").Trim()).ToList();
+
+            var request = new SendMessageToBridgeDto
+            {
+                ClientId = model.ClientId.ToString(),
+                SenderNameId = model.SenderId.ToString(),
+                Type = ((MessageTypeEnum)model.Type).ToString(),
+                Message = model.Message,
+                MediaId = model.MediaId,
+                FileName = model.FileName,
+                PhoneNumbers = model.PhoneNumbers,
+            };
+
+            var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+            var response1 = await _httpClient.PostAsync($"/api/Message/SendBatchMessage", res);
+            var content = await response1.Content.ReadAsStringAsync();
+
+            var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
+            if (result != null && result.success)
+            {
+                var data = System.Text.Json.JsonSerializer.Serialize(result.result);
+                var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
+                if (tempResult != null)
+                {
+                    foreach (var item in tempResult)
+                    {
+                        if (item.success)
+                        {
+                            var message1 = new InsertMessageDto()
+                            {
+                                client_Id = model.ClientId,
+                                wam_Id = item.waId,
+                                recipient_Id = item.phoneNumber,
+                                status = MessageStatusEnum.SENT.ToString(),
+                                module_Id = (int)ModuleEnum.Chat,
+                                message_Type = model.Type
+                            };
+                            message1.conversation.id = item.messageId;
+                            if (model.Type == 1)
+                                message1.message_Text = model.Message;
+                            else
+                                message1.message_Text = model.MediaId;
+                            await _messageSentLogsService.AddMessageSentLogAsync(message1);
+                        }
+                        else
+                        {
+                            var message1 = new InsertMessageDto()
+                            {
+                                client_Id = model.ClientId,
+                                wam_Id = item.waId,
+                                recipient_Id = item.phoneNumber,
+                                status = MessageStatusEnum.FAILED.ToString(),
+                                module_Id = (int)ModuleEnum.Chat,
+                                message_Type = model.Type
+                            };
+                            message1.conversation.id = item.messageId;
+                            message1.error.error_Details = item.errors.ToString(); 
+                            if (model.Type == 1)
+                                message1.message_Text = model.Message;
+                            else
+                                message1.message_Text = model.MediaId;
+                            await _messageSentLogsService.AddMessageSentLogAsync(message1);
+                        }
+                    }
+                }
+            }
+            else if (result != null && !result.success)
+            {
+                return new UResponse()
+                {
+                    Status = 0,
+                    Message = result.message
+                };
+            }
+            return new UResponse()
+            {
+                Status = 1,
+                Message = "Message Sent Successfully"
+            };
+        }
     }
 }

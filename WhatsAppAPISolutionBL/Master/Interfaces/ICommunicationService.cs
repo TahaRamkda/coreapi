@@ -11,5 +11,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
     public interface ICommunicationService
     {
         public Task<UResponse> SendTemplateMessageAsync(TemplateMessagePayloadDto templateMessage);
+        public Task<UResponse> SendMessageAsync(SendMessageRequestDto model);
     }
 }

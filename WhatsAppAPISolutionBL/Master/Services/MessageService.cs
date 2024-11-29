@@ -11,14 +11,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly IMediaService _mediaService;
+        private readonly ICommunicationService _communicationService;
 
         public MessageService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
-            IMediaService mediaService)
+            IMediaService mediaService,
+            ICommunicationService communicationService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _mediaService = mediaService;
+            _communicationService = communicationService;
         }
 
         public async Task<UResponse> UpdateMessageStatusAsync(WhatsAppMessageStatusUpdateDto messageStatus)
@@ -141,10 +144,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> SendMessageAsync(SendMessageRequestDto model)
         {
-            model.Message = model.Message.Trim();
-            model.PhoneNumbers = model.PhoneNumbers.Where(x => !String.IsNullOrWhiteSpace(x)).Select(x => x.Replace("+", "").Trim()).ToList();
-
-            return new UResponse();
+            return await _communicationService.SendMessageAsync(model);
         }
     }
 }
