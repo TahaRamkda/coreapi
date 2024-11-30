@@ -17,6 +17,8 @@
         public Video video { get; set; }
         public Location location { get; set; }
         public Sticker sticker { get; set; }
+        public ButtonReply buttonReply { get; set; }
+        public ListReply listReply { get; set; }
 
         public class PhoneNumber
         {
@@ -79,6 +81,18 @@
             public string id { get; set; }
             public string caption { get; set; }
             public bool animated { get; set; }
+        }
+
+        public class ButtonReply
+        {
+            public string id { get; set; }
+            public string title { get; set; }
+        }
+
+        public class ListReply
+        {
+            public string id { get; set; }
+            public string title { get; set; }
         }
     }
 }

@@ -31,8 +31,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         public TemplatesController(ITemplateService templateService,
             WhatsAppSolutionContext dbContext,
             ILogger<TemplatesController> logger,
-          IOptions<BridgeConfigurationSettings> bridgeConfigurationSettings,
-          IHttpClientFactory httpClientFactory)
+            IOptions<BridgeConfigurationSettings> bridgeConfigurationSettings,
+            IHttpClientFactory httpClientFactory)
         {
             _templateService = templateService;
             _dbContext = dbContext;

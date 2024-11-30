@@ -69,9 +69,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 category = messageStatus.pricing.category;
             }
 
-            var query = string.Format(@"exec usp_MessageSentLogs_StatusUpdate @ModuleId={0}, @ClientId={1}, @ParentId={2}, @SenderId={3}, @PhoneNumber='{4}', @WaId='{5}', @WaId2='{6}', @EventType={7}, @EventTime='{8}', @EventStatus={9}, @EventMessage='{10}', @PricingModel='{11}', @Billable={12}, @Category='{13}', @TemplateId={14}, @MessageType={15}, @MessageText={16}", messageStatus.module_Id, messageStatus.client_Id, messageStatus.parent_Id, senderId, messageStatus.recipient_Id, messageStatus.wam_Id, conversationId, eventType, messageStatus.update_dateTime, eventStatus, eventMessage, pricingModel, billable, category, messageStatus.template_Id, messageStatus.message_Type, messageStatus.message_Text);
-            var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_MessageSentLogs_StatusUpdate @ModuleId={messageStatus.module_Id}, @ClientId={messageStatus.client_Id}, @ParentId={messageStatus.parent_Id}, @SenderId={senderId}, @PhoneNumber={messageStatus.recipient_Id}, @WaId={messageStatus.wam_Id}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={messageStatus.update_dateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}, @TemplateId={messageStatus.template_Id}, @MessageType={messageStatus.message_Type}, @MessageText={messageStatus.message_Text}").ToListAsync();
             return response[0];
         }
     }

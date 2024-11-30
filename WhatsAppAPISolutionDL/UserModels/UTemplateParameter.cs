@@ -19,6 +19,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string ParamDefaultValue { get; set; }
         public bool IsDynamic { get; set; }
         public int? ButtonType { get; set; }
+        public string? ButtonId { get; set; }
         public int? Status { get; set; }
         public int? CreatedBy { get; set; }
         public string CreatedDate { get; set; }

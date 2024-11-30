@@ -25,7 +25,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string Category { get; set; }
         public string SubCategory { get; set; }
         public string TemplateId { get; set; }
-        public string TransactionType { get; set; }
+        public int? TransactionType { get; set; }
         public int? HeaderType { get; set; }
         public int? HeaderParamCount { get; set; }
         public string HeaderText { get; set; }
@@ -47,7 +47,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public long SenderId { get; set; }
         public string SenderName { get; set; }
         public int? DefaultType { get; set; }
-        public string ButtonId { get; set; }
+        //public string ButtonId { get; set; }
 
         //[NotMapped]
         //public List<UTemplateParameter> TemplateParameters { get; set; }

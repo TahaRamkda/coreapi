@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,16 +50,25 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             sendSms.BrandName = sendSms.BrandName.Replace(" ", "_");
             sendSms.PhoneNumber = sendSms.PhoneNumber.Replace("+", "");
-            var templateName = string.Concat(sendSms.BrandName, "_", sendSms.TemplateName).ToLower();
+            var templateName = String.Empty;
+
+            //If brand name is present than only append brand name
+            if (!String.IsNullOrWhiteSpace(sendSms.BrandName))
+                templateName = String.Concat(sendSms.BrandName, "_", sendSms.TemplateName).ToLower();
+            else
+                templateName = sendSms.TemplateName;
+
+            string request = JsonConvert.SerializeObject(sendSms);
+
             string url = $"https://whatsappapi.consulttechies.com/CustomIntegration/sendsms?" +
-                $"HParam={sendSms.HParam}&" +
-                $"BParam1={sendSms.BParam1}&" +
-                $"BParam2={sendSms.BParam2}&" +
-                $"BParam3={sendSms.BParam3}&" +
-                $"BParam4={sendSms.BParam4}&" +
-                $"BtnParam1={sendSms.BtnParam1}&" +
-                $"BtnParam2={sendSms.BtnParam2}&" +
-                $"BtnParam3={sendSms.BtnParam3}";
+            $"HParam={sendSms.HParam}&" +
+            $"BParam1={sendSms.BParam1}&" +
+            $"BParam2={sendSms.BParam2}&" +
+            $"BParam3={sendSms.BParam3}&" +
+            $"BParam4={sendSms.BParam4}&" +
+            $"BtnParam1={sendSms.BtnParam1}&" +
+            $"BtnParam2={sendSms.BtnParam2}&" +
+            $"BtnParam3={sendSms.BtnParam3}";
 
             var tempPayload = new TemplateMessagePayloadDto()
             {

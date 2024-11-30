@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using WhatsAppAPISolutionAPI.Models;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionBL.Master.Services;
@@ -89,12 +90,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("sendsms")]
         public async Task<IActionResult> GetSendSmsAsync([FromQuery] SendSmsDto sendSms)
         {
+            string page = HttpContext.Request.QueryString.ToString();
             return await ProcessSmsRequest(sendSms);
         }
 
         [HttpPost("sendsms")]
-        public async Task<IActionResult> PostSendSmsAsync([FromBody]SendSmsDto sendSms)
+        public async Task<IActionResult> PostSendSmsAsync([FromBody] SendSmsDto sendSms)
         {
+            string page = JsonConvert.SerializeObject(sendSms);
             return await ProcessSmsRequest(sendSms);
         }
 

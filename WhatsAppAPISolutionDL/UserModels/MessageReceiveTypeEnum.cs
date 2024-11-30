@@ -15,6 +15,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         VIDEO = 4,
         DOCUMENT = 5,
         LOCATION = 6,
-        STICKER = 7
+        STICKER = 7,
+        INTERACTIVE = 8
     }
 }

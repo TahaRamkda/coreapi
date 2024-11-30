@@ -130,6 +130,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.sticker.id);
                 messageText = messageReceive.sticker.caption;
             }
+            else if (messageReceive.type == MessageReceiveTypeEnum.INTERACTIVE.ToString())
+            {
+                messageType = Convert.ToInt32(MessageReceiveTypeEnum.INTERACTIVE);
+
+                if (messageReceive.buttonReply != null)
+                {
+                    messageText = messageReceive.buttonReply.title;
+                }
+                else if (messageReceive.listReply != null)
+                {
+                    messageText = messageReceive.listReply.title;
+                }
+            }
 
             var response = await _dbContext2.UMessageReceiveds.FromSqlInterpolated($"exec usp_MessageReceivedLogs_ops @ClientId={messageReceive.client_Id}, @SenderId={senderName?.SenderId}, @WaId={messageReceive.wam_Id}, @ContextWaId={messageReceive.context?.wam_Id}, @PhoneNumber={messageReceive.from}, @ResponseType={messageType}, @ResponseText={messageText}, @MediaId={mediaId}").ToListAsync();
 
