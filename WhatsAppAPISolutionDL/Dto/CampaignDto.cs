@@ -22,7 +22,7 @@ namespace WhatsAppAPISolutionDL.Dto
         public int TemplateId { get; set; }
         public DateTime? ScheduleDate { get; set; }
         public string CampaignType { get; set; }
-        public string Status { get; set; }
+        //public string Status { get; set; }
         public string GroupIds { get; set; }
         public int? ActionBy { get; set; }
         public List<CampaignParamDto> CampaignParameters { get; set; }

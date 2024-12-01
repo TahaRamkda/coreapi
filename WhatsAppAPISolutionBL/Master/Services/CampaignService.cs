@@ -47,13 +47,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var campaignParamJson = JsonSerializer.Serialize(campaign.CampaignParameters);
             var campaignContactJson = JsonSerializer.Serialize(campaign.CampaignContacts);
 
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.Add}, @CampaignName={campaign.CampaignName}, @ClientId={campaign.ClientId}, @SenderId={campaign.SenderId}, @TemplateId={campaign.TemplateId}, @ScheduleDate={campaign.ScheduleDate}, @CampaignType={campaign.CampaignType}, @Status={campaign.Status}, @CampaignParamsJSON={campaignParamJson}, @CampaignContactsJSON={campaignContactJson}, @GroupIds={campaign.GroupIds}, @ActionBy={campaign.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.Add}, @CampaignName={campaign.CampaignName}, @ClientId={campaign.ClientId}, @SenderId={campaign.SenderId}, @TemplateId={campaign.TemplateId}, @ScheduleDate={campaign.ScheduleDate}, @CampaignType={campaign.CampaignType}, @CampaignParamsJSON={campaignParamJson}, @CampaignContactsJSON={campaignContactJson}, @GroupIds={campaign.GroupIds}, @ActionBy={campaign.ActionBy}").ToListAsync();
 
             return response[0];
         }
         public async Task<UResponse> ActivateCampaignAsync(CampaignDto campaign)
         {
-            var query = string.Format(@"exec usp_Campaigns_Ops @ActionId={0}, @CampaignId={1}, @ClientId={2}, @Status='{3}', @ScheduleDate='{4}', @ActionBy={5}", (int)CrudEnum.ActivateCampaign, campaign.CampaignId, campaign.ClientId, campaign.Status, campaign.ScheduleDate, campaign.ActionBy);
+            var query = string.Format(@"exec usp_Campaigns_Ops @ActionId={0}, @CampaignId={1}, @ClientId={2}, @ScheduleDate='{3}', @ActionBy={4}", (int)CrudEnum.ActivateCampaign, campaign.CampaignId, campaign.ClientId, campaign.ScheduleDate, campaign.ActionBy);
             var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
 
             return response[0];

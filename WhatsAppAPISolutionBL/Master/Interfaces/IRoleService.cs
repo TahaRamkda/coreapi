@@ -14,6 +14,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         public Task<List<Role>> GetRoleListAsync(int ClientId);
         public Task<UResponse> AddRoleAsync(RoleDto role);
         public Task<UResponse> UpdateRoleAsync(RoleDto role);
-        public Task<UResponse> DeleteRoleAsync(int RoleId, int ClientId);
+        public Task<UResponse> DeleteRoleAsync(int RoleId);
     }
 }

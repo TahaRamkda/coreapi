@@ -118,14 +118,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpDelete("deleteRole")]
-        public async Task<IActionResult> DeleteRoleAsync(int RoleId, int ClientId)
+        public async Task<IActionResult> DeleteRoleAsync(int RoleId)
         {
             if (RoleId <= 0)
             {
                 return NotFound("not found");
             }
 
-            var response = await _rolesService.DeleteRoleAsync(RoleId, ClientId);
+            var response = await _rolesService.DeleteRoleAsync(RoleId);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult

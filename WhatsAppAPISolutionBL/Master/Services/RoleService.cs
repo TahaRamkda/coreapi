@@ -45,9 +45,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response[0];
         }
-        public async Task<UResponse> DeleteRoleAsync(int RoleId, int ClientId)
+        public async Task<UResponse> DeleteRoleAsync(int RoleId)
         {
-            var query = string.Format(@"exec usp_Roles_Ops @ActionId={0}, @RoleId={1}, @ClientId={2}", (int)CrudEnum.Delete, RoleId, ClientId);
+            var query = string.Format(@"exec usp_Roles_Ops @ActionId={0}, @RoleId={1}", (int)CrudEnum.Delete, RoleId);
             var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
 
             return response[0];

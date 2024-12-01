@@ -118,11 +118,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 return Ok("error - Password required");
 
             // User login validation
-            var res = await _userService.Login(sendSms.Username.Trim(), sendSms.Password.Trim());
+            //passing RoleId=6 for APIUsers
+            var res = await _userService.Login(sendSms.Username.Trim(), sendSms.Password.Trim(), 6);
             if (res == null || res.Status <= 0)
-            {
                 return Ok("error - Incorrect Username or Password");
-            }
 
             // Send SMS request
             var response = await _customIntegrationService.SendSmsAsync(sendSms, res.ClientId, (int)res.UserId);
