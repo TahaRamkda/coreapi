@@ -12,7 +12,7 @@ namespace WhatsAppAPISolutionDL.Models
         public int TemplateId { get; set; }
         public DateTime? ScheduleDate { get; set; }
         public string CampaignType { get; set; }
-        public string Status { get; set; }
+        public int Status { get; set; }
         public int? TotalContacts { get; set; }
         public int? SentCount { get; set; }
         public int? FailedCount { get; set; }

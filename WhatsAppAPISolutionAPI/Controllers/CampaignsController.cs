@@ -134,6 +134,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data added successfully"
             });
         }
+        
         [HttpPut("updatecampaign")]
         public async Task<IActionResult> UpdateCampaignAsync([FromBody] CampaignDto campaign)
         {
@@ -159,6 +160,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data added successfully"
             });
         }
+        
         [HttpPost("settlecampaign")]
         public async Task<IActionResult> SettleCampaignAsync(int ClientId, int CampaignId)
         {
@@ -178,6 +180,40 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 });
             }
             return Ok(new ApiResult
+            {
+                Success = true,
+                Result = response,
+                Message = "Data added successfully"
+            });
+        }
+
+        [HttpPost("sendcampaign")]
+        public async Task<IActionResult> SendCampaignAsync([FromBody] SendCampaignDto campaign)
+        {
+            if (campaign.CampaignId <= 0)
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Message = "Campaign Id required"
+                });
+            if (!campaign.PhoneNumbers.Any())
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Message = "Please add atleast one phone number"
+                });
+
+            var response = await _campaignService.SendCampaignMessagesAsync(campaign);
+            if (response == null || response.Status <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Result = response,
+                    Message = response?.Message
+                });
+            }
+            return Ok(new ApiResult()
             {
                 Success = true,
                 Result = response,

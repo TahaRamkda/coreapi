@@ -230,7 +230,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 recipient_Id = item.phoneNumber,
                                 status = MessageStatusEnum.SENT,
                                 module_Id = (int)ModuleEnum.Campaign,
-                                template_Id = (int)templateDetails.Id
+                                template_Id = (int)templateDetails.Id,
+                                parent_Id = templateMessage.ParentId
                             };
 
                             message1.conversation.id = item.messageId;
@@ -246,7 +247,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 recipient_Id = item.phoneNumber,
                                 status = MessageStatusEnum.FAILED,
                                 module_Id = (int)ModuleEnum.Campaign,
-                                template_Id = (int)templateDetails.Id
+                                template_Id = (int)templateDetails.Id,
+                                parent_Id = templateMessage.ParentId
                             };
 
                             message1.conversation.id = item.messageId;

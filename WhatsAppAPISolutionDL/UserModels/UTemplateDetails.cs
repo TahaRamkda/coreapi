@@ -39,7 +39,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string CreatedDate { get; set; }
         public int? UpdatedBy { get; set; }
         public string UpdatedDate { get; set; }
-        public string MediaId { get; set; }
+        public long? MediaId { get; set; }
         public string MediaURL { get; set; }
         public string ContentType { get; set; }
         public string FileExtension { get; set; }
