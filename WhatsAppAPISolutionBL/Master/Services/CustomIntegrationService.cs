@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WhatsAppAPISolutionBL.Master.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
@@ -39,7 +40,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _templateService = templateService;
-            _httpClient = httpClientFactory.CreateClient("bridge_api");
+            _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             _apiMessageService = apiMessageService;
             _messageService = messageService;
             _communicationService = communicationService;
@@ -49,7 +50,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponse> SendSmsAsync(SendSmsDto sendSms, int ClientId, int UserId)
         {
             sendSms.BrandName = sendSms.BrandName.Replace(" ", "_");
-            sendSms.PhoneNumber = sendSms.PhoneNumber.Replace("+", "");
+            sendSms.PhoneNumber = sendSms.PhoneNumber.TrimPhoneNumbers();
             var templateName = String.Empty;
 
             //If brand name is present than only append brand name
@@ -245,7 +246,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             //                if (item.success)
             //                {
-            //                    var message1 = new InsertMessageDto()
+            //                    var message1 = new InsertMessageDto
             //                    {
             //                        client_Id = ClientId,
             //                        wam_Id = item.waId,
@@ -259,7 +260,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             //                }
             //                else
             //                {
-            //                    var message1 = new InsertMessageDto()
+            //                    var message1 = new InsertMessageDto
             //                    {
             //                        client_Id = ClientId,
             //                        wam_Id = item.waId,

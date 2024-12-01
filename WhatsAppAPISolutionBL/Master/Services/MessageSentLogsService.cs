@@ -23,37 +23,26 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response;
         }
+
         public async Task<UResponse> AddMessageSentLogAsync(InsertMessageDto messageStatus)
         {
-            var eventType = 0;
-            var eventStatus = 1;
-            var conversationId = "";
-            var eventMessage = "";
-            var pricingModel = "";
-            var billable = false;
-            var category = "";
+            int eventType = (int)messageStatus.status;
+            int eventStatus = messageStatus.status == MessageStatusEnum.FAILED ? 0 : 1;
+            string conversationId = "";
+            string eventMessage = "";
+            string pricingModel = "";
+            string category = "";
             long senderId = 0;
+            bool billable = false;
 
             if (messageStatus.phone_number_Id != null)
             {
-                if (!string.IsNullOrEmpty(messageStatus.phone_number_Id.display_phone_number) && !string.IsNullOrEmpty(messageStatus.phone_number_Id.phone_number_id))
+                if (!string.IsNullOrEmpty(messageStatus.phone_number_Id.display_phone_number)
+                    && !string.IsNullOrEmpty(messageStatus.phone_number_Id.phone_number_id))
                 {
                     var senderName = await _dbContext.SenderNames.Where(x => x.ClientId == messageStatus.client_Id && x.PhoneNumberId == messageStatus.phone_number_Id.phone_number_id).FirstOrDefaultAsync();
-                    if (senderName != null)
-                        senderId = senderName.SenderId;
+                    senderId = senderName != null ? senderName.SenderId : 0;
                 }
-            }
-
-            if (messageStatus.status.ToLower() == MessageStatusEnum.SENT.ToString().ToLower())
-                eventType = 1;
-            else if (messageStatus.status.ToLower() == MessageStatusEnum.DELIVERED.ToString().ToLower())
-                eventType = 2;
-            else if (messageStatus.status.ToLower() == MessageStatusEnum.READ.ToString().ToLower())
-                eventType = 3;
-            else if (messageStatus.status.ToLower() == MessageStatusEnum.FAILED.ToString().ToLower())
-            {
-                eventType = 4;
-                eventStatus = 0;
             }
 
             if (messageStatus.conversation != null)

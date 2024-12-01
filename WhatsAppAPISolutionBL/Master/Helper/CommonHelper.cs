@@ -21,5 +21,23 @@ namespace WhatsAppAPISolutionBL.Master.Helper
 
             return chunks;
         }
+
+        public static List<string> TrimPhoneNumbers(this List<string> phoneNumbers)
+        {
+            if (phoneNumbers == null || !phoneNumbers.Any())
+                return new List<string>();
+
+            //Replace empty string and + signs
+            return phoneNumbers.Where(x => !String.IsNullOrWhiteSpace(x)).Select(x => x.Replace("+", "").Trim()).ToList();
+        }
+
+        public static string TrimPhoneNumbers(this string phoneNumber)
+        {
+            if (String.IsNullOrWhiteSpace(phoneNumber))
+                return String.Empty;
+
+            //Replace empty string and + signs
+            return phoneNumber.Replace("+", "").Trim();
+        }
     }
 }

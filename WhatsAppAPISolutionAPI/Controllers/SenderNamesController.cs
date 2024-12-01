@@ -31,7 +31,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         public async Task<ActionResult> GetSenderNamesListAsync(int ClientId)
         {
             var res = await _senderNameService.GetSenderNameListAsync(ClientId);
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = res,
@@ -51,7 +51,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             if (response == null)
             {
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Result = "",
@@ -59,7 +59,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 });
             }
 
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -85,7 +85,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = response?.Message
                 });
             }
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -111,7 +111,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = response?.Message
                 });
             }
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -137,7 +137,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = response?.Message
                 });
             }
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -172,7 +172,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             if (response == null)
             {
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Result = "",
@@ -180,7 +180,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 });
             }
 
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,

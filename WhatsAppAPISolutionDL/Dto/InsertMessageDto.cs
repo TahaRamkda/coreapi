@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WhatsAppAPISolutionDL.UserModels;
 
 namespace WhatsAppAPISolutionDL.Dto
 {
@@ -19,7 +20,7 @@ namespace WhatsAppAPISolutionDL.Dto
         public int client_Id { get; set; }
         public int template_Id { get; set; }
         public string wam_Id { get; set; }
-        public string status { get; set; }
+        public MessageStatusEnum status { get; set; }
         public string update_dateTime { get; set; }
         public string recipient_Id { get; set; }
         public string message_Text { get; set; }

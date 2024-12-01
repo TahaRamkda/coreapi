@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using WhatsAppAPISolutionBL.Master.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
@@ -31,7 +32,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _templateService = templateService;
-            _httpClient = httpClientFactory.CreateClient("bridge_api");
+            _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             _communicationService = communicationService;
         }
 
@@ -90,7 +91,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Status = 0,
                     Message = "No template id found in this campaign please add template"
                 };
-            campaign.PhoneNumbers = campaign.PhoneNumbers.Select(phone => phone.Replace("+", "").Trim()).ToList();
+            campaign.PhoneNumbers = campaign.PhoneNumbers.TrimPhoneNumbers(); 
             var tempPayload = new TemplateMessagePayloadDto()
             {
                 ClientId = campaignData.ClientId,
@@ -251,7 +252,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             //            if (item.success)
             //            {
-            //                var message1 = new InsertMessageDto()
+            //                var message1 = new InsertMessageDto
             //                {
             //                    client_Id = campaignData.ClientId,
             //                    wam_Id = item.waId,
@@ -265,7 +266,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             //            }
             //            else
             //            {
-            //                var message1 = new InsertMessageDto()
+            //                var message1 = new InsertMessageDto
             //                {
             //                    client_Id = campaignData.ClientId,
             //                    wam_Id = item.waId,

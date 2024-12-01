@@ -47,7 +47,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         public async Task<ActionResult> GetCampaignListAsync(int ClientId, int CampaignId = 0, DateTime? FromDate = null, DateTime? ToDate = null, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue, int SenderId = 0)
         {
             var res = await _campaignService.GetCampaignListAsync(ClientId, CampaignId, FromDate, ToDate, SearchStr, SortBy, PageNo, PageSize, SenderId);
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = res,
@@ -67,7 +67,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             if (response == null)
             {
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Result = "",
@@ -75,7 +75,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 });
             }
 
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -101,7 +101,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = response?.Message
                 });
             }
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -127,7 +127,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = response?.Message
                 });
             }
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -152,7 +152,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = response?.Message
                 });
             }
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -177,40 +177,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = response?.Message
                 });
             }
-            return Ok(new ApiResult()
-            {
-                Success = true,
-                Result = response,
-                Message = "Data added successfully"
-            });
-        }
-        [HttpPost("sendcampaign")]
-        public async Task<IActionResult> SendCampaignAsync([FromBody] SendCampaignDto campaign)
-        {
-            if (campaign.CampaignId <= 0)
-                return Ok(new ApiResult
-                {
-                    Success = false,
-                    Message = "Campaign Id required"
-                });
-            if (!campaign.PhoneNumbers.Any())
-                return Ok(new ApiResult
-                {
-                    Success = false,
-                    Message = "Please add atleast one phone number"
-                });
-
-            var response = await _campaignService.SendCampaignMessagesAsync(campaign);
-            if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Success = false,
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,

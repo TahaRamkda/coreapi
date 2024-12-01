@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using WhatsAppAPISolutionBL.Master.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
@@ -31,7 +33,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
-            _httpClient = httpClientFactory.CreateClient("bridge_api");
+            _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             _templateService = templateService;
             _messageSentLogsService = messageSentLogsService;
             _apiMessageService = apiMessageService;
@@ -189,7 +191,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 sendMessage.Components.Add(buttonComponents);
             }
 
-            var request =  Newtonsoft.Json.JsonConvert.SerializeObject(sendMessage);
+            var request = Newtonsoft.Json.JsonConvert.SerializeObject(sendMessage);
             var res = new StringContent(request, Encoding.UTF8, "application/json");
             var response1 = await _httpClient.PostAsync($"/api/Template/SendBatchTemplateMessage", res);
             var content = await response1.Content.ReadAsStringAsync();
@@ -221,12 +223,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         }
                         if (item.success)
                         {
-                            var message1 = new InsertMessageDto()
+                            var message1 = new InsertMessageDto
                             {
                                 client_Id = templateMessage.ClientId,
                                 wam_Id = item.waId,
                                 recipient_Id = item.phoneNumber,
-                                status = MessageStatusEnum.SENT.ToString(),
+                                status = MessageStatusEnum.SENT,
                                 module_Id = (int)ModuleEnum.Campaign,
                                 template_Id = (int)templateDetails.Id
                             };
@@ -237,12 +239,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         }
                         else
                         {
-                            var message1 = new InsertMessageDto()
+                            var message1 = new InsertMessageDto
                             {
                                 client_Id = templateMessage.ClientId,
                                 wam_Id = item.waId,
                                 recipient_Id = item.phoneNumber,
-                                status = MessageStatusEnum.FAILED.ToString(),
+                                status = MessageStatusEnum.FAILED,
                                 module_Id = (int)ModuleEnum.Campaign,
                                 template_Id = (int)templateDetails.Id
                             };
@@ -273,7 +275,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponse> SendMessageAsync(SendMessageRequestDto model)
         {
             model.Message = model.Message.Trim();
-            model.PhoneNumbers = model.PhoneNumbers.Where(x => !String.IsNullOrWhiteSpace(x)).Select(x => x.Replace("+", "").Trim()).ToList();
+            model.PhoneNumbers = model.PhoneNumbers.TrimPhoneNumbers();
 
             var request = new SendMessageToBridgeDto
             {
@@ -290,41 +292,44 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var response1 = await _httpClient.PostAsync($"/api/Message/SendBatchMessage", res);
             var content = await response1.Content.ReadAsStringAsync();
 
-            var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
+            var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
             if (result != null && result.success)
             {
-                var data = System.Text.Json.JsonSerializer.Serialize(result.result);
-                var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
+                var data = JsonConvert.SerializeObject(result.result);
+                var tempResult = JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
                 if (tempResult != null)
                 {
                     foreach (var item in tempResult)
                     {
                         if (item.success)
                         {
-                            var message1 = new InsertMessageDto()
+                            var message1 = new InsertMessageDto
                             {
                                 client_Id = model.ClientId,
                                 wam_Id = item.waId,
                                 recipient_Id = item.phoneNumber,
-                                status = MessageStatusEnum.SENT.ToString(),
+                                status = MessageStatusEnum.SENT,
                                 module_Id = (int)ModuleEnum.Chat,
                                 message_Type = model.Type
                             };
+
                             message1.conversation.id = item.messageId;
+
                             if (model.Type == 1)
                                 message1.message_Text = model.Message;
                             else
                                 message1.message_Text = model.MediaId;
+
                             await _messageSentLogsService.AddMessageSentLogAsync(message1);
                         }
                         else
                         {
-                            var message1 = new InsertMessageDto()
+                            var message1 = new InsertMessageDto
                             {
                                 client_Id = model.ClientId,
                                 wam_Id = item.waId,
                                 recipient_Id = item.phoneNumber,
-                                status = MessageStatusEnum.FAILED.ToString(),
+                                status = MessageStatusEnum.FAILED,
                                 module_Id = (int)ModuleEnum.Chat,
                                 message_Type = model.Type
                             };
@@ -336,7 +341,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 message1.message_Text = model.Message;
                             else
                                 message1.message_Text = model.MediaId;
-                            
+
                             await _messageSentLogsService.AddMessageSentLogAsync(message1);
                         }
                     }
@@ -533,33 +538,36 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 ActionBy = templateMessage.UserId,
                                 Url = templateMessage.Url
                             };
+
                             await _apiMessageService.AddAPIMessageAsync(message);
                         }
                         if (item.success)
                         {
-                            var message1 = new InsertMessageDto()
+                            var message1 = new InsertMessageDto
                             {
                                 client_Id = templateMessage.ClientId,
                                 wam_Id = item.waId,
                                 recipient_Id = item.phoneNumber,
-                                status = MessageStatusEnum.SENT.ToString(),
+                                status = MessageStatusEnum.SENT,
                                 module_Id = (int)ModuleEnum.Campaign,
                                 template_Id = (int)templateDetails.Id
                             };
+
                             message1.conversation.id = item.messageId;
                             await _messageSentLogsService.AddMessageSentLogAsync(message1);
                         }
                         else
                         {
-                            var message1 = new InsertMessageDto()
+                            var message1 = new InsertMessageDto
                             {
                                 client_Id = templateMessage.ClientId,
                                 wam_Id = item.waId,
                                 recipient_Id = item.phoneNumber,
-                                status = MessageStatusEnum.FAILED.ToString(),
+                                status = MessageStatusEnum.FAILED,
                                 module_Id = (int)ModuleEnum.Campaign,
                                 template_Id = (int)templateDetails.Id
                             };
+
                             message1.conversation.id = item.messageId;
                             message1.error.error_Details = item.errors.ToString();
                             await _messageSentLogsService.AddMessageSentLogAsync(message1);

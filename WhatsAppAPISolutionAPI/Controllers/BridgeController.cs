@@ -88,7 +88,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                                 Message = response?.Message
                             });
                         }
-                        return Ok(new ApiResult()
+                        return Ok(new ApiResult
                         {
                             Success = true,
                             Result = response,
@@ -133,7 +133,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = response?.Message
                 });
             }
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -149,7 +149,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _messageService.AddMessageReceivedLogAsync(messageReceive);
 
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,

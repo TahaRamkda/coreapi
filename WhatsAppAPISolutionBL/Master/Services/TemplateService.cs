@@ -1,9 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.Options;
 using System.Data;
-using System.Net.NetworkInformation;
-using System.Security.Policy;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -12,7 +9,6 @@ using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
-using static WhatsAppAPISolutionDL.Dto.MediaUploadBridgeDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -30,7 +26,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
-            _httpClient = httpClientFactory.CreateClient("bridge_api");
+            _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
         }
 

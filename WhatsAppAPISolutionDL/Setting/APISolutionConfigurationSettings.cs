@@ -11,5 +11,6 @@ namespace WhatsAppAPISolutionDL.Setting
         public const string ConfigKey = "APISolutionConfiguration";
         public string BaseURL { get; set; }
         public string StaticFolderPath { get; set; }
+        public int MaxFileSizeInMB { get; set; }
     }
 }

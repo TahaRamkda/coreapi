@@ -1,4 +1,4 @@
-﻿namespace WhatsAppAPISolutionAPI.Models
+﻿namespace WhatsAppAPISolutionDL.UserModels
 {
     public static class HttpClientType
     {

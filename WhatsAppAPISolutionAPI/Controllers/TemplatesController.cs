@@ -46,7 +46,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         public async Task<ActionResult> GetTemplatesListAsync(int ClientId, int TransactionType)
         {
             var res = await _templateService.GetTemplateListAsync(ClientId, TransactionType);
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = res,
@@ -66,7 +66,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             if (response == null)
             {
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Result = "",
@@ -74,7 +74,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 });
             }
 
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -89,35 +89,35 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 return BadRequest();
 
             if (string.IsNullOrEmpty(template.Name))
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Message = "Please insert template name"
                 });
 
             if (template.ClientId <= 0)
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Message = "Please insert client Id"
                 });
 
             if (template.SenderNameId <= 0)
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Message = "Please insert sender Id"
                 });
 
             if (template.TransactionType <= 0)
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Message = "Please insert transaction type"
                 });
 
             if (template.Body == null || string.IsNullOrEmpty(template.Body.Text))
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Message = "Body text required"
@@ -133,7 +133,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = response?.Message
                 });
             }
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -148,35 +148,35 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 return BadRequest();
 
             if (string.IsNullOrEmpty(template.Name))
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Message = "Please insert template name"
                 });
 
             if (template.ClientId <= 0)
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Message = "Please insert client Id"
                 });
 
             if (template.SenderNameId <= 0)
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Message = "Please insert sender Id"
                 });
 
             if (template.TransactionType <= 0)
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Message = "Please insert transaction type"
                 });
 
             if (template.Body == null && string.IsNullOrEmpty(template.Body.Text))
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Message = "Body text required"
@@ -192,7 +192,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = response?.Message
                 });
             }
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -218,7 +218,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = response?.Message
                 });
             }
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -240,7 +240,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 var template = _dbContext.Templates.Where(x => x.Id == Id).FirstOrDefault();
                 if (template == null)
                 {
-                    return Ok(new ApiResult()
+                    return Ok(new ApiResult
                     {
                         Success = false,
                         Message = "Incorrect template id"
@@ -259,7 +259,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 {
                     if (result.success)
                     {
-                        return Ok(new ApiResult()
+                        return Ok(new ApiResult
                         {
                             Success = true,
                             Message = "Template sync successfully"
@@ -267,14 +267,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     }
                     else
                     {
-                        return Ok(new ApiResult()
+                        return Ok(new ApiResult
                         {
                             Success = false,
                             Message = "Error in syncing template"
                         });
                     }
                 }
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Message = "Template not found"

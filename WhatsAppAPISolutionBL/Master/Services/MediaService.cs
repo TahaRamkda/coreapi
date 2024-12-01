@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -17,40 +16,42 @@ namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class MediaService : IMediaService
     {
+        #region Fields
+
         private readonly string _uploadPath;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly HttpClient _httpClient;
-        private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly ILogger<MediaService> _logger;
-        private readonly IHostEnvironment _hostEnvironment;
         private readonly IOptions<BridgeConfigurationSettings> _bridgeConfigurationSettings;
         private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
 
+        #endregion
+
+        #region Ctor
+
         public MediaService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
-          IHttpClientFactory httpClientFactory,
-          IWebHostEnvironment hostingEnvironment,
-          ILogger<MediaService> logger,
-          IHostEnvironment hostEnvironment,
-          IOptions<BridgeConfigurationSettings> bridgeConfigurationSettings,
-          IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings)
+            IHttpClientFactory httpClientFactory,
+            ILogger<MediaService> logger,
+            IOptions<BridgeConfigurationSettings> bridgeConfigurationSettings,
+            IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
-            _hostingEnvironment = hostingEnvironment;
-            _httpClient = httpClientFactory.CreateClient("bridge_api");
+            _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             _logger = logger;
-            _hostEnvironment = hostEnvironment;
             _bridgeConfigurationSettings = bridgeConfigurationSettings;
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
 
             _uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
-            if (!Directory.Exists(_uploadPath))
-            {
-                Directory.CreateDirectory(_uploadPath);
-            }
+            if (!Directory.Exists(_uploadPath)) 
+                Directory.CreateDirectory(_uploadPath); 
         }
+
+        #endregion
+
+        #region Methods
 
         public async Task<List<UMediaUpload>> GetMediaListAsync(int ClientId)
         {
@@ -66,37 +67,41 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response[0];
         }
+
         public async Task<UResponse> UploadMediaAsync(MediaFileDto model)
         {
             var senderName = await _dbContext.SenderNames.Where(x => x.SenderId == model.SenderNameId).FirstOrDefaultAsync();
             if (senderName == null)
-                return new UResponse()
+                return new UResponse 
                 {
                     Status = 0,
                     Message = "Sender name not exist"
                 };
+
             if (model.File != null && model.File.Length > 0)
             {
-                // Check file size (20 MB = 50 * 1024 * 1024 bytes)
-                const long maxFileSize = 20 * 1024 * 1024; // 20 MB
-                if (model.File.Length > maxFileSize)
+                // Check file size (20 MB = 20 * 1024 * 1024 bytes)
+                int maxFileSize = (_apiSolutionConfigurationSettings.Value.MaxFileSizeInMB == 0 ? 20 : _apiSolutionConfigurationSettings.Value.MaxFileSizeInMB);
+                long maxFileLength = maxFileSize * 1024 * 1024; // 20 MB
+
+                if (model.File.Length > maxFileLength)
                 {
-                    return new UResponse()
+                    return new UResponse 
                     {
                         Status = 0,
                         Message = "File size must not exceed 20 MB."
                     };
                 }
 
-                var originalFileName = model.File.FileName.Replace(" ", "_");
+                var originalFileName = model.File.FileName.Replace(" ", "_").Trim();
                 var filePath = Path.Combine(_uploadPath, originalFileName);
 
-                // Check if the file already exists and create a unique filename if it does
                 var fileExtension = Path.GetExtension(originalFileName);
                 var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(originalFileName);
                 int counter = 1;
 
-                while (System.IO.File.Exists(filePath))
+                // Check if the file already exists and create a unique filename if it does
+                while (File.Exists(filePath))
                 {
                     var newFileName = $"{fileNameWithoutExtension}_{counter}{fileExtension}";
                     filePath = Path.Combine(_uploadPath, newFileName);
@@ -107,6 +112,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     await model.File.CopyToAsync(stream);
                 }
+
                 var absolutePath = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, _apiSolutionConfigurationSettings.Value.StaticFolderPath);
                 var fileUrlForDB = Path.Combine(_apiSolutionConfigurationSettings.Value.StaticFolderPath, Path.GetFileName(filePath));
                 var fileUrl = Path.Combine(absolutePath, Path.GetFileName(filePath));
@@ -114,7 +120,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     fileUrl = fileUrl.Replace("\\", "/");
 
                 // Create response details
-                var media = new MediaUploadDto()
+                var media = new MediaUploadDto 
                 {
                     SenderNameId = model.SenderNameId,
                     ClientId = model.ClientId,
@@ -125,42 +131,46 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     MediaPath = fileUrlForDB,
                     ActionBy = model.ActionBy
                 };
+
                 var insMedia = await AddMediaAsync(media);
                 if (insMedia != null && insMedia.Id > 0)
                 {
-                    var mediaUpload = new MediaUploadBridgeDto()
+                    var mediaUpload = new MediaUploadBridgeDto 
                     {
                         clientId = model.ClientId.ToString(),
-                        senderNameId = senderName.SenderId.ToString()
+                        senderNameId = senderName.SenderId.ToString(),
+                        medias = new List<MediaUploadBridgeDto.Media> {
+                            new MediaUploadBridgeDto.Media {
+                                id = insMedia.Id.ToString(),
+                                url = fileUrl
+                            }
+                        }
                     };
-                    mediaUpload.medias.Add(new MediaUploadBridgeDto.Media()
-                    {
-                        id = insMedia.Id.ToString(),
-                        url = fileUrl,
-                    });
+
                     var requestStr = JsonConvert.SerializeObject(mediaUpload);
 
                     var response = await _httpClient.PostAsync($"/api/Upload/UploadMedia", new StringContent(requestStr, null, "application/json"));
                     var content = await response.Content.ReadAsStringAsync();
 
-                    var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
+                    var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
                     if (result != null && result.success)
                     {
-                        var data = System.Text.Json.JsonSerializer.Serialize(result.result);
+                        var data = JsonConvert.SerializeObject(result.result);
                         var mediaResult = JsonConvert.DeserializeObject<List<MediaResultDto>>(data);
                         if (mediaResult != null && mediaResult.Any())
                         {
                             if (!string.IsNullOrEmpty(mediaResult[0].mediaId))
                             {
-                                var updateDto = new MediaUploadDto()
+                                var updateDto = new MediaUploadDto 
                                 {
                                     Id = Convert.ToInt64(mediaResult[0].id),
                                     MediaId = mediaResult[0].mediaId
                                 };
+
                                 var updateMedia = await UpdateMediaAsync(updateDto);
                                 if (updateMedia == null || updateMedia.Status <= 0)
                                 {
-                                    return new UResponse()
+                                    return new UResponse 
                                     {
                                         Status = 0,
                                         Message = updateMedia?.Message
@@ -168,13 +178,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 }
                                 else
                                 {
-                                    return new UResponse()
+                                    return new UResponse 
                                     {
                                         Status = 1,
                                         Message = "Media added successfully"
                                     };
                                 }
                             }
+
                             return new UResponse()
                             {
                                 Status = 1,
@@ -182,24 +193,28 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             };
                         }
                     }
+
                     return new UResponse()
                     {
                         Status = 0,
                         Message = "oops something went wrong"
                     };
                 }
+
                 return new UResponse()
                 {
                     Status = 0,
                     Message = "oops something went wrong"
                 };
             }
+
             return new UResponse()
             {
                 Status = 0,
                 Message = "oops something went wrong"
             };
         }
+
         public async Task<UResponseWithID> UpdateMediaAsync(MediaUploadDto media)
         {
             var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @Id={1}, @MediaId='{2}', @ActionBy={3}", (int)CrudEnum.Update, media.Id, media.MediaId, media.ActionBy);
@@ -207,6 +222,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response[0];
         }
+
         public async Task<UResponseWithID> DeleteMediaAsync(int Id)
         {
             var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @Id={1}", (int)CrudEnum.Delete, Id);
@@ -225,11 +241,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<long> DownloadWhatsAppMediaToLocal(Client client, SenderName senderName, string mediaId)
         {
             try
-            {
-                // Ensure the local folder exists
-                if (!Directory.Exists(_uploadPath))
-                    Directory.CreateDirectory(_uploadPath);
-
+            { 
                 GetMediaResult mediaResult = null;
                 using (var httpClient = new HttpClient())
                 {
@@ -295,5 +307,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return 0;
         }
+
+        #endregion
     }
 }

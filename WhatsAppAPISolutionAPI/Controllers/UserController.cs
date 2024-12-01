@@ -70,14 +70,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 res.RefreshToken = refreshToken;
                 res.RefreshTokenExpiry = refreshTokenExpiryTime;
 
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = true,
                     Result = res,
                     Message = ""
                 });
             }
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = false,
                 Result = "Username and password required",
@@ -135,7 +135,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = response?.Message
                 });
             }
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -154,14 +154,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
             var response = await _userService.UpdateUserAsync(user);
             if (response == null || response.Status <= 0)
             {
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Result = response,
                     Message = response?.Message
                 });
             }
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -180,14 +180,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
             var response = await _userService.DeleteUserAsync(UserId, ClientId);
             if (response == null || response.Status <= 0)
             {
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Result = response,
                     Message = response?.Message
                 });
             }
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -206,14 +206,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
             var response = await _userService.ChangePasswordAsync(user);
             if (response == null || response.Status <= 0)
             {
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = false,
                     Result = response,
                     Message = response?.Message
                 });
             }
-            return Ok(new ApiResult()
+            return Ok(new ApiResult
             {
                 Success = true,
                 Result = response,
@@ -227,7 +227,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             try
             {
                 var res = await _userService.GetUsersListAsync(clientId);
-                return Ok(new ApiResult()
+                return Ok(new ApiResult
                 {
                     Success = true,
                     Result = res,

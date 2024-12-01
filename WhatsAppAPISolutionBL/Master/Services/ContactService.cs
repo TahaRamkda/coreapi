@@ -62,7 +62,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
     {
         FirstName = x.FirstName,
         LastName = x.LastName,
-        PhoneNumber = x.PhoneNumber.Replace("+", "").Trim(),
+        PhoneNumber = x.PhoneNumber.TrimPhoneNumbers(),
         EmailAddress = x.EmailAddress,
         AreaName = x.AreaName
     })
