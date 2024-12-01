@@ -479,8 +479,6 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.Property(e => e.Language).HasMaxLength(50);
 
-                entity.Property(e => e.MediaId).HasMaxLength(50);
-
                 entity.Property(e => e.Status).HasMaxLength(50);
 
                 entity.Property(e => e.SubCategory).HasMaxLength(50);

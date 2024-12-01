@@ -19,13 +19,13 @@ namespace WhatsAppAPISolutionDL.Models
         public int? ActionType { get; set; }
         public string ButtonId { get; set; }
         public int? Status { get; set; }
+        public int? IsContactLevel { get; set; }
+        public string ContactLevelField { get; set; }
+        public string ActionText { get; set; }
         public int? CreatedBy { get; set; }
         public DateTime? CreatedDate { get; set; }
         public int? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
         public int? RecordStatus { get; set; }
-        public int? IsContactLevel { get; set; }
-        public string ContactLevelField { get; set; }
-        public string ActionText { get; set; }
     }
 }

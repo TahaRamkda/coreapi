@@ -7,6 +7,7 @@ namespace WhatsAppAPISolutionDL.Models
     {
         public long Id { get; set; }
         public int? ClientId { get; set; }
+        public long? SenderId { get; set; }
         public string TemplateName { get; set; }
         public string Category { get; set; }
         public string SubCategory { get; set; }
@@ -24,13 +25,12 @@ namespace WhatsAppAPISolutionDL.Models
         public string Language { get; set; }
         public string Status { get; set; }
         public bool? IsApproved { get; set; }
+        public long? MediaId { get; set; }
+        public int? DefaultType { get; set; }
         public int? CreatedBy { get; set; }
         public DateTime? CreatedDate { get; set; }
         public int? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
         public int? RecordStatus { get; set; }
-        public string MediaId { get; set; }
-        public long? SenderId { get; set; }
-        public int? DefaultType { get; set; }
     }
 }

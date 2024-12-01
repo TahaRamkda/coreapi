@@ -22,7 +22,7 @@ namespace WhatsAppAPISolutionDL.Dto
         public string SubCategory { get; set; } = String.Empty;
         public string Language { get; set; } = String.Empty;
         public string Status { get; set; } = String.Empty;
-        public string MediaId { get; set; } = String.Empty;
+        public int MediaId { get; set; }
         public bool IsApproved { get; set; }
         public int TemplateType { get; set; }
         public int ActionBy { get; set; }

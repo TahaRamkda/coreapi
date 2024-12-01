@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileSystemGlobbing;
+using Microsoft.Extensions.Options;
 using System.Data;
 using System.Net.NetworkInformation;
 using System.Security.Policy;
@@ -9,6 +10,7 @@ using System.Text.RegularExpressions;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
 using static WhatsAppAPISolutionDL.Dto.MediaUploadBridgeDto;
 
@@ -19,14 +21,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly HttpClient _httpClient;
+        private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
 
         public TemplateService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
-          IHttpClientFactory httpClientFactory)
+          IHttpClientFactory httpClientFactory,
+          IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _httpClient = httpClientFactory.CreateClient("bridge_api");
+            _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
         }
 
         public async Task<List<UTemplate>> GetTemplateListAsync(int ClientId, int TransactionType)
@@ -63,13 +68,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 if (template.Header.Format != (int)TemplateHeaderEnum.TEXT)
                 {
-                    if (string.IsNullOrEmpty(template.MediaId))
+                    if (template.MediaId <= 0)
                         return new UResponseWithID()
                         {
                             Status = 0,
                             Message = "Media Id required when header type is not text"
                         };
-                    var mediaDetail = await _dbContext.Medias.Where(x => x.MediaId == template.MediaId).FirstOrDefaultAsync();
+                    var mediaDetail = await _dbContext.Medias.Where(x => x.Id == template.MediaId).FirstOrDefaultAsync();
                     if (mediaDetail == null || string.IsNullOrEmpty(mediaDetail.MediaPath))
                         return new UResponseWithID()
                         {
@@ -77,7 +82,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             Message = "Media not exist"
                         };
                     else
-                        mediaUrl = mediaDetail.MediaPath;
+                        mediaUrl = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, mediaDetail.MediaPath);
                 }
                 if (!string.IsNullOrEmpty(template.Header.Text))
                 {
@@ -200,7 +205,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var bodyJson = JsonSerializer.Serialize(bodyValues);
             var buttonJson = JsonSerializer.Serialize(buttonValues);
 
-            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={template.ClientId}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.TemplateType}, @MediaId={template.MediaId}, @SenderId={template.SenderNameId}, @ActionBy={template.ActionBy}, @DefaultType={template.DefaultType}, @TransactionType={template.TransactionType}").ToListAsync();
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={template.ClientId}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.TemplateType}, @MediaId={template.MediaId}, @SenderId={template.SenderNameId}, @ActionBy={template.ActionBy}, @DefaultType={template.DefaultType}").ToListAsync();
             if (response != null || response[0].Status > 0)
             {
                 var tempateResponse = new TemplateRequestDto()
@@ -319,13 +324,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 if (template.Header.Format != (int)TemplateHeaderEnum.TEXT)
                 {
-                    if (string.IsNullOrEmpty(template.MediaId))
+                    if (template.MediaId <= 0)
                         return new UResponseWithID()
                         {
                             Status = 0,
                             Message = "Media Id required when header type is not text"
                         };
-                    var mediaDetail = await _dbContext.Medias.Where(x => x.MediaId == template.MediaId).FirstOrDefaultAsync();
+                    var mediaDetail = await _dbContext.Medias.Where(x => x.Id == template.MediaId).FirstOrDefaultAsync();
                     if (mediaDetail == null && string.IsNullOrEmpty(mediaDetail.MediaPath))
                         return new UResponseWithID()
                         {
@@ -333,7 +338,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             Message = "Media not exist"
                         };
                     else
-                        mediaUrl = mediaDetail.MediaPath;
+                        mediaUrl = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, mediaDetail.MediaPath); ;
                 }
                 if (!string.IsNullOrEmpty(template.Header.Text))
                 {
@@ -458,7 +463,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var bodyJson = JsonSerializer.Serialize(bodyValues);
             var buttonJson = JsonSerializer.Serialize(buttonValues);
 
-            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Update}, @TemplatesId={template.Id}, @ClientId={template.ClientId}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.TemplateType}, @MediaId={template.MediaId}, @SenderId={template.SenderNameId}, @ActionBy={template.ActionBy}, @DefaultType={template.DefaultType}, @TransactionType={template.TransactionType}").ToListAsync();
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Update}, @TemplatesId={template.Id}, @ClientId={template.ClientId}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.TemplateType}, @MediaId={template.MediaId}, @SenderId={template.SenderNameId}, @ActionBy={template.ActionBy}, @DefaultType={template.DefaultType}").ToListAsync();
             if (response != null || response[0].Status > 0)
             {
                 var tempateResponse = new TemplateRequestDto()

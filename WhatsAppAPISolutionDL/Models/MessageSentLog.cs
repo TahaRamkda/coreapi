@@ -8,6 +8,7 @@ namespace WhatsAppAPISolutionDL.Models
         public long Id { get; set; }
         public long? ModuleId { get; set; }
         public long? ParentId { get; set; }
+        public int? TemplateId { get; set; }
         public string PhoneNumber { get; set; }
         public string WaId { get; set; }
         public string WaId2 { get; set; }
@@ -24,15 +25,14 @@ namespace WhatsAppAPISolutionDL.Models
         public string ReadMessage { get; set; }
         public string PricingModel { get; set; }
         public bool? Billable { get; set; }
+        public string MessageText { get; set; }
+        public int? MessageType { get; set; }
         public string Category { get; set; }
         public decimal? EstPrice { get; set; }
         public decimal? Commission { get; set; }
-        public DateTime? CreatedDate { get; set; }
         public int? CurrentStatus { get; set; }
         public string FailedMessage { get; set; }
         public DateTime? FailedTime { get; set; }
-        public int? TemplateId { get; set; }
-        public string MessageText { get; set; }
-        public int? MessageType { get; set; }
+        public DateTime? CreatedDate { get; set; }
     }
 }
