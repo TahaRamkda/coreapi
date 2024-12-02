@@ -278,14 +278,26 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             model.Message = model.Message.Trim();
             model.PhoneNumbers = model.PhoneNumbers.TrimPhoneNumbers();
-
+            string mediaId = "";
+            if (model.Type == (int)MessageTypeEnum.IMAGE || model.Type == (int)MessageTypeEnum.DOCUMENT)
+            {
+                var media = await _dbContext.Medias.Where(x => x.Id == model.MediaId && x.RecordStatus != -1).FirstOrDefaultAsync();
+                if (media != null)
+                    mediaId = media.MediaId;
+                else
+                    return new UResponse
+                    {
+                        Status = 0,
+                        Message = "No media found with this MediaId"
+                    };
+            }
             var request = new SendMessageToBridgeDto
             {
                 ClientId = model.ClientId.ToString(),
                 SenderNameId = model.SenderId.ToString(),
                 Type = ((MessageTypeEnum)model.Type).ToString(),
                 Message = model.Message,
-                MediaId = model.MediaId,
+                MediaId = mediaId,
                 FileName = model.FileName,
                 PhoneNumbers = model.PhoneNumbers,
             };
@@ -320,7 +332,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             if (model.Type == 1)
                                 message1.message_Text = model.Message;
                             else
-                                message1.message_Text = model.MediaId;
+                                message1.message_Text = model.MediaId.ToString();
 
                             await _messageSentLogsService.AddMessageSentLogAsync(message1);
                         }
@@ -342,7 +354,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             if (model.Type == 1)
                                 message1.message_Text = model.Message;
                             else
-                                message1.message_Text = model.MediaId;
+                                message1.message_Text = model.MediaId.ToString();
 
                             await _messageSentLogsService.AddMessageSentLogAsync(message1);
                         }

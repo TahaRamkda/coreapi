@@ -59,7 +59,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = "Please insert message text"
                 });
 
-            if (sendMessage.Type != (int)MessageTypeEnum.TEXT && string.IsNullOrEmpty(sendMessage.MediaId))
+            if ((sendMessage.Type == (int)MessageTypeEnum.IMAGE || sendMessage.Type == (int)MessageTypeEnum.DOCUMENT) && sendMessage.MediaId <= 0)
                 return Ok(new ApiResult
                 {
                     Success = false,
@@ -74,7 +74,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 });
 
             var response = await _messageService.SendMessageAsync(sendMessage);
-            
+
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult

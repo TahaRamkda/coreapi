@@ -17,7 +17,7 @@ namespace WhatsAppAPISolutionDL.Dto
         public int SenderId { get; set; }
         public int Type { get; set; }
         public string Message { get; set; }
-        public string MediaId { get; set; }
+        public int MediaId { get; set; }
         public string FileName { get; set; }
         public List<string> PhoneNumbers { get; set; }
     }
