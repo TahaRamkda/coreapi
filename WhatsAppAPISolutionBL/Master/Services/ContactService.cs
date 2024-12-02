@@ -19,9 +19,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _dbContext2 = dbContext2;
         }
 
-        public async Task<List<UContact>> GetContactListAsync(int ClientId, string SearchStr = "")
+        public async Task<List<UContact>> GetContactListAsync(int ClientId, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
         {
-            var query = string.Format(@"exec usp_Contacts_Ops @ActionId={0}, @ClientId={1}, @SearchStr='{2}'", (int)CrudEnum.List, ClientId, SearchStr);
+            var query = string.Format(@"exec usp_Contacts_Ops @ActionId={0}, @ClientId={1}, @SearchStr='{2}', @SortBy={3}, @PageNo={4}, @PageSize={5}", (int)CrudEnum.List, ClientId, SearchStr, SortBy, PageNo, PageSize);
             var response = await _dbContext2.Contacts.FromSqlRaw(query).ToListAsync();
 
             return response;

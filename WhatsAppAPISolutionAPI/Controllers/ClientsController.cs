@@ -26,9 +26,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getclientslist")]
-        public async Task<ActionResult> GetClientsListAsync()
+        public async Task<ActionResult> GetClientsListAsync(string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
         {
-            var res = await _clientService.GetClientListAsync();
+            var res = await _clientService.GetClientListAsync(SearchStr, SortBy, PageNo, PageSize);
             return Ok(new ApiResult
             {
                 Success = true,

@@ -11,7 +11,7 @@ using WhatsAppAPISolutionDL.UserModels;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
-    public class ClientService: IClientService
+    public class ClientService : IClientService
     {
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
@@ -22,9 +22,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _dbContext2 = dbContext2;
         }
 
-        public async Task<List<UClient>> GetClientListAsync()
+        public async Task<List<UClient>> GetClientListAsync(string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
         {
-            var query = string.Format(@"exec usp_Clients_Ops @ActionId={0}", (int)CrudEnum.List);
+            var query = string.Format(@"exec usp_Clients_Ops @ActionId={0}, @SearchStr='{1}', @SortBy={2}, @PageNo={3}, @PageSize={4}", (int)CrudEnum.List, SearchStr, SortBy, PageNo, PageSize);
             var response = await _dbContext2.Clients.FromSqlRaw(query).ToListAsync();
 
             return response;
@@ -43,7 +43,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response[0];
         }
-        public async Task<UResponse> DeleteClientAsync( int ClientId)
+        public async Task<UResponse> DeleteClientAsync(int ClientId)
         {
             var query = string.Format(@"exec usp_Clients_Ops @ActionId={0}, @ClientId={1}", (int)CrudEnum.Delete, ClientId);
             var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();

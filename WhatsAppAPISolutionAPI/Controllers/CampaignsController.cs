@@ -110,7 +110,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpPost("activatecampaign")]
-        public async Task<IActionResult> ActivateCampaignAsync([FromBody] CampaignDto campaign)
+        public async Task<IActionResult> ActivateCampaignAsync([FromBody] ActivateCampaignDto campaign)
         {
             if (campaign == null)
             {

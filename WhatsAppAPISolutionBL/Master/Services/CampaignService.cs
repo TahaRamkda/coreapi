@@ -52,7 +52,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response[0];
         }
-        public async Task<UResponse> ActivateCampaignAsync(CampaignDto campaign)
+        public async Task<UResponse> ActivateCampaignAsync(ActivateCampaignDto campaign)
         {
             var query = string.Format(@"exec usp_Campaigns_Ops @ActionId={0}, @CampaignId={1}, @ClientId={2}, @ScheduleDate='{3}', @ActionBy={4}", (int)CrudEnum.ActivateCampaign, campaign.CampaignId, campaign.ClientId, campaign.ScheduleDate, campaign.ActionBy);
             var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
@@ -61,9 +61,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<UResponse> UpdateCampaignAsync(CampaignDto campaign)
         {
+            var campaignParamJson = JsonSerializer.Serialize(campaign.CampaignParameters);
             var campaignContactJson = JsonSerializer.Serialize(campaign.CampaignContacts);
 
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.UpdateCampaign}, @CampaignId={campaign.CampaignId}, @GroupIds={campaign.GroupIds}, @CampaignContactsJSON={campaignContactJson}, @ActionBy={campaign.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.Update}, @CampaignId={campaign.CampaignId}, @CampaignName={campaign.CampaignName}, @ClientId={campaign.ClientId}, @SenderId={campaign.SenderId}, @TemplateId={campaign.TemplateId}, @ScheduleDate={campaign.ScheduleDate}, @CampaignType={campaign.CampaignType}, @CampaignParamsJSON={campaignParamJson}, @CampaignContactsJSON={campaignContactJson}, @GroupIds={campaign.GroupIds}, @ActionBy={campaign.ActionBy}").ToListAsync();
 
             return response[0];
         }
@@ -91,12 +92,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Status = 0,
                     Message = "No template id found in this campaign please add template"
                 };
-            campaign.PhoneNumbers = campaign.PhoneNumbers.TrimPhoneNumbers(); 
+            campaign.PhoneNumbers = campaign.PhoneNumbers.TrimPhoneNumbers();
             var tempPayload = new TemplateMessagePayloadDto()
             {
                 ClientId = campaignData.ClientId,
                 TemplateId = campaignData.TemplateId,
-                PhoneNumbers = campaign.PhoneNumbers
+                PhoneNumbers = campaign.PhoneNumbers,
+                ParentId = campaignData.CampaignId
             };
             tempPayload.Params = await _dbContext.CampaignParams.Where(x => x.CampaignId == campaign.CampaignId)
                 .Select(x => new { x.ParamText, x.ParamType, x.Sequence }).OrderBy(x => x.Sequence)

@@ -45,17 +45,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
 
             _uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
-            if (!Directory.Exists(_uploadPath)) 
-                Directory.CreateDirectory(_uploadPath); 
+            if (!Directory.Exists(_uploadPath))
+                Directory.CreateDirectory(_uploadPath);
         }
 
         #endregion
 
         #region Methods
 
-        public async Task<List<UMediaUpload>> GetMediaListAsync(int ClientId)
+        public async Task<List<UMediaUpload>> GetMediaListAsync(int ClientId, int PageNo = 0, int PageSize = int.MaxValue)
         {
-            var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @ClientId={1}", (int)CrudEnum.List, ClientId);
+            var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @ClientId={1}, @PageNo={2}, @PageSize={3}", (int)CrudEnum.List, ClientId, PageNo, PageSize);
             var response = await _dbContext2.UMediaUploads.FromSqlRaw(query).ToListAsync();
 
             return response;
@@ -72,7 +72,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var senderName = await _dbContext.SenderNames.Where(x => x.SenderId == model.SenderNameId).FirstOrDefaultAsync();
             if (senderName == null)
-                return new UResponse 
+                return new UResponse
                 {
                     Status = 0,
                     Message = "Sender name not exist"
@@ -86,7 +86,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 if (model.File.Length > maxFileLength)
                 {
-                    return new UResponse 
+                    return new UResponse
                     {
                         Status = 0,
                         Message = "File size must not exceed 20 MB."
@@ -120,7 +120,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     fileUrl = fileUrl.Replace("\\", "/");
 
                 // Create response details
-                var media = new MediaUploadDto 
+                var media = new MediaUploadDto
                 {
                     SenderNameId = model.SenderNameId,
                     ClientId = model.ClientId,
@@ -135,7 +135,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var insMedia = await AddMediaAsync(media);
                 if (insMedia != null && insMedia.Id > 0)
                 {
-                    var mediaUpload = new MediaUploadBridgeDto 
+                    var mediaUpload = new MediaUploadBridgeDto
                     {
                         clientId = model.ClientId.ToString(),
                         senderNameId = senderName.SenderId.ToString(),
@@ -161,7 +161,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         {
                             if (!string.IsNullOrEmpty(mediaResult[0].mediaId))
                             {
-                                var updateDto = new MediaUploadDto 
+                                var updateDto = new MediaUploadDto
                                 {
                                     Id = Convert.ToInt64(mediaResult[0].id),
                                     MediaId = mediaResult[0].mediaId
@@ -170,7 +170,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 var updateMedia = await UpdateMediaAsync(updateDto);
                                 if (updateMedia == null || updateMedia.Status <= 0)
                                 {
-                                    return new UResponse 
+                                    return new UResponse
                                     {
                                         Status = 0,
                                         Message = updateMedia?.Message
@@ -178,7 +178,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 }
                                 else
                                 {
-                                    return new UResponse 
+                                    return new UResponse
                                     {
                                         Status = 1,
                                         Message = "Media added successfully"
@@ -241,7 +241,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<long> DownloadWhatsAppMediaToLocal(Client client, SenderName senderName, string mediaId)
         {
             try
-            { 
+            {
                 GetMediaResult mediaResult = null;
                 using (var httpClient = new HttpClient())
                 {
