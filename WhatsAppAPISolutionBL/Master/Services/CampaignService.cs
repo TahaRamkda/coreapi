@@ -86,13 +86,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Status = 0,
                     Message = "No campaign found with this Campaign Id"
                 };
+
             if (campaignData.TemplateId <= 0)
                 return new UResponse()
                 {
                     Status = 0,
                     Message = "No template id found in this campaign please add template"
                 };
+            
             campaign.PhoneNumbers = campaign.PhoneNumbers.TrimPhoneNumbers();
+            
             var tempPayload = new TemplateMessagePayloadDto()
             {
                 ClientId = campaignData.ClientId,
@@ -100,6 +103,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 PhoneNumbers = campaign.PhoneNumbers,
                 ParentId = campaignData.CampaignId
             };
+            
             tempPayload.Params = await _dbContext.CampaignParams.Where(x => x.CampaignId == campaign.CampaignId)
                 .Select(x => new { x.ParamText, x.ParamType, x.Sequence }).OrderBy(x => x.Sequence)
                 .Select(x => new ParamData
@@ -107,6 +111,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     ParamText = x.ParamText,
                     ParamType = x.ParamType
                 }).ToListAsync();
+             
             return await _communicationService.SendTemplateMessageAsync(tempPayload);
 
             //var campaignParams = await _dbContext.CampaignParams.Where(x => x.CampaignId == campaign.CampaignId).ToListAsync();

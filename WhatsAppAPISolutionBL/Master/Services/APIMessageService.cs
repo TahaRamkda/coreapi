@@ -29,10 +29,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response;
         }
-        public async Task<UResponse> AddAPIMessageAsync(APIMessageDto apiMesage)
+        public async Task<UResponseWithID> AddAPIMessageAsync(APIMessageDto apiMesage)
         {
             var query = string.Format(@"exec usp_APIMessages_Ops @ActionId={0}, @TrxType='{1}', @UDF1='{2}', @UDF2='{3}', @TemplateId={4}, @ClientId={5}, @URL='{6}', @Status='{7}', @SenderNameId={8}, @WaID='{9}', @PhoneNumber='{10}', @ScheduleTime='{11}', @ActionBy={12}", (int)CrudEnum.Add, apiMesage.TrxType, apiMesage.Udf1, apiMesage.Udf2, apiMesage.TemplateId, apiMesage.ClientId, apiMesage.Url, apiMesage.Status, apiMesage.SenderNameId, apiMesage.WaId, apiMesage.PhoneNumber, apiMesage.ScheduleTime, apiMesage.ActionBy);
-            var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
+            var response = await _dbContext2.ResponseWithID.FromSqlRaw(query).ToListAsync();
 
             return response[0];
         }

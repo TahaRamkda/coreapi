@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 using WhatsAppAPISolutionBL.Master.Helper;
@@ -49,13 +50,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> SendSmsAsync(SendSmsDto sendSms, int ClientId, int UserId)
         {
-            sendSms.BrandName = sendSms.BrandName.Replace(" ", "_");
             sendSms.PhoneNumber = sendSms.PhoneNumber.TrimPhoneNumbers();
             var templateName = String.Empty;
 
             //If brand name is present than only append brand name
             if (!String.IsNullOrWhiteSpace(sendSms.BrandName))
+            {
+                sendSms.BrandName = sendSms.BrandName.Replace(" ", "_");
                 templateName = String.Concat(sendSms.BrandName, "_", sendSms.TemplateName).ToLower();
+            }
             else
                 templateName = sendSms.TemplateName;
 
@@ -71,29 +74,64 @@ namespace WhatsAppAPISolutionBL.Master.Services
             $"BtnParam2={sendSms.BtnParam2}&" +
             $"BtnParam3={sendSms.BtnParam3}";
 
-            var tempPayload = new TemplateMessagePayloadDto()
+            var tempPayload = new TemplateMessagePayloadDto
             {
                 ClientId = ClientId,
                 UserId = UserId,
-                TemplateName = templateName,
                 PhoneNumbers = new List<string> { sendSms.PhoneNumber },
                 IsApiMessage = true,
-                Url = url
+                Url = url,
+                ParentId = 0,
+                ModuleId = (int)ModuleEnum.API,
             };
+
+            long senderId = 0;
+            if (!String.IsNullOrWhiteSpace(templateName))
+            {
+                var template = await _dbContext.Templates.Where(x => x.ClientId == ClientId && x.TemplateName == templateName).FirstOrDefaultAsync();
+                if (template != null)
+                {
+                    tempPayload.TemplateId = template.Id;
+                    senderId = template.SenderId.HasValue ? template.SenderId.Value : 0;
+                }
+            }
+
             var paramList = new List<ParamData>
             {
-                new ParamData { ParamText = sendSms.HParam, ParamType = 1 },
-                new ParamData { ParamText = sendSms.BParam1, ParamType = 2 },
-                new ParamData { ParamText = sendSms.BParam2, ParamType = 2 },
-                new ParamData { ParamText = sendSms.BParam3, ParamType = 2 },
-                new ParamData { ParamText = sendSms.BParam4, ParamType = 2 },
-                new ParamData { ParamText = sendSms.BtnParam1, ParamType = 3 },
-                new ParamData { ParamText = sendSms.BtnParam2, ParamType = 3 },
-                new ParamData { ParamText = sendSms.BtnParam3, ParamType = 3 }
+                new ParamData { ParamText = sendSms.HParam, ParamType = (int)TemplateParamEnum.Header },
+                new ParamData { ParamText = sendSms.BParam1, ParamType = (int)TemplateParamEnum.Body  },
+                new ParamData { ParamText = sendSms.BParam2, ParamType = (int)TemplateParamEnum.Body  },
+                new ParamData { ParamText = sendSms.BParam3, ParamType = (int)TemplateParamEnum.Body  },
+                new ParamData { ParamText = sendSms.BParam4, ParamType = (int)TemplateParamEnum.Body  },
+                new ParamData { ParamText = sendSms.BtnParam1, ParamType = (int)TemplateParamEnum.Button  },
+                new ParamData { ParamText = sendSms.BtnParam2, ParamType = (int)TemplateParamEnum.Button  },
+                new ParamData { ParamText = sendSms.BtnParam3, ParamType = (int)TemplateParamEnum.Button  }
             };
 
             // Add each ParamData object to tempPayload.Params
             tempPayload.Params.AddRange(paramList);
+
+            //entry in API message service
+            //fetch APImessage primary key
+            var message = new APIMessageDto
+            {
+                ClientId = tempPayload.ClientId,
+                SenderNameId = senderId,
+                TemplateId = tempPayload.TemplateId,
+                PhoneNumber = sendSms.PhoneNumber,
+                Status = 0,
+                WaId = String.Empty,
+                ActionBy = UserId,
+                Url = url
+            };
+
+            var response = await _apiMessageService.AddAPIMessageAsync(message);
+            if (response != null)
+            {
+                tempPayload.ParentId = response.Id;
+            }
+
+            //Send in communication service 
             return await _communicationService.SendTemplateMessageAsync(tempPayload);
 
             //var templateDetails = await _templateService.GetTemplateDetailsAsync(client_Id: ClientId, searchStr: templateName);

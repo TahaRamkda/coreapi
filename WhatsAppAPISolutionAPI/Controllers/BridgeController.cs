@@ -47,19 +47,24 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 _logger.LogInformation("Recieved Template Sync response from bridge with template data={data}", JsonConvert.SerializeObject(templateData));
 
                 var data = System.Text.Json.JsonSerializer.Serialize(templateData);
+                
                 var options = new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use this if your JSON is in camelCase
                     PropertyNameCaseInsensitive = true // Ignore case when matching property names
                 };
+
                 var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(data, options);
+                
                 if (result != null && result.success)
                 {
                     var data1 = System.Text.Json.JsonSerializer.Serialize(result.result);
                     TemplateWithParametersDto tempParam = System.Text.Json.JsonSerializer.Deserialize<TemplateWithParametersDto>(data1, options);
+                    
                     if (tempParam != null)
                     {
                         var template = await _dbContext.Templates.Where(x => x.TemplateId == tempParam.Id).FirstOrDefaultAsync();
+                        
                         if (template == null)
                         {
                             _logger.LogInformation("Recieved Template Sync response from bridge but template not exist in our database with id={id}", tempParam.Id);
@@ -69,7 +74,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
                                 Message = "Template id not exist"
                             });
                         }
-                        var tempDto = new TemplateDto()
+                        
+                        var tempDto = new TemplateDto 
                         {
                             Id = template.Id,
                             TemplateId = tempParam.Id,
@@ -77,6 +83,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                             Category = tempParam.Category,
                             ActionBy = template.UpdatedBy != null ? template.UpdatedBy.Value : 0
                         };
+
                         var response = await _templateService.UpdateTemplateStatusByIdAsync(tempDto);
                         if (response == null || response.Status <= 0)
                         {

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WhatsAppAPISolutionDL.UserModels;
+﻿using WhatsAppAPISolutionDL.UserModels;
 
 namespace WhatsAppAPISolutionDL.Dto
 {
@@ -15,7 +10,8 @@ namespace WhatsAppAPISolutionDL.Dto
             pricing = new Pricing();
             error = new Error();
         }
-        public int parent_Id { get; set; }
+
+        public long parent_Id { get; set; }
         public int module_Id { get; set; }
         public int client_Id { get; set; }
         public int template_Id { get; set; }

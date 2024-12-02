@@ -563,17 +563,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response[0];
         }
-        public async Task<UTemplateDetails> GetTemplateDetailsAsync(int client_Id, int templates_Id = 0, string searchStr = "")
+        public async Task<UTemplateDetails> GetTemplateDetailsAsync(int client_Id, long template_Id = 0)
         {
             UTemplateDetails pDetails = null;
-            var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @ClientId={1}, @TemplatesId={2}, @SearchStr='{3}'", (int)CrudEnum.GetTemplateDetails, client_Id, templates_Id, searchStr);
+            var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @ClientId={1}, @TemplatesId={2}", (int)CrudEnum.GetTemplateDetails, client_Id, template_Id);
             var response = await _dbContext2.TemplateDetails.FromSqlRaw(query).ToListAsync();
             if (response != null && response.Any())
             {
                 pDetails = response[0];
                 if (pDetails.Id > 0)
                 {
-                    var templateParameters = await GetTemplateParametersAsync(client_Id, templates_Id, searchStr);
+                    var templateParameters = await GetTemplateParametersAsync(client_Id, template_Id);
                     if (templateParameters.Any())
                     {
                         var headerValue = templateParameters.Where(x => x.ParamType == (int)TemplateParamEnum.Header).FirstOrDefault();
@@ -623,9 +623,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return pDetails;
         }
-        public async Task<List<UTemplateParameter>> GetTemplateParametersAsync(int client_Id, int templates_Id = 0, string searchStr = "")
+
+        public async Task<List<UTemplateParameter>> GetTemplateParametersAsync(int client_Id, long template_Id = 0)
         {
-            var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @ClientId={1}, @TemplatesId={2}, @SearchStr='{3}'", (int)CrudEnum.GetTemplateParameterDetails, client_Id, templates_Id, searchStr);
+            var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @ClientId={1}, @TemplatesId={2}, @SearchStr='{3}'", (int)CrudEnum.GetTemplateParameterDetails, client_Id, template_Id);
             var response = await _dbContext2.TemplateParameters.FromSqlRaw(query).ToListAsync();
 
             return response;

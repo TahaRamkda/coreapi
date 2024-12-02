@@ -1,15 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 using WhatsAppAPISolutionBL.Master.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
 
 namespace WhatsAppAPISolutionBL.Master.Services
@@ -22,6 +19,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly ITemplateService _templateService;
         private readonly IMessageSentLogsService _messageSentLogsService;
         private readonly IAPIMessageService _apiMessageService;
+        private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
 
         public CommunicationService(
             WhatsAppSolutionContext dbContext,
@@ -29,7 +27,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IHttpClientFactory httpClientFactory,
             ITemplateService templateService,
             IMessageSentLogsService messageSentLogsService,
-            IAPIMessageService apiMessageService)
+            IAPIMessageService apiMessageService,
+            IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -37,13 +36,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _templateService = templateService;
             _messageSentLogsService = messageSentLogsService;
             _apiMessageService = apiMessageService;
+            _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
         }
 
         public async Task<UResponse> SendTemplateMessageAsync(TemplateMessagePayloadDto templateMessage)
         {
-            var templateDetails = await _templateService.GetTemplateDetailsAsync(templateMessage.ClientId, templateMessage.TemplateId, searchStr: templateMessage.TemplateName);
+            var templateDetails = await _templateService.GetTemplateDetailsAsync(templateMessage.ClientId, templateMessage.TemplateId);
             if (templateDetails == null)
-                return new UResponse()
+                return new UResponse
                 {
                     Status = 0,
                     Message = "Template not found or deleted"
@@ -73,23 +73,45 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     ComponentType = TemplateParamEnum.Header.ToString()
                 };
 
-                headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                var headerType = (TemplateHeaderEnum)templateDetails.HeaderType;
+                if (headerType == TemplateHeaderEnum.TEXT)
                 {
-                    Type = ((TemplateHeaderEnum)templateDetails.HeaderType).ToString(),
-                    Value = headerParam,
-                    Index = templateDetails.HeaderValue.Index
-                });
+                    if (templateDetails.HeaderParamCount > 0 && string.IsNullOrEmpty(headerParam))
+                    {
+                        return new UResponse
+                        {
+                            Status = 0,
+                            Message = $"error - HParam is required."
+                        };
+                    }
+
+                    headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                    {
+                        Type = headerType.ToString(),
+                        Value = headerParam,
+                        Index = templateDetails.HeaderValue.Index
+                    });
+                }
+                else if (headerType == TemplateHeaderEnum.IMAGE
+                    || headerType == TemplateHeaderEnum.DOCUMENT
+                    || headerType == TemplateHeaderEnum.VIDEO)
+                {
+                    var media = _dbContext.Medias.Find(templateDetails.MediaId);
+                    if (media != null)
+                    {
+                        var mediaPath = String.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, media.MediaPath);
+                        headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                        {
+                            Type = headerType.ToString(),
+                            Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath,
+                            Index = templateDetails.HeaderValue.Index
+                        });
+                    }
+                }
 
                 sendMessage.Components.Add(headerComponents);
             }
-            else if (templateDetails.HeaderParamCount > 0 && string.IsNullOrEmpty(headerParam))
-            {
-                return new UResponse()
-                {
-                    Status = 0,
-                    Message = $"error - HParam is required."
-                };
-            }
+            
 
             if (templateDetails.BodyParamCount > 0)
             {
@@ -118,7 +140,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         if (string.IsNullOrEmpty(paramValue))
                         {
                             //throw new Exception($"Error: BParam{i + 1} is required when index is {i}.");
-                            return new UResponse()
+                            return new UResponse
                             {
                                 Status = 0,
                                 Message = $"error - BParam{i + 1} is required when body parameter is greater than {i}."
@@ -170,7 +192,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             if (string.IsNullOrEmpty(paramValue))
                             {
                                 //throw new Exception($"Error: BtnParam{i + 1} is required when index is {i}.");
-                                return new UResponse()
+                                return new UResponse
                                 {
                                     Status = 0,
                                     Message = $"error - BtnParam{i + 1} is required when button parameter is greater than {i}."
@@ -191,7 +213,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 sendMessage.Components.Add(buttonComponents);
             }
 
-            var request = Newtonsoft.Json.JsonConvert.SerializeObject(sendMessage);
+            var request = JsonConvert.SerializeObject(sendMessage);
             var res = new StringContent(request, Encoding.UTF8, "application/json");
             var response1 = await _httpClient.PostAsync($"/api/Template/SendBatchTemplateMessage", res);
             var content = await response1.Content.ReadAsStringAsync();
@@ -200,74 +222,44 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (result != null && result.success)
             {
                 var data = System.Text.Json.JsonSerializer.Serialize(result.result);
-                var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
+                var tempResult = JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
                 if (tempResult != null)
                 {
                     foreach (var item in tempResult)
                     {
-                        if (templateMessage.IsApiMessage)
+                        var message = new InsertMessageDto
                         {
-                            var message = new APIMessageDto()
-                            {
-                                ClientId = templateMessage.ClientId,
-                                SenderNameId = (int)templateDetails.SenderId,
-                                TemplateId = (int)templateDetails.Id,
-                                PhoneNumber = item.phoneNumber,
-                                Status = item.status,
-                                WaId = item.waId,
-                                ActionBy = templateMessage.UserId,
-                                Url = templateMessage.Url
-                            };
+                            client_Id = templateMessage.ClientId,
+                            wam_Id = item.waId,
+                            recipient_Id = item.phoneNumber,
+                            status = item.success ? MessageStatusEnum.SENT : MessageStatusEnum.FAILED,
+                            module_Id = templateMessage.ModuleId,
+                            template_Id = (int)templateDetails.Id,
+                            parent_Id = templateMessage.ParentId
+                        };
 
-                            await _apiMessageService.AddAPIMessageAsync(message);
-                        }
-                        if (item.success)
+                        if (item.errors != null && item.errors.Any())
                         {
-                            var message1 = new InsertMessageDto
+                            message.error = new InsertMessageDto.Error
                             {
-                                client_Id = templateMessage.ClientId,
-                                wam_Id = item.waId,
-                                recipient_Id = item.phoneNumber,
-                                status = MessageStatusEnum.SENT,
-                                module_Id = (int)ModuleEnum.Campaign,
-                                template_Id = (int)templateDetails.Id,
-                                parent_Id = templateMessage.ParentId
+                                error_Details = String.Join(',', item.errors)
                             };
-
-                            message1.conversation.id = item.messageId;
-
-                            await _messageSentLogsService.AddMessageSentLogAsync(message1);
                         }
-                        else
-                        {
-                            var message1 = new InsertMessageDto
-                            {
-                                client_Id = templateMessage.ClientId,
-                                wam_Id = item.waId,
-                                recipient_Id = item.phoneNumber,
-                                status = MessageStatusEnum.FAILED,
-                                module_Id = (int)ModuleEnum.Campaign,
-                                template_Id = (int)templateDetails.Id,
-                                parent_Id = templateMessage.ParentId
-                            };
 
-                            message1.conversation.id = item.messageId;
-                            message1.error.error_Details = String.Join(',', item.errors);
-                            await _messageSentLogsService.AddMessageSentLogAsync(message1);
-                        }
+                        await _messageSentLogsService.AddMessageSentLogAsync(message);
                     }
                 }
             }
             else if (result != null && !result.success)
             {
-                return new UResponse()
+                return new UResponse
                 {
                     Status = 0,
                     Message = result.message
                 };
             }
 
-            return new UResponse()
+            return new UResponse
             {
                 Status = 1,
                 Message = "Message Sent Successfully"
@@ -279,6 +271,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             model.Message = model.Message.Trim();
             model.PhoneNumbers = model.PhoneNumbers.TrimPhoneNumbers();
             string mediaId = "";
+
             if (model.Type == (int)MessageTypeEnum.IMAGE || model.Type == (int)MessageTypeEnum.DOCUMENT)
             {
                 var media = await _dbContext.Medias.Where(x => x.Id == model.MediaId && x.RecordStatus != -1).FirstOrDefaultAsync();
@@ -291,6 +284,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         Message = "No media found with this MediaId"
                     };
             }
+
             var request = new SendMessageToBridgeDto
             {
                 ClientId = model.ClientId.ToString(),
@@ -302,7 +296,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 PhoneNumbers = model.PhoneNumbers,
             };
 
-            var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+            var res = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
             var response1 = await _httpClient.PostAsync($"/api/Message/SendBatchMessage", res);
             var content = await response1.Content.ReadAsStringAsync();
 
@@ -363,245 +357,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
             else if (result != null && !result.success)
             {
-                return new UResponse()
+                return new UResponse
                 {
                     Status = 0,
                     Message = result.message
                 };
             }
-            return new UResponse()
+            return new UResponse
             {
                 Status = 1,
                 Message = "Message Sent Successfully"
             };
         }
 
-        public async Task<UResponse> SendInteractiveMessageAsync(TemplateMessagePayloadDto templateMessage)
-        {
-            var templateDetails = await _templateService.GetTemplateDetailsAsync(templateMessage.ClientId, templateMessage.TemplateId, searchStr: templateMessage.TemplateName);
-            if (templateDetails == null)
-                return new UResponse()
-                {
-                    Status = 0,
-                    Message = "Template not found or deleted"
-                };
-
-            var headerParam = templateMessage.Params != null ? templateMessage.Params.Where(x => x.ParamType == (int)TemplateParamEnum.Header).FirstOrDefault()?.ParamText : "";
-            var bodyParams = templateMessage.Params != null ? templateMessage.Params.Where(x => x.ParamType == (int)TemplateParamEnum.Body).ToList() : null;
-            var buttonParams = templateMessage.Params != null ? templateMessage.Params.Where(x => x.ParamType == (int)TemplateParamEnum.Button).ToList() : null;
-            var bodyParameters = new Dictionary<int, string>();
-            var buttonParameters = new Dictionary<int, string>();
-
-            var sendMessage = new SendTemplateMessageDto()
-            {
-                ClientId = templateDetails.ClientId.ToString(),
-                SenderNameId = templateDetails.SenderId.ToString(),
-                PhoneNumbers = templateMessage.PhoneNumbers,
-                LanguageCode = templateDetails.Language,
-                TemplateId = templateDetails.TemplateId,
-                TemplateName = templateDetails.TemplateName
-            };
-
-            if (templateDetails.HeaderParamCount > 0 && !string.IsNullOrEmpty(headerParam))
-            {
-                var headerComponents = new SendTemplateMessageDto.TemplateComponent()
-                {
-                    ComponentType = TemplateParamEnum.Header.ToString()
-                };
-
-                headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                {
-                    Type = ((TemplateHeaderEnum)templateDetails.HeaderType).ToString(),
-                    Value = headerParam,
-                    Index = templateDetails.HeaderValue.Index
-                });
-
-                sendMessage.Components.Add(headerComponents);
-            }
-            else if (templateDetails.HeaderParamCount > 0 && string.IsNullOrEmpty(headerParam))
-            {
-                return new UResponse()
-                {
-                    Status = 0,
-                    Message = $"error - HParam is required."
-                };
-            }
-
-            if (templateDetails.BodyParamCount > 0)
-            {
-                var bodyComponents = new SendTemplateMessageDto.TemplateComponent()
-                {
-                    ComponentType = TemplateParamEnum.Body.ToString()
-                };
-
-                for (int i = 0; i < bodyParams.Count; i++)
-                {
-                    var param = bodyParams[i];
-                    var paramValue = param.ParamText; // Use ParamDefaultValue or another field to get the parameter's value
-
-                    // Optionally, you can use ParamName, ParamText, or ParamDefaultValue to get the value
-                    bodyParameters.Add(i, paramValue);
-                }
-
-                for (int i = 0; i < templateDetails.BodyValues.Count(); i++)
-                {
-                    // Check if the parameter for the given index is null or empty
-                    if (bodyParameters.ContainsKey(i))
-                    {
-                        var paramValue = bodyParameters[i];
-
-                        // If parameter is null or empty, throw an error
-                        if (string.IsNullOrEmpty(paramValue))
-                        {
-                            //throw new Exception($"Error: BParam{i + 1} is required when index is {i}.");
-                            return new UResponse()
-                            {
-                                Status = 0,
-                                Message = $"error - BParam{i + 1} is required when body parameter is greater than {i}."
-                            };
-                        }
-
-                        // Add the parameter to the bodyComponents if it's valid
-                        bodyComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                        {
-                            Type = "text",
-                            Value = paramValue,
-                            Index = i
-                        });
-                    }
-                }
-
-                sendMessage.Components.Add(bodyComponents);
-            }
-            if (templateDetails.ButtonValues.Any())
-            {
-                var buttonComponents = new SendTemplateMessageDto.TemplateComponent()
-                {
-                    ComponentType = TemplateParamEnum.Button.ToString()
-                };
-
-                for (int i = 0; i < buttonParams.Count; i++)
-                {
-                    var param = buttonParams[i];
-                    var paramValue = param.ParamText; // Use ParamDefaultValue or another field to get the parameter's value
-
-                    // Optionally, you can use ParamName, ParamText, or ParamDefaultValue to get the value
-                    buttonParameters.Add(i, paramValue);
-                }
-
-                // Get the ordered list of ButtonValues
-                var orderedButtonValues = templateDetails.ButtonValues.OrderBy(x => x.Sequence).ToList();
-
-                for (int i = 0; i < orderedButtonValues.Count; i++)
-                {
-                    if (orderedButtonValues[i].Type == (int)ButtonTypeEnum.URL && orderedButtonValues[i].IsDynamic)
-                    {
-                        // Check if the parameter for the given index is null or empty
-                        if (buttonParameters.ContainsKey(i))
-                        {
-                            var paramValue = buttonParameters[i];
-
-                            // If parameter is null or empty, throw an error
-                            if (string.IsNullOrEmpty(paramValue))
-                            {
-                                //throw new Exception($"Error: BtnParam{i + 1} is required when index is {i}.");
-                                return new UResponse()
-                                {
-                                    Status = 0,
-                                    Message = $"error - BtnParam{i + 1} is required when button parameter is greater than {i}."
-                                };
-                            }
-
-                            // Add the parameter to the buttonComponents if it's valid
-                            buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                            {
-                                Type = ((ButtonTypeEnum)orderedButtonValues[i].Type).ToString(),
-                                Value = paramValue,
-                                Index = i
-                            });
-                        }
-                    }
-                }
-
-                sendMessage.Components.Add(buttonComponents);
-            }
-
-            var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(sendMessage), Encoding.UTF8, "application/json");
-            var response1 = await _httpClient.PostAsync($"/api/Template/SendBatchTemplateMessage", res);
-            var content = await response1.Content.ReadAsStringAsync();
-
-            var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
-            if (result != null && result.success)
-            {
-                var data = System.Text.Json.JsonSerializer.Serialize(result.result);
-                var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
-                if (tempResult != null)
-                {
-                    foreach (var item in tempResult)
-                    {
-                        if (templateMessage.IsApiMessage)
-                        {
-                            var message = new APIMessageDto()
-                            {
-                                ClientId = templateMessage.ClientId,
-                                SenderNameId = (int)templateDetails.SenderId,
-                                TemplateId = (int)templateDetails.Id,
-                                PhoneNumber = item.phoneNumber,
-                                Status = item.status,
-                                WaId = item.waId,
-                                ActionBy = templateMessage.UserId,
-                                Url = templateMessage.Url
-                            };
-
-                            await _apiMessageService.AddAPIMessageAsync(message);
-                        }
-                        if (item.success)
-                        {
-                            var message1 = new InsertMessageDto
-                            {
-                                client_Id = templateMessage.ClientId,
-                                wam_Id = item.waId,
-                                recipient_Id = item.phoneNumber,
-                                status = MessageStatusEnum.SENT,
-                                module_Id = (int)ModuleEnum.Campaign,
-                                template_Id = (int)templateDetails.Id
-                            };
-
-                            message1.conversation.id = item.messageId;
-                            await _messageSentLogsService.AddMessageSentLogAsync(message1);
-                        }
-                        else
-                        {
-                            var message1 = new InsertMessageDto
-                            {
-                                client_Id = templateMessage.ClientId,
-                                wam_Id = item.waId,
-                                recipient_Id = item.phoneNumber,
-                                status = MessageStatusEnum.FAILED,
-                                module_Id = (int)ModuleEnum.Campaign,
-                                template_Id = (int)templateDetails.Id
-                            };
-
-                            message1.conversation.id = item.messageId;
-                            message1.error.error_Details = item.errors.ToString();
-                            await _messageSentLogsService.AddMessageSentLogAsync(message1);
-                        }
-                    }
-                }
-            }
-            else if (result != null && !result.success)
-            {
-                return new UResponse()
-                {
-                    Status = 0,
-                    Message = result.message
-                };
-            }
-            return new UResponse()
-            {
-                Status = 1,
-                Message = "Message Sent Successfully"
-            };
-        }
     }
 }
