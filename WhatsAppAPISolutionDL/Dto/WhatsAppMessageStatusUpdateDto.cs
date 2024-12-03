@@ -22,8 +22,7 @@ namespace WhatsAppAPISolutionDL.Dto
         public string recipient_Id { get; set; }
         public Conversation conversation { get; set; }
         public Pricing pricing { get; set; }
-        public Error error { get; set; }
-
+        public Error error { get; set; } 
         public PhoneNumber phone_number_Id { get; set; }
 
         public class PhoneNumber

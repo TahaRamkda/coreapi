@@ -11,6 +11,8 @@ namespace WhatsAppAPISolutionDL.UserModels
         SENT = 1,
         DELIVERED = 2,
         READ = 3,
-        FAILED = 4
+        FAILED = 4,
+        WARNING = 5,
+        DELETED = 6
     }
 }

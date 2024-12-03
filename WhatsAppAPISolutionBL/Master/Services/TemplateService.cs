@@ -626,7 +626,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UTemplateParameter>> GetTemplateParametersAsync(int client_Id, long template_Id = 0)
         {
-            var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @ClientId={1}, @TemplatesId={2}, @SearchStr='{3}'", (int)CrudEnum.GetTemplateParameterDetails, client_Id, template_Id);
+            var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @ClientId={1}, @TemplatesId={2}", (int)CrudEnum.GetTemplateParameterDetails, client_Id, template_Id);
             var response = await _dbContext2.TemplateParameters.FromSqlRaw(query).ToListAsync();
 
             return response;

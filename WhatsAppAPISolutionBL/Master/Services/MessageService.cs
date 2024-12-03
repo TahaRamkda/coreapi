@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Drawing;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
@@ -26,8 +27,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> UpdateMessageStatusAsync(WhatsAppMessageStatusUpdateDto messageStatus)
         {
-            var eventType = 0;
-            var eventStatus = 1;
+            var messageStatusEnum = (MessageStatusEnum)Enum.Parse(typeof(MessageStatusEnum), messageStatus.status.ToUpper());
+
+            var eventType = (int)messageStatusEnum;
+            var eventStatus = messageStatusEnum == MessageStatusEnum.FAILED ? 0 : 1;
             var conversationId = "";
             var eventMessage = "";
             var pricingModel = "";
@@ -35,26 +38,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var category = "";
             long senderId = 0;
 
-            if (messageStatus.phone_number_Id != null)
+            if (messageStatus.phone_number_Id != null
+                && !String.IsNullOrEmpty(messageStatus.phone_number_Id.display_phone_number)
+                && !String.IsNullOrEmpty(messageStatus.phone_number_Id.phone_number_id))
             {
-                if (!string.IsNullOrEmpty(messageStatus.phone_number_Id.display_phone_number) && !string.IsNullOrEmpty(messageStatus.phone_number_Id.phone_number_id))
-                {
-                    var senderName = await _dbContext.SenderNames.Where(x => x.ClientId == Convert.ToInt32(messageStatus.client_Id) && x.PhoneNumberId == messageStatus.phone_number_Id.phone_number_id).FirstOrDefaultAsync();
-                    if (senderName != null)
-                        senderId = senderName.SenderId;
-                }
-            }
-
-            if (messageStatus.status.ToLower() == MessageStatusEnum.SENT.ToString().ToLower())
-                eventType = 1;
-            else if (messageStatus.status.ToLower() == MessageStatusEnum.DELIVERED.ToString().ToLower())
-                eventType = 2;
-            else if (messageStatus.status.ToLower() == MessageStatusEnum.READ.ToString().ToLower())
-                eventType = 3;
-            else if (messageStatus.status.ToLower() == MessageStatusEnum.FAILED.ToString().ToLower())
-            {
-                eventType = 4;
-                eventStatus = 0;
+                var senderName = await _dbContext.SenderNames.Where(x => x.ClientId == Convert.ToInt32(messageStatus.client_Id) && x.PhoneNumberId == messageStatus.phone_number_Id.phone_number_id).FirstOrDefaultAsync();
+                if (senderName != null)
+                    senderId = senderName.SenderId;
             }
 
             if (messageStatus.conversation != null)
