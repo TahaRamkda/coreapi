@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System.Drawing;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
@@ -13,16 +15,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly IMediaService _mediaService;
         private readonly ICommunicationService _communicationService;
+        private readonly ILogger<MessageService> _logger;
 
         public MessageService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
             IMediaService mediaService,
-            ICommunicationService communicationService)
+            ICommunicationService communicationService,
+            ILogger<MessageService> logger)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _mediaService = mediaService;
             _communicationService = communicationService;
+            _logger = logger;
         }
 
         public async Task<UResponse> UpdateMessageStatusAsync(WhatsAppMessageStatusUpdateDto messageStatus)
@@ -139,7 +144,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             //Central service call
             if (response != null & response.Any())
             {
-
+                _logger.LogInformation("Message Received Log DB call response: {response}", JsonConvert.SerializeObject(response[0]));
             }
 
             return response != null && response.Any() ? response[0] : null;
