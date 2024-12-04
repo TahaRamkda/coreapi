@@ -428,12 +428,25 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 for (int i = 0; i < templateDetails.ButtonValues.Count; i++)
                 {
                     var button = templateDetails.ButtonValues[i];
+                    var buttonType = ((ButtonTypeEnum)button.Type);
+
+                    if (buttonType != ButtonTypeEnum.QUICK_REPLY
+                        && buttonType != ButtonTypeEnum.URL
+                        && buttonType != ButtonTypeEnum.PHONE_NUMBER)
+                        continue;
+
+                    //In interactive, phone number is not 
+                    if (buttonType == ButtonTypeEnum.PHONE_NUMBER)
+                    {
+                        buttonType = ButtonTypeEnum.URL;
+                        button.Url = String.Concat("tel:", button.Text);
+                    }
 
                     sendMessage.Buttons.Add(new SendInteractiveMessageRequestDto.ButtonDto
                     {
                         Id = !String.IsNullOrWhiteSpace(button.ButtonId) ? button.ButtonId : $"button_{i}",
                         Text = button.Text,
-                        Type = ((ButtonTypeEnum)button.Type).ToString(),
+                        Type = buttonType.ToString(),
                         Url = button.Url
                     });
                 }
