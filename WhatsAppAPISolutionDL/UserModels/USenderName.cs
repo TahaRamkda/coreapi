@@ -16,7 +16,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string PhoneNumberId { get; set; }
         public string BusinessAccountId { get; set; }
         public decimal? Limit { get; set; }
-        public decimal? Quality { get; set; }
+        public string Quality { get; set; }
         public int? CreatedBy { get; set; }
         public string CreatedDate { get; set; }
         public int? UpdatedBy { get; set; }

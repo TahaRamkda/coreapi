@@ -322,7 +322,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             ParentId = model.ParentId,
                             MessageType = model.Type,
                             MessageText = model.Message,
-                            MediaId = model.MediaId == 0 ? 0 : model.MediaId.Value
+                            MediaId = model.MediaId.HasValue ? model.MediaId.Value : 0
                         };
 
                         if (item.errors != null && item.errors.Any())
