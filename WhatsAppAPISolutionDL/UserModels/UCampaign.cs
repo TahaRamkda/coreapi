@@ -14,7 +14,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public int SenderId { get; set; }
         public int TemplateId { get; set; }
         public string ScheduleDate { get; set; }
-        public string Status { get; set; }
+        public int? Status { get; set; }
         public int? TotalContacts { get; set; }
         public int? SentCount { get; set; }
         public int? FailedCount { get; set; }
