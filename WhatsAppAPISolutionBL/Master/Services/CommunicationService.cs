@@ -229,20 +229,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     {
                         var message = new InsertMessageDto
                         {
-                            client_Id = templateMessage.ClientId,
-                            wam_Id = item.waId,
-                            recipient_Id = item.phoneNumber,
-                            status = item.success ? MessageStatusEnum.SENT : MessageStatusEnum.FAILED,
-                            module_Id = templateMessage.ModuleId,
-                            template_Id = (int)templateDetails.Id,
-                            parent_Id = templateMessage.ParentId
+                            ClientId = templateMessage.ClientId,
+                            WaId = item.waId,
+                            RecipientId = item.phoneNumber,
+                            Status = item.success ? MessageStatusEnum.SENT : MessageStatusEnum.FAILED,
+                            ModuleId = templateMessage.ModuleId,
+                            TemplateId = (int)templateDetails.Id,
+                            ParentId = templateMessage.ParentId
                         };
 
                         if (item.errors != null && item.errors.Any())
                         {
-                            message.error = new InsertMessageDto.Error
+                            message.Error = new InsertMessageDto.ErrorDto
                             {
-                                error_Details = String.Join(',', item.errors)
+                                ErrorDetails = String.Join(',', item.errors)
                             };
                         }
 
@@ -271,7 +271,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
             model.Message = model.Message.Trim();
             model.PhoneNumbers = model.PhoneNumbers.TrimPhoneNumbers();
             string mediaId = "";
-
             if (model.Type == (int)MessageTypeEnum.IMAGE || model.Type == (int)MessageTypeEnum.DOCUMENT)
             {
                 var media = await _dbContext.Medias.Where(x => x.Id == model.MediaId && x.RecordStatus != -1).FirstOrDefaultAsync();
@@ -299,9 +298,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 PhoneNumbers = model.PhoneNumbers,
             };
 
-            var res = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-            var response1 = await _httpClient.PostAsync($"/api/Message/SendBatchMessage", res);
-            var content = await response1.Content.ReadAsStringAsync();
+            var requestStr = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"/api/Message/SendBatchMessage", requestStr);
+            var content = await response.Content.ReadAsStringAsync();
 
             var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
             if (result != null && result.success)
@@ -312,49 +311,29 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     foreach (var item in tempResult)
                     {
-                        if (item.success)
+                        var message = new InsertMessageDto
                         {
-                            var message1 = new InsertMessageDto
-                            {
-                                client_Id = model.ClientId,
-                                wam_Id = item.waId,
-                                recipient_Id = item.phoneNumber,
-                                status = MessageStatusEnum.SENT,
-                                module_Id = (int)ModuleEnum.Chat,
-                                message_Type = model.Type
-                            };
+                            ClientId = model.ClientId,
+                            WaId = item.waId,
+                            RecipientId = item.phoneNumber,
+                            Status = item.success ? MessageStatusEnum.SENT : MessageStatusEnum.FAILED,
+                            ModuleId = model.ModuleId,
+                            TemplateId = model.ActionId,
+                            ParentId = model.ParentId,
+                            MessageType = model.Type,
+                            MessageText = model.Message,
+                            MediaId = model.MediaId
+                        };
 
-                            message1.conversation.id = item.messageId;
-
-                            if (model.Type == 1)
-                                message1.message_Text = model.Message;
-                            else
-                                message1.message_Text = model.MediaId.ToString();
-
-                            await _messageSentLogsService.AddMessageSentLogAsync(message1);
-                        }
-                        else
+                        if (item.errors != null && item.errors.Any())
                         {
-                            var message1 = new InsertMessageDto
+                            message.Error = new InsertMessageDto.ErrorDto
                             {
-                                client_Id = model.ClientId,
-                                wam_Id = item.waId,
-                                recipient_Id = item.phoneNumber,
-                                status = MessageStatusEnum.FAILED,
-                                module_Id = (int)ModuleEnum.Chat,
-                                message_Type = model.Type
+                                ErrorDetails = String.Join(',', item.errors)
                             };
-
-                            message1.conversation.id = item.messageId;
-                            message1.error.error_Details = String.Join(',', item.errors);
-
-                            if (model.Type == 1)
-                                message1.message_Text = model.Message;
-                            else
-                                message1.message_Text = model.MediaId.ToString();
-
-                            await _messageSentLogsService.AddMessageSentLogAsync(message1);
                         }
+
+                        await _messageSentLogsService.AddMessageSentLogAsync(message);
                     }
                 }
             }
@@ -394,8 +373,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     ClientId = clientId,
                     SenderId = Convert.ToInt32(templateDetails.SenderId),
                     MediaId = Convert.ToInt32(templateDetails.MediaId),
+                    ModuleId = model.ModuleId.HasValue ? model.ModuleId.Value : 0,
+                    ParentId = model.ParentId.HasValue ? model.ParentId.Value : 0,
+                    ActionId = model.ActionId.HasValue ? model.ActionId.Value : 0,
                     Type = (int)headerType,
-                    Message = templateDetails.BodyText,
+                    Message = !String.IsNullOrWhiteSpace(templateDetails.HeaderText) ? String.Concat(templateDetails.HeaderText, "\n \n", templateDetails.BodyText) : templateDetails.BodyText,
                     FileName = templateDetails.FileName,
                     PhoneNumbers = new List<string> { phoneNumber }.TrimPhoneNumbers()
                 });
@@ -458,9 +440,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
 
             var request = JsonConvert.SerializeObject(sendMessage);
-            var res = new StringContent(request, Encoding.UTF8, "application/json");
-            var response1 = await _httpClient.PostAsync($"/api/Message/SendInteractiveMessage", res);
-            var content = await response1.Content.ReadAsStringAsync();
+            var requestStr = new StringContent(request, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"/api/Message/SendInteractiveMessage", requestStr);
+            var content = await response.Content.ReadAsStringAsync();
 
             var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
             if (result != null && result.success)
@@ -473,20 +455,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     {
                         var message = new InsertMessageDto
                         {
-                            client_Id = clientId,
-                            wam_Id = item.waId,
-                            recipient_Id = item.phoneNumber,
-                            status = item.success ? MessageStatusEnum.SENT : MessageStatusEnum.FAILED,
-                            module_Id = model.ModuleId.HasValue ? model.ModuleId.Value : 0,
-                            template_Id = model.ActionId.HasValue ? model.ActionId.Value : 0,
-                            parent_Id = 0
+                            ClientId = clientId,
+                            WaId = item.waId,
+                            RecipientId = item.phoneNumber,
+                            Status = item.success ? MessageStatusEnum.SENT : MessageStatusEnum.FAILED,
+                            ModuleId = model.ModuleId.HasValue ? model.ModuleId.Value : 0,
+                            TemplateId = model.ActionId.HasValue ? model.ActionId.Value : 0,
+                            ParentId = model.ParentId.HasValue ? model.ParentId.Value : 0,
+                            MediaId = templateDetails.MediaId.HasValue ? templateDetails.MediaId.Value : 0
                         };
 
                         if (item.errors != null && item.errors.Any())
                         {
-                            message.error = new InsertMessageDto.Error
+                            message.Error = new InsertMessageDto.ErrorDto
                             {
-                                error_Details = String.Join(',', item.errors)
+                                ErrorDetails = String.Join(',', item.errors)
                             };
                         }
 

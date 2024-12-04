@@ -6,52 +6,53 @@ namespace WhatsAppAPISolutionDL.Dto
     {
         public InsertMessageDto()
         {
-            conversation = new Conversation();
-            pricing = new Pricing();
-            error = new Error();
+            Conversation = new ConversationDto();
+            Pricing = new PricingDto();
+            Error = new ErrorDto();
         }
 
-        public long parent_Id { get; set; }
-        public int module_Id { get; set; }
-        public int client_Id { get; set; }
-        public int template_Id { get; set; }
-        public string wam_Id { get; set; }
-        public MessageStatusEnum status { get; set; }
-        public string update_dateTime { get; set; }
-        public string recipient_Id { get; set; }
-        public string message_Text { get; set; }
-        public int message_Type { get; set; }
-        public Conversation conversation { get; set; }
-        public Pricing pricing { get; set; }
-        public Error error { get; set; }
+        public long ParentId { get; set; }
+        public int ModuleId { get; set; }
+        public int ClientId { get; set; }
+        public int TemplateId { get; set; }
+        public string WaId { get; set; }
+        public long MediaId { get; set; }
+        public MessageStatusEnum Status { get; set; }
+        public string UpdateDateTime { get; set; }
+        public string RecipientId { get; set; }
+        public string MessageText { get; set; }
+        public int MessageType { get; set; }
+        public ConversationDto Conversation { get; set; }
+        public PricingDto Pricing { get; set; }
+        public ErrorDto Error { get; set; }
 
-        public PhoneNumber phone_number_Id { get; set; }
+        public PhoneNumberDto PhoneNumberId { get; set; }
 
-        public class PhoneNumber
+        public class PhoneNumberDto
         {
-            public string display_phone_number { get; set; }
-            public string phone_number_id { get; set; }
+            public string DisplayPhoneNumber { get; set; }
+            public string PhoneNumberId { get; set; }
         }
 
-        public class Conversation
+        public class ConversationDto
         {
-            public string id { get; set; }
-            public string origin_type { get; set; }
+            public string Id { get; set; }
+            public string OriginType { get; set; }
         }
 
-        public class Pricing
+        public class PricingDto
         {
-            public bool billable { get; set; }
-            public string pricing_model { get; set; }
-            public string category { get; set; }
+            public bool Billable { get; set; }
+            public string PricingModel { get; set; }
+            public string Category { get; set; }
         }
 
-        public class Error
+        public class ErrorDto
         {
-            public string code { get; set; }
-            public string title { get; set; }
-            public string message { get; set; }
-            public string error_Details { get; set; }
+            public string Code { get; set; }
+            public string Title { get; set; }
+            public string Message { get; set; }
+            public string ErrorDetails { get; set; }
         }
     }
 }

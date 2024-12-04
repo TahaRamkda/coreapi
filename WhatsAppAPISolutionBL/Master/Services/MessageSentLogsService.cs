@@ -26,8 +26,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> AddMessageSentLogAsync(InsertMessageDto messageStatus)
         {
-            int eventType = (int)messageStatus.status;
-            int eventStatus = messageStatus.status == MessageStatusEnum.FAILED ? 0 : 1;
+            int eventType = (int)messageStatus.Status;
+            int eventStatus = messageStatus.Status == MessageStatusEnum.FAILED ? 0 : 1;
             string conversationId = "";
             string eventMessage = "";
             string pricingModel = "";
@@ -35,30 +35,30 @@ namespace WhatsAppAPISolutionBL.Master.Services
             long senderId = 0;
             bool billable = false;
 
-            if (messageStatus.phone_number_Id != null)
+            if (messageStatus.PhoneNumberId != null)
             {
-                if (!string.IsNullOrEmpty(messageStatus.phone_number_Id.display_phone_number)
-                    && !string.IsNullOrEmpty(messageStatus.phone_number_Id.phone_number_id))
+                if (!string.IsNullOrEmpty(messageStatus.PhoneNumberId.DisplayPhoneNumber)
+                    && !string.IsNullOrEmpty(messageStatus.PhoneNumberId.PhoneNumberId))
                 {
-                    var senderName = await _dbContext.SenderNames.Where(x => x.ClientId == messageStatus.client_Id && x.PhoneNumberId == messageStatus.phone_number_Id.phone_number_id).FirstOrDefaultAsync();
+                    var senderName = await _dbContext.SenderNames.Where(x => x.ClientId == messageStatus.ClientId && x.PhoneNumberId == messageStatus.PhoneNumberId.PhoneNumberId).FirstOrDefaultAsync();
                     senderId = senderName != null ? senderName.SenderId : 0;
                 }
             }
 
-            if (messageStatus.conversation != null)
-                conversationId = messageStatus.conversation.id;
+            if (messageStatus.Conversation != null)
+                conversationId = messageStatus.Conversation.Id;
 
-            if (messageStatus.error != null)
-                eventMessage = messageStatus.error.error_Details;
+            if (messageStatus.Error != null)
+                eventMessage = messageStatus.Error.ErrorDetails;
 
-            if (messageStatus.pricing != null)
+            if (messageStatus.Pricing != null)
             {
-                pricingModel = messageStatus.pricing.pricing_model;
-                billable = messageStatus.pricing.billable;
-                category = messageStatus.pricing.category;
+                pricingModel = messageStatus.Pricing.PricingModel;
+                billable = messageStatus.Pricing.Billable;
+                category = messageStatus.Pricing.Category;
             }
 
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_MessageSentLogs_StatusUpdate @ModuleId={messageStatus.module_Id}, @ClientId={messageStatus.client_Id}, @ParentId={messageStatus.parent_Id}, @SenderId={senderId}, @PhoneNumber={messageStatus.recipient_Id}, @WaId={messageStatus.wam_Id}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={messageStatus.update_dateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}, @TemplateId={messageStatus.template_Id}, @MessageType={messageStatus.message_Type}, @MessageText={messageStatus.message_Text}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_MessageSentLogs_StatusUpdate @ModuleId={messageStatus.ModuleId}, @ClientId={messageStatus.ClientId}, @ParentId={messageStatus.ParentId}, @SenderId={senderId}, @PhoneNumber={messageStatus.RecipientId}, @WaId={messageStatus.WaId}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={messageStatus.UpdateDateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}, @TemplateId={messageStatus.TemplateId}, @MessageType={messageStatus.MessageType}, @MessageText={messageStatus.MessageText}, @MediaId={messageStatus.MediaId}").ToListAsync();
             return response[0];
         }
     }

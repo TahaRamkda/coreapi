@@ -148,10 +148,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var action = response[0];
                 if (action.ActionType > 0 && action.ActionId > 0)
                 {
-                    var template = await _dbContext.Templates.FindAsync(Convert.ToInt64(action.ActionId));
-                    if (template != null && template.TransactionType == 2)
+                    if (action.ActionType == 1) //Send template or interactive message or normal message
                     {
-                        await _communicationService.SendInteractiveMessageAsync(action, Convert.ToInt32(template.ClientId), messageReceive.from);
+                        var template = await _dbContext.Templates.FindAsync(Convert.ToInt64(action.ActionId));
+                        if (template != null && template.TransactionType == 2)
+                            await _communicationService.SendInteractiveMessageAsync(action, Convert.ToInt32(template.ClientId), messageReceive.from);
                     }
                 }
             }
