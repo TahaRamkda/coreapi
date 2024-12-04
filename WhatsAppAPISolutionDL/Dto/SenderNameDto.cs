@@ -8,7 +8,7 @@ namespace WhatsAppAPISolutionDL.Dto
 {
     public partial class SenderNameDto
     {
-        public long SenderId { get; set; }
+        public int SenderId { get; set; }
         public int? ClientId { get; set; }
         public string SenderName { get; set; }
         public string PhoneNumber { get; set; }

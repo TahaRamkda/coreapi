@@ -8,7 +8,7 @@ namespace WhatsAppAPISolutionDL.Dto
 {
     public partial class ContactDto
     {
-        public long ContactId { get; set; }
+        public int ContactId { get; set; }
         public int? GroupId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }

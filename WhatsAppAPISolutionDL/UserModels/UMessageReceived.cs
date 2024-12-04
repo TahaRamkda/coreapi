@@ -6,6 +6,6 @@
         public int? ActionId { get; set; }
         public string ActionText { get; set; }
         public int? ModuleId { get; set; }
-        public long? ParentId { get; set; }
+        public int? ParentId { get; set; }
     }
 }

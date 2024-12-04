@@ -18,7 +18,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             ButtonValues = new List<ButtonValue>();
         }
 
-        public long Id { get; set; }
+        public int Id { get; set; }
         public int? ClientId { get; set; }
         public string ClientName { get; set; }
         public string TemplateName { get; set; }
@@ -39,12 +39,12 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string CreatedDate { get; set; }
         public int? UpdatedBy { get; set; }
         public string UpdatedDate { get; set; }
-        public long? MediaId { get; set; }
+        public int? MediaId { get; set; }
         public string MediaURL { get; set; }
         public string ContentType { get; set; }
         public string FileExtension { get; set; }
         public string FileName { get; set; }
-        public long SenderId { get; set; }
+        public int SenderId { get; set; }
         public string SenderName { get; set; }
         public int? DefaultType { get; set; }
         //public string ButtonId { get; set; }

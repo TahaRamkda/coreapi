@@ -8,7 +8,7 @@ namespace WhatsAppAPISolutionDL.UserModels
 {
     public partial class UContact
     {
-        public long ContactId { get; set; }
+        public int ContactId { get; set; }
         public int? GroupId { get; set; }
         public string GroupName { get; set; }
         public string FirstName { get; set; }

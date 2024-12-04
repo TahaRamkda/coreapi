@@ -10,7 +10,7 @@ namespace WhatsAppAPISolutionDL.UserModels
     public partial class UPermission
     {
        
-        public long PermissionId { get; set; }
+        public int PermissionId { get; set; }
         public bool? CanView { get; set; }
         public bool? CanCreate { get; set; }
         public bool? CanUpdate { get; set; }

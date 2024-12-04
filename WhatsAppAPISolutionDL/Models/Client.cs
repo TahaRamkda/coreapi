@@ -5,7 +5,7 @@ namespace WhatsAppAPISolutionDL.Models
 {
     public partial class Client
     {
-        public long ClientId { get; set; }
+        public int ClientId { get; set; }
         public string ClientName { get; set; }
         public int? ClientLanguage { get; set; }
         public string ClientAddress { get; set; }
@@ -24,5 +24,6 @@ namespace WhatsAppAPISolutionDL.Models
         public int? RecordStatus { get; set; }
         public decimal? AvailableBalance { get; set; }
         public string DefaultMarket { get; set; }
+        public string Timezone { get; set; }
     }
 }

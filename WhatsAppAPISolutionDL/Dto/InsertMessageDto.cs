@@ -11,12 +11,12 @@ namespace WhatsAppAPISolutionDL.Dto
             Error = new ErrorDto();
         }
 
-        public long ParentId { get; set; }
+        public int ParentId { get; set; }
         public int ModuleId { get; set; }
         public int ClientId { get; set; }
         public int TemplateId { get; set; }
         public string WaId { get; set; }
-        public long MediaId { get; set; }
+        public int MediaId { get; set; }
         public MessageStatusEnum Status { get; set; }
         public string UpdateDateTime { get; set; }
         public string RecipientId { get; set; }

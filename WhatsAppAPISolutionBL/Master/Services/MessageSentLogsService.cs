@@ -32,7 +32,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             string eventMessage = "";
             string pricingModel = "";
             string category = "";
-            long senderId = 0;
+            int senderId = 0;
             bool billable = false;
 
             if (messageStatus.PhoneNumberId != null)

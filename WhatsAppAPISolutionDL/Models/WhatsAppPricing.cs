@@ -5,7 +5,7 @@ namespace WhatsAppAPISolutionDL.Models
 {
     public partial class WhatsAppPricing
     {
-        public long PricingId { get; set; }
+        public int PricingId { get; set; }
         public string Market { get; set; }
         public string Currency { get; set; }
         public decimal? Marketing { get; set; }

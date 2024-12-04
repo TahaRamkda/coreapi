@@ -5,9 +5,9 @@ namespace WhatsAppAPISolutionDL.Models
 {
     public partial class Contact
     {
-        public long ContactId { get; set; }
+        public int ContactId { get; set; }
         public int? GroupId { get; set; }
-        public long? ClientId { get; set; }
+        public int? ClientId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string PhoneNumber { get; set; }

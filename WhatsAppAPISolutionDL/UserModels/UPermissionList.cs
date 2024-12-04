@@ -8,7 +8,7 @@ namespace WhatsAppAPISolutionDL.UserModels
 {
     public partial class UPermissionList
     {
-        public long? PermissionId { get; set; }
+        public int? PermissionId { get; set; }
         public int Module { get; set; }
         public string ModuleName { get; set; }
         public string PId { get; set; }

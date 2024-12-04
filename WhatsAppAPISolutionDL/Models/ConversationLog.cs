@@ -5,8 +5,8 @@ namespace WhatsAppAPISolutionDL.Models
 {
     public partial class ConversationLog
     {
-        public long Id { get; set; }
-        public long? ConversationId { get; set; }
+        public int Id { get; set; }
+        public int? ConversationId { get; set; }
         public int? ActionType { get; set; }
         public int? ActionBy { get; set; }
         public string Comment { get; set; }

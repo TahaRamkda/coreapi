@@ -5,7 +5,7 @@ namespace WhatsAppAPISolutionDL.Models
 {
     public partial class Role
     {
-        public long RoleId { get; set; }
+        public int RoleId { get; set; }
         public int? ClientId { get; set; }
         public string RoleName { get; set; }
         public int? CreatedBy { get; set; }

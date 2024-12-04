@@ -322,7 +322,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             ParentId = model.ParentId,
                             MessageType = model.Type,
                             MessageText = model.Message,
-                            MediaId = model.MediaId
+                            MediaId = model.MediaId == 0 ? 0 : model.MediaId.Value
                         };
 
                         if (item.errors != null && item.errors.Any())
@@ -354,7 +354,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> SendInteractiveMessageAsync(UMessageReceived model, int clientId, string phoneNumber)
         {
-            var templateDetails = await _templateService.GetTemplateDetailsAsync(clientId, (long)model.ActionId);
+            var templateDetails = await _templateService.GetTemplateDetailsAsync(clientId, model.ActionId == null ? 0 : model.ActionId.Value);
             if (templateDetails == null)
                 return new UResponse
                 {
@@ -371,8 +371,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 return await SendMessageAsync(new SendMessageRequestDto
                 {
                     ClientId = clientId,
-                    SenderId = Convert.ToInt32(templateDetails.SenderId),
-                    MediaId = Convert.ToInt32(templateDetails.MediaId),
+                    SenderId = templateDetails.SenderId,
+                    MediaId = templateDetails.MediaId,
                     ModuleId = model.ModuleId.HasValue ? model.ModuleId.Value : 0,
                     ParentId = model.ParentId.HasValue ? model.ParentId.Value : 0,
                     ActionId = model.ActionId.HasValue ? model.ActionId.Value : 0,

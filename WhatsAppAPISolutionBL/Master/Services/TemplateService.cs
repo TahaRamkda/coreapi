@@ -563,7 +563,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response[0];
         }
-        public async Task<UTemplateDetails> GetTemplateDetailsAsync(int client_Id, long template_Id = 0)
+        public async Task<UTemplateDetails> GetTemplateDetailsAsync(int client_Id, int template_Id = 0)
         {
             UTemplateDetails pDetails = null;
             var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @ClientId={1}, @TemplatesId={2}", (int)CrudEnum.GetTemplateDetails, client_Id, template_Id);
@@ -626,7 +626,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return pDetails;
         }
 
-        public async Task<List<UTemplateParameter>> GetTemplateParametersAsync(int client_Id, long template_Id = 0)
+        public async Task<List<UTemplateParameter>> GetTemplateParametersAsync(int client_Id, int template_Id = 0)
         {
             var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @ClientId={1}, @TemplatesId={2}", (int)CrudEnum.GetTemplateParameterDetails, client_Id, template_Id);
             var response = await _dbContext2.TemplateParameters.FromSqlRaw(query).ToListAsync();

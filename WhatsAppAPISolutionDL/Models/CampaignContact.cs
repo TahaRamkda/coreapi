@@ -13,11 +13,12 @@ namespace WhatsAppAPISolutionDL.Models
         public string LastName { get; set; }
         public string Area { get; set; }
         public decimal? Cost { get; set; }
-        public string SendStatus { get; set; }
+        public int? SendStatus { get; set; }
         public DateTime? CreatedDate { get; set; }
         public int? CreatedBy { get; set; }
         public string WaId { get; set; }
-        public string SentTime { get; set; }
-        public string DeliveredTime { get; set; }
+        public DateTime? SentTime { get; set; }
+        public DateTime? DeliveredTime { get; set; }
+        public DateTime? ReadTime { get; set; }
     }
 }

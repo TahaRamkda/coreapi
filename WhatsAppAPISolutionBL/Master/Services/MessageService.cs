@@ -41,7 +41,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var pricingModel = "";
             var billable = false;
             var category = "";
-            long senderId = 0;
+            int senderId = 0;
 
             if (messageStatus.phone_number_Id != null
                 && !String.IsNullOrEmpty(messageStatus.phone_number_Id.display_phone_number)
@@ -78,12 +78,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
         /// <returns></returns>
         public async Task<UMessageReceived> AddMessageReceivedLogAsync(WhatsAppMessageReceiveDto messageReceive)
         {
-            var client = await _dbContext.Clients.FirstOrDefaultAsync(x => x.ClientId == Convert.ToInt64(messageReceive.client_Id));
+            var client = await _dbContext.Clients.FirstOrDefaultAsync(x => x.ClientId == Convert.ToInt32(messageReceive.client_Id));
             var senderName = await _dbContext.SenderNames.FirstOrDefaultAsync(x => x.PhoneNumberId == messageReceive.phone_number_Id.phone_number_id);
 
             int messageType = 0;
             string messageText = String.Empty;
-            long mediaId = 0;
+            int mediaId = 0;
             messageReceive.type = messageReceive.type.ToUpper();
 
             if (messageReceive.type == MessageReceiveTypeEnum.BUTTON.ToString())
@@ -150,9 +150,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     if (action.ActionType == 1) //Send template or interactive message or normal message
                     {
-                        var template = await _dbContext.Templates.FindAsync(Convert.ToInt64(action.ActionId));
+                        var template = await _dbContext.Templates.FindAsync(action.ActionId);
                         if (template != null && template.TransactionType == 2)
-                            await _communicationService.SendInteractiveMessageAsync(action, Convert.ToInt32(template.ClientId), messageReceive.from);
+                            await _communicationService.SendInteractiveMessageAsync(action, template.ClientId == 0 ? 0 : template.ClientId.Value, messageReceive.from);
                     }
                 }
             }

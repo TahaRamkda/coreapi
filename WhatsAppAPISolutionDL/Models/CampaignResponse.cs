@@ -5,11 +5,11 @@ namespace WhatsAppAPISolutionDL.Models
 {
     public partial class CampaignResponse
     {
-        public long Id { get; set; }
-        public long? ClientId { get; set; }
-        public long? SenderId { get; set; }
-        public string CampaignId { get; set; }
-        public long? TemplateId { get; set; }
+        public int Id { get; set; }
+        public int? ClientId { get; set; }
+        public int? SenderId { get; set; }
+        public int? CampaignId { get; set; }
+        public int? TemplateId { get; set; }
         public string Text { get; set; }
         public string WaId { get; set; }
         public string ContextWaId { get; set; }

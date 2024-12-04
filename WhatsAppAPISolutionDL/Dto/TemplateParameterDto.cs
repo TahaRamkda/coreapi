@@ -8,8 +8,8 @@ namespace WhatsAppAPISolutionDL.Dto
 {
     public partial class TemplateParameterDto
     {
-        public long ParamId { get; set; }
-        public long? TemplatesId { get; set; }
+        public int ParamId { get; set; }
+        public int? TemplatesId { get; set; }
         public int? ClientId { get; set; }
         public int? Sequence { get; set; }
         public string ParamName { get; set; }

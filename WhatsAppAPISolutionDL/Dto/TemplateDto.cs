@@ -13,7 +13,7 @@ namespace WhatsAppAPISolutionDL.Dto
         {
             Buttons = new List<ButtonComponent>();
         }
-        public long Id { get; set; }
+        public int Id { get; set; }
         public int ClientId { get; set; }
         public int SenderNameId { get; set; }
         public string TemplateId { get; set; }

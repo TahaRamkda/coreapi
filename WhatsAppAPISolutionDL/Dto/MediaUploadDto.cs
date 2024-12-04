@@ -10,7 +10,7 @@ namespace WhatsAppAPISolutionDL.Dto
 {
     public partial class MediaUploadDto
     {
-        public long Id { get; set; }
+        public int Id { get; set; }
         public int ClientId { get; set; }
         public string WhatsAppBusinessAccountId { get; set; }
         public int SenderNameId { get; set; }
@@ -19,7 +19,7 @@ namespace WhatsAppAPISolutionDL.Dto
         public string MediaPath { get; set; }
         public IFormFile File { get; set; }
         public string ContentType { get; set; }
-        public long FileSize { get; set; }
+        public int FileSize { get; set; }
         public string FileName { get; set; }
         public string FileExtension { get; set; }
         public int ActionBy { get; set; }

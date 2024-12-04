@@ -5,8 +5,8 @@ namespace WhatsAppAPISolutionDL.Models
 {
     public partial class ConversationMessage
     {
-        public long MessageId { get; set; }
-        public long? ConversationId { get; set; }
+        public int MessageId { get; set; }
+        public int? ConversationId { get; set; }
         public int? TypeId { get; set; }
         public int? MessageTypeId { get; set; }
         public string MessageContent { get; set; }
@@ -16,5 +16,6 @@ namespace WhatsAppAPISolutionDL.Models
         public int? TemplateId { get; set; }
         public string WaId { get; set; }
         public string ContextWaId { get; set; }
+        public string PhoneNumber { get; set; }
     }
 }

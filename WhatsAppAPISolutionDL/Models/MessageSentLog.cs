@@ -5,15 +5,16 @@ namespace WhatsAppAPISolutionDL.Models
 {
     public partial class MessageSentLog
     {
-        public long Id { get; set; }
-        public long? ModuleId { get; set; }
-        public long? ParentId { get; set; }
+        public int Id { get; set; }
+        public int? ClientId { get; set; }
+        public int? SenderId { get; set; }
+        public int? ModuleId { get; set; }
+        public int? ParentId { get; set; }
         public int? TemplateId { get; set; }
         public string PhoneNumber { get; set; }
         public string WaId { get; set; }
         public string WaId2 { get; set; }
-        public int? ClientId { get; set; }
-        public int? SenderId { get; set; }
+        public int? CurrentStatus { get; set; }
         public DateTime? SentDate { get; set; }
         public int? SentStatus { get; set; }
         public string SentMessage { get; set; }
@@ -30,9 +31,9 @@ namespace WhatsAppAPISolutionDL.Models
         public string Category { get; set; }
         public decimal? EstPrice { get; set; }
         public decimal? Commission { get; set; }
-        public int? CurrentStatus { get; set; }
         public string FailedMessage { get; set; }
         public DateTime? FailedTime { get; set; }
         public DateTime? CreatedDate { get; set; }
+        public int? MediaId { get; set; }
     }
 }

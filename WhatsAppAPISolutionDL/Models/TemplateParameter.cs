@@ -5,8 +5,8 @@ namespace WhatsAppAPISolutionDL.Models
 {
     public partial class TemplateParameter
     {
-        public long ParamId { get; set; }
-        public long? TemplateId { get; set; }
+        public int ParamId { get; set; }
+        public int? TemplateId { get; set; }
         public int? ClientId { get; set; }
         public int? Sequence { get; set; }
         public string ParamName { get; set; }

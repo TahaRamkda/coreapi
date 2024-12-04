@@ -17,9 +17,9 @@ namespace WhatsAppAPISolutionDL.Dto
 
         public int ClientId { get; set; }
         public int UserId { get; set; }
-        public long TemplateId { get; set; }
+        public int TemplateId { get; set; }
         public int ModuleId { get; set; }
-        public long ParentId { get; set; }
+        public int ParentId { get; set; }
         public bool IsApiMessage { get; set; }
         public List<ParamData> Params { get; set; }
         public List<string> PhoneNumbers { get; set; }

@@ -2,9 +2,9 @@
 {
     public partial class UMessageSentLog
     {
-        public long Id { get; set; }
-        public long? ModuleId { get; set; }
-        public long? ParentId { get; set; }
+        public int Id { get; set; }
+        public int? ModuleId { get; set; }
+        public int? ParentId { get; set; }
         public string PhoneNumber { get; set; }
         public string WaId { get; set; }
         public string WaId2 { get; set; }
@@ -28,7 +28,7 @@
         public string CreatedDate { get; set; }
         public int CurrentStatus { get; set; }
         public string CurrentStatusName { get; set; }
-        public long? Line { get; set; }
+        public int? Line { get; set; }
         public int? TotalItems { get; set; }
     }
 }

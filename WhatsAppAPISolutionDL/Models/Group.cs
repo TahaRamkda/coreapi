@@ -5,8 +5,8 @@ namespace WhatsAppAPISolutionDL.Models
 {
     public partial class Group
     {
-        public long GroupId { get; set; }
-        public long? ClientId { get; set; }
+        public int GroupId { get; set; }
+        public int? ClientId { get; set; }
         public string GroupName { get; set; }
         public int? CreatedBy { get; set; }
         public DateTime? CreatedDate { get; set; }

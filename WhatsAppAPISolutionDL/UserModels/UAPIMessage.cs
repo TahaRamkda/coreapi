@@ -8,7 +8,7 @@ namespace WhatsAppAPISolutionDL.UserModels
 {
     public partial class UAPIMessage
     {
-        public long APIMessageId { get; set; }
+        public int APIMessageId { get; set; }
         public int? ClientId { get; set; }
         public int? SenderNameId { get; set; }
         public string TrxType { get; set; }
@@ -22,7 +22,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string? ScheduleTime { get; set; }
         public string? CreatedDate { get; set; }
         public int? CreatedBy { get; set; }
-        public long? Line { get; set; }
+        public int? Line { get; set; }
         public int? TotalItems { get; set; }
     }
 }

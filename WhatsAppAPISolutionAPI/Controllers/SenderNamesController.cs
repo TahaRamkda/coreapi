@@ -155,7 +155,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             }
 
             var response = (from a in _dbContext.SenderNames
-                            join b in _dbContext.Clients on (long)a.ClientId equals b.ClientId
+                            join b in _dbContext.Clients on a.ClientId equals b.ClientId
                             where a.ClientId == ClientId && a.SenderId == SenderNameId && a.RecordStatus != -1 && b.RecordStatus != -1
                             select new
                             {

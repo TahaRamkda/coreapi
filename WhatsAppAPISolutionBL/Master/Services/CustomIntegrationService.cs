@@ -75,7 +75,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
 
             //Get template id and sender id
-            long senderId = 0;
+            int senderId = 0;
             if (!String.IsNullOrWhiteSpace(templateName))
             {
                 var template = await _dbContext.Templates.Where(x => x.ClientId == ClientId && x.TemplateName == templateName).FirstOrDefaultAsync();

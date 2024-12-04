@@ -82,7 +82,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 // Check file size (20 MB = 20 * 1024 * 1024 bytes)
                 int maxFileSize = (_apiSolutionConfigurationSettings.Value.MaxFileSizeInMB == 0 ? 20 : _apiSolutionConfigurationSettings.Value.MaxFileSizeInMB);
-                long maxFileLength = maxFileSize * 1024 * 1024; // 20 MB
+                int maxFileLength = maxFileSize * 1024 * 1024; // 20 MB
 
                 if (model.File.Length > maxFileLength)
                 {
@@ -125,7 +125,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     SenderNameId = model.SenderNameId,
                     ClientId = model.ClientId,
                     FileName = Path.GetFileName(filePath),
-                    FileSize = model.File.Length,
+                    FileSize = (int)model.File.Length,
                     FileExtension = fileExtension,
                     ContentType = model.File.ContentType,
                     MediaPath = fileUrlForDB,
@@ -163,7 +163,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             {
                                 var updateDto = new MediaUploadDto
                                 {
-                                    Id = Convert.ToInt64(mediaResult[0].id),
+                                    Id = Convert.ToInt32(mediaResult[0].id),
                                     MediaId = mediaResult[0].mediaId
                                 };
 
@@ -238,7 +238,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         /// <param name="senderName"></param>
         /// <param name="mediaId"></param>
         /// <returns></returns>
-        public async Task<long> DownloadWhatsAppMediaToLocal(Client client, SenderName senderName, string mediaId)
+        public async Task<int> DownloadWhatsAppMediaToLocal(Client client, SenderName senderName, string mediaId)
         {
             try
             {
@@ -284,8 +284,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         string absoluteFilePath = _apiSolutionConfigurationSettings.Value.StaticFolderPath;
                         var media = await AddMediaAsync(new MediaUploadDto
                         {
-                            ClientId = Convert.ToInt32(client.ClientId),
-                            SenderNameId = Convert.ToInt32(senderName.SenderId),
+                            ClientId = client.ClientId,
+                            SenderNameId = senderName.SenderId,
                             ContentType = mediaResult.mime_type,
                             FileExtension = Path.GetExtension(localFilePath),
                             FileName = Path.GetFileName(localFilePath),

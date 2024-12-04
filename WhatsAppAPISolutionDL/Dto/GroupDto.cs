@@ -9,7 +9,7 @@ namespace WhatsAppAPISolutionDL.Dto
     public partial class GroupDto
     {
         public int GroupId { get; set; }
-        public long ClientId { get; set; }
+        public int ClientId { get; set; }
         public string GroupName { get; set; }
         public int? ActionBy { get; set; }
     }

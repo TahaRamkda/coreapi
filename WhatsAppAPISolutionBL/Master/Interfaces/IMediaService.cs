@@ -11,6 +11,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> UploadMediaAsync(MediaFileDto media);
         Task<UResponseWithID> UpdateMediaAsync(MediaUploadDto media);
         Task<UResponseWithID> DeleteMediaAsync(int Id);
-        Task<long> DownloadWhatsAppMediaToLocal(Client client, SenderName senderName, string mediaId);
+        Task<int> DownloadWhatsAppMediaToLocal(Client client, SenderName senderName, string mediaId);
     }
 }

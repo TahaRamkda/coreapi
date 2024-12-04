@@ -5,7 +5,7 @@ namespace WhatsAppAPISolutionDL.Models
 {
     public partial class Apimessage
     {
-        public long ApimessageId { get; set; }
+        public int ApimessageId { get; set; }
         public int? ClientId { get; set; }
         public int? SenderNameId { get; set; }
         public string TrxType { get; set; }

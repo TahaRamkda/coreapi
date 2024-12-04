@@ -15,13 +15,13 @@ namespace WhatsAppAPISolutionDL.Dto
         }
 
         public int? ClientId { get; set; }
-        public long RoleId { get; set; }
+        public int RoleId { get; set; }
         public int? ActionBy { get; set; }
         public List<PermissionDetails> Permissions { get; set; }
     }
     public partial class PermissionDetails
     {
-        public long PermissionTaskId { get; set; }
+        public int PermissionTaskId { get; set; }
         public bool? CanView { get; set; }
         public bool? CanCreate { get; set; }
         public bool? CanUpdate { get; set; }
