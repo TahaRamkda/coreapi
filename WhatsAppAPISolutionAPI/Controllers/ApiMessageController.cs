@@ -11,11 +11,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class ApiMessageController : ControllerBase
     {
         private readonly WhatsAppSolutionContext _dbContext;
-        private readonly ILogger<MessageController> _logger;
+        private readonly ILogger<ApiMessageController> _logger;
         private readonly IAPIMessageService _aPIMessageService;
 
         public ApiMessageController(WhatsAppSolutionContext dbContext,
-            ILogger<MessageController> logger,
+            ILogger<ApiMessageController> logger,
             IAPIMessageService aPIMessageService)
         {
             _dbContext = dbContext;

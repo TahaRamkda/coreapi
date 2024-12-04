@@ -44,6 +44,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             try
             {
+                _logger.LogInformation("Calling function TemplateSync");
                 _logger.LogInformation("Recieved Template Sync response from bridge with template data={data}", JsonConvert.SerializeObject(templateData));
 
                 var data = System.Text.Json.JsonSerializer.Serialize(templateData);
@@ -87,7 +88,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                         var response = await _templateService.UpdateTemplateStatusByIdAsync(tempDto);
                         if (response == null || response.Status <= 0)
                         {
-                            _logger.LogInformation("Recieved Template Sync response from bridge but unable to update template status in our database with id={id}", tempParam.Id);
+                            _logger.LogError("Recieved Template Sync response from bridge but unable to update template status in our database with id={id} and error = {error}", tempParam.Id, JsonConvert.SerializeObject(response?.Message));
                             return Ok(new ApiResult
                             {
                                 Success = false,
@@ -95,6 +96,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                                 Message = response?.Message
                             });
                         }
+                        _logger.LogInformation("Recieved Template Sync response from bridge and updated in our database with response={response}", JsonConvert.SerializeObject(response));
                         return Ok(new ApiResult
                         {
                             Success = true,
@@ -103,7 +105,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                         });
                     }
                 }
-                _logger.LogError("Recieved Template Sync response from bridge with errors data={data}", JsonConvert.SerializeObject(templateData));
+                _logger.LogError("Recieved Template Sync response from bridge with errors = {error}", JsonConvert.SerializeObject(templateData));
                 return Ok(new ApiResult
                 {
                     Success = false,
@@ -112,6 +114,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError("Exception occurred {exception} when executing function TemplateSync with item {item}", ex, JsonConvert.SerializeObject(templateData));
                 return BadRequest(ex.Message);
             }
         }
@@ -123,7 +126,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("whatsappmessagestatusupdate")]
         public async Task<IActionResult> WhatsAppMessageStatusUpdate([FromBody] WhatsAppMessageStatusUpdateDto messageStatus)
         {
-            _logger.LogInformation("Calling api WhatsAppMessageStatusUpdate with data={messageStatus}", JsonConvert.SerializeObject(messageStatus));
+            _logger.LogInformation("Calling function WhatsAppMessageStatusUpdate with data={messageStatus}", JsonConvert.SerializeObject(messageStatus));
 
             if (messageStatus == null)
             {
@@ -151,10 +154,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("whatsappmessagereceive")]
         public async Task<IActionResult> WhatsAppMessageReceive([FromBody] WhatsAppMessageReceiveDto messageReceive)
         {
+            _logger.LogInformation("Calling function WhatsAppMessageReceive with data={messageStatus}", JsonConvert.SerializeObject(messageReceive));
+
             if (messageReceive == null)
                 return BadRequest();
 
             var response = await _messageService.AddMessageReceivedLogAsync(messageReceive);
+
+            _logger.LogInformation("Recieved Add Message response from database with response={response}", JsonConvert.SerializeObject(response));
 
             return Ok(new ApiResult
             {

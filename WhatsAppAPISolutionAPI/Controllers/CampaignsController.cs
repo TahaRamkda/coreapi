@@ -46,7 +46,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getcampaignlist")]
         public async Task<ActionResult> GetCampaignListAsync(int ClientId, int CampaignId = 0, DateTime? FromDate = null, DateTime? ToDate = null, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue, int SenderId = 0)
         {
+            _logger.LogInformation("Calling function GetCampaignListAsync request with ClientId={ClientId}, CampaignId={CampaignId}, FromDate={FromDate}, ToDate={ToDate}, SearchStr={SearchStr}, SortBy={SortBy}, PageNo={PageNo}, PageSize={PageSize}",
+            ClientId, CampaignId, FromDate, ToDate, SearchStr, SortBy, PageNo, PageSize);
+
             var res = await _campaignService.GetCampaignListAsync(ClientId, CampaignId, FromDate, ToDate, SearchStr, SortBy, PageNo, PageSize, SenderId);
+
+            _logger.LogInformation("Recieved GetCampaignListAsync response with data={data}", JsonConvert.SerializeObject(res));
+
             return Ok(new ApiResult
             {
                 Success = true,
@@ -58,6 +64,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getcampaignbyid")]
         public ActionResult GetCampaignByIdAsync(int Id)
         {
+            _logger.LogInformation("Calling function GetCampaignByIdAsync request with id={id}", Id);
+
             if (Id <= 0)
             {
                 return NotFound("not found");
@@ -67,6 +75,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             if (response == null)
             {
+                _logger.LogInformation("Recieved GetCampaignByIdAsync without any response - no record found with id={id}", Id);
+
                 return Ok(new ApiResult
                 {
                     Success = false,
@@ -74,6 +84,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = "No record found with this id"
                 });
             }
+
+            _logger.LogInformation("Recieved response from GetCampaignByIdAsync with id={id} and response = {response}", Id, JsonConvert.SerializeObject(response));
 
             return Ok(new ApiResult
             {
@@ -86,6 +98,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("addcampaign")]
         public async Task<IActionResult> AddCampaignAsync([FromBody] CampaignDto campaign)
         {
+            _logger.LogInformation("Calling function AddCampaignAsync with request = {request}", JsonConvert.SerializeObject(campaign));
+
             if (campaign == null)
             {
                 return BadRequest();
@@ -94,6 +108,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
             var response = await _campaignService.AddCampaignAsync(campaign);
             if (response == null || response.Status <= 0)
             {
+                _logger.LogError("Recieved response from AddCampaignAsync with error = {error}", JsonConvert.SerializeObject(response?.Message));
+
                 return Ok(new ApiResult
                 {
                     Success = false,
@@ -101,6 +117,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = response?.Message
                 });
             }
+
+            _logger.LogError("Recieved response from AddCampaignAsync with response = {response}", JsonConvert.SerializeObject(response));
+
             return Ok(new ApiResult
             {
                 Success = true,
@@ -112,6 +131,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("activatecampaign")]
         public async Task<IActionResult> ActivateCampaignAsync([FromBody] ActivateCampaignDto campaign)
         {
+            _logger.LogInformation("Calling function ActivateCampaignAsync with request = {request}", JsonConvert.SerializeObject(campaign));
+
             if (campaign == null)
             {
                 return BadRequest();
@@ -134,7 +155,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data added successfully"
             });
         }
-        
+
         [HttpPut("updatecampaign")]
         public async Task<IActionResult> UpdateCampaignAsync([FromBody] CampaignDto campaign)
         {
@@ -160,7 +181,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data added successfully"
             });
         }
-        
+
         [HttpPost("settlecampaign")]
         public async Task<IActionResult> SettleCampaignAsync(int ClientId, int CampaignId)
         {
