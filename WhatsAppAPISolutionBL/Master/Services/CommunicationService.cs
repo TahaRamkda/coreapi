@@ -111,7 +111,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 sendMessage.Components.Add(headerComponents);
             }
-            
+
 
             if (templateDetails.BodyParamCount > 0)
             {
@@ -276,7 +276,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 var media = await _dbContext.Medias.Where(x => x.Id == model.MediaId && x.RecordStatus != -1).FirstOrDefaultAsync();
                 if (media != null)
-                    mediaId = media.MediaId;
+                {
+                    var mediaPath = String.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, media.MediaPath);
+                    mediaId = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath;
+                }
                 else
                     return new UResponse
                     {
@@ -370,5 +373,141 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
         }
 
+        public async Task<UResponse> SendInteractiveMessageAsync(UMessageReceived model, int clientId, string phoneNumber)
+        {
+            var templateDetails = await _templateService.GetTemplateDetailsAsync(clientId, (long)model.ActionId);
+            if (templateDetails == null)
+                return new UResponse
+                {
+                    Status = 0,
+                    Message = "Template not found or deleted"
+                };
+
+            var headerType = (TemplateHeaderEnum)templateDetails.HeaderType;
+
+            //In interactive button is required, if not available send normal message
+            if (templateDetails.ButtonValues == null || !templateDetails.ButtonValues.Any()
+                && !String.IsNullOrWhiteSpace(templateDetails.BodyText))
+            {
+                return await SendMessageAsync(new SendMessageRequestDto
+                {
+                    ClientId = clientId,
+                    SenderId = Convert.ToInt32(templateDetails.SenderId),
+                    MediaId = Convert.ToInt32(templateDetails.MediaId),
+                    Type = (int)headerType,
+                    Message = templateDetails.BodyText,
+                    FileName = templateDetails.FileName,
+                    PhoneNumbers = new List<string> { phoneNumber }.TrimPhoneNumbers()
+                });
+            }
+
+            var sendMessage = new SendInteractiveMessageRequestDto
+            {
+                ClientId = templateDetails.ClientId.ToString(),
+                SenderNameId = templateDetails.SenderId.ToString(),
+                PhoneNumbers = new List<string> { phoneNumber }.TrimPhoneNumbers()
+            };
+
+            if (headerType == TemplateHeaderEnum.TEXT)
+            {
+                sendMessage.Header = new SendInteractiveMessageRequestDto.HeaderDto
+                {
+                    Format = headerType.ToString(),
+                    Value = templateDetails.HeaderText
+                };
+            }
+            else if (headerType == TemplateHeaderEnum.IMAGE
+                || headerType == TemplateHeaderEnum.DOCUMENT
+                || headerType == TemplateHeaderEnum.VIDEO)
+            {
+                var media = _dbContext.Medias.Find(templateDetails.MediaId);
+                if (media != null)
+                {
+                    var mediaPath = String.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, media.MediaPath);
+                    sendMessage.Header = new SendInteractiveMessageRequestDto.HeaderDto
+                    {
+                        Format = headerType.ToString(),
+                        Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath
+                    };
+                }
+            }
+
+            if (!String.IsNullOrWhiteSpace(templateDetails.BodyText))
+            {
+                sendMessage.Body = new SendInteractiveMessageRequestDto.BodyDto
+                {
+                    Text = templateDetails.BodyText.Trim()
+                };
+            }
+
+            if (templateDetails.ButtonValues.Any())
+            {
+                sendMessage.Buttons = new List<SendInteractiveMessageRequestDto.ButtonDto>();
+                for (int i = 0; i < templateDetails.ButtonValues.Count; i++)
+                {
+                    var button = templateDetails.ButtonValues[i];
+
+                    sendMessage.Buttons.Add(new SendInteractiveMessageRequestDto.ButtonDto
+                    {
+                        Id = !String.IsNullOrWhiteSpace(button.ButtonId) ? button.ButtonId : $"button_{i}",
+                        Text = button.Text,
+                        Type = ((ButtonTypeEnum)button.Type).ToString(),
+                        Url = button.Url
+                    });
+                }
+            }
+
+            var request = JsonConvert.SerializeObject(sendMessage);
+            var res = new StringContent(request, Encoding.UTF8, "application/json");
+            var response1 = await _httpClient.PostAsync($"/api/Message/SendInteractiveMessage", res);
+            var content = await response1.Content.ReadAsStringAsync();
+
+            var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
+            if (result != null && result.success)
+            {
+                var data = System.Text.Json.JsonSerializer.Serialize(result.result);
+                var tempResult = JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
+                if (tempResult != null)
+                {
+                    foreach (var item in tempResult)
+                    {
+                        var message = new InsertMessageDto
+                        {
+                            client_Id = clientId,
+                            wam_Id = item.waId,
+                            recipient_Id = item.phoneNumber,
+                            status = item.success ? MessageStatusEnum.SENT : MessageStatusEnum.FAILED,
+                            module_Id = model.ModuleId.HasValue ? model.ModuleId.Value : 0,
+                            template_Id = model.ActionId.HasValue ? model.ActionId.Value : 0,
+                            parent_Id = 0
+                        };
+
+                        if (item.errors != null && item.errors.Any())
+                        {
+                            message.error = new InsertMessageDto.Error
+                            {
+                                error_Details = String.Join(',', item.errors)
+                            };
+                        }
+
+                        await _messageSentLogsService.AddMessageSentLogAsync(message);
+                    }
+                }
+            }
+            else if (result != null && !result.success)
+            {
+                return new UResponse
+                {
+                    Status = 0,
+                    Message = result.message
+                };
+            }
+
+            return new UResponse
+            {
+                Status = 1,
+                Message = "Message Sent Successfully"
+            };
+        }
     }
 }

@@ -606,13 +606,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             {
                                 var buttonValue = new ButtonValue()
                                 {
+                                    ButtonId = item.ButtonId,
                                     Type = item.ButtonType,
                                     Text = item.ParamName,
                                     PhoneNumber = item.ParamDefaultValue,
-                                    Url = item.ParamName,
+                                    Url = item.ParamDefaultValue,
                                     IsDynamic = item.IsDynamic,
                                     Sequence = item.Sequence
                                 };
+
                                 buttonValue.Values.Value = item.ParamDefaultValue;
                                 pDetails.ButtonValues.Add(buttonValue);
                             }

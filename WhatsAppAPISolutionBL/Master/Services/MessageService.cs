@@ -145,6 +145,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (response != null & response.Any())
             {
                 _logger.LogInformation("Message Received Log DB call response: {response}", JsonConvert.SerializeObject(response[0]));
+                var action = response[0];
+                if (action.ActionType > 0 && action.ActionId > 0)
+                {
+                    var template = await _dbContext.Templates.FindAsync(Convert.ToInt64(action.ActionId));
+                    if (template != null && template.TransactionType == 2)
+                    {
+                        await _communicationService.SendInteractiveMessageAsync(action, Convert.ToInt32(template.ClientId), messageReceive.from);
+                    }
+                }
             }
 
             return response != null && response.Any() ? response[0] : null;
