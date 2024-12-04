@@ -422,6 +422,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 };
             }
 
+            if (!String.IsNullOrWhiteSpace(templateDetails.FooterText))
+            {
+                sendMessage.Footer = new SendInteractiveMessageRequestDto.FooterDto
+                {
+                    Text = templateDetails.FooterText.Trim()
+                };
+            }
+
             if (templateDetails.ButtonValues.Any())
             {
                 sendMessage.Buttons = new List<SendInteractiveMessageRequestDto.ButtonDto>();
