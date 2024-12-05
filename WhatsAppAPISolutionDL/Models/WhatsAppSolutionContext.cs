@@ -16,6 +16,8 @@ namespace WhatsAppAPISolutionDL.Models
         {
         }
 
+        public virtual DbSet<Agent> Agents { get; set; }
+        public virtual DbSet<AgentSenderMap> AgentSenderMaps { get; set; }
         public virtual DbSet<Apimessage> Apimessages { get; set; }
         public virtual DbSet<Campaign> Campaigns { get; set; }
         public virtual DbSet<CampaignContact> CampaignContacts { get; set; }
@@ -56,6 +58,30 @@ namespace WhatsAppAPISolutionDL.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Agent>(entity =>
+            {
+                entity.Property(e => e.AgentFname)
+                    .HasMaxLength(50)
+                    .HasColumnName("AgentFName");
+
+                entity.Property(e => e.AgentLname)
+                    .HasMaxLength(50)
+                    .HasColumnName("AgentLName");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.LastOnline).HasColumnType("datetime");
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<AgentSenderMap>(entity =>
+            {
+                entity.ToTable("AgentSenderMap");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            });
+
             modelBuilder.Entity<Apimessage>(entity =>
             {
                 entity.ToTable("APIMessages");

@@ -9,9 +9,9 @@ namespace WhatsAppAPISolutionDL.Models
         public string PhoneNumber { get; set; }
         public string BlockType { get; set; }
         public int? ClientId { get; set; }
+        public int? SenderId { get; set; }
         public int? ParentId { get; set; }
         public int? TemplateId { get; set; }
         public DateTime? CreatedDate { get; set; }
-        public int? SenderId { get; set; }
     }
 }

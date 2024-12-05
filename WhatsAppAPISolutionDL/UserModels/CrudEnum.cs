@@ -40,6 +40,7 @@
         GetPurchaseHeader = 6,
         GetQuotationHeader = 6,
         UpdateTemplateStatus = 6,
+        SetAgentStatus = 6,
 
         CancelOrder = 7,
         SettleDistributorPurchaseWithAmount = 7,
