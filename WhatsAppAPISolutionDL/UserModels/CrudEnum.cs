@@ -19,6 +19,7 @@
 
         List = 4,
 
+
         JoinedDate = 5,
         AddBalance = 5,
         UsersList = 5,
@@ -34,13 +35,14 @@
         BulkContact = 5,
         GetTemplateDetails = 5,
         SettleCampaign = 5,
-
+        AgentConversationList = 5,
 
         AddUserToken = 6,
         GetPurchaseHeader = 6,
         GetQuotationHeader = 6,
         UpdateTemplateStatus = 6,
         SetAgentStatus = 6,
+        ConversationListByConversation = 6,
 
         CancelOrder = 7,
         SettleDistributorPurchaseWithAmount = 7,

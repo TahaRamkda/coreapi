@@ -54,6 +54,7 @@ builder.Services.AddScoped<IAPIMessageService, APIMessageService>();
 builder.Services.AddScoped<IMessageSentLogsService, MessageSentLogsService>();
 builder.Services.AddScoped<ICommunicationService, CommunicationService>();
 builder.Services.AddScoped<IAgentsService, AgentsService>();
+builder.Services.AddScoped<IConversationService, ConversationService>();
 
 builder.Services.AddDbContext<WhatsAppSolutionContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("WhatsAppAPISolutionDataBase")));
 builder.Services.AddDbContext<WhatsAppSolutionContext2>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("WhatsAppAPISolutionDataBase")));
