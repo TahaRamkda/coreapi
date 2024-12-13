@@ -141,10 +141,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
-        [HttpPost("setstatus")]
-        public async Task<IActionResult> SetAgentStatusAsync(int Id, int Status)
+        [HttpPost("setagentstatus")]
+        public async Task<IActionResult> SetAgentStatusAsync(int id, int status)
         {
-            var response = await _agentsService.SetAgentStatusAsync(Id, Status);
+            var response = await _agentsService.SetAgentStatusAsync(id, status);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult

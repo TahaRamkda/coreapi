@@ -8,6 +8,7 @@
         public string from { get; set; }
         public string type { get; set; } 
         public PhoneNumber phone_number_Id { get; set; }
+        public Contact contact { get; set; }
 
         public Context context { get; set; }
         public Button button { get; set; }
@@ -24,6 +25,11 @@
         {
             public string display_phone_number { get; set; }
             public string phone_number_id { get; set; }
+        }
+        public class Contact
+        {
+            public string wa_id { get; set; }
+            public string name { get; set; }
         }
 
         public class Context

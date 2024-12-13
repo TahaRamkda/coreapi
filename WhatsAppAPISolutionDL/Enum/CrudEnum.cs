@@ -1,4 +1,4 @@
-﻿namespace WhatsAppAPISolutionDL.Models
+﻿namespace WhatsAppAPISolutionDL.Enum
 {
     public enum CrudEnum
     {
@@ -48,8 +48,10 @@
         SettleDistributorPurchaseWithAmount = 7,
         UpdateQuotationStatus = 7,
         GetTemplateParameterDetails = 7,
+        AddConversationToQueue = 7,
 
         PurchaseReturn = 8,
+        TransferConversationToAgent = 8,
 
         GetAllLoanTransactions = 10,
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 
@@ -45,10 +46,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response[0];
         }
-        public async Task<UResponse> SetAgentStatusAsync(int Id, int Status)
+        public async Task<UResponse> SetAgentStatusAsync(int id, int status)
         {
-            var query = string.Format(@"exec usp_Agents_Ops @ActionId={0}, @Id={1}, @Status={2}", (int)CrudEnum.SetAgentStatus, Id, Status);
-            var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.SetAgentStatus}, @Id={id}, @Status={status}").ToListAsync();
 
             return response[0];
         }

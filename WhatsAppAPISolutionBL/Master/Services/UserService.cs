@@ -7,6 +7,7 @@ using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using WhatsAppAPISolutionDL.Enum;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -83,7 +84,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> AddUserTokenAsync(UserDto user)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.AddUserToken}, @ClientId={user.ClientId}, @UserId={user.UserId}, @AccessToken={user.AccessToken}, @RefreshToken={user.RefreshToken}, @RefreshTokenExpiry={user.RefreshTokenExpiry}").ToListAsync();
+            var query = string.Format(@"exec usp_Users_Ops @ActionId={0}, @ClientId={1}, @UserId={2}, @AccessToken='{3}', @RefreshToken='{4}', @RefreshTokenExpiry='{5}'", (int)CrudEnum.AddUserToken, user.ClientId, user.UserId, user.AccessToken, user.RefreshToken, user.RefreshTokenExpiry);
+            var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
 
             return response[0];
         }

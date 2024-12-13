@@ -1,4 +1,4 @@
-﻿using WhatsAppAPISolutionDL.UserModels;
+﻿using WhatsAppAPISolutionDL.Enum;
 
 namespace WhatsAppAPISolutionDL.Dto
 {

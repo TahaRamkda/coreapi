@@ -489,7 +489,7 @@ namespace WhatsAppAPISolutionDL.Models
 
             modelBuilder.Entity<Template>(entity =>
             {
-                entity.Property(e => e.BodyText).HasMaxLength(250);
+                entity.Property(e => e.BodyText).HasMaxLength(500);
 
                 entity.Property(e => e.Category).HasMaxLength(50);
 

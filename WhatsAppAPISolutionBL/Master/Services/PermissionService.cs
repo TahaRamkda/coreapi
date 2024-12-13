@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
-using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 using System;
 using System.Collections.Generic;
@@ -11,6 +10,7 @@ using System.Security;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using WhatsAppAPISolutionDL.Enum;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {

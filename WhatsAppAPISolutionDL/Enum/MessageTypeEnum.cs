@@ -1,4 +1,4 @@
-﻿namespace WhatsAppAPISolutionDL.UserModels
+﻿namespace WhatsAppAPISolutionDL.Enum
 {
     public enum MessageTypeEnum
     {

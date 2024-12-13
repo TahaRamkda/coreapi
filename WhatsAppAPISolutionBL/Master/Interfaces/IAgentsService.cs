@@ -15,6 +15,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         public Task<UResponse> AddAgentAsync(AgentDto agent);
         public Task<UResponse> UpdateAgentAsync(AgentDto agent);
         public Task<UResponse> DeleteAgentAsync(int AgentId);
-        public Task<UResponse> SetAgentStatusAsync(int Id, int Status);
+        public Task<UResponse> SetAgentStatusAsync(int id, int status);
     }
 }

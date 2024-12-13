@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System.Drawing;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 
@@ -85,61 +86,61 @@ namespace WhatsAppAPISolutionBL.Master.Services
             string messageText = String.Empty;
             int mediaId = 0;
             messageReceive.type = messageReceive.type.ToUpper();
+            string fullName = messageReceive.contact != null ? messageReceive.contact.name : String.Empty;
 
             if (messageReceive.type == MessageReceiveTypeEnum.BUTTON.ToString())
             {
-                messageType = Convert.ToInt32(MessageReceiveTypeEnum.BUTTON);
-                messageText = messageReceive.button.payload;
+                messageType = 1; // Convert.ToInt32(MessageReceiveTypeEnum.BUTTON);
+                messageText = messageReceive.button.payload ?? "";
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.TEXT.ToString())
             {
-                messageType = Convert.ToInt32(MessageReceiveTypeEnum.TEXT);
-                messageText = messageReceive.text.body;
+                messageType = 1; //Convert.ToInt32(MessageReceiveTypeEnum.TEXT);
+                messageText = messageReceive.text.body ?? "";
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.IMAGE.ToString())
             {
-                messageType = Convert.ToInt32(MessageReceiveTypeEnum.IMAGE);
+                messageType = 2; // Convert.ToInt32(MessageReceiveTypeEnum.IMAGE);
                 mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.image.id);
-                messageText = messageReceive.image.caption;
+                messageText = messageReceive.image.caption ?? "";
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.VIDEO.ToString())
             {
-                messageType = Convert.ToInt32(MessageReceiveTypeEnum.VIDEO);
+                messageType = 2; // Convert.ToInt32(MessageReceiveTypeEnum.VIDEO);
                 mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.video.id);
-                messageText = messageReceive.video.caption;
+                messageText = messageReceive.video.caption ?? "";
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.DOCUMENT.ToString())
             {
-                messageType = Convert.ToInt32(MessageReceiveTypeEnum.DOCUMENT);
+                messageType = 2; // Convert.ToInt32(MessageReceiveTypeEnum.DOCUMENT);
                 mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.document.id);
-                messageText = messageReceive.document.caption;
+                messageText = messageReceive.document.caption ?? "";
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.LOCATION.ToString())
             {
-                messageType = Convert.ToInt32(MessageReceiveTypeEnum.LOCATION);
+                messageType = 3;// Convert.ToInt32(MessageReceiveTypeEnum.LOCATION);
                 messageText = String.Concat(messageReceive.location.latitude, ",", messageReceive.location.longitude);
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.STICKER.ToString())
             {
-                messageType = Convert.ToInt32(MessageReceiveTypeEnum.STICKER);
+                messageType = 2; // Convert.ToInt32(MessageReceiveTypeEnum.STICKER);
                 mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.sticker.id);
-                messageText = messageReceive.sticker.caption;
+                messageText = messageReceive.sticker.caption ?? "";
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.INTERACTIVE.ToString())
             {
-                messageType = Convert.ToInt32(MessageReceiveTypeEnum.INTERACTIVE);
-
+                messageType = 1; // Convert.ToInt32(MessageReceiveTypeEnum.INTERACTIVE);
                 if (messageReceive.buttonReply != null)
                 {
-                    messageText = messageReceive.buttonReply.title;
+                    messageText = messageReceive.buttonReply.title ?? "";
                 }
                 else if (messageReceive.listReply != null)
                 {
-                    messageText = messageReceive.listReply.title;
+                    messageText = messageReceive.listReply.title ?? "";
                 }
             }
 
-            var response = await _dbContext2.UMessageReceiveds.FromSqlInterpolated($"exec usp_MessageReceivedLogs_ops @ClientId={messageReceive.client_Id}, @SenderId={senderName?.SenderId}, @WaId={messageReceive.wam_Id}, @ContextWaId={messageReceive.context?.wam_Id}, @PhoneNumber={messageReceive.from}, @ResponseType={messageType}, @ResponseText={messageText}, @MediaId={mediaId}").ToListAsync();
+            var response = await _dbContext2.UMessageReceiveds.FromSqlInterpolated($"exec usp_MessageReceivedLogs_ops @ClientId={messageReceive.client_Id}, @SenderId={senderName?.SenderId}, @WaId={messageReceive.wam_Id}, @ContextWaId={messageReceive.context?.wam_Id},@Name={fullName}, @PhoneNumber={messageReceive.from}, @ResponseType={messageType}, @ResponseText={messageText}, @MediaId={mediaId}").ToListAsync();
 
             //Central service call
             if (response != null & response.Any())

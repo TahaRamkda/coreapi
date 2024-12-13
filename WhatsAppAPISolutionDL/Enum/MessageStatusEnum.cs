@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WhatsAppAPISolutionDL.UserModels
+namespace WhatsAppAPISolutionDL.Enum
 {
     public enum MessageStatusEnum
     {

@@ -15,5 +15,6 @@
         public string FileExtension { get; set; }
         public string MediaPath { get; set; }
         public string CreatedDate { get; set; }
+        public long? Line { get; set; }
     }
 }
