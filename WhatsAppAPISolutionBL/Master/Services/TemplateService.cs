@@ -33,11 +33,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UTemplate>> GetTemplateListAsync(int ClientId, int TransactionType)
         {
-            var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @ClientId={1}, @TransactionType={2}", (int)CrudEnum.List, ClientId, TransactionType);
-            var response = await _dbContext2.Templates.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.Templates.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}, @TransactionType={TransactionType}").ToListAsync();
             return response;
         }
+
         public async Task<UResponseWithID> AddTemplateAsync(TemplateDto template)
         {
             int headerType = 0;
@@ -552,23 +551,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<UResponseWithID> DeleteTemplateAsync(int Id)
         {
-            var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @TemplatesId={1}", (int)CrudEnum.Delete, Id);
-            var response = await _dbContext2.ResponseWithID.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Delete}, @TemplatesId={Id}").ToListAsync();
             return response[0];
         }
         public async Task<UResponseWithID> UpdateTemplateStatusByIdAsync(TemplateDto template)
         {
-            var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @TemplatesId={1}, @TemplateId='{2}', @Status='{3}', @Category='{4}', @ActionBy={5}", (int)CrudEnum.UpdateTemplateStatus, template.Id, template.TemplateId, template.Status, template.Category, template.ActionBy);
-            var response = await _dbContext2.ResponseWithID.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.UpdateTemplateStatus}, @TemplatesId={template.Id}, @TemplateId={template.TemplateId}, @Status={template.Status}, @Category={template.Category}, @ActionBy={template.ActionBy}").ToListAsync();
             return response[0];
         }
+
         public async Task<UTemplateDetails> GetTemplateDetailsAsync(int client_Id, int template_Id = 0)
         {
             UTemplateDetails pDetails = null;
-            var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @ClientId={1}, @TemplatesId={2}", (int)CrudEnum.GetTemplateDetails, client_Id, template_Id);
-            var response = await _dbContext2.TemplateDetails.FromSqlRaw(query).ToListAsync();
+
+            var response = await _dbContext2.TemplateDetails.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetTemplateDetails}, @ClientId={client_Id}, @TemplatesId={template_Id}").ToListAsync();
             if (response != null && response.Any())
             {
                 pDetails = response[0];
@@ -629,9 +625,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UTemplateParameter>> GetTemplateParametersAsync(int client_Id, int template_Id = 0)
         {
-            var query = string.Format(@"exec usp_Templates_Ops @ActionId={0}, @ClientId={1}, @TemplatesId={2}", (int)CrudEnum.GetTemplateParameterDetails, client_Id, template_Id);
-            var response = await _dbContext2.TemplateParameters.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.TemplateParameters.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetTemplateParameterDetails}, @ClientId={client_Id}, @TemplatesId={template_Id}").ToListAsync();
             return response;
         }
     }

@@ -66,9 +66,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 category = messageStatus.pricing.category;
             }
 
-            var query = string.Format(@"exec usp_MessageSentLogs_StatusUpdate @ModuleId={0}, @ClientId={1}, @ParentId={2}, @SenderId={3}, @PhoneNumber='{4}', @WaId='{5}', @WaId2='{6}', @EventType={7}, @EventTime='{8}', @EventStatus={9}, @EventMessage='{10}', @PricingModel='{11}', @Billable={12}, @Category='{13}'", 0, messageStatus.client_Id, 0, senderId, messageStatus.recipient_Id, messageStatus.wam_Id, conversationId, eventType, messageStatus.update_dateTime, eventStatus, eventMessage, pricingModel, billable, category);
-            var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_MessageSentLogs_StatusUpdate @ModuleId={0}, @ClientId={messageStatus.client_Id}, @ParentId={0}, @SenderId={senderId}, @PhoneNumber={messageStatus.recipient_Id}, @WaId={messageStatus.wam_Id}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={messageStatus.update_dateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}").ToListAsync();
             return response[0];
         }
 

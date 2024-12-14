@@ -56,16 +56,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UMediaUpload>> GetMediaListAsync(int ClientId, int PageNo = 0, int PageSize = int.MaxValue)
         {
-            var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @ClientId={1}, @PageNo={2}, @PageSize={3}", (int)CrudEnum.List, ClientId, PageNo, PageSize);
-            var response = await _dbContext2.UMediaUploads.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.UMediaUploads.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}, @PageNo={PageNo}, @PageSize={PageSize}").ToListAsync();
             return response;
         }
+
         public async Task<UResponseWithID> AddMediaAsync(MediaUploadDto media)
         {
-            var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @ClientId={1}, @WhatsAppBusinessAccountId='{2}', @SenderNameId={3}, @MediaPath='{4}', @ContentType='{5}', @FileSize='{6}', @FileName='{7}', @FileExtension='{8}', @ActionBy={9}, @MediaId='{10}'", (int)CrudEnum.Add, media.ClientId, media.WhatsAppBusinessAccountId, media.SenderNameId, media.MediaPath, media.ContentType, media.FileSize, media.FileName, media.FileExtension, media.ActionBy, media.MediaId);
-            var response = await _dbContext2.ResponseWithID.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={media.ClientId}, @WhatsAppBusinessAccountId={media.WhatsAppBusinessAccountId}, @SenderNameId={media.SenderNameId}, @MediaPath={media.MediaPath}, @ContentType={media.ContentType}, @FileSize={media.FileSize}, @FileName={media.FileName}, @FileExtension={media.FileExtension}, @ActionBy={media.ActionBy}, @MediaId={media.MediaId}").ToListAsync();
             return response[0];
         }
 
@@ -218,17 +215,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponseWithID> UpdateMediaAsync(MediaUploadDto media)
         {
-            var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @Id={1}, @MediaId='{2}', @ActionBy={3}", (int)CrudEnum.Update, media.Id, media.MediaId, media.ActionBy);
-            var response = await _dbContext2.ResponseWithID.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Update}, @Id={media.Id}, @MediaId={media.MediaId}, @ActionBy={media.ActionBy}").ToListAsync();
             return response[0];
         }
 
         public async Task<UResponseWithID> DeleteMediaAsync(int Id)
         {
-            var query = string.Format(@"exec usp_Medias_Ops @ActionId={0}, @Id={1}", (int)CrudEnum.Delete, Id);
-            var response = await _dbContext2.ResponseWithID.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Delete}, @Id={Id}").ToListAsync();
             return response[0];
         }
 

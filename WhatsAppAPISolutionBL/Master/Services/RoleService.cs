@@ -27,30 +27,25 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<Role>> GetRoleListAsync(int ClientId)
         {
-            var query = string.Format(@"exec usp_Roles_Ops @ActionId={0}, @ClientId={1}", (int)CrudEnum.List, ClientId);
-            var response = await _dbContext.Roles.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext.Roles.FromSqlInterpolated($"exec usp_Roles_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}").ToListAsync();
             return response;
         }
+
         public async Task<UResponse> AddRoleAsync(RoleDto role)
         {
-            var query = string.Format(@"exec usp_Roles_Ops @ActionId={0}, @ClientId={1}, @RoleName='{2}', @ActionBy={3}", (int)CrudEnum.Add, role.ClientId, role.RoleName, role.ActionBy);
-            var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Roles_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={role.ClientId}, @RoleName={role.RoleName}, @ActionBy={role.ActionBy}").ToListAsync();
             return response[0];
         }
+
         public async Task<UResponse> UpdateRoleAsync(RoleDto role)
         {
-            var query = string.Format(@"exec usp_Roles_Ops @ActionId={0}, @ClientId={1}, @RoleId={2}, @RoleName='{3}', @ActionBy={4}", (int)CrudEnum.Update, role.ClientId, role.RoleId, role.RoleName, role.ActionBy);
-            var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Roles_Ops @ActionId={(int)CrudEnum.Update}, @ClientId={role.ClientId}, @RoleId={role.RoleId}, @RoleName={role.RoleName}, @ActionBy={role.ActionBy}").ToListAsync();
             return response[0];
         }
+
         public async Task<UResponse> DeleteRoleAsync(int RoleId)
         {
-            var query = string.Format(@"exec usp_Roles_Ops @ActionId={0}, @RoleId={1}", (int)CrudEnum.Delete, RoleId);
-            var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Roles_Ops @ActionId={(int)CrudEnum.Delete}, @RoleId={RoleId}").ToListAsync();
             return response[0];
         }
     }

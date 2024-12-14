@@ -22,18 +22,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UContact>> GetContactListAsync(int ClientId, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
         {
-            var query = string.Format(@"exec usp_Contacts_Ops @ActionId={0}, @ClientId={1}, @SearchStr='{2}', @SortBy={3}, @PageNo={4}, @PageSize={5}", (int)CrudEnum.List, ClientId, SearchStr, SortBy, PageNo, PageSize);
-            var response = await _dbContext2.Contacts.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.Contacts.FromSqlInterpolated($"exec usp_Contacts_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}, @SearchStr={SearchStr}, @SortBy={SortBy}, @PageNo={PageNo}, @PageSize={PageSize}").ToListAsync();
             return response;
         }
+
         public async Task<UResponse> AddContactAsync(ContactDto contact)
         {
-            var query = string.Format(@"exec usp_Contacts_Ops @ActionId={0}, @GroupId={1}, @FirstName='{2}', @LastName='{3}', @PhoneNumber='{4}', @EmailAddress='{5}', @AreaName='{6}', @ActionBy={7}", (int)CrudEnum.Add, contact.GroupId, contact.FirstName, contact.LastName, contact.PhoneNumber, contact.EmailAddress, contact.AreaName, contact.ActionBy);
-            var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Contacts_Ops @ActionId={(int)CrudEnum.Add}, @GroupId={contact.GroupId}, @FirstName={contact.FirstName}, @LastName={contact.LastName}, @PhoneNumber={contact.PhoneNumber}, @EmailAddress={contact.EmailAddress}, @AreaName={contact.AreaName}, @ActionBy={contact.ActionBy}").ToListAsync();
             return response[0];
         }
+
         public async Task<UResponse> AddBulkContactAsync(BulkContactDto contact)
         {
             if (contact == null) throw new ArgumentNullException(nameof(contact));
@@ -58,16 +56,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 };
 
             contact.ContactsInfo = contact.ContactsInfo
-    .Where(x => !string.IsNullOrWhiteSpace(x.PhoneNumber))
-    .Select(x => new ContactInfo
-    {
-        FirstName = x.FirstName,
-        LastName = x.LastName,
-        PhoneNumber = x.PhoneNumber.TrimPhoneNumbers(),
-        EmailAddress = x.EmailAddress,
-        AreaName = x.AreaName
-    })
-    .ToList();
+                .Where(x => !string.IsNullOrWhiteSpace(x.PhoneNumber))
+                .Select(x => new ContactInfo
+                {
+                    FirstName = x.FirstName,
+                    LastName = x.LastName,
+                    PhoneNumber = x.PhoneNumber.TrimPhoneNumbers(),
+                    EmailAddress = x.EmailAddress,
+                    AreaName = x.AreaName
+                }).ToList();
 
             var response = await InsertBulkContactAsync(contact);
             return response;
@@ -75,23 +72,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> UpdateContactAsync(ContactDto contact)
         {
-            var query = string.Format(@"exec usp_Contacts_Ops @ActionId={0}, @ContactId={1}, @GroupId={2}, @FirstName='{3}', @LastName='{4}', @PhoneNumber='{5}', @EmailAddress='{6}', @AreaName='{7}', @ActionBy={8}", (int)CrudEnum.Update, contact.ContactId, contact.GroupId, contact.FirstName, contact.LastName, contact.PhoneNumber, contact.EmailAddress, contact.AreaName, contact.ActionBy);
-            var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Contacts_Ops @ActionId={(int)CrudEnum.Update}, @ContactId={contact.ContactId}, @GroupId={contact.GroupId}, @FirstName={contact.FirstName}, @LastName={contact.LastName}, @PhoneNumber={contact.PhoneNumber}, @EmailAddress={contact.EmailAddress}, @AreaName={contact.AreaName}, @ActionBy={contact.ActionBy}").ToListAsync();
             return response[0];
         }
+
         public async Task<UResponse> DeleteContactAsync(int ContactId)
         {
-            var query = string.Format(@"exec usp_Contacts_Ops @ActionId={0}, @ContactId={1}", (int)CrudEnum.Delete, ContactId);
-            var response = await _dbContext2.Response.FromSqlRaw(query).ToListAsync();
-
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Contacts_Ops @ActionId={(int)CrudEnum.Delete}, @ContactId={ContactId}").ToListAsync();
             return response[0];
         }
+
         public async Task<UResponse> InsertBulkContactAsync(BulkContactDto contact)
         {
             var contactJson = JsonSerializer.Serialize(contact.ContactsInfo);
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Contacts_Ops  @ActionId={(int)CrudEnum.BulkContact}, @GroupId={contact.GroupId}, @ClientId={contact.ClientId}, @BulkContact={contactJson}, @ActionBy={contact.ActionBy}").ToListAsync();
-
             return response[0];
         }
     }
