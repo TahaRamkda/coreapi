@@ -24,7 +24,7 @@ namespace WhatsAppAPISolutionAPI.Security
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["Jwt:TokenExpiryTimeInMinutes"])),
+                expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Jwt:TokenExpiryTimeInMinutes"])),
                 signingCredentials: signinCredentials
             );
 

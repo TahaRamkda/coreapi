@@ -14,6 +14,7 @@ namespace WhatsAppAPISolutionDL.Models
         public string WaId { get; set; }
         public string ContextWaId { get; set; }
         public string PhoneNumber { get; set; }
+        public string Name { get; set; }
         public int? ReponseType { get; set; }
         public string ResponseText { get; set; }
         public int? MediaId { get; set; }

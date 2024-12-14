@@ -21,5 +21,7 @@ namespace WhatsAppAPISolutionDL.Models
         public DateTime? CreatedDate { get; set; }
         public int? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
+        public DateTime? ReadDate { get; set; }
+        public DateTime? DeliveredDate { get; set; }
     }
 }

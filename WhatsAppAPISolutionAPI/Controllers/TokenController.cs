@@ -93,7 +93,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             var username = principal.Identity.Name;
             var newAccessToken = _tokenService.GenerateAccessToken(principal.Claims);
             var newRefreshToken = _tokenService.GenerateRefreshToken();
-            var refreshTokenExpiryTime = DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["Jwt:TokenExpiryTimeInMinutes"]));
+            var refreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Jwt:TokenExpiryTimeInMinutes"]));
 
             var exist = await _context.Users.FirstOrDefaultAsync(x => x.UserName.ToLower() == username.ToLower() && x.RecordStatus != -1);
             if (exist == null)
@@ -142,7 +142,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 ClientId = data.ClientId,
                 AccessToken = "",
                 RefreshToken = "",
-                RefreshTokenExpiry = DateTime.Now
+                RefreshTokenExpiry = DateTime.UtcNow
             };
 
             var users = await _userService.AddUserTokenAsync(user);

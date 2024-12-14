@@ -54,7 +54,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
                 var accessToken = _tokenService.GenerateAccessToken(claims);
                 var refreshToken = _tokenService.GenerateRefreshToken();
-                var refreshTokenExpiryTime = DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["Jwt:TokenExpiryTimeInMinutes"]));
+                var refreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Jwt:TokenExpiryTimeInMinutes"]));
                 var user = new UserDto
                 {
                     UserId = res.UserId,
