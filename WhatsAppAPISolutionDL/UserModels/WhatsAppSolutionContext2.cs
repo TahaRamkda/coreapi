@@ -42,6 +42,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UMessageSentLog> MessageSentLogs { get; set; } = null!;
         public virtual DbSet<UMessageReceived> UMessageReceiveds { get; set; } = null!;
         public virtual DbSet<UAgent> Agents { get; set; } = null!;
+        public virtual DbSet<UAgentTiming> AgentTimings { get; set; } = null!;
         public virtual DbSet<UConversation> Conversations { get; set; } = null!;
         public virtual DbSet<UAgentConversationList> AgentConversationLists { get; set; } = null!;
         public virtual DbSet<UConversationListByConversation> ConversationListByConversations { get; set; } = null!;
@@ -69,6 +70,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UMessageSentLog>().HasNoKey();
             modelBuilder.Entity<UMessageReceived>().HasNoKey();
             modelBuilder.Entity<UAgent>().HasNoKey();
+            modelBuilder.Entity<UAgentTiming>().HasNoKey();
             modelBuilder.Entity<UConversation>().HasNoKey();
             modelBuilder.Entity<UAgentConversationList>().HasNoKey();
             modelBuilder.Entity<UConversationListByConversation>().HasNoKey();

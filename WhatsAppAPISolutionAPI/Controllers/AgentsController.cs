@@ -162,5 +162,40 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Status Updated successfully"
             });
         }
+
+        [HttpPost("addagenttimings")]
+        public async Task<IActionResult> AddAgentTimingsAsync(AgentTimingDto model)
+        {
+            var response = await _agentsService.AddAgentTimingsAsync(model);
+            if (response == null || response.Status <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Result = response,
+                    Message = response?.Message
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = response,
+                Message = "Data updated successfully"
+            });
+        }
+
+        [HttpGet("getagenttiminglist")]
+        public async Task<ActionResult> GetAgentTimingListAsync(int clientId, int agentId = 0)
+        {
+            var res = await _agentsService.GetAgentTimingListAsync(clientId, agentId);
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = res,
+                Message = "Data fetch successfully"
+            });
+        }
+
     }
 }

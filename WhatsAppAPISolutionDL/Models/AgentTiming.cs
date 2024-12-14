@@ -6,6 +6,7 @@ namespace WhatsAppAPISolutionDL.Models
     public partial class AgentTiming
     {
         public int Id { get; set; }
+        public int? ClientId { get; set; }
         public int? AgentId { get; set; }
         public int? WeekDay { get; set; }
         public string WeekDayName { get; set; }

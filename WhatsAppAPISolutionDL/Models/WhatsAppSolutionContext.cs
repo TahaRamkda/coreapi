@@ -88,8 +88,6 @@ namespace WhatsAppAPISolutionDL.Models
 
             modelBuilder.Entity<AgentTiming>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");

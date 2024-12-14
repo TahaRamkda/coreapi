@@ -1,4 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using System;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Enum;
@@ -42,6 +45,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.SetAgentStatus}, @Id={id}, @Status={status}").ToListAsync();
             return response[0];
+        }
+
+        public async Task<UResponse> AddAgentTimingsAsync(AgentTimingDto model)
+        {
+            var timings = JsonConvert.SerializeObject(model.Timings);
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec Usp_AgentTimings_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={model.ClientId}, @AgentId={model.AgentId}, @JsonData={timings}, @ActionBy={model.ActionBy}").ToListAsync();
+            return response[0];
+        }
+        public async Task<List<UAgentTiming>> GetAgentTimingListAsync(int clientId, int agentId)
+        {
+            var response = await _dbContext2.AgentTimings.FromSqlInterpolated($"exec Usp_AgentTimings_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @AgentId={agentId}").ToListAsync();
+            return response;
         }
     }
 }
