@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using WhatsAppAPISolutionAPI.Models;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
 
@@ -51,8 +48,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Result = response,
                     Message = response?.Message
                 });

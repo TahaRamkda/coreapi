@@ -5,6 +5,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface ICustomIntegrationService
     {
-        public Task<UResponse> SendSmsAsync(SendSmsDto sendSms, int ClientId, int UserId);
+        public Task<ApiResult> SendSmsAsync(SendSmsDto sendSms, int ClientId, int UserId);
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using WhatsAppAPISolutionAPI.Models;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
@@ -48,8 +47,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null)
             {
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Result = "",
                     Message = "No record found with this id"
                 });
@@ -75,8 +73,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Result = response,
                     Message = response?.Message
                 });
@@ -101,8 +98,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Result = response,
                     Message = response?.Message
                 });
@@ -125,8 +121,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                {  
                     Result = response,
                     Message = response?.Message
                 });
@@ -146,8 +141,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Result = response,
                     Message = response?.Message
                 });
@@ -168,8 +162,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Result = response,
                     Message = response?.Message
                 });

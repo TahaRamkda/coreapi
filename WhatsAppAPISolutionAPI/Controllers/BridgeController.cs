@@ -1,17 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Serilog.Events;
 using System.Text.Json;
-using WhatsAppAPISolutionAPI.Models;
-using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
-using WhatsAppAPISolutionDL.UserModels;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -70,8 +64,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                         {
                             _logger.LogInformation("Recieved Template Sync response from bridge but template not exist in our database with id={id}", tempParam.Id);
                             return Ok(new ApiResult
-                            {
-                                Success = false,
+                            { 
                                 Message = "Template id not exist"
                             });
                         }
@@ -90,8 +83,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                         {
                             _logger.LogError("Recieved Template Sync response from bridge but unable to update template status in our database with id={id} and error = {error}", tempParam.Id, JsonConvert.SerializeObject(response?.Message));
                             return Ok(new ApiResult
-                            {
-                                Success = false,
+                            { 
                                 Result = response,
                                 Message = response?.Message
                             });
@@ -107,8 +99,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 }
                 _logger.LogError("Recieved Template Sync response from bridge with errors = {error}", JsonConvert.SerializeObject(templateData));
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Message = "error in fetching template"
                 });
             }
@@ -137,8 +128,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Result = response,
                     Message = response?.Message
                 });

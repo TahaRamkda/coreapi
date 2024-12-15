@@ -1,4 +1,4 @@
-﻿namespace WhatsAppAPISolutionAPI.Models
+﻿namespace WhatsAppAPISolutionDL.Dto
 {
     public class ApiResult
     {
@@ -18,5 +18,13 @@
     {
         public string id { get; set; }
         public string mediaId { get; set; }
+    }
+
+    public class CustomIntegrationResult
+    {
+        public bool Sent { get; set; }
+        public string PhoneNumber { get; set; }
+        public string WaId { get; set; }
+        public string Errors { get; set; }
     }
 }

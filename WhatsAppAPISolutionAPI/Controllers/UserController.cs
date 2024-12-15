@@ -1,15 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WhatsAppAPISolutionAPI.Models;
+using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using WhatsAppAPISolutionAPI.Security;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionDL.Models;
-using WhatsAppAPISolutionDL.UserModels;
-using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
-using Azure;
 using WhatsAppAPISolutionDL.Dto;
-using Microsoft.EntityFrameworkCore;
+using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -77,11 +74,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = ""
                 });
             }
+
             return Ok(new ApiResult
             {
-                Success = false,
-                Result = "Username and password required",
-                Message = ""
+                Message = "Username and password required",
             });
         }
 
@@ -94,7 +90,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 return Ok(new ApiResult
                 {
-                    Success = false,
+
                     Result = "",
                     Message = "No record found with this id"
                 });
@@ -130,7 +126,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 return Ok(new ApiResult
                 {
-                    Success = false,
+
                     Result = response,
                     Message = response?.Message
                 });
@@ -156,7 +152,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 return Ok(new ApiResult
                 {
-                    Success = false,
+
                     Result = response,
                     Message = response?.Message
                 });
@@ -182,7 +178,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 return Ok(new ApiResult
                 {
-                    Success = false,
+
                     Result = response,
                     Message = response?.Message
                 });
@@ -208,7 +204,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 return Ok(new ApiResult
                 {
-                    Success = false,
+
                     Result = response,
                     Message = response?.Message
                 });

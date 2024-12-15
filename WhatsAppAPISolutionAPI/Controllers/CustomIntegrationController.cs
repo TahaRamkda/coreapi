@@ -25,7 +25,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger = logger;
             _userService = userService;
         }
-         
+
         [HttpGet("sendsms")]
         public async Task<IActionResult> GetSendSmsAsync([FromQuery] SendSmsDto sendSms)
         {
@@ -44,16 +44,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
             // Validation checks
             if (sendSms == null)
                 return Ok("error - Data required");
-            
+
             if (string.IsNullOrEmpty(sendSms.PhoneNumber))
                 return Ok("error - Phone number required");
-            
+
             if (string.IsNullOrEmpty(sendSms.TemplateName))
                 return Ok("error - Template name required");
-            
+
             if (string.IsNullOrEmpty(sendSms.Username))
                 return Ok("error - User name required");
-            
+
             if (string.IsNullOrEmpty(sendSms.Password))
                 return Ok("error - Password required");
 
@@ -65,10 +65,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             // Send SMS request
             var response = await _customIntegrationService.SendSmsAsync(sendSms, res.ClientId, (int)res.UserId);
-            if (response == null || response.Status <= 0)
-                return Ok($"error - {response?.Message}");
 
-            return Ok("success - Data added successfully");
+            return Ok(response);
         }
     }
 }

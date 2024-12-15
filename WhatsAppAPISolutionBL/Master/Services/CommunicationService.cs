@@ -40,13 +40,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
         }
 
-        public async Task<UResponse> SendTemplateMessageAsync(TemplateMessagePayloadDto templateMessage)
+        public async Task<ApiResult> SendTemplateMessageAsync(TemplateMessagePayloadDto templateMessage)
         {
             var templateDetails = await _templateService.GetTemplateDetailsAsync(templateMessage.ClientId, templateMessage.TemplateId);
             if (templateDetails == null)
-                return new UResponse
+                return new ApiResult
                 {
-                    Status = 0,
+                    StatusCode = 0,
                     Message = "Template not found or deleted"
                 };
 
@@ -79,9 +79,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     if (templateDetails.HeaderParamCount > 0 && string.IsNullOrEmpty(headerParam))
                     {
-                        return new UResponse
+                        return new ApiResult
                         {
-                            Status = 0,
+                            StatusCode = 0,
                             Message = $"error - HParam is required."
                         };
                     }
@@ -141,9 +141,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         if (string.IsNullOrEmpty(paramValue))
                         {
                             //throw new Exception($"Error: BParam{i + 1} is required when index is {i}.");
-                            return new UResponse
+                            return new ApiResult
                             {
-                                Status = 0,
+                                StatusCode = 0,
                                 Message = $"error - BParam{i + 1} is required when body parameter is greater than {i}."
                             };
                         }
@@ -193,9 +193,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             if (string.IsNullOrEmpty(paramValue))
                             {
                                 //throw new Exception($"Error: BtnParam{i + 1} is required when index is {i}.");
-                                return new UResponse
+                                return new ApiResult
                                 {
-                                    Status = 0,
+                                    StatusCode = 0,
                                     Message = $"error - BtnParam{i + 1} is required when button parameter is greater than {i}."
                                 };
                             }
@@ -220,6 +220,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var content = await response1.Content.ReadAsStringAsync();
 
             var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
+
+            List<CustomIntegrationResult> models = new List<CustomIntegrationResult>();
             if (result != null && result.success)
             {
                 var data = System.Text.Json.JsonSerializer.Serialize(result.result);
@@ -228,6 +230,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     foreach (var item in tempResult)
                     {
+                        var model = new CustomIntegrationResult
+                        {
+                            Sent = item.success,
+                            PhoneNumber = item.phoneNumber,
+                            WaId = item.waId
+                        };
+
                         var message = new InsertMessageDto
                         {
                             ClientId = templateMessage.ClientId,
@@ -241,29 +250,40 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                         if (item.errors != null && item.errors.Any())
                         {
+                            string errors = String.Join(',', item.errors);
                             message.Error = new InsertMessageDto.ErrorDto
                             {
-                                ErrorDetails = String.Join(',', item.errors)
+                                ErrorDetails = errors
                             };
+
+                            model.Errors = errors;
                         }
 
                         await _messageSentLogsService.AddMessageSentLogAsync(message);
+
+
+                        //Add result to custom integration result models
+                        models.Add(model);
                     }
                 }
             }
-            else if (result != null && !result.success)
+
+            //If custom integration models exist
+            if (models.Any())
             {
-                return new UResponse
+                return new ApiResult
                 {
-                    Status = 0,
-                    Message = result.message
+                    Success = true,
+                    StatusCode = 200,
+                    Result = models,
+                    Message = "Processed"
                 };
             }
 
-            return new UResponse
+            return new ApiResult
             {
-                Status = 1,
-                Message = "Message Sent Successfully"
+                StatusCode = 0,
+                Message = result.message
             };
         }
 

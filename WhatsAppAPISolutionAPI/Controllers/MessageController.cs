@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using WhatsAppAPISolutionAPI.Models;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Enum;
@@ -33,43 +32,37 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             if (sendMessage.ClientId <= 0)
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Message = "Please insert client Id"
                 });
 
             if (sendMessage.SenderId <= 0)
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Message = "Please insert sender Id"
                 });
 
             if (sendMessage.Type <= 0)
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Message = "Please insert type of message"
                 });
 
             if (sendMessage.Type == (int)MessageTypeEnum.TEXT && string.IsNullOrEmpty(sendMessage.Message))
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Message = "Please insert message text"
                 });
 
             if ((sendMessage.Type == (int)MessageTypeEnum.IMAGE || sendMessage.Type == (int)MessageTypeEnum.DOCUMENT) && sendMessage.MediaId <= 0)
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Message = "Please insert media id"
                 });
 
             if (!sendMessage.PhoneNumbers.Any())
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Message = "Please insert phone number(s)"
                 });
 
@@ -78,8 +71,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Result = response,
                     Message = response?.Message
                 });

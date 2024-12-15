@@ -1,20 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.PortableExecutable;
-using System.Text;
-using System.Threading.Tasks;
 using WhatsAppAPISolutionBL.Master.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
-using static WhatsAppAPISolutionDL.Dto.WhatsAppMessageStatusUpdateDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -49,7 +40,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _messageSentLogsService = messageSentLogsService;
         }
 
-        public async Task<UResponse> SendSmsAsync(SendSmsDto sendSms, int ClientId, int UserId)
+        public async Task<ApiResult> SendSmsAsync(SendSmsDto sendSms, int ClientId, int UserId)
         {
             sendSms.PhoneNumber = sendSms.PhoneNumber.TrimPhoneNumbers();
             var templateName = String.Empty;

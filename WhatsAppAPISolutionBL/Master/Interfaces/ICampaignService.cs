@@ -15,6 +15,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         public Task<UResponse> ActivateCampaignAsync(ActivateCampaignDto campaign);
         public Task<UResponse> UpdateCampaignAsync(CampaignDto campaign);
         public Task<UResponse> SettleCampaignAsync(int ClientId, int CampaignId);
-        public Task<UResponse> SendCampaignMessagesAsync(SendCampaignDto campaign);
+        public Task<ApiResult> SendCampaignMessagesAsync(SendCampaignDto campaign);
     }
 }

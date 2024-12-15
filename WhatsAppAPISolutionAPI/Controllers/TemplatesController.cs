@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using WhatsAppAPISolutionAPI.Models;
 using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
@@ -62,8 +61,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null)
             {
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Result = "",
                     Message = "No record found with this id"
                 });
@@ -86,35 +84,35 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (string.IsNullOrEmpty(template.Name))
                 return Ok(new ApiResult
                 {
-                    Success = false,
+                    
                     Message = "Please insert template name"
                 });
 
             if (template.ClientId <= 0)
                 return Ok(new ApiResult
                 {
-                    Success = false,
+                    
                     Message = "Please insert client Id"
                 });
 
             if (template.SenderNameId <= 0)
                 return Ok(new ApiResult
                 {
-                    Success = false,
+                    
                     Message = "Please insert sender Id"
                 });
 
             if (template.TransactionType <= 0)
                 return Ok(new ApiResult
                 {
-                    Success = false,
+                    
                     Message = "Please insert transaction type"
                 });
 
             if (template.Body == null || string.IsNullOrEmpty(template.Body.Text))
                 return Ok(new ApiResult
                 {
-                    Success = false,
+                    
                     Message = "Body text required"
                 });
 
@@ -123,7 +121,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 return Ok(new ApiResult
                 {
-                    Success = false,
+                    
                     Result = response,
                     Message = response?.Message
                 });
@@ -145,35 +143,35 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (string.IsNullOrEmpty(template.Name))
                 return Ok(new ApiResult
                 {
-                    Success = false,
+                    
                     Message = "Please insert template name"
                 });
 
             if (template.ClientId <= 0)
                 return Ok(new ApiResult
                 {
-                    Success = false,
+                    
                     Message = "Please insert client Id"
                 });
 
             if (template.SenderNameId <= 0)
                 return Ok(new ApiResult
                 {
-                    Success = false,
+                    
                     Message = "Please insert sender Id"
                 });
 
             if (template.TransactionType <= 0)
                 return Ok(new ApiResult
                 {
-                    Success = false,
+                    
                     Message = "Please insert transaction type"
                 });
 
             if (template.Body == null && string.IsNullOrEmpty(template.Body.Text))
                 return Ok(new ApiResult
                 {
-                    Success = false,
+                    
                     Message = "Body text required"
                 });
 
@@ -182,7 +180,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 return Ok(new ApiResult
                 {
-                    Success = false,
+                    
                     Result = response,
                     Message = response?.Message
                 });
@@ -208,7 +206,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 return Ok(new ApiResult
                 {
-                    Success = false,
+                    
                     Result = response,
                     Message = response?.Message
                 });
@@ -237,7 +235,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 {
                     return Ok(new ApiResult
                     {
-                        Success = false,
+                        
                         Message = "Incorrect template id"
                     });
                 }
@@ -264,14 +262,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     {
                         return Ok(new ApiResult
                         {
-                            Success = false,
+                            
                             Message = "Error in syncing template"
                         });
                     }
                 }
                 return Ok(new ApiResult
                 {
-                    Success = false,
+                    
                     Message = "Template not found"
                 });
             }

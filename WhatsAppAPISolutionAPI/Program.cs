@@ -8,7 +8,6 @@ using Serilog;
 using System.Text;
 using WhatsAppAPISolutionAPI.Helper;
 using WhatsAppAPISolutionAPI.Middleware;
-using WhatsAppAPISolutionAPI.Models;
 using WhatsAppAPISolutionAPI.Security;
 using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;

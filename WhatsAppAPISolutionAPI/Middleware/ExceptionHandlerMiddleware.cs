@@ -1,7 +1,7 @@
-﻿using WhatsAppAPISolutionAPI.Models;
-using System.Net;
+﻿using System.Net;
 using System.Text;
 using System.Text.Json;
+using WhatsAppAPISolutionDL.Dto;
 
 namespace WhatsAppAPISolutionAPI.Middleware
 {
@@ -67,8 +67,7 @@ namespace WhatsAppAPISolutionAPI.Middleware
             int statusCode = (int)HttpStatusCode.InternalServerError;
             var result = JsonSerializer.Serialize(new ApiResult
             {
-                StatusCode = statusCode,
-                Success = false,
+                StatusCode = statusCode, 
                 Message = "Internal Error Occurred"
             });
 

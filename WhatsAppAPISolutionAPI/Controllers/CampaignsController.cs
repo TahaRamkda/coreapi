@@ -1,15 +1,8 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System.ComponentModel;
-using System.Net.Http;
-using WhatsAppAPISolutionAPI.Models;
 using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
@@ -79,7 +72,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
                 return Ok(new ApiResult
                 {
-                    Success = false,
+
                     Result = "",
                     Message = "No record found with this id"
                 });
@@ -112,7 +105,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
                 return Ok(new ApiResult
                 {
-                    Success = false,
                     Result = response,
                     Message = response?.Message
                 });
@@ -142,8 +134,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Result = response,
                     Message = response?.Message
                 });
@@ -168,8 +159,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Result = response,
                     Message = response?.Message
                 });
@@ -194,8 +184,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Result = response,
                     Message = response?.Message
                 });
@@ -213,33 +202,17 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             if (campaign.CampaignId <= 0)
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Message = "Campaign Id required"
                 });
             if (!campaign.PhoneNumbers.Any())
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Message = "Please add atleast one phone number"
                 });
 
             var response = await _campaignService.SendCampaignMessagesAsync(campaign);
-            if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Success = false,
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
-            return Ok(new ApiResult()
-            {
-                Success = true,
-                Result = response,
-                Message = "Data added successfully"
-            });
+            return Ok(response);
         }
     }
 }

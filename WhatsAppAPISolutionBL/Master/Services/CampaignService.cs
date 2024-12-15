@@ -72,20 +72,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response[0];
         }
 
-        public async Task<UResponse> SendCampaignMessagesAsync(SendCampaignDto campaign)
+        public async Task<ApiResult> SendCampaignMessagesAsync(SendCampaignDto campaign)
         {
             var campaignData = await _dbContext.Campaigns.Where(x => x.CampaignId == campaign.CampaignId).FirstOrDefaultAsync();
             if (campaignData == null)
-                return new UResponse()
+                return new ApiResult 
                 {
-                    Status = 0,
+                    StatusCode = 0,
                     Message = "No campaign found with this Campaign Id"
                 };
 
             if (campaignData.TemplateId <= 0)
-                return new UResponse()
+                return new ApiResult 
                 {
-                    Status = 0,
+                    StatusCode = 0,
                     Message = "No template id found in this campaign please add template"
                 };
 

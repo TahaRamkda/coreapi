@@ -1,10 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using WhatsAppAPISolutionAPI.Models;
-using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
-using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -32,23 +28,20 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             if (model.File == null && model.File.Length == 0)
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Message = "Please upload file"
                 });
 
 
             if (model.ClientId == 0)
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Message = "Client does not exist"
                 });
 
             if (model.SenderNameId == 0)
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Message = "Sender name does not exist"
                 });
 
@@ -56,8 +49,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Result = response,
                     Message = response?.Message
                 });
@@ -95,8 +87,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                {
-                    Success = false,
+                { 
                     Result = response,
                     Message = response?.Message
                 });
