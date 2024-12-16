@@ -22,7 +22,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string? ScheduleTime { get; set; }
         public string? CreatedDate { get; set; }
         public int? CreatedBy { get; set; }
-        public int? Line { get; set; }
+        public long? Line { get; set; }
         public int? TotalItems { get; set; }
     }
 }

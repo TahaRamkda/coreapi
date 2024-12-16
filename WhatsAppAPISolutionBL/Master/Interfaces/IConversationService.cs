@@ -16,5 +16,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> AddConversationToQueueAsync(int clientId = 0, int id = 0, string comment = "");
 
         Task<UResponse> TransferConversationToAgentAsync(int clientId = 0, int id = 0, int agentId = 0, string comment = "");
+        Task<UResponse> AssignConversationToAgentAsync(int clientId = 0, int id = 0, int agentId = 0, string comment = "");
     }
 }

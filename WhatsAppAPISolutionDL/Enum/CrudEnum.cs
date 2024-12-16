@@ -53,6 +53,8 @@
         PurchaseReturn = 8,
         TransferConversationToAgent = 8,
 
+        AssignConversationToAgent = 9,
+
         GetAllLoanTransactions = 10,
 
         GetEntities = 50,

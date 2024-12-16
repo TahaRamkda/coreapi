@@ -28,7 +28,7 @@
         public string CreatedDate { get; set; }
         public int CurrentStatus { get; set; }
         public string CurrentStatusName { get; set; }
-        public int? Line { get; set; }
+        public long? Line { get; set; }
         public int? TotalItems { get; set; }
     }
 }

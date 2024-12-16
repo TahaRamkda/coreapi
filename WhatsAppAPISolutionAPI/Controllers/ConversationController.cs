@@ -108,5 +108,27 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data updated successfully"
             });
         }
+
+        [HttpGet("assignconversationtoagent")]
+        public async Task<ActionResult> AssignConversationToAgentAsync(int clientId = 0, int id = 0, int agentId = 0, string comment = "")
+        {
+            var response = await _conversationService.AssignConversationToAgentAsync(clientId, id, agentId, comment);
+
+            if (response == null || response.Status <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Result = response,
+                    Message = response?.Message
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = response,
+                Message = "Data updated successfully"
+            });
+        }
     }
 }
