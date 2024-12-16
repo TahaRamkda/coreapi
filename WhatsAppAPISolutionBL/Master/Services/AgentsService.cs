@@ -21,7 +21,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UAgent>> GetAgentListAsync(int ClientId, string SearchStr = "", int Status = 0)
         {
-            var response = await _dbContext2.Agents.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}, @SearchStr={SearchStr}, @Status={Status}").ToListAsync();
+            var response = await _dbContext2.Agents.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}, @SearchStr={SearchStr ?? ""}, @Status={Status}").ToListAsync();
             return response;
         }
         public async Task<UResponse> AddAgentAsync(AgentDto agent)

@@ -10,6 +10,7 @@
         DOCUMENT = 5,
         LOCATION = 6,
         STICKER = 7,
-        INTERACTIVE = 8
+        INTERACTIVE = 8,
+        AUDIO = 9
     }
 }

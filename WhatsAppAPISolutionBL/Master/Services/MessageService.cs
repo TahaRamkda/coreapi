@@ -108,6 +108,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.video.id);
                 messageText = messageReceive.video.caption ?? "";
             }
+            else if (messageReceive.type == MessageReceiveTypeEnum.AUDIO.ToString())
+            {
+                messageType = 2; // Convert.ToInt32(MessageReceiveTypeEnum.VIDEO);
+                mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.audio.id);
+                messageText = "";
+            }
             else if (messageReceive.type == MessageReceiveTypeEnum.DOCUMENT.ToString())
             {
                 messageType = 2; // Convert.ToInt32(MessageReceiveTypeEnum.DOCUMENT);
