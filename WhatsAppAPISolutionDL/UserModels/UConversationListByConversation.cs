@@ -4,6 +4,7 @@
     {
         public int? MessageId { get; set; }
         public int? ClientId { get; set; }
+        public int? AgentId { get; set; }
         public int? SenderId { get; set; }
         public int? ConversationId { get; set; }
         public int? TypeId { get; set; }

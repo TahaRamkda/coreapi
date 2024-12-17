@@ -1,8 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Enum;
+using WhatsAppAPISolutionDL.Hubs;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -10,13 +14,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
     {
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
+        private readonly ILogger<ConversationService> _logger;
+        private readonly IHubContext<ConversationHub> _conversationHubContext;
 
-        public ConversationService(WhatsAppSolutionContext dbContext, WhatsAppSolutionContext2 dbContext2)
+        public ConversationService(WhatsAppSolutionContext dbContext,
+            WhatsAppSolutionContext2 dbContext2,
+            ILogger<ConversationService> logger,
+            IHubContext<ConversationHub> conversationHubContext)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
+            _logger = logger;
+            _conversationHubContext = conversationHubContext;
         }
-
 
         public async Task<List<UConversation>> GetConversationListAsync(int clientId = 0, int senderId = 0, int id = 0, string conversationId = "",
             string waId = "", int moduleId = 0, int parentId = 0,
@@ -33,9 +43,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response;
         }
 
-        public async Task<List<UConversationListByConversation>> GetConversationListByConversationAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        public async Task<List<UConversationListByConversation>> GetConversationListByConversationAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int messageId = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
-            var response = await _dbContext2.ConversationListByConversations.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.ConversationListByConversation},@ClientId={clientId},@Id={id},@SenderId={senderId},@AgentId={agentId}, @PageNo={pageNo}, @PageSize={pageSize}").ToListAsync();
+            var response = await _dbContext2.ConversationListByConversations.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.ConversationListByConversation},@ClientId={clientId},@Id={id}, @messageId={messageId},@SenderId={senderId},@AgentId={agentId}, @PageNo={pageNo}, @PageSize={pageSize}").ToListAsync();
             return response;
         }
 
@@ -45,15 +55,87 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response[0];
         }
 
-        public async Task<UResponse> TransferConversationToAgentAsync(int clientId = 0,  int id = 0, int agentId = 0, string comment = "")
+        public async Task<UResponse> TransferConversationToAgentAsync(int clientId = 0, int id = 0, int agentId = 0, string comment = "")
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.TransferConversationToAgent},@ClientId={clientId},@Id={id},@AgentId={agentId},@Comment={comment}").ToListAsync();
+            if (response != null && response.Any())
+            {
+                // Look up the connection ID for the Agent ID and send the conversation
+                string connectionId = String.Empty;
+                int i;
+                for (i = 1; i <= 5; i++)
+                {
+                    if (ConversationHub.connections.TryGetValue(agentId, out connectionId))
+                    {
+                        var conversations = await this.GetAgentConversationListAsync(clientId: clientId, agentId: agentId, id: id);
+                        if (conversations != null && conversations.Any())
+                        {
+                            var conversation = conversations[0];
+                            await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationAssigned.ToString(), conversation);
+                            _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), agentId, id, i);
+                            break;
+                        }
+                        else
+                            _logger.LogError("SignalR, cannot find conversation with clientId {clienId}, agentId {agentId} and conversationId {conversationId} on try {try}", clientId, agentId, id, i);
+                    }
+                    else
+                        _logger.LogError("SignalR, No connection found for event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), agentId, id, i);
+                }
+
+                if (i >= 5) // If max retry exceeded, unassign the conversation again
+                {
+
+                }
+
+                //Send to all the agents except the agent that has been assigned just now
+                if (!String.IsNullOrEmpty(connectionId))
+                    await _conversationHubContext.Clients.AllExcept(connectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), id);
+                else
+                    await _conversationHubContext.Clients.All.SendAsync(SignalREnum.ConversationUnAssigned.ToString(), id);
+            }
+
             return response[0];
         }
 
         public async Task<UResponse> AssignConversationToAgentAsync(int clientId = 0, int id = 0, int agentId = 0, string comment = "")
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.AssignConversationToAgent},@ClientId={clientId},@Id={id},@AgentId={agentId},@Comment={comment}").ToListAsync();
+            if (response != null && response.Count > 0)
+            {
+                // Look up the connection ID for the Agent ID and send the conversation
+                string connectionId = String.Empty;
+                int i;
+                for (i = 1; i <= 5; i++)
+                {
+                    if (ConversationHub.connections.TryGetValue(agentId, out connectionId))
+                    {
+                        var conversations = await this.GetAgentConversationListAsync(clientId: clientId, agentId: agentId, id: id);
+                        if (conversations != null && conversations.Any())
+                        {
+                            var conversation = conversations[0];
+                            await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationAssigned.ToString(), conversation);
+                            _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), agentId, id, i);
+                            break;
+                        }
+                        else
+                            _logger.LogError("SignalR, cannot find conversation with clientId {clienId}, agentId {agentId} and conversationId {conversationId} on try {try}", clientId, agentId, id, i);
+                    }
+                    else
+                        _logger.LogError("SignalR, No connection found for event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), agentId, id, i);
+                }
+
+                if (i >= 5) // If max retry exceeded, unassign the conversation again
+                {
+
+                }
+
+                //Send to all the agents except the agent that has been assigned just now
+                if (!String.IsNullOrEmpty(connectionId))
+                    await _conversationHubContext.Clients.AllExcept(connectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), id);
+                else
+                    await _conversationHubContext.Clients.All.SendAsync(SignalREnum.ConversationUnAssigned.ToString(), id);
+            }
+
             return response[0];
         }
     }

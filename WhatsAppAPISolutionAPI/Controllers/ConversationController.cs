@@ -53,9 +53,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getconversationmessagebyid")]
-        public async Task<ActionResult> GetConversationMessageByIdAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        public async Task<ActionResult> GetConversationMessageByIdAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int messageId = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
-            var res = await _conversationService.GetConversationListByConversationAsync(clientId, senderId, id, agentId);
+            var res = await _conversationService.GetConversationListByConversationAsync(clientId, senderId, id, agentId, messageId, pageNo, pageSize);
 
             return Ok(new ApiResult
             {
@@ -73,7 +73,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -95,7 +95,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });

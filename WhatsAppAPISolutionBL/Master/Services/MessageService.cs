@@ -1,10 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Drawing;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Enum;
+using WhatsAppAPISolutionDL.Hubs;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 
@@ -16,19 +17,25 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly IMediaService _mediaService;
         private readonly ICommunicationService _communicationService;
+        private readonly IConversationService _conversationService;
         private readonly ILogger<MessageService> _logger;
+        private readonly IHubContext<ConversationHub> _conversationHubContext;
 
         public MessageService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
             IMediaService mediaService,
             ICommunicationService communicationService,
-            ILogger<MessageService> logger)
+            ILogger<MessageService> logger,
+            IHubContext<ConversationHub> conversationHubContext,
+            IConversationService conversationService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _mediaService = mediaService;
             _communicationService = communicationService;
             _logger = logger;
+            _conversationHubContext = conversationHubContext;
+            _conversationService = conversationService;
         }
 
         public async Task<UResponse> UpdateMessageStatusAsync(WhatsAppMessageStatusUpdateDto messageStatus)
@@ -159,6 +166,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         if (template != null && template.TransactionType == 2)
                             await _communicationService.SendInteractiveMessageAsync(action, template.ClientId == 0 ? 0 : template.ClientId.Value, messageReceive.from);
                     }
+                }
+                else if (action.ModuleId == 3 && action.ParentId > 0) //If conversation is going on
+                {
+                    var conversationList = await _conversationService.GetConversationListByConversationAsync(clientId: Convert.ToInt32(messageReceive.client_Id), messageId: action.ParentId.Value);
                 }
             }
 

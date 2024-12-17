@@ -12,6 +12,7 @@ using WhatsAppAPISolutionAPI.Security;
 using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionBL.Master.Services;
+using WhatsAppAPISolutionDL.Hubs;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
@@ -94,6 +95,7 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -167,4 +169,5 @@ app.UseAuthentication();
 app.UseStaticFiles();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<ConversationHub>("/Conversation");
 app.Run();
