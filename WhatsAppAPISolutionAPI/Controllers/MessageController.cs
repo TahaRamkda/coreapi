@@ -107,6 +107,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = "Please insert sender Id"
                 });
 
+            if (model.ConversationId <= 0)
+                return Ok(new ApiResult
+                {
+                    Message = "No conversation found"
+                });
+
             if (String.IsNullOrWhiteSpace(model.Message) || (model.File == null || model.File.Length <= 0))
             {
                 return Ok(new ApiResult
@@ -115,7 +121,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 });
             }
 
-            int mediaId = 0;
             if (model.File != null && model.File.Length > 0)
             {
                 var mediaUploadResult = await _mediaService.UploadMediaAsync(new MediaFileDto
@@ -134,10 +139,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     });
                 }
 
-                mediaId = mediaUploadResult.Id;
+                model.MediaId = mediaUploadResult.Id;
             }
 
-            return Ok();
+            var result = await _messageService.SendAgentMessageAsync(model);
+
+            return Ok(result);
         }
     }
 }

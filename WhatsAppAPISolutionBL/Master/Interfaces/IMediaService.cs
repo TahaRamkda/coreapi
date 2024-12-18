@@ -1,4 +1,5 @@
 ﻿using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 
@@ -12,5 +13,12 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponseWithID> UpdateMediaAsync(MediaUploadDto media);
         Task<UResponseWithID> DeleteMediaAsync(int Id);
         Task<int> DownloadWhatsAppMediaToLocal(Client client, SenderName senderName, string mediaId);
+
+        /// <summary>
+        /// Get message type from media
+        /// </summary>
+        /// <param name="mediaId"></param>
+        /// <returns></returns>
+        Task<MessageTypeEnum> GetMessageTypeFromMedia(int mediaId);
     }
 }

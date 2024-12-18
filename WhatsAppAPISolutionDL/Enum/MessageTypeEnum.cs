@@ -7,6 +7,7 @@
         IMAGE = 2,
         DOCUMENT = 3,
         VIDEO = 4,
-        LOCATION = 5
+        LOCATION = 5,
+        AUDIO = 6
     }
 }

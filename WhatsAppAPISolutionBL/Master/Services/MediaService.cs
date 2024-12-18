@@ -303,6 +303,52 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return 0;
         }
 
+        /// <summary>
+        /// Get message type from media
+        /// </summary>
+        /// <param name="mediaId"></param>
+        /// <returns></returns>
+        public async Task<MessageTypeEnum> GetMessageTypeFromMedia(int mediaId)
+        {
+            var media = await _dbContext.Medias.FindAsync(mediaId);
+            if (media == null || String.IsNullOrEmpty(media.MediaId) || String.IsNullOrWhiteSpace(media.FileExtension))
+                return MessageTypeEnum.TEXT;
+
+            MessageTypeEnum type = MessageTypeEnum.TEXT;
+            switch (media.FileExtension.ToLower())
+            {
+                case ".aac":
+                case ".amr":
+                case ".mp3":
+                case ".m4a":
+                case ".ogg":
+                    type = MessageTypeEnum.AUDIO;
+                    break;
+                case ".txt":
+                case ".xls":
+                case ".xlsx":
+                case ".doc":
+                case ".docx":
+                case ".ppt":
+                case ".pptx":
+                case ".pdf":
+                    type = MessageTypeEnum.DOCUMENT;
+                    break;
+                case ".jpeg":
+                case ".png":
+                    type = MessageTypeEnum.IMAGE;
+                    break;
+                case ".webp":
+                case ".3gp":
+                case ".mp4":
+                    type = MessageTypeEnum.VIDEO;
+                    break;
+                default: break;
+            }
+
+            return type;
+        }
+
         #endregion
     }
 }

@@ -209,5 +209,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             return await _communicationService.SendMessageAsync(model);
         }
+
+        public async Task<ApiResult> SendAgentMessageAsync(SendAgentMessageRequestDto model)
+        {
+            return await _communicationService.SendAgentMessageAsync(model);
+        }
     }
 }

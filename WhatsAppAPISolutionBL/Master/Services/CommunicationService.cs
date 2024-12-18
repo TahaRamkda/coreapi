@@ -20,6 +20,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly ITemplateService _templateService;
         private readonly IMessageSentLogsService _messageSentLogsService;
         private readonly IAPIMessageService _apiMessageService;
+        private readonly IMediaService _mediaService;
         private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
 
         public CommunicationService(
@@ -29,7 +30,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             ITemplateService templateService,
             IMessageSentLogsService messageSentLogsService,
             IAPIMessageService apiMessageService,
-            IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings)
+            IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings,
+            IMediaService mediaService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -38,6 +40,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _messageSentLogsService = messageSentLogsService;
             _apiMessageService = apiMessageService;
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
+            _mediaService = mediaService;
         }
 
         public async Task<ApiResult> SendTemplateMessageAsync(TemplateMessagePayloadDto templateMessage)
@@ -548,6 +551,119 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return new UResponse
             {
                 Status = 1,
+                Message = "Message Sent Successfully"
+            };
+        }
+
+        public async Task<ApiResult> SendAgentMessageAsync(SendAgentMessageRequestDto model)
+        {
+            model.Message = model.Message.Trim();
+
+            var conversation = await _dbContext.Conversations.FindAsync(model.ConversationId);
+            if (conversation == null || String.IsNullOrWhiteSpace(conversation.PhoneNumber))
+            {
+                return new ApiResult
+                {
+                    Message = "No conversation found"
+                };
+            }
+
+            string mediaIdStr = String.Empty;
+            string fileName = String.Empty;
+            MessageTypeEnum messageType = MessageTypeEnum.TEXT;
+            if (model.MediaId > 0)
+            {
+                var media = await _dbContext.Medias.FindAsync(model.MediaId);
+                if (media == null || String.IsNullOrWhiteSpace(media.MediaId))
+                {
+                    return new ApiResult
+                    {
+                        Message = "Cannot upload media, Please try again"
+                    };
+                }
+
+                mediaIdStr = media.MediaId;
+                fileName = media.FileName;
+                messageType = await _mediaService.GetMessageTypeFromMedia(media.Id);
+            }
+
+            var request = new SendMessageToBridgeDto
+            {
+                ClientId = model.ClientId.ToString(),
+                SenderNameId = model.SenderId.ToString(),
+                Type = messageType.ToString(),
+                Message = model.Message,
+                MediaId = mediaIdStr,
+                FileName = fileName,
+                PhoneNumbers = new List<string> { conversation.PhoneNumber },
+            };
+
+            var requestStr = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"/api/Message/SendBatchMessage", requestStr);
+            var content = await response.Content.ReadAsStringAsync();
+
+            var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
+            if (result != null && result.success)
+            {
+                var data = JsonConvert.SerializeObject(result.result);
+                var tempResult = JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
+                if (tempResult != null)
+                {
+                    int messageTypeId = 0;
+
+                    switch (messageType)
+                    {
+                        case MessageTypeEnum.TEXT:
+                            messageTypeId = 1; break;
+                        case MessageTypeEnum.IMAGE:
+                        case MessageTypeEnum.VIDEO:
+                        case MessageTypeEnum.DOCUMENT:
+                            messageTypeId = 2; break;
+                        case MessageTypeEnum.LOCATION:
+                            messageTypeId = 3; break;
+                        default: break;
+                    }
+
+                    foreach (var item in tempResult)
+                    {
+                        var message = new InsertMessageDto
+                        {
+                            ClientId = model.ClientId,
+                            WaId = item.waId,
+                            RecipientId = item.phoneNumber,
+                            Status = item.success ? MessageStatusEnum.SENT : MessageStatusEnum.FAILED,
+                            //ModuleId = model.ModuleId,
+                            //TemplateId = model.ActionId,
+                            //ParentId = model.ParentId,
+                            MessageType = messageTypeId,
+                            MessageText = model.Message,
+                            MediaId = model.MediaId
+                        };
+
+                        if (item.errors != null && item.errors.Any())
+                        {
+                            message.Error = new InsertMessageDto.ErrorDto
+                            {
+                                ErrorDetails = String.Join(',', item.errors)
+                            };
+                        }
+
+                        await _messageSentLogsService.AddMessageSentLogAsync(message);
+                    }
+                }
+            }
+            else if (result != null && !result.success)
+            {
+                return new ApiResult
+                {
+                    StatusCode = 0,
+                    Message = result.message
+                };
+            }
+
+            return new ApiResult
+            {
+                StatusCode = 1,
                 Message = "Message Sent Successfully"
             };
         }

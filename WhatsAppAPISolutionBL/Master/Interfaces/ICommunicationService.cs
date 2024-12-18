@@ -8,5 +8,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<ApiResult> SendTemplateMessageAsync(TemplateMessagePayloadDto templateMessage);
         Task<UResponse> SendMessageAsync(SendMessageRequestDto model);
         Task<UResponse> SendInteractiveMessageAsync(UMessageReceived model, int clientId, string phoneNumber);
+        Task<ApiResult> SendAgentMessageAsync(SendAgentMessageRequestDto model);
     }
 }
