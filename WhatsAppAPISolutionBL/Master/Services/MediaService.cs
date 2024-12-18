@@ -66,11 +66,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response[0];
         }
 
-        public async Task<UResponse> UploadMediaAsync(MediaFileDto model)
+        public async Task<UResponseWithID> UploadMediaAsync(MediaFileDto model)
         {
             var senderName = await _dbContext.SenderNames.Where(x => x.SenderId == model.SenderNameId).FirstOrDefaultAsync();
             if (senderName == null)
-                return new UResponse
+                return new UResponseWithID
                 {
                     Status = 0,
                     Message = "Sender name not exist"
@@ -84,7 +84,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 if (model.File.Length > maxFileLength)
                 {
-                    return new UResponse
+                    return new UResponseWithID
                     {
                         Status = 0,
                         Message = "File size must not exceed 20 MB."
@@ -168,7 +168,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 var updateMedia = await UpdateMediaAsync(updateDto);
                                 if (updateMedia == null || updateMedia.Status <= 0)
                                 {
-                                    return new UResponse
+                                    return new UResponseWithID
                                     {
                                         Status = 0,
                                         Message = updateMedia?.Message
@@ -176,15 +176,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 }
                                 else
                                 {
-                                    return new UResponse
+                                    return new UResponseWithID
                                     {
                                         Status = 1,
+                                        Id = updateDto.Id,
                                         Message = "Media added successfully"
                                     };
                                 }
                             }
 
-                            return new UResponse()
+                            return new UResponseWithID()
                             {
                                 Status = 1,
                                 Message = "Media added but unable to get media id from facebook"
@@ -192,21 +193,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         }
                     }
 
-                    return new UResponse()
+                    return new UResponseWithID()
                     {
                         Status = 0,
                         Message = "Something went wrong, cannot upload media right now"
                     };
                 }
 
-                return new UResponse()
+                return new UResponseWithID()
                 {
                     Status = 0,
                     Message = "Something went wrong, cannot upload media right now"
                 };
             }
 
-            return new UResponse()
+            return new UResponseWithID()
             {
                 Status = 0,
                 Message = "Something went wrong, cannot upload media right now"

@@ -330,6 +330,23 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var tempResult = JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
                 if (tempResult != null)
                 {
+                    int messageTypeId = 0;
+                    if (model.Type > 0) //Based on message type, set message type id in DB
+                    {
+                        switch ((MessageTypeEnum)model.Type)
+                        {
+                            case MessageTypeEnum.TEXT:
+                                messageTypeId = 1; break;
+                            case MessageTypeEnum.IMAGE:
+                            case MessageTypeEnum.VIDEO:
+                            case MessageTypeEnum.DOCUMENT:
+                                messageTypeId = 2; break;
+                            case MessageTypeEnum.LOCATION:
+                                messageTypeId = 3; break;
+                            default: break;
+                        }
+                    }
+
                     foreach (var item in tempResult)
                     {
                         var message = new InsertMessageDto
@@ -341,7 +358,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             ModuleId = model.ModuleId,
                             TemplateId = model.ActionId,
                             ParentId = model.ParentId,
-                            MessageType = model.Type,
+                            MessageType = messageTypeId,
                             MessageText = model.Message,
                             MediaId = model.MediaId.HasValue ? model.MediaId.Value : 0
                         };
@@ -394,9 +411,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     ClientId = clientId,
                     SenderId = templateDetails.SenderId,
                     MediaId = templateDetails.MediaId,
-                    ModuleId = model.ModuleId.HasValue ? model.ModuleId.Value : 0,
-                    ParentId = model.ParentId.HasValue ? model.ParentId.Value : 0,
-                    ActionId = model.ActionId.HasValue ? model.ActionId.Value : 0,
+                    ModuleId = model.ModuleId ?? 0,
+                    ParentId = model.ParentId ?? 0,
+                    ActionId = model.ActionId ?? 0,
                     Type = (int)headerType,
                     Message = !String.IsNullOrWhiteSpace(templateDetails.HeaderText) ? String.Concat(templateDetails.HeaderText, "\n \n", templateDetails.BodyText) : templateDetails.BodyText,
                     FileName = templateDetails.FileName,

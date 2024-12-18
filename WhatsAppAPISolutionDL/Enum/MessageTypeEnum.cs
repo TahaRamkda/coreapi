@@ -6,6 +6,7 @@
         TEXT = 1,
         IMAGE = 2,
         DOCUMENT = 3,
-        LOCATION = 4
+        VIDEO = 4,
+        LOCATION = 5
     }
 }
