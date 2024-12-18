@@ -195,21 +195,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     return new UResponse()
                     {
                         Status = 0,
-                        Message = "oops something went wrong"
+                        Message = "Something went wrong, cannot upload media right now"
                     };
                 }
 
                 return new UResponse()
                 {
                     Status = 0,
-                    Message = "oops something went wrong"
+                    Message = "Something went wrong, cannot upload media right now"
                 };
             }
 
             return new UResponse()
             {
                 Status = 0,
-                Message = "oops something went wrong"
+                Message = "Something went wrong, cannot upload media right now"
             };
         }
 

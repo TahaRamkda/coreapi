@@ -56,6 +56,7 @@
         AssignConversationToAgent = 9,
 
         GetAllLoanTransactions = 10,
+        GetLatestConversationByConversationId = 10,
 
         GetEntities = 50,
 

@@ -83,9 +83,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
 
                 if (i >= 5) // If max retry exceeded, unassign the conversation again
-                {
-
-                }
+                    await this.AddConversationToQueueAsync(clientId: clientId, id: id, comment: "Cannot send the conversation to agent!");
 
                 //Send to all the agents except the agent that has been assigned just now
                 if (!String.IsNullOrEmpty(connectionId))
@@ -125,9 +123,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
 
                 if (i >= 5) // If max retry exceeded, unassign the conversation again
-                {
-
-                }
+                    await this.AddConversationToQueueAsync(clientId: clientId, id: id, comment: "Cannot send the conversation to agent!");
 
                 //Send to all the agents except the agent that has been assigned just now
                 if (!String.IsNullOrEmpty(connectionId))
@@ -138,5 +134,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response[0];
         }
+
+        public async Task<UConversationListByConversation> GetLatestConversationMessageByConversationAsync(int clientId = 0, int id = 0)
+        {
+            var response = await _dbContext2.ConversationListByConversations.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetLatestConversationByConversationId},@ClientId={clientId},@Id={id}").ToListAsync();
+
+            if (response.Any())
+                return response[0];
+            
+            return null;
+        }
+
     }
 }

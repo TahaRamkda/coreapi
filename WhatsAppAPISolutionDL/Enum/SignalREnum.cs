@@ -3,6 +3,7 @@
     public enum SignalREnum
     {
         ConversationAssigned = 1,
-        ConversationUnAssigned = 2 
+        ConversationUnAssigned = 2,
+        MessageReceived = 3
     }
 }
