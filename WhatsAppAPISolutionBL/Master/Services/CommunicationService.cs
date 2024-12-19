@@ -632,9 +632,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             WaId = item.waId,
                             RecipientId = item.phoneNumber,
                             Status = item.success ? MessageStatusEnum.SENT : MessageStatusEnum.FAILED,
-                            //ModuleId = model.ModuleId,
-                            //TemplateId = model.ActionId,
-                            //ParentId = model.ParentId,
+                            ModuleId = (int)ModuleEnum.Chat,
+                            TemplateId = 0,
+                            ParentId = model.ConversationId,
                             MessageType = messageTypeId,
                             MessageText = model.Message,
                             MediaId = model.MediaId
