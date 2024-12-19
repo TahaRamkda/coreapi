@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto;
@@ -9,7 +10,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class MessageController : ControllerBase
     {
         private readonly IMessageService _messageService;
@@ -90,7 +91,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpPost("sendagentmessage")]
-        public async Task<IActionResult> SendAgentMessageAsync([FromBody] SendAgentMessageRequestDto model)
+        public async Task<IActionResult> SendAgentMessageAsync([FromForm] SendAgentMessageRequestDto model)
         {
             if (model == null)
                 return BadRequest();
@@ -113,7 +114,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = "No conversation found"
                 });
 
-            if (String.IsNullOrWhiteSpace(model.Message) || (model.File == null || model.File.Length <= 0))
+            if (String.IsNullOrWhiteSpace(model.Message) && (model.File == null || model.File.Length <= 0))
             {
                 return Ok(new ApiResult
                 {
@@ -123,6 +124,15 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             if (model.File != null && model.File.Length > 0)
             {
+                var extension = Path.GetExtension(model.File.FileName);
+                if (!_mediaService.CheckAllowedMediaType(extension))
+                {
+                    return Ok(new ApiResult
+                    {
+                        Message = "The media type is not allowed"
+                    });
+                }
+
                 var mediaUploadResult = await _mediaService.UploadMediaAsync(new MediaFileDto
                 {
                     ClientId = model.ClientId,
@@ -131,7 +141,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     ActionBy = model.ActionBy
                 });
 
-                if (mediaUploadResult.Status == 0)
+                var media = await _dbContext.Medias.FindAsync(mediaUploadResult.Id);
+
+                if (media == null || String.IsNullOrWhiteSpace(media.MediaId))
                 {
                     return Ok(new ApiResult
                     {

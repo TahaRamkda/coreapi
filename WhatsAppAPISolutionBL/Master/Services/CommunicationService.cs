@@ -557,7 +557,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<ApiResult> SendAgentMessageAsync(SendAgentMessageRequestDto model)
         {
-            model.Message = model.Message.Trim();
+            model.Message = (model.Message ?? "").Trim();
 
             var conversation = await _dbContext.Conversations.FindAsync(model.ConversationId);
             if (conversation == null || String.IsNullOrWhiteSpace(conversation.PhoneNumber))
@@ -598,8 +598,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 PhoneNumbers = new List<string> { conversation.PhoneNumber },
             };
 
-            var requestStr = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync($"/api/Message/SendBatchMessage", requestStr);
+            var requestStr = JsonConvert.SerializeObject(request);
+            var response = await _httpClient.PostAsync($"/api/Message/SendBatchMessage", new StringContent(requestStr, Encoding.UTF8, "application/json"));
             var content = await response.Content.ReadAsStringAsync();
 
             var result = JsonConvert.DeserializeObject<SyncResultDto>(content);

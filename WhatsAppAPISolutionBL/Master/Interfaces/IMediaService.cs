@@ -20,5 +20,12 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         /// <param name="mediaId"></param>
         /// <returns></returns>
         Task<MessageTypeEnum> GetMessageTypeFromMedia(int mediaId);
+
+        /// <summary>
+        /// Check allowed media types
+        /// </summary>
+        /// <param name="extension"></param>
+        /// <returns></returns>
+        bool CheckAllowedMediaType(string extension);
     }
 }
