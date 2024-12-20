@@ -10,6 +10,7 @@
         public string ConversationId { get; set; }
         public string FullName { get; set; }
         public string PhoneNumber { get; set; }
+        public string Logo { get; set; }
         public string UpdatedDate { get; set; }
         public int? LastMessageId { get; set; }
         public string LastMessageText { get; set; }

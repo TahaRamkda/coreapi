@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace WhatsAppAPISolutionDL.Models
 {
@@ -64,6 +61,8 @@ namespace WhatsAppAPISolutionDL.Models
         {
             modelBuilder.Entity<Agent>(entity =>
             {
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
                 entity.Property(e => e.AgentFname)
                     .HasMaxLength(50)
                     .HasColumnName("AgentFName");

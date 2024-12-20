@@ -32,7 +32,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = "Please upload file"
                 });
 
-
             if (model.ClientId == 0)
                 return Ok(new ApiResult
                 { 

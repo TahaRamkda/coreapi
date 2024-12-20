@@ -31,13 +31,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> AddSenderNameAsync(SenderNameDto senderName)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={senderName.ClientId}, @SenderName={senderName.SenderName}, @PhoneNumber={senderName.PhoneNumber}, @PhoneId={senderName.PhoneId}, @AppId={senderName.AppId}, @Limit={senderName.Limit}, @Quality={senderName.Quality}, @ActionBy={senderName.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={senderName.ClientId}, @SenderName={senderName.SenderName}, @PhoneNumber={senderName.PhoneNumber}, @PhoneId={senderName.PhoneId}, @AppId={senderName.AppId}, @Limit={senderName.Limit}, @Quality={senderName.Quality}, @MediaId={senderName.MediaId}, @ActionBy={senderName.ActionBy}").ToListAsync();
             return response[0];
         }
 
         public async Task<UResponse> UpdateSenderNameAsync(SenderNameDto senderName)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.Update}, @SenderId={senderName.SenderId}, @ClientId={senderName.ClientId}, @SenderName={senderName.SenderName}, @PhoneNumber={senderName.PhoneNumber}, @PhoneId={senderName.PhoneId}, @AppId={senderName.AppId}, @Limit={senderName.Limit}, @Quality={senderName.Quality}, @ActionBy={senderName.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.Update}, @SenderId={senderName.SenderId}, @ClientId={senderName.ClientId}, @SenderName={senderName.SenderName}, @PhoneNumber={senderName.PhoneNumber}, @PhoneId={senderName.PhoneId}, @AppId={senderName.AppId}, @Limit={senderName.Limit}, @Quality={senderName.Quality}, @MediaId={senderName.MediaId}, @ActionBy={senderName.ActionBy}").ToListAsync();
             return response[0];
         }
 

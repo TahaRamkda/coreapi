@@ -14,14 +14,17 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly ISenderNameService _senderNameService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<SenderNamesController> _logger;
+        private readonly IMediaService _mediaService;
 
         public SenderNamesController(ISenderNameService senderNameService,
             WhatsAppSolutionContext dbContext,
-            ILogger<SenderNamesController> logger)
+            ILogger<SenderNamesController> logger,
+            IMediaService mediaService)
         {
             _senderNameService = senderNameService;
             _dbContext = dbContext;
             _logger = logger;
+            _mediaService = mediaService;
         }
 
         [HttpGet("getsenderNameslist")]
@@ -49,7 +52,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = "",
                     Message = "No record found with this id"
                 });
@@ -63,19 +66,48 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
-        [HttpPost("addSenderName")]
-        public async Task<IActionResult> AddSenderNameAsync([FromBody] SenderNameDto senderName)
+        [HttpPost("addsenderName")]
+        public async Task<ActionResult> AddSenderNameAsync([FromForm] SenderNameDto model)
         {
-            if (senderName == null)
-            {
+            if (model == null)
                 return BadRequest();
+
+            if (model.File != null && model.File.Length > 0)
+            {
+                var extension = Path.GetExtension(model.File.FileName);
+                var allowedExtensions = new List<string> { ".jpg", ".jpeg", ".png" };
+                if (!allowedExtensions.Contains(extension))
+                {
+                    return Ok(new ApiResult
+                    {
+                        Message = $"Cannot upload media with file extension {extension}"
+                    });
+                }
+
+                var mediaUpload = await _mediaService.UploadMediaAsync(new MediaFileDto
+                {
+                    ActionBy = model.ActionBy,
+                    ClientId = model.ClientId,
+                    UploadToFacebook = false,
+                    File = model.File
+                });
+
+                if (mediaUpload.Status <= 0 || mediaUpload.Id <= 0)
+                {
+                    return Ok(new ApiResult
+                    {
+                        Message = "Cannot upload media"
+                    });
+                }
+
+                model.MediaId = mediaUpload.Id;
             }
 
-            var response = await _senderNameService.AddSenderNameAsync(senderName);
+            var response = await _senderNameService.AddSenderNameAsync(model);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -89,18 +121,49 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpPut("updatesenderName")]
-        public async Task<IActionResult> UpdateSenderNameAsync(SenderNameDto senderName)
+        public async Task<IActionResult> UpdateSenderNameAsync([FromForm] SenderNameDto model)
         {
-            if (senderName == null)
+            if (model == null)
             {
                 return BadRequest();
             }
 
-            var response = await _senderNameService.UpdateSenderNameAsync(senderName);
+            if (model.File != null && model.File.Length > 0)
+            {
+                var extension = Path.GetExtension(model.File.FileName);
+                var allowedExtensions = new List<string> { ".jpg", ".jpeg", ".png" };
+                if (!allowedExtensions.Contains(extension))
+                {
+                    return Ok(new ApiResult
+                    {
+                        Message = $"Cannot upload media with file extension {extension}"
+                    });
+                }
+
+                var mediaUpload = await _mediaService.UploadMediaAsync(new MediaFileDto
+                {
+                    ActionBy = model.ActionBy,
+                    ClientId = model.ClientId,
+                    UploadToFacebook = false,
+                    File = model.File
+                });
+
+                if (mediaUpload.Status <= 0 || mediaUpload.Id <= 0)
+                {
+                    return Ok(new ApiResult
+                    {
+                        Message = "Cannot upload media"
+                    });
+                }
+
+                model.MediaId = mediaUpload.Id;
+            }
+
+            var response = await _senderNameService.UpdateSenderNameAsync(model);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -125,7 +188,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -166,7 +229,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = "",
                     Message = "No record found with this id"
                 });

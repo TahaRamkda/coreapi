@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -33,7 +31,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         #region Ctor
 
-        public MediaService(WhatsAppSolutionContext dbContext,        
+        public MediaService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
             IHttpClientFactory httpClientFactory,
             ILogger<MediaService> logger,
@@ -76,7 +74,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponseWithID> UploadMediaAsync(MediaFileDto model)
         {
             var senderName = await _dbContext.SenderNames.Where(x => x.SenderId == model.SenderNameId).FirstOrDefaultAsync();
-            if (senderName == null)
+            if (model.UploadToFacebook && senderName == null)
                 return new UResponseWithID
                 {
                     Status = 0,
@@ -119,7 +117,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
 
                 var absolutePath = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, _apiSolutionConfigurationSettings.Value.StaticFolderPath);
-                var fileUrlForDB = Path.Combine(_apiSolutionConfigurationSettings.Value.StaticFolderPath, Path.GetFileName(filePath));
+                var mediaPath = Path.Combine(_apiSolutionConfigurationSettings.Value.StaticFolderPath, Path.GetFileName(filePath));
                 var fileUrl = Path.Combine(absolutePath, Path.GetFileName(filePath));
                 if (!string.IsNullOrEmpty(fileUrl))
                     fileUrl = fileUrl.Replace("\\", "/");
@@ -133,77 +131,22 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     FileSize = (int)model.File.Length,
                     FileExtension = fileExtension,
                     ContentType = model.File.ContentType,
-                    MediaPath = fileUrlForDB,
+                    MediaPath = mediaPath,
                     ActionBy = model.ActionBy
                 };
 
                 var insMedia = await AddMediaAsync(media);
                 if (insMedia != null && insMedia.Id > 0)
                 {
-                    var mediaUpload = new MediaUploadBridgeDto
+                    //If upload media to facebook
+                    if (model.UploadToFacebook)
+                        return await UploadMediaToFacebook(media, insMedia.Id, fileUrl);
+
+                    return new UResponseWithID
                     {
-                        clientId = model.ClientId.ToString(),
-                        senderNameId = senderName.SenderId.ToString(),
-                        medias = new List<MediaUploadBridgeDto.Media> {
-                            new MediaUploadBridgeDto.Media {
-                                id = insMedia.Id.ToString(),
-                                url = fileUrl
-                            }
-                        }
-                    };
-
-                    var requestStr = JsonConvert.SerializeObject(mediaUpload);
-
-                    var response = await _httpClient.PostAsync($"/api/Upload/UploadMedia", new StringContent(requestStr, null, "application/json"));
-                    var content = await response.Content.ReadAsStringAsync();
-
-                    var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
-                    if (result != null && result.success)
-                    {
-                        var data = JsonConvert.SerializeObject(result.result);
-                        var mediaResult = JsonConvert.DeserializeObject<List<MediaResultDto>>(data);
-                        if (mediaResult != null && mediaResult.Any())
-                        {
-                            if (!string.IsNullOrEmpty(mediaResult[0].mediaId))
-                            {
-                                var updateDto = new MediaUploadDto
-                                {
-                                    Id = Convert.ToInt32(mediaResult[0].id),
-                                    MediaId = mediaResult[0].mediaId
-                                };
-
-                                var updateMedia = await UpdateMediaAsync(updateDto);
-                                if (updateMedia == null || updateMedia.Status <= 0)
-                                {
-                                    return new UResponseWithID
-                                    {
-                                        Status = 0,
-                                        Message = updateMedia?.Message
-                                    };
-                                }
-                                else
-                                {
-                                    return new UResponseWithID
-                                    {
-                                        Status = 1,
-                                        Id = updateDto.Id,
-                                        Message = "Media added successfully"
-                                    };
-                                }
-                            }
-
-                            return new UResponseWithID()
-                            {
-                                Status = 1,
-                                Message = "Media added but unable to get media id from facebook"
-                            };
-                        }
-                    }
-
-                    return new UResponseWithID()
-                    {
-                        Status = 0,
-                        Message = "Something went wrong, cannot upload media right now"
+                        Status = 1,
+                        Id = insMedia.Id,
+                        Message = "Media added successfully"
                     };
                 }
 
@@ -365,6 +308,75 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             if (String.IsNullOrWhiteSpace(extension)) return false;
             return allowedMediaExtensions.Contains(extension);
+        }
+
+        private async Task<UResponseWithID> UploadMediaToFacebook(MediaUploadDto model, int mediaId, string fileUrl)
+        {
+            var mediaUpload = new MediaUploadBridgeDto
+            {
+                clientId = model.ClientId.ToString(),
+                senderNameId = model.SenderNameId.ToString(),
+                medias = new List<MediaUploadBridgeDto.Media> {
+                    new MediaUploadBridgeDto.Media {
+                        id = mediaId.ToString(),
+                        url = fileUrl
+                    }
+                }
+            };
+
+            var requestStr = JsonConvert.SerializeObject(mediaUpload);
+
+            var response = await _httpClient.PostAsync($"/api/Upload/UploadMedia", new StringContent(requestStr, null, "application/json"));
+            var content = await response.Content.ReadAsStringAsync();
+
+            var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
+            if (result != null && result.success)
+            {
+                var data = JsonConvert.SerializeObject(result.result);
+                var mediaResult = JsonConvert.DeserializeObject<List<MediaResultDto>>(data);
+                if (mediaResult != null && mediaResult.Any())
+                {
+                    if (!string.IsNullOrEmpty(mediaResult[0].mediaId))
+                    {
+                        var updateDto = new MediaUploadDto
+                        {
+                            Id = Convert.ToInt32(mediaResult[0].id),
+                            MediaId = mediaResult[0].mediaId
+                        };
+
+                        var updateMedia = await UpdateMediaAsync(updateDto);
+                        if (updateMedia == null || updateMedia.Status <= 0)
+                        {
+                            return new UResponseWithID
+                            {
+                                Status = 0,
+                                Message = updateMedia?.Message
+                            };
+                        }
+                        else
+                        {
+                            return new UResponseWithID
+                            {
+                                Status = 1,
+                                Id = updateDto.Id,
+                                Message = "Media added successfully"
+                            };
+                        }
+                    }
+
+                    return new UResponseWithID()
+                    {
+                        Status = 1,
+                        Message = "Media added but unable to get media id from facebook"
+                    };
+                }
+            }
+
+            return new UResponseWithID()
+            {
+                Status = 0,
+                Message = "Something went wrong, cannot upload media right now"
+            };
         }
 
         #endregion

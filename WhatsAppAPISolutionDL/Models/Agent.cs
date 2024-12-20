@@ -6,7 +6,6 @@ namespace WhatsAppAPISolutionDL.Models
     public partial class Agent
     {
         public int Id { get; set; }
-        public int? UserId { get; set; }
         public int? ClientId { get; set; }
         public string AgentFname { get; set; }
         public string AgentLname { get; set; }
