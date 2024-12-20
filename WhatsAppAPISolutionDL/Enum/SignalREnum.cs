@@ -4,6 +4,7 @@
     {
         ConversationAssigned = 1,
         ConversationUnAssigned = 2,
-        MessageReceived = 3
+        MessageReceived = 3,
+        AgentStatus = 4
     }
 }

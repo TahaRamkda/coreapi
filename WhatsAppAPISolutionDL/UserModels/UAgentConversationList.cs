@@ -14,6 +14,7 @@
         public int? LastMessageId { get; set; }
         public string LastMessageText { get; set; }
         public int? LastMessageTypeId { get; set; }
+        public int? UnreadCount { get; set; }
         public long? Line { get; set; }
     }
 }

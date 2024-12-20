@@ -18,6 +18,7 @@
         public decimal? Commission { get; set; }
         public int? AgentId { get; set; }
         public int? Status { get; set; }
+        public int? UnreadCount { get; set; }
         public string StatusName { get; set; }
         public string ExpiryDate { get; set; }
         public string CreatedDate { get; set; }

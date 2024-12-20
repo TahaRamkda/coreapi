@@ -1,10 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Enum;
+using WhatsAppAPISolutionDL.Hubs;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using static WhatsAppAPISolutionDL.Dto.WhatsAppMessageStatusUpdateDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -13,7 +17,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
 
-        public AgentsService(WhatsAppSolutionContext dbContext, WhatsAppSolutionContext2 dbContext2)
+        public AgentsService(WhatsAppSolutionContext dbContext,
+            WhatsAppSolutionContext2 dbContext2)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
