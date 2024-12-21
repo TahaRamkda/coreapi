@@ -24,8 +24,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly ILogger<MediaService> _logger;
         private readonly IOptions<BridgeConfigurationSettings> _bridgeConfigurationSettings;
         private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
-        private readonly List<string> allowedMediaExtensions = new List<string>();
-
 
         #endregion
 
@@ -48,11 +46,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
             if (!Directory.Exists(_uploadPath))
                 Directory.CreateDirectory(_uploadPath);
-
-            allowedMediaExtensions.AddRange(new List<string> { ".aac", ".amr", ".mp3", ".m4a", ".ogg" }); //Audio types
-            allowedMediaExtensions.AddRange(new List<string> { ".txt", ".xls", ".xlsx", ".doc", ".docx", ".ppt", ".pptx", ".pdf" }); //Document types
-            allowedMediaExtensions.AddRange(new List<string> { ".jpeg", ".png" }); // Image types
-            allowedMediaExtensions.AddRange(new List<string> { ".webp", ".3gp", ".mp4" }); // Video types
         }
 
         #endregion
@@ -307,7 +300,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public bool CheckAllowedMediaType(string extension)
         {
             if (String.IsNullOrWhiteSpace(extension)) return false;
-            return allowedMediaExtensions.Contains(extension);
+
+            List<string> allowedMediaExtensions = new List<string>();
+            allowedMediaExtensions.AddRange(new List<string> { ".aac", ".amr", ".mp3", ".m4a", ".ogg" }); //Audio types
+            allowedMediaExtensions.AddRange(new List<string> { ".txt", ".xls", ".xlsx", ".doc", ".docx", ".ppt", ".pptx", ".pdf" }); //Document types
+            allowedMediaExtensions.AddRange(new List<string> { ".jpeg", ".png" }); // Image types
+            allowedMediaExtensions.AddRange(new List<string> { ".webp", ".3gp", ".mp4" }); // Video types
+
+            return allowedMediaExtensions.Contains(extension.ToLower());
         }
 
         private async Task<UResponseWithID> UploadMediaToFacebook(MediaUploadDto model, int mediaId, string fileUrl)

@@ -76,7 +76,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 var extension = Path.GetExtension(model.File.FileName);
                 var allowedExtensions = new List<string> { ".jpg", ".jpeg", ".png" };
-                if (!allowedExtensions.Contains(extension))
+                if (!allowedExtensions.Contains(extension.ToLower()))
                 {
                     return Ok(new ApiResult
                     {
@@ -132,7 +132,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 var extension = Path.GetExtension(model.File.FileName);
                 var allowedExtensions = new List<string> { ".jpg", ".jpeg", ".png" };
-                if (!allowedExtensions.Contains(extension))
+                if (!allowedExtensions.Contains(extension.ToLower()))
                 {
                     return Ok(new ApiResult
                     {
