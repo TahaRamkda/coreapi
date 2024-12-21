@@ -118,8 +118,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         {
                             ActionId = item.AssignedAgentTemplateId,
                             ModuleId = (int)ModuleEnum.Chat,
-                            ParentId = item.ConversationId,
-                            PhoneNumber = item.PhoneNumber
+                            ParentId = item.ConversationId 
                         }, template.ClientId == 0 ? 0 : template.ClientId.Value, item.PhoneNumber, "", bodyParams);
                     }
                 }
