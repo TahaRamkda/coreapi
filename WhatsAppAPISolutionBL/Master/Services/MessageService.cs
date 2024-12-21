@@ -169,7 +169,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     }
                 }
                 
-                if (action.ModuleId == 3 && action.ParentId > 0) //If conversation is going on
+                if (action.ModuleId == (int)ModuleEnum.Chat && action.ParentId > 0) //If conversation is going on
                 {
                     var conversation = await _conversationService.GetLatestConversationMessageByConversationAsync(clientId: Convert.ToInt32(messageReceive.client_Id), id: action.ParentId.Value);
                     if (conversation != null)

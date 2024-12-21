@@ -393,7 +393,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
         }
 
-        public async Task<UResponse> SendInteractiveMessageAsync(UMessageReceived model, int clientId, string phoneNumber)
+        public async Task<UResponse> SendInteractiveMessageAsync(UMessageReceived model, int clientId, string phoneNumber, string headerParam = "", List<string> bodyParam = null)
         {
             var templateDetails = await _templateService.GetTemplateDetailsAsync(clientId, model.ActionId == null ? 0 : model.ActionId.Value);
             if (templateDetails == null)
@@ -405,9 +405,24 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             var headerType = (TemplateHeaderEnum)templateDetails.HeaderType;
 
+            string headerText = templateDetails.HeaderText ?? "";
+            if (!String.IsNullOrWhiteSpace(headerText) && !String.IsNullOrWhiteSpace(headerParam))
+                headerText = headerText.Replace("{{1}}", headerParam.Trim());
+
+            string bodyText = templateDetails.BodyText ?? "";
+            if (!String.IsNullOrWhiteSpace(headerText) && bodyParam != null && bodyParam.Count() > 0)
+            {
+                int i = 1;
+                foreach (var param in bodyParam)
+                {
+                    bodyText = bodyText.Replace(String.Concat("{{", i, "}}"), param);
+                    i++;
+                }
+            }
+
             //In interactive button is required, if not available send normal message
             if (templateDetails.ButtonValues == null || !templateDetails.ButtonValues.Any()
-                && !String.IsNullOrWhiteSpace(templateDetails.BodyText))
+            && !String.IsNullOrWhiteSpace(templateDetails.BodyText))
             {
                 return await SendMessageAsync(new SendMessageRequestDto
                 {
@@ -418,7 +433,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     ParentId = model.ParentId ?? 0,
                     ActionId = model.ActionId ?? 0,
                     Type = (int)headerType,
-                    Message = !String.IsNullOrWhiteSpace(templateDetails.HeaderText) ? String.Concat(templateDetails.HeaderText, "\n \n", templateDetails.BodyText) : templateDetails.BodyText,
+                    Message = !String.IsNullOrWhiteSpace(headerText) ? String.Concat(headerText, "\n \n", bodyText) : bodyText,
                     FileName = templateDetails.FileName,
                     PhoneNumbers = new List<string> { phoneNumber }.TrimPhoneNumbers()
                 });
@@ -436,7 +451,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 sendMessage.Header = new SendInteractiveMessageRequestDto.HeaderDto
                 {
                     Format = headerType.ToString(),
-                    Value = templateDetails.HeaderText
+                    Value = headerText
                 };
             }
             else if (headerType == TemplateHeaderEnum.IMAGE
@@ -459,7 +474,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 sendMessage.Body = new SendInteractiveMessageRequestDto.BodyDto
                 {
-                    Text = templateDetails.BodyText.Trim()
+                    Text = bodyText
                 };
             }
 
@@ -521,10 +536,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             WaId = item.waId,
                             RecipientId = item.phoneNumber,
                             Status = item.success ? MessageStatusEnum.SENT : MessageStatusEnum.FAILED,
-                            ModuleId = model.ModuleId.HasValue ? model.ModuleId.Value : 0,
-                            TemplateId = model.ActionId.HasValue ? model.ActionId.Value : 0,
-                            ParentId = model.ParentId.HasValue ? model.ParentId.Value : 0,
-                            MediaId = templateDetails.MediaId.HasValue ? templateDetails.MediaId.Value : 0
+                            ModuleId = model.ModuleId ?? 0,
+                            TemplateId = model.ActionId ?? 0,
+                            ParentId = model.ParentId ?? 0,
+                            MediaId = templateDetails.MediaId ?? 0
                         };
 
                         if (item.errors != null && item.errors.Any())

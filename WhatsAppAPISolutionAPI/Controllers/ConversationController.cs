@@ -109,11 +109,19 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
-        [HttpGet("assignconversationtoagent")]
-        public async Task<ActionResult> AssignConversationToAgentAsync(int clientId = 0, int id = 0, int agentId = 0, string comment = "")
+        [AllowAnonymous]
+        [HttpPost("assignconversationtoagent")]
+        public async Task<ActionResult> AssignConversationToAgentAsync(List<AssignConversationDto> model)
         {
-            var response = await _conversationService.AssignConversationToAgentAsync(clientId, id, agentId, comment);
+            if (model == null || model.Count == 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Invalid data provided"
+                });
+            }
 
+            var response = await _conversationService.AssignConversationToAgentAsync(model);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult

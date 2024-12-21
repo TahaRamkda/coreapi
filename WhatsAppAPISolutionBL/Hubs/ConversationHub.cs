@@ -51,17 +51,6 @@ namespace WhatsAppAPISolutionDL.Hubs
             //Make agent inactive
             await _agentsService.SetAgentStatusAsync(Convert.ToInt32(agentId), (int)AgentStatus.Inactive);
             await base.OnDisconnectedAsync(exception);
-        }
-
-        public async Task SendMessageToUser(int agentId, dynamic message)
-        {
-            // Send message to a specific user by their ID
-            if (connections.TryGetValue(agentId, out var connectionId))
-            {
-                //Convert the message to string
-                string messageStr = JsonConvert.SerializeObject(message);
-                await Clients.Client(connectionId).SendAsync("NewMessagereceived", messageStr);
-            }
-        }
+        } 
     }
 }
