@@ -60,7 +60,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponseWithID> AddMediaAsync(MediaUploadDto media)
         {
-            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={media.ClientId}, @WhatsAppBusinessAccountId={media.WhatsAppBusinessAccountId}, @SenderNameId={media.SenderNameId}, @MediaPath={media.MediaPath}, @ContentType={media.ContentType}, @FileSize={media.FileSize}, @FileName={media.FileName}, @FileExtension={media.FileExtension}, @ActionBy={media.ActionBy}, @MediaId={media.MediaId}").ToListAsync();
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={media.ClientId}, @WhatsAppBusinessAccountId={media.WhatsAppBusinessAccountId}, @SenderNameId={media.SenderNameId}, @MediaPath={media.MediaPath}, @ContentType={media.ContentType}, @FileSize={media.FileSize}, @FileName={media.FileName}, @FileExtension={media.FileExtension}, @MediaSourceId={media.MediaSourceId}, @ActionBy={media.ActionBy}, @MediaId={media.MediaId}").ToListAsync();
             return response[0];
         }
 
@@ -125,6 +125,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     FileExtension = fileExtension,
                     ContentType = model.File.ContentType,
                     MediaPath = mediaPath,
+                    MediaSourceId = model.MediaSourceId,
                     ActionBy = model.ActionBy
                 };
 
@@ -230,7 +231,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             FileSize = mediaResult.file_size,
                             MediaId = mediaId,
                             MediaPath = String.Concat(absoluteFilePath, Path.GetFileName(localFilePath)),
-                            WhatsAppBusinessAccountId = senderName.BusinessAccountId
+                            WhatsAppBusinessAccountId = senderName.BusinessAccountId,
+                            MediaSourceId = (int)MediaSourceEnum.Conversation
                         });
 
                         if (media != null)

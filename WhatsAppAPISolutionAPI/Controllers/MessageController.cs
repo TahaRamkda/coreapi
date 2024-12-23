@@ -138,6 +138,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     ClientId = model.ClientId,
                     SenderNameId = model.SenderId,
                     File = model.File,
+                    MediaSourceId = (int)MediaSourceEnum.Conversation,
                     ActionBy = model.ActionBy
                 });
 

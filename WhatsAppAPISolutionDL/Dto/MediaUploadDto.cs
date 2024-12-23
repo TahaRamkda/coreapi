@@ -16,12 +16,12 @@ namespace WhatsAppAPISolutionDL.Dto
         public int SenderNameId { get; set; }
         public string MediaUrl { get; set; }
         public string MediaId { get; set; }
-        public string MediaPath { get; set; }
-        public IFormFile File { get; set; }
+        public string MediaPath { get; set; } 
         public string ContentType { get; set; }
         public int FileSize { get; set; }
         public string FileName { get; set; }
         public string FileExtension { get; set; }
+        public int MediaSourceId { get; set; }
         public int ActionBy { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers
@@ -102,7 +103,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     ActionBy = model.ActionBy,
                     ClientId = model.ClientId,
                     UploadToFacebook = false,
-                    File = model.File
+                    File = model.File,
+                    MediaSourceId = (int)MediaSourceEnum.Admin
                 });
 
                 if (mediaUpload.Status <= 0 || mediaUpload.Id <= 0)
@@ -158,7 +160,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     ActionBy = model.ActionBy,
                     ClientId = model.ClientId,
                     UploadToFacebook = false,
-                    File = model.File
+                    File = model.File,
+                    MediaSourceId = (int)MediaSourceEnum.Admin
                 });
 
                 if (mediaUpload.Status <= 0 || mediaUpload.Id <= 0)

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Enum;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -28,27 +29,28 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             if (model.File == null && model.File.Length == 0)
                 return Ok(new ApiResult
-                { 
+                {
                     Message = "Please upload file"
                 });
 
             if (model.ClientId == 0)
                 return Ok(new ApiResult
-                { 
+                {
                     Message = "Client does not exist"
                 });
 
             if (model.SenderNameId == 0)
                 return Ok(new ApiResult
-                { 
+                {
                     Message = "Sender name does not exist"
                 });
 
+            model.MediaSourceId = (int)MediaSourceEnum.Admin;
             var response = await _mediaService.UploadMediaAsync(model);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -86,7 +88,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
