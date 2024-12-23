@@ -65,9 +65,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getmedialist")]
-        public async Task<ActionResult> GetMediaListAsync(int clientId, int PageNo = 0, int PageSize = int.MaxValue)
+        public async Task<ActionResult> GetMediaListAsync(int clientId, string contentTypeStr = "", int PageNo = 0, int PageSize = int.MaxValue)
         {
-            var res = await _mediaService.GetMediaListAsync(clientId, PageNo, PageSize);
+            var res = await _mediaService.GetMediaListAsync(clientId, contentTypeStr, PageNo, PageSize);
             return Ok(new ApiResult
             {
                 Success = true,

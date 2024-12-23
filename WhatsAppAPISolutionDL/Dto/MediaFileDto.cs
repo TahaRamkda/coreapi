@@ -8,7 +8,7 @@ namespace WhatsAppAPISolutionDL.Dto
         public int SenderNameId { get; set; }
         public IFormFile File { get; set; }
         public bool UploadToFacebook { get; set; } = true;
-        public int MediaSourceId { get; set; }    
+        public int MediaSourceId { get; set; }
         public int ActionBy { get; set; }
     }
 }

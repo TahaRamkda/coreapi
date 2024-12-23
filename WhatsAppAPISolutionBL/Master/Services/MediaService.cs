@@ -52,9 +52,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         #region Methods
 
-        public async Task<List<UMediaUpload>> GetMediaListAsync(int ClientId, int PageNo = 0, int PageSize = int.MaxValue)
+        public async Task<List<UMediaUpload>> GetMediaListAsync(int ClientId, string contentTypeStr = "", int PageNo = 0, int PageSize = int.MaxValue)
         {
-            var response = await _dbContext2.UMediaUploads.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}, @PageNo={PageNo}, @PageSize={PageSize}").ToListAsync();
+            var response = await _dbContext2.UMediaUploads.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}, @ContentTypeStr={contentTypeStr}, @PageNo={PageNo}, @PageSize={PageSize}").ToListAsync();
             return response;
         }
 
