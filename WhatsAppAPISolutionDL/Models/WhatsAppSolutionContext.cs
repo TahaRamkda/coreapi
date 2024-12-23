@@ -385,6 +385,8 @@ namespace WhatsAppAPISolutionDL.Models
             {
                 entity.Property(e => e.ContentType).HasMaxLength(250);
 
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
                 entity.Property(e => e.FileExtension).HasMaxLength(50);
 
                 entity.Property(e => e.FileName).HasMaxLength(250);
