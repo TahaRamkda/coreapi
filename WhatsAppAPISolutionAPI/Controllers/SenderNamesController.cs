@@ -58,10 +58,23 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 });
             }
 
+            var media = _dbContext.Medias.Find(response.LogoMediaId);
+
             return Ok(new ApiResult
             {
                 Success = true,
-                Result = response,
+                Result = new GetSenderNameDto
+                {
+                    SenderId = response.SenderId,
+                    BusinessAccountId = response.BusinessAccountId,
+                    ClientId = response.ClientId,
+                    Limit = response.Limit,
+                    PhoneNumber = response.PhoneNumber,
+                    PhoneNumberId = response.PhoneNumberId,
+                    Quality = response.Quality,
+                    LogoMediaId = response.LogoMediaId ?? 0,
+                    LogoUrl = media != null ? media.MediaPath : String.Empty
+                },
                 Message = "Data fetch successfully"
             });
         }
