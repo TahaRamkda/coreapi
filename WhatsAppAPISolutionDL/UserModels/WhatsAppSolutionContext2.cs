@@ -46,6 +46,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UConversation> Conversations { get; set; } = null!;
         public virtual DbSet<UAgentConversationList> AgentConversationLists { get; set; } = null!;
         public virtual DbSet<UConversationListByConversation> ConversationListByConversations { get; set; } = null!;
+        public virtual DbSet<JsonData> JsonDatas { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -57,6 +58,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UEntityDto>().HasNoKey();
             modelBuilder.Entity<UDashboardSummary>().HasNoKey();
             modelBuilder.Entity<UDashboardReportSummary>().HasNoKey();
+            modelBuilder.Entity<JsonData>().HasNoKey();
             modelBuilder.Entity<UClient>().HasNoKey();
             modelBuilder.Entity<UGroup>().HasNoKey();
             modelBuilder.Entity<UContact>().HasNoKey();

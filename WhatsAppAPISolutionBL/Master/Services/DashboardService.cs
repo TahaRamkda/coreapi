@@ -13,20 +13,22 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _dbContext2 = dbContext2;
         }
 
-        public async Task<List<UDashboardSummary>> GetDashboardSummaryListAsync(int ClientId, int DashboardTypeId = 0, DateTime? FromDate = null, DateTime? ToDate = null)
+        public async Task<string> GetDashboardSummaryAsync(int clientId, int senderId, DateTime? fromDate = null, DateTime? toDate = null)
         {
-            var response = await _dbContext2.DashboardSummary.FromSqlInterpolated($"exec usp_Dashboard_Ops  @ClientId={ClientId}, @DashboardTypeId={DashboardTypeId}, @FromDate={FromDate}, @ToDate={ToDate}").ToListAsync();
-            return response;
+            var response = await _dbContext2.JsonDatas.FromSqlInterpolated($"exec usp_Dashboard_Ops  @ClientId={clientId}, @SenderId={senderId}, @DashboardTypeId=1, @FromDate={fromDate}, @ToDate={toDate}").ToListAsync();
+            if (response != null && response.Any())
+                return response[0].JsonDataStr;
+
+            return String.Empty;
         }
 
-        public async Task<List<UDashboardReportSummary>> GetDashboardReportSummaryListAsync(int ClientId, int DashboardTypeId = 0, DateTime? FromDate = null, DateTime? ToDate = null)
+        public async Task<string> GetTemplateInsightAsync(int clientId, int templateId = 0, DateTime? fromDate = null, DateTime? toDate = null)
         {
-            if (!FromDate.HasValue && !ToDate.HasValue)
-                return new List<UDashboardReportSummary>();
+            var response = await _dbContext2.JsonDatas.FromSqlInterpolated($"exec usp_Template_Insight  @ClientId={clientId}, @TemplateId={templateId}, @FromDate={fromDate}, @ToDate={toDate}").ToListAsync();
+            if (response != null && response.Any())
+                return response[0].JsonDataStr;
 
-            var response = await _dbContext2.DashboardReportSummary.FromSqlInterpolated($"exec usp_Dashboard_Report_Ops @ClientId={ClientId}, @DashboardTypeId={DashboardTypeId}, @FromDate={FromDate}, @ToDate={ToDate}").ToListAsync();
-            return response;
+            return String.Empty;
         }
-
     }
 }

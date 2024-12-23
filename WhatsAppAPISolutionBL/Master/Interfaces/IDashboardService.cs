@@ -4,8 +4,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface IDashboardService
     {
-        Task<List<UDashboardSummary>> GetDashboardSummaryListAsync(int ClientId, int DashboardTypeId = 0, DateTime? FromDate = null, DateTime? ToDate = null);
-
-        Task<List<UDashboardReportSummary>> GetDashboardReportSummaryListAsync(int ClientId, int DashboardTypeId = 0, DateTime? FromDate = null, DateTime? ToDate = null);
+        Task<string> GetDashboardSummaryAsync(int clientId, int senderId, DateTime? fromDate = null, DateTime? toDate = null);
+        Task<string> GetTemplateInsightAsync(int clientId, int templateId = 0, DateTime? fromDate = null, DateTime? toDate = null);
     }
 }
