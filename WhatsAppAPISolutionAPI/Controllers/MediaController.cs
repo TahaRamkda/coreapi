@@ -45,6 +45,17 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = "Sender name does not exist"
                 });
 
+            //Restrict other media types
+            var extension = Path.GetExtension(model.File.FileName);
+            var allowedExtensions = new List<string> { ".jpg", ".jpeg", ".png", ".3gp", ".mp4", ".xls", ".xlsx", ".doc", ".docx", ".ppt", ".pptx", ".pdf" };
+            if (!allowedExtensions.Contains(extension.ToLower()))
+            {
+                return Ok(new ApiResult
+                {
+                    Message = $"Cannot upload media with file extension {extension}"
+                });
+            }
+
             model.MediaSourceId = (int)MediaSourceEnum.Admin;
             var response = await _mediaService.UploadMediaAsync(model);
             if (response == null || response.Status <= 0)
