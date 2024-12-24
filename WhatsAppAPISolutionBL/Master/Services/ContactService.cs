@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using WhatsAppAPISolutionBL.Master.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
@@ -13,11 +14,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
     {
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
+        private readonly IImportManager _importManager;
 
-        public ContactService(WhatsAppSolutionContext dbContext, WhatsAppSolutionContext2 dbContext2)
+        public ContactService(WhatsAppSolutionContext dbContext,
+            WhatsAppSolutionContext2 dbContext2,
+            IImportManager importManager)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
+            _importManager = importManager;
         }
 
         public async Task<List<UContact>> GetContactListAsync(int ClientId, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
@@ -28,7 +33,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> AddContactAsync(ContactDto contact)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Contacts_Ops @ActionId={(int)CrudEnum.Add}, @GroupId={contact.GroupId}, @FirstName={contact.FirstName}, @LastName={contact.LastName}, @PhoneNumber={contact.PhoneNumber}, @EmailAddress={contact.EmailAddress}, @AreaName={contact.AreaName}, @ActionBy={contact.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Contacts_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={contact.ClientId}, @GroupId={contact.GroupId}, @FirstName={contact.FirstName}, @LastName={contact.LastName}, @PhoneNumber={contact.PhoneNumber}, @EmailAddress={contact.EmailAddress}, @AreaName={contact.AreaName}, @ActionBy={contact.ActionBy}").ToListAsync();
             return response[0];
         }
 
@@ -87,6 +92,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var contactJson = JsonSerializer.Serialize(contact.ContactsInfo);
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Contacts_Ops  @ActionId={(int)CrudEnum.BulkContact}, @GroupId={contact.GroupId}, @ClientId={contact.ClientId}, @BulkContact={contactJson}, @ActionBy={contact.ActionBy}").ToListAsync();
             return response[0];
+        }
+
+        public async Task<UResponse> ImportBulkContacts(IFormFile file, int clientId)
+        {
+            var contacts = _importManager.ImportContactsFromXlsx(file.OpenReadStream());
+            if (contacts == null || !contacts.Any())
+            {
+                return new UResponse
+                {
+                    Status = 0,
+                    Message = "Cannot import contacts"
+                };
+            }
+
+            return null;
         }
     }
 }

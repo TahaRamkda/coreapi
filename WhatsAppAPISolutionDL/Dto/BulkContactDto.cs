@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,8 @@ namespace WhatsAppAPISolutionDL.Dto
 {
     public partial class BulkContactDto
     {
-        public BulkContactDto() {
+        public BulkContactDto()
+        {
             ContactsInfo = new List<ContactInfo>();
         }
 
@@ -17,8 +19,16 @@ namespace WhatsAppAPISolutionDL.Dto
         public int? ClientId { get; set; }
         public int? ActionBy { get; set; }
     }
+
+    public partial class ImportContactDto
+    {
+        public int ClientId { get; set; }
+        public IFormFile File { get; set; }
+    }
+
     public partial class ContactInfo
     {
+        public int GroupId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string PhoneNumber { get; set; }

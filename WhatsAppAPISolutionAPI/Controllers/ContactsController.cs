@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
@@ -7,7 +8,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class ContactsController : ControllerBase
     {
         private readonly IContactService _contactService;
@@ -159,6 +160,35 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Success = true,
                 Result = response,
                 Message = "Data deleted successfully"
+            });
+        }
+
+        [HttpPost("importcontacts")]
+        public async Task<IActionResult> ImportContactsAsync([FromForm] ImportContactDto model)
+        {
+            if (model.File == null || model.File.Length <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "No file found"
+                });
+            }
+
+            var response = await _contactService.ImportBulkContacts(model.File, model.ClientId);
+            if (response == null || response.Status <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Result = response,
+                    Message = response?.Message
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = response,
+                Message = "Data added successfully"
             });
         }
     }

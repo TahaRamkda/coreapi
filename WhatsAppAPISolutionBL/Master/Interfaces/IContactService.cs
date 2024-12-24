@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,5 +16,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         public Task<UResponse> AddBulkContactAsync(BulkContactDto contact);
         public Task<UResponse> UpdateContactAsync(ContactDto contact);
         public Task<UResponse> DeleteContactAsync(int ContactId);
+        Task<UResponse> ImportBulkContacts(IFormFile file, int clientId);
     }
 }
