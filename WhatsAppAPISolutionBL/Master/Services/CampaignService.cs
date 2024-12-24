@@ -96,7 +96,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 ClientId = campaignData.ClientId,
                 TemplateId = campaignData.TemplateId,
                 PhoneNumbers = campaign.PhoneNumbers,
-                ParentId = campaignData.CampaignId
+                ParentId = campaignData.CampaignId,
+                ModuleId=(int)ModuleEnum.Campaign
             };
 
             tempPayload.Params = await _dbContext.CampaignParams.Where(x => x.CampaignId == campaign.CampaignId)
