@@ -24,7 +24,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     var contact = new ContactInfo
                     {
-                        GroupId = Convert.ToInt32(worksheet.Cells[row, 1].Value),
+                        GroupName = (worksheet.Cells[row, 1].Value?.ToString() ?? ""),
                         FirstName = (worksheet.Cells[row, 2].Value?.ToString() ?? ""),
                         LastName = (worksheet.Cells[row, 3].Value?.ToString() ?? ""),
                         PhoneNumber = (worksheet.Cells[row, 4].Value?.ToString() ?? ""),

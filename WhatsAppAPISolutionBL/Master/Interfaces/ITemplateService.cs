@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WhatsAppAPISolutionDL.Dto;
+﻿using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.UserModels;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface ITemplateService
     {
-        public Task<List<UTemplate>> GetTemplateListAsync(int ClientId, int TransactionType);
-        public Task<UResponseWithID> AddTemplateAsync(TemplateDto template);
-        public Task<UResponseWithID> UpdateTemplateAsync(TemplateDto template);
-        public Task<UResponseWithID> DeleteTemplateAsync(int templates_Id);
-        public Task<UTemplateDetails> GetTemplateDetailsAsync(int client_Id, int template_Id = 0);
-        public Task<UResponseWithID> UpdateTemplateStatusByIdAsync(TemplateDto template);
+        Task<List<UTemplate>> GetTemplateListAsync(int clientId, int transactionType = 0, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue);
+        Task<UResponseWithID> AddTemplateAsync(TemplateDto template);
+        Task<UResponseWithID> UpdateTemplateAsync(TemplateDto template);
+        Task<UResponseWithID> DeleteTemplateAsync(int templates_Id);
+        Task<UTemplateDetails> GetTemplateDetailsAsync(int client_Id, int template_Id = 0);
+        Task<UResponseWithID> UpdateTemplateStatusByIdAsync(TemplateDto template);
+        Task<List<UEntityDto>> GetTemplatesAsync(int clientId, int defaultType = 0, int senderId = 0, int transactionType = 0, string searchStr = "");
     }
 }

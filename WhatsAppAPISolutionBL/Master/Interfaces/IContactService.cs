@@ -11,11 +11,10 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface IContactService
     {
-        public Task<List<UContact>> GetContactListAsync(int ClientId, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue);
-        public Task<UResponse> AddContactAsync(ContactDto contact);
-        public Task<UResponse> AddBulkContactAsync(BulkContactDto contact);
+        public Task<List<UContact>> GetContactListAsync(int ClientId, int GroupId = 0, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue);
+        public Task<UResponse> AddContactAsync(ContactDto contact); 
         public Task<UResponse> UpdateContactAsync(ContactDto contact);
         public Task<UResponse> DeleteContactAsync(int ContactId);
-        Task<UResponse> ImportBulkContacts(IFormFile file, int clientId);
+        Task<UResponse> ImportBulkContacts(ImportContactDto model);
     }
 }

@@ -31,9 +31,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
         }
 
-        public async Task<List<UTemplate>> GetTemplateListAsync(int ClientId, int TransactionType)
+        public async Task<List<UTemplate>> GetTemplateListAsync(int clientId, int transactionType = 0, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
-            var response = await _dbContext2.Templates.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}, @TransactionType={TransactionType}").ToListAsync();
+            var response = await _dbContext2.Templates.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @TransactionType={transactionType}, @SearchStr={searchStr},@SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}").ToListAsync();
             return response;
         }
 
@@ -213,7 +213,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Status = 0,
                     Message = "Oops somethng went wrong"
                 };
- 
+
             if (response[0].Status > 0)
             {
                 var tempateResponse = new TemplateRequestDto()
@@ -678,9 +678,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return pDetails;
         }
 
-        public async Task<List<UTemplateParameter>> GetTemplateParametersAsync(int client_Id, int template_Id = 0)
+        private async Task<List<UTemplateParameter>> GetTemplateParametersAsync(int client_Id, int template_Id = 0)
         {
             var response = await _dbContext2.TemplateParameters.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetTemplateParameterDetails}, @ClientId={client_Id}, @TemplatesId={template_Id}").ToListAsync();
+            return response;
+        }
+
+        public async Task<List<UEntityDto>> GetTemplatesAsync(int clientId, int defaultType = 0, int senderId = 0, int transactionType = 0, string searchStr = "")
+        {
+            var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId}, @DefaultType={defaultType}, @SenderId={senderId},@TransactionType={transactionType}, @SearchStr={searchStr}").ToListAsync();
             return response;
         }
     }

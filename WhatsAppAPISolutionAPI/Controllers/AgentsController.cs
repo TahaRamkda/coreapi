@@ -23,9 +23,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getagentlist")]
-        public async Task<ActionResult> GetAgentsListAsync(int ClientId, string SearchStr = "", int Status = 0)
+        public async Task<ActionResult> GetAgentsListAsync(int clientId, string searchStr = "", int status = 0, int senderId = 0, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
-            var res = await _agentsService.GetAgentListAsync(ClientId, SearchStr, Status);
+            var res = await _agentsService.GetAgentListAsync(clientId, searchStr, status, senderId, sortBy, pageNo, pageSize);
             return Ok(new ApiResult
             {
                 Success = true,
@@ -47,7 +47,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = "",
                     Message = "No record found with this id"
                 });
@@ -73,7 +73,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -98,7 +98,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -121,7 +121,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                {  
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -141,7 +141,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -162,7 +162,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -188,5 +188,26 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
+        [HttpGet("getagents")]
+        public async Task<IActionResult> GetAgentsAsync(int clientId, int senderId, string searchStr = "")
+        {
+            var agents = await _agentsService.GetAgentsAsync(clientId, senderId, searchStr);
+            if (agents == null || !agents.Any())
+            {
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Result = null,
+                    Message = "No records found"
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = agents,
+                Message = String.Empty
+            });
+        }
     }
 }

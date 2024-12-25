@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
 
@@ -164,7 +165,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = "",
                     Message = "No record found with this id"
                 });
@@ -178,5 +179,26 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
+        [HttpGet("getclients")]
+        public async Task<IActionResult> GetClientsAsync(int clientId, string searchStr = "")
+        {
+            var clients = await _clientService.GetClientsAsync(clientId, searchStr);
+            if (clients == null || !clients.Any())
+            {
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Result = null,
+                    Message = "No records found"
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = clients,
+                Message = String.Empty
+            });
+        }
     }
 }

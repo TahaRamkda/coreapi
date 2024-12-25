@@ -25,9 +25,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getcontactslist")]
-        public async Task<ActionResult> GetContactsListAsync(int ClientId, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
+        public async Task<ActionResult> GetContactsListAsync(int ClientId, int GroupId = 0, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
         {
-            var res = await _contactService.GetContactListAsync(ClientId, SearchStr, SortBy, PageNo, PageSize);
+            var res = await _contactService.GetContactListAsync(ClientId, GroupId, SearchStr, SortBy, PageNo, PageSize);
             return Ok(new ApiResult
             {
                 Success = true,
@@ -87,32 +87,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data added successfully"
             });
         }
-
-        [HttpPost("addbulkcontacts")]
-        public async Task<IActionResult> AddBulkContactAsync([FromBody] BulkContactDto contact)
-        {
-            if (contact == null)
-            {
-                return BadRequest();
-            }
-
-            var response = await _contactService.AddBulkContactAsync(contact);
-            if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
-            return Ok(new ApiResult
-            {
-                Success = true,
-                Result = response,
-                Message = "Data added successfully"
-            });
-        }
-
+         
         [HttpPut("updatecontact")]
         public async Task<IActionResult> UpdateContactAsync(ContactDto contact)
         {
@@ -174,7 +149,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 });
             }
 
-            var response = await _contactService.ImportBulkContacts(model.File, model.ClientId);
+            var response = await _contactService.ImportBulkContacts(model);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult

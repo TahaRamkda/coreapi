@@ -20,6 +20,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string CreatedDate { get; set; }
         public int? UpdatedBy { get; set; }
         public string UpdatedDate { get; set; }
+        public long? Line { get; set; }
         public int? Total { get; set; }
         public int? DefaultType { get; set; }
     }

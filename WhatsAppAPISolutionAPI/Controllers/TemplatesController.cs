@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
@@ -37,9 +38,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("gettemplateslist")]
-        public async Task<ActionResult> GetTemplatesListAsync(int ClientId, int TransactionType)
+        public async Task<ActionResult> GetTemplatesListAsync(int clientId, int transactionType = 0, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
-            var res = await _templateService.GetTemplateListAsync(ClientId, TransactionType);
+            var res = await _templateService.GetTemplateListAsync(clientId, transactionType, searchStr, sortBy, pageNo, pageSize);
             return Ok(new ApiResult
             {
                 Success = true,
@@ -174,7 +175,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
                     Message = "Body text required"
                 });
-             
+
             var response = await _templateService.UpdateTemplateAsync(template);
             if (response == null || response.Status <= 0)
             {
@@ -288,6 +289,28 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Success = true,
                 Result = res,
                 Message = "Data fetch successfully"
+            });
+        }
+
+        [HttpGet("gettemplates")]
+        public async Task<IActionResult> GetTemplatesAsync(int clientId, int defaultType = 0, int senderId = 0, int transactionType = 0, string searchStr = "")
+        {
+            var templates = await _templateService.GetTemplatesAsync(clientId, defaultType, senderId, transactionType, searchStr);
+            if (templates == null || !templates.Any())
+            {
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Result = null,
+                    Message = "No records found"
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = templates,
+                Message = String.Empty
             });
         }
     }
