@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WhatsAppAPISolutionDL.Dto;
+﻿using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.UserModels;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface IGroupService
     {
-        public Task<List<UGroup>> GetGroupListAsync(int ClientId, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue);
-        public Task<UResponse> AddGroupAsync(GroupDto group);
-        public Task<UResponse> UpdateGroupAsync(GroupDto group);
-        public Task<UResponse> DeleteGroupAsync(int groupId);
+        Task<List<UGroup>> GetGroupListAsync(int ClientId, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue);
+        Task<UResponse> AddGroupAsync(GroupDto group);
+        Task<UResponse> UpdateGroupAsync(GroupDto group);
+        Task<UResponse> DeleteGroupAsync(int groupId);
+        Task<List<UEntityDto>> GetGroupsAsync(int clientId, string searchStr = "");
     }
 }

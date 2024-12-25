@@ -1,13 +1,18 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.UserModels;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class GroupsController : ControllerBase
     {
         private readonly IGroupService _groupService;
@@ -48,7 +53,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = "",
                     Message = "No record found with this id"
                 });
@@ -74,7 +79,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -99,7 +104,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -124,7 +129,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -134,6 +139,28 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Success = true,
                 Result = response,
                 Message = "Data deleted successfully"
+            });
+        }
+
+        [HttpGet("getgroups")]
+        public async Task<IActionResult> GetGroupsAsync(int clientId, string searchStr = "")
+        {
+            var groups = await _groupService.GetGroupsAsync(clientId, searchStr);
+            if (groups == null || !groups.Any())
+            {
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Result = null,
+                    Message = "No records found"
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = groups,
+                Message = String.Empty
             });
         }
     }
