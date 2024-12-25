@@ -60,6 +60,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Message = "Template name already exist"
                 };
             }
+
             if (template.Header != null)
             {
                 if (template.Header.Format != (int)TemplateHeaderEnum.TEXT)
@@ -104,6 +105,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 headerText = template.Header.Text;
                 headerParamCount = template.Header.TextCount;
             }
+
             if (template.Body != null)
             {
                 MatchCollection matches = regex.Matches(template.Body.Text);
@@ -120,6 +122,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 bodyText = template.Body.Text;
                 bodyParamCount = template.Body.TextCount;
             }
+
             if (template.Footer != null)
                 footer = template.Footer.Text;
 
@@ -150,6 +153,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     bodyValues.Add(param);
                 }
             }
+
             if (template.Buttons != null && template.Buttons.Any())
             {
                 foreach (var button in template.Buttons)
@@ -203,7 +207,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var buttonJson = JsonSerializer.Serialize(buttonValues);
 
             var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={template.ClientId}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.TransactionType}, @MediaId={template.MediaId}, @SenderId={template.SenderNameId}, @ActionBy={template.ActionBy}, @DefaultType={template.DefaultType}").ToListAsync();
-            if (response != null || response[0].Status > 0)
+            if (response == null || !response.Any())
+                return new UResponseWithID()
+                {
+                    Status = 0,
+                    Message = "Oops somethng went wrong"
+                };
+ 
+            if (response[0].Status > 0)
             {
                 var tempateResponse = new TemplateRequestDto()
                 {
@@ -213,25 +224,29 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Category = template.Category,
                     LanguageCode = template.Language,
                 };
-                tempateResponse.Header = new TemplateRequestDto.HeaderDto()
+
+                tempateResponse.Header = new TemplateRequestDto.HeaderDto
                 {
                     Format = ((TemplateHeaderEnum)template.Header.Format).ToString(),
                     MediaUrl = mediaUrl,
                     Text = template.Header.Text,
                     Example = template.Header.Values?.FirstOrDefault()?.Value ?? ""
                 };
-                tempateResponse.Body = new TemplateRequestDto.BodyDto()
+
+                tempateResponse.Body = new TemplateRequestDto.BodyDto
                 {
                     Text = template.Body.Text,
                     Examples = template.Body?.Values?.Select(x => x.Value).ToList() ?? new List<string>()
                 };
-                tempateResponse.Footer = new TemplateRequestDto.FooterDto()
+
+                tempateResponse.Footer = new TemplateRequestDto.FooterDto
                 {
                     Text = template.Footer.Text
                 };
+
                 foreach (var item in template.Buttons)
                 {
-                    tempateResponse.Buttons.Add(new TemplateRequestDto.ButtonDto()
+                    tempateResponse.Buttons.Add(new TemplateRequestDto.ButtonDto
                     {
                         Type = ((ButtonTypeEnum)item.Type).ToString(),
                         Text = item.Text,
@@ -240,20 +255,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         Example = item.Values?.FirstOrDefault()?.Value,
                     });
                 }
+
                 var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(tempateResponse), Encoding.UTF8, "application/json");
                 var response1 = await _httpClient.PostAsync($"/api/Template/TemplateMessageOps", res);
                 var content = await response1.Content.ReadAsStringAsync();
 
-                var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
+                var result = JsonSerializer.Deserialize<SyncResultDto>(content);
                 if (result != null && result.success)
                 {
-                    var data = System.Text.Json.JsonSerializer.Serialize(result.result);
+                    var data = JsonSerializer.Serialize(result.result);
                     var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<TemplateResultDto>(data);
                     if (tempResult != null)
                     {
                         if (!string.IsNullOrEmpty(tempResult.id) && !string.IsNullOrEmpty(tempResult.status))
                         {
-                            var updateTemp = new TemplateDto()
+                            var updateTemp = new TemplateDto
                             {
                                 Id = response[0].Id,
                                 TemplateId = tempResult.id,
@@ -261,18 +277,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 Category = tempResult.category,
                                 ActionBy = template.ActionBy
                             };
+
                             var updateTemplate = await UpdateTemplateStatusByIdAsync(updateTemp);
                             if (updateTemplate == null || updateTemplate.Status <= 0)
                             {
-                                return new UResponseWithID()
+                                return new UResponseWithID
                                 {
-                                    Status = 0,
-                                    Message = updateTemplate?.Message
+                                    Status = 201, //Created but not created in facebook
+                                    Message = "Template created in system but was not created on facebook because of: \n" + updateTemplate?.Message,
+                                    Id = response[0].Id
                                 };
                             }
-                            return new UResponseWithID()
+
+                            return new UResponseWithID
                             {
-                                Status = 1,
+                                Status = 200,
                                 Message = "Template added successfully"
                             };
                         }
@@ -280,14 +299,24 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
                 else if (result != null && !result.success)
                 {
-                    return new UResponseWithID()
+                    return new UResponseWithID
                     {
-                        Status = 0,
-                        Message = result.message
+                        Status = 201, //Created but not created in facebook
+                        Message = "Template created in system but was not created on facebook because of: \n" + result.message,
+                        Id = response[0].Id
                     };
                 }
             }
-            return new UResponseWithID()
+            else if (response[0].Status <= 0)
+            {
+                return new UResponseWithID()
+                {
+                    Status = 0,
+                    Message = response[0].Message
+                };
+            }
+
+            return new UResponseWithID
             {
                 Status = 0,
                 Message = "Oops somethng went wrong"
@@ -461,7 +490,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var buttonJson = JsonSerializer.Serialize(buttonValues);
 
             var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Update}, @TemplatesId={template.Id}, @ClientId={template.ClientId}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.TransactionType}, @MediaId={template.MediaId}, @SenderId={template.SenderNameId}, @ActionBy={template.ActionBy}, @DefaultType={template.DefaultType}").ToListAsync();
-            if (response != null || response[0].Status > 0)
+            if (response == null || !response.Any())
+                return new UResponseWithID()
+                {
+                    Status = 0,
+                    Message = "Oops somethng went wrong"
+                };
+
+            if (response[0].Status > 0)
             {
                 var tempateResponse = new TemplateRequestDto()
                 {
@@ -471,6 +507,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Category = template.Category,
                     LanguageCode = template.Language,
                 };
+
                 tempateResponse.Header = new TemplateRequestDto.HeaderDto()
                 {
                     Format = ((TemplateHeaderEnum)template.Header.Format).ToString(),
@@ -478,15 +515,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Text = template.Header.Text,
                     Example = template.Header.Values?.FirstOrDefault()?.Value ?? ""
                 };
+
                 tempateResponse.Body = new TemplateRequestDto.BodyDto()
                 {
                     Text = template.Body.Text,
                     Examples = template.Body?.Values?.Select(x => x.Value).ToList() ?? new List<string>()
                 };
+
                 tempateResponse.Footer = new TemplateRequestDto.FooterDto()
                 {
                     Text = template.Footer.Text
                 };
+
                 foreach (var item in template.Buttons)
                 {
                     tempateResponse.Buttons.Add(new TemplateRequestDto.ButtonDto()
@@ -498,13 +538,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         Example = item.Values?.FirstOrDefault()?.Value,
                     });
                 }
+
                 var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(tempateResponse), Encoding.UTF8, "application/json");
                 var response1 = await _httpClient.PostAsync($"/api/Template/TemplateMessageOps", res);
                 var content = await response1.Content.ReadAsStringAsync();
-                var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
+                var result = JsonSerializer.Deserialize<SyncResultDto>(content);
                 if (result != null && result.success)
                 {
-                    var data = System.Text.Json.JsonSerializer.Serialize(result.result);
+                    var data = JsonSerializer.Serialize(result.result);
                     var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<TemplateResultDto>(data);
                     if (tempResult != null)
                     {
@@ -518,18 +559,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 Category = tempResult.category,
                                 ActionBy = template.ActionBy
                             };
+
                             var updateTemplate = await UpdateTemplateStatusByIdAsync(updateTemp);
                             if (updateTemplate == null || updateTemplate.Status <= 0)
                             {
                                 return new UResponseWithID()
                                 {
-                                    Status = 0,
-                                    Message = updateTemplate?.Message
+                                    Status = 201,
+                                    Message = "Template updated in system but was not updated on facebook because of: \n" + updateTemplate?.Message
                                 };
                             }
+
                             return new UResponseWithID()
                             {
-                                Status = 1,
+                                Status = 200,
                                 Message = "Template updated successfully"
                             };
                         }
@@ -539,22 +582,33 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     return new UResponseWithID()
                     {
-                        Status = 0,
-                        Message = result.message
+                        Status = 201,
+                        Message = "Template updated in system but was not updated on facebook because of: \n" + result.message
                     };
                 }
             }
+            else if (response[0].Status <= 0)
+            {
+                return new UResponseWithID()
+                {
+                    Status = 0,
+                    Message = response[0].Message
+                };
+            }
+
             return new UResponseWithID()
             {
                 Status = 0,
                 Message = "Oops somethng went wrong"
             };
         }
+
         public async Task<UResponseWithID> DeleteTemplateAsync(int Id)
         {
             var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Delete}, @TemplatesId={Id}").ToListAsync();
             return response[0];
         }
+
         public async Task<UResponseWithID> UpdateTemplateStatusByIdAsync(TemplateDto template)
         {
             var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.UpdateTemplateStatus}, @TemplatesId={template.Id}, @TemplateId={template.TemplateId}, @Status={template.Status}, @Category={template.Category}, @ActionBy={template.ActionBy}").ToListAsync();

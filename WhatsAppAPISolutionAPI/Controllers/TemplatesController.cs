@@ -121,11 +121,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 return Ok(new ApiResult
                 {
-
                     Result = response,
                     Message = response?.Message
                 });
             }
+
             return Ok(new ApiResult
             {
                 Success = true,
