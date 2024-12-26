@@ -46,5 +46,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.Delete}, @SenderId={SenderNameId}").ToListAsync();
             return response[0];
         }
+
+        public async Task<List<UEntityDto>> GetSenderNamesAsync(int clientId, string searchStr = "")
+        {
+            var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId},  @SearchStr={searchStr}").ToListAsync();
+            return response;
+        }
     }
 }

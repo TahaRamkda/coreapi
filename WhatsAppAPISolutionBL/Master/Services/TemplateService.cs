@@ -56,6 +56,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             //Check if template name already exists
             var templateNameExist = await _dbContext.Templates
                 .Where(x => x.ClientId == template.ClientId
+                && x.SenderId == template.SenderNameId
                 && x.TemplateName != null
                 && x.Language != null
                 && x.TemplateName.ToLower() == template.Name.ToLower()

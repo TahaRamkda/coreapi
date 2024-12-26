@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
@@ -256,6 +257,28 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Success = true,
                 Result = response,
                 Message = "Data fetch successfully"
+            });
+        }
+         
+        [HttpGet("getsendernames")]
+        public async Task<IActionResult> GetSenderNamesAsync(int clientId, string searchStr = "")
+        {
+            var models = await _senderNameService.GetSenderNamesAsync(clientId, searchStr);
+            if (models == null || !models.Any())
+            {
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Result = null,
+                    Message = "No records found"
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = models,
+                Message = String.Empty
             });
         }
     }
