@@ -9,7 +9,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class SenderNamesController : ControllerBase
     {
         private readonly ISenderNameService _senderNameService;

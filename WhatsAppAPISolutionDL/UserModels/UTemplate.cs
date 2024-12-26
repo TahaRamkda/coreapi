@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WhatsAppAPISolutionDL.UserModels
+﻿namespace WhatsAppAPISolutionDL.UserModels
 {
     public partial class UTemplate
     {
@@ -15,6 +9,9 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string SenderName { get; set; }
         public string TemplateName { get; set; }
         public string TemplateId { get; set; }
+        public string Category { get; set; }
+        public string SubCategory { get; set; }
+        public string Language { get; set; }
         public string Status { get; set; }
         public int? CreatedBy { get; set; }
         public string CreatedDate { get; set; }

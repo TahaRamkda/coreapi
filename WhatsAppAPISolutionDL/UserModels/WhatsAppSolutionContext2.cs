@@ -27,6 +27,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UResponse> Response { get; set; } = null!;
         public virtual DbSet<UResponseWithID> ResponseWithID { get; set; } = null!;
         public virtual DbSet<UEntityDto> Entity { get; set; } = null!;
+        public virtual DbSet<UEntity2Dto> Entity2 { get; set; } = null!;
         public virtual DbSet<UDashboardSummary> DashboardSummary { get; set; } = null!;
         public virtual DbSet<UDashboardReportSummary> DashboardReportSummary { get; set; } = null!;
         public virtual DbSet<UClient> Clients { get; set; } = null!;
@@ -76,6 +77,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UConversation>().HasNoKey();
             modelBuilder.Entity<UAgentConversationList>().HasNoKey();
             modelBuilder.Entity<UConversationListByConversation>().HasNoKey();
+            modelBuilder.Entity<UEntity2Dto>().HasNoKey();
         }
     }
 }

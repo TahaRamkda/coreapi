@@ -11,7 +11,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    //[Authorize]
+    [AllowAnonymous]
     public class BridgeController : ControllerBase
     {
         private readonly IMessageService _messageService;
@@ -31,8 +31,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         #region Template
-
-        [AllowAnonymous]
+         
         [HttpPost("templatesync")]
         public async Task<IActionResult> TemplateSync(object templateData)
         {
@@ -113,7 +112,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         #endregion
 
         #region Message
-
+         
         [HttpPost("whatsappmessagestatusupdate")]
         public async Task<IActionResult> WhatsAppMessageStatusUpdate([FromBody] WhatsAppMessageStatusUpdateDto messageStatus)
         {
@@ -140,7 +139,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data added successfully"
             });
         }
-
+         
         [HttpPost("whatsappmessagereceive")]
         public async Task<IActionResult> WhatsAppMessageReceive([FromBody] WhatsAppMessageReceiveDto messageReceive)
         {

@@ -50,11 +50,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var bodyValues = new List<TemplateDto.KeyValue>();
             var buttonValues = new List<TemplateParameter>();
             Regex regex = new Regex(@"{{\d+}}");
-            template.Name = template.Name.Replace(" ", "_").ToLower();
-            var templateNameExist = await _dbContext.Templates.Where(x => x.TemplateName == template.Name).FirstOrDefaultAsync();
+
+            template.Name = template.Name.Replace(" ", "_").ToLower().Trim();
+
+            //Check if template name already exists
+            var templateNameExist = await _dbContext.Templates
+                .Where(x => x.ClientId == template.ClientId
+                && x.TemplateName != null
+                && x.Language != null
+                && x.TemplateName.ToLower() == template.Name.ToLower()
+                && x.Language.ToLower() == template.Language.ToLower()).FirstOrDefaultAsync();
+
             if (templateNameExist != null)
             {
-                return new UResponseWithID()
+                return new UResponseWithID
                 {
                     Status = 0,
                     Message = "Template name already exist"
@@ -66,7 +75,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 if (template.Header.Format != (int)TemplateHeaderEnum.TEXT)
                 {
                     if (template.MediaId <= 0)
-                        return new UResponseWithID()
+                        return new UResponseWithID
                         {
                             Status = 0,
                             Message = "Media Id required when header type is not text"
@@ -74,7 +83,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                     var mediaDetail = await _dbContext.Medias.FindAsync(template.MediaId);
                     if (mediaDetail == null || string.IsNullOrEmpty(mediaDetail.MediaPath))
-                        return new UResponseWithID()
+                        return new UResponseWithID
                         {
                             Status = 0,
                             Message = "Media not exist"
@@ -86,13 +95,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     MatchCollection matches = regex.Matches(template.Header.Text);
                     if (matches.Count() > 1)
-                        return new UResponseWithID()
+                        return new UResponseWithID
                         {
                             Status = 0,
                             Message = "Only one header parameters is allowed"
                         };
                     if (!(template.Header.TextCount == matches.Count))
-                        return new UResponseWithID()
+                        return new UResponseWithID
                         {
                             Status = 0,
                             Message = "Header text parameters is not matching with header text count"
@@ -110,7 +119,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 MatchCollection matches = regex.Matches(template.Body.Text);
                 if (!(template.Body.TextCount == matches.Count))
-                    return new UResponseWithID()
+                    return new UResponseWithID
                     {
                         Status = 0,
                         Message = "Body text parameters is not matching with body text count"
@@ -130,7 +139,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 foreach (var val in template.Header.Values)
                 {
-                    var param = new TemplateDto.KeyValue()
+                    var param = new TemplateDto.KeyValue
                     {
                         Index = val.Index,
                         Value = val.Value,
@@ -144,7 +153,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 foreach (var val in template.Body.Values)
                 {
-                    var param = new TemplateDto.KeyValue()
+                    var param = new TemplateDto.KeyValue
                     {
                         Index = val.Index,
                         Value = val.Value,
@@ -161,12 +170,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     if (button.TextCount == 0)
                         button.Values = null;
                     if (button.ActionType == (int)ActionTypeEnum.TEMPLATE && button.ActionId <= 0)
-                        return new UResponseWithID()
+                        return new UResponseWithID
                         {
                             Status = 0,
                             Message = "Template Id required in action id when action type is template"
                         };
-                    var param = new TemplateParameter()
+                    var param = new TemplateParameter
                     {
                         Sequence = button.Index,
                         ParamName = button.Text,
@@ -208,7 +217,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={template.ClientId}, @TemplateName={template.Name},@Category={template.Category}, @SubCategory={template.SubCategory}, @Language={template.Language}, @Status={template.Status}, @IsApproved={template.IsApproved}, @HeaderType={headerType}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @HeaderValues={headerJson}, @BodyValues={bodyJson}, @FooterText={footer}, @ButtonValues={buttonJson}, @TransactionType={template.TransactionType}, @MediaId={template.MediaId}, @SenderId={template.SenderNameId}, @ActionBy={template.ActionBy}, @DefaultType={template.DefaultType}").ToListAsync();
             if (response == null || !response.Any())
-                return new UResponseWithID()
+                return new UResponseWithID
                 {
                     Status = 0,
                     Message = "Oops somethng went wrong"
@@ -216,7 +225,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (response[0].Status > 0)
             {
-                var tempateResponse = new TemplateRequestDto()
+                var tempateResponse = new TemplateRequestDto
                 {
                     ClientId = template.ClientId.ToString(),
                     SenderNameId = template.SenderNameId.ToString(),
@@ -336,16 +345,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var buttonValues = new List<TemplateParameter>();
             Regex regex = new Regex(@"{{\d+}}");
 
-            template.Name = template.Name.Replace(" ", "_").ToLower();
-            var templateNameExist = await _dbContext.Templates.Where(x => x.TemplateName == template.Name && x.Id != template.Id).FirstOrDefaultAsync();
-            if (templateNameExist != null)
-            {
-                return new UResponseWithID()
-                {
-                    Status = 0,
-                    Message = "Template name already exist"
-                };
-            }
+            //template.Name = template.Name.Replace(" ", "_").ToLower();
+            //var templateNameExist = await _dbContext.Templates.Where(x => x.TemplateName == template.Name && x.Id != template.Id).FirstOrDefaultAsync();
+            //if (templateNameExist != null)
+            //{
+            //    return new UResponseWithID()
+            //    {
+            //        Status = 0,
+            //        Message = "Template name already exist"
+            //    };
+            //}
+
             if (template.Header != null)
             {
                 if (template.Header.Format != (int)TemplateHeaderEnum.TEXT)
@@ -687,6 +697,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<List<UEntityDto>> GetTemplatesAsync(int clientId, int defaultType = 0, int senderId = 0, int transactionType = 0, string searchStr = "")
         {
             var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId}, @DefaultType={defaultType}, @SenderId={senderId},@TransactionType={transactionType}, @SearchStr={searchStr}").ToListAsync();
+            return response;
+        }
+
+        public async Task<List<UEntity2Dto>> GetTemplateCategoriesAsync(string searchStr = "")
+        {
+            var response = await _dbContext2.Entity2.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetTemplateCategories}, @SearchStr={searchStr}").ToListAsync();
+            return response;
+        }
+
+        public async Task<List<UEntity2Dto>> GetLanguagesAsync(string searchStr = "")
+        {
+            var response = await _dbContext2.Entity2.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetLanguages}, @SearchStr={searchStr}").ToListAsync();
             return response;
         }
     }

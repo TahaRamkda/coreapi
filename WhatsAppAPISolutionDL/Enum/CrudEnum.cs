@@ -61,6 +61,11 @@
         GetEntities = 50,
 
         GetAssetPaymentTypes = 51,
+        GetTemplateCategories = 51,
+        
+        
+        GetLanguages = 52,
+         
 
         UpdateBankAccountAmount = 60,
         GetProductModuleType = 60,

@@ -13,7 +13,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class TemplatesController : ControllerBase
     {
         private readonly ITemplateService _templateService;
@@ -108,6 +108,18 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 {
 
                     Message = "Please insert transaction type"
+                });
+
+            if (String.IsNullOrWhiteSpace(template.Category))
+                return Ok(new ApiResult
+                {
+                    Message = "Please select category"
+                });
+
+            if (String.IsNullOrWhiteSpace(template.Language))
+                return Ok(new ApiResult
+                {
+                    Message = "Please select language"
                 });
 
             if (template.Body == null || string.IsNullOrEmpty(template.Body.Text))
@@ -310,6 +322,50 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 Success = true,
                 Result = templates,
+                Message = String.Empty
+            });
+        }
+
+        [HttpGet("gettemplatecategories")]
+        public async Task<IActionResult> GetTemplateCategoriesAsync(string searchStr = "")
+        {
+            var models = await _templateService.GetTemplateCategoriesAsync(searchStr);
+            if (models == null || !models.Any())
+            {
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Result = null,
+                    Message = "No records found"
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = models,
+                Message = String.Empty
+            });
+        }
+
+        [HttpGet("getlanguages")]
+        public async Task<IActionResult> GetLanguagesAsync(string searchStr = "")
+        {
+            var models = await _templateService.GetLanguagesAsync(searchStr);
+            if (models == null || !models.Any())
+            {
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Result = null,
+                    Message = "No records found"
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = models,
                 Message = String.Empty
             });
         }

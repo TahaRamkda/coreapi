@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace WhatsAppAPISolutionDL.Models
 {
@@ -32,6 +29,7 @@ namespace WhatsAppAPISolutionDL.Models
         public virtual DbSet<ConversationMessage> ConversationMessages { get; set; }
         public virtual DbSet<Country> Countries { get; set; }
         public virtual DbSet<Group> Groups { get; set; }
+        public virtual DbSet<Language> Languages { get; set; }
         public virtual DbSet<MasterDatum> MasterData { get; set; }
         public virtual DbSet<Media> Medias { get; set; }
         public virtual DbSet<MessageReceivedLog> MessageReceivedLogs { get; set; }
@@ -363,6 +361,15 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.GroupName).HasMaxLength(250);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<Language>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.Property(e => e.LanguageCode).HasMaxLength(20);
+
+                entity.Property(e => e.LanguageName).HasMaxLength(100);
             });
 
             modelBuilder.Entity<MasterDatum>(entity =>

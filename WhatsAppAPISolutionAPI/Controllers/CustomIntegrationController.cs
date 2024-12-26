@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
@@ -8,6 +9,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 {
     [Route("[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class CustomIntegrationController : ControllerBase
     {
         private readonly ICustomIntegrationService _customIntegrationService;
@@ -25,13 +27,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger = logger;
             _userService = userService;
         }
-
+         
         [HttpGet("sendsms")]
         public async Task<IActionResult> GetSendSmsAsync([FromQuery] SendSmsDto sendSms)
         {
             return await ProcessSmsRequest(sendSms);
         }
-
+         
         [HttpPost("sendsms")]
         public async Task<IActionResult> PostSendSmsAsync([FromBody] SendSmsDto sendSms)
         {
