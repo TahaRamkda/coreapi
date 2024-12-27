@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
@@ -367,6 +366,18 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Success = true,
                 Result = models,
                 Message = String.Empty
+            });
+        }
+
+        [HttpGet("getdefaulttemplateslist")]
+        public async Task<ActionResult> GetDefaultTemplatesListAsync(int clientId, int senderId = 0, int templateId = 0, int defaultType = 0, string searchStr = "")
+        {
+            var res = await _templateService.GetDefaultTemplateListAsync(clientId, senderId, templateId, defaultType, searchStr);
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = res,
+                Message = "Data fetch successfully"
             });
         }
     }

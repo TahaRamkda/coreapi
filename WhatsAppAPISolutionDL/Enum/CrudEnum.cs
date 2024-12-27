@@ -66,6 +66,8 @@
         
         
         GetLanguages = 52,
+
+        GetDefaultTemplates = 53,
          
 
         UpdateBankAccountAmount = 60,

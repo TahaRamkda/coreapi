@@ -332,6 +332,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 Message = "Oops somethng went wrong"
             };
         }
+
         public async Task<UResponseWithID> UpdateTemplateAsync(TemplateDto template)
         {
             int headerType = 0;
@@ -710,6 +711,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<List<UEntity2Dto>> GetLanguagesAsync(string searchStr = "")
         {
             var response = await _dbContext2.Entity2.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetLanguages}, @SearchStr={searchStr}").ToListAsync();
+            return response;
+        }
+
+        public async Task<List<UDefaultTemplateList>> GetDefaultTemplateListAsync(int clientId, int senderId = 0, int templateId = 0, int defaultType = 0, string searchStr = "")
+        {
+            var response = await _dbContext2.GetDefaultTemplates.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetDefaultTemplates}, @ClientId={clientId}, @SenderId={senderId},@TemplatesId={templateId},  @DefaultType={defaultType}, @SearchStr={searchStr}").ToListAsync();
             return response;
         }
     }
