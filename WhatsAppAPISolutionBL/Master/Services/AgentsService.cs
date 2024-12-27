@@ -27,12 +27,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<UResponse> AddAgentAsync(AgentDto agent)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={agent.ClientId},@UserName={agent.UserName}, @Password={agent.Password},@AgentFName={agent.AgentFName}, @AgentLName={agent.AgentLName}, @SenderIds={agent.SenderIds}, @ActionBy={agent.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={agent.ClientId},@UserName={agent.UserName}, @Password={agent.Password},@AgentFName={agent.AgentFName}, @AgentLName={agent.AgentLName}, @PreferredLanguage={agent.PreferredLanguage},@SenderIds={agent.SenderIds}, @ActionBy={agent.ActionBy}").ToListAsync();
             return response[0];
         }
         public async Task<UResponse> UpdateAgentAsync(AgentDto agent)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.Update}, @Id={agent.Id}, @ClientId={agent.ClientId}, @AgentFName={agent.AgentFName}, @AgentLName={agent.AgentLName}, @SenderIds={agent.SenderIds}, @ActionBy={agent.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.Update}, @Id={agent.Id}, @ClientId={agent.ClientId}, @AgentFName={agent.AgentFName}, @AgentLName={agent.AgentLName}, @PreferredLanguage={agent.PreferredLanguage},@SenderIds={agent.SenderIds}, @ActionBy={agent.ActionBy}").ToListAsync();
             return response[0];
         }
         public async Task<UResponse> DeleteAgentAsync(int AgentId)
@@ -62,6 +62,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId}, @SenderId={senderId}, @SearchStr={searchStr}").ToListAsync();
             return response;
+        }
+
+        public async Task<UGetAgentById> GetAgentByIdAsync(int clientId, int agentId)
+        {
+            var response = await _dbContext2.GetAgentByIds.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.GetById}, @ClientId={clientId}, @Id={agentId}").ToListAsync();
+            if (response == null || response.Count == 0)
+                return null;
+            return response[0];
         }
     }
 }

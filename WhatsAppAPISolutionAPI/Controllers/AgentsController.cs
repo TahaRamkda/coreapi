@@ -37,14 +37,25 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getagentbyid")]
-        public ActionResult GetAgentByIdAsync(int Id)
+        public async Task<ActionResult> GetAgentByIdAsync(int clientId, int agentId)
         {
-            if (Id <= 0)
+            if (clientId <= 0)
             {
-                return NotFound("not found");
+                return Ok(new ApiResult
+                {
+                    Message = "Please enter client id"
+                });
             }
 
-            var response = _dbContext.Agents.Where(x => x.Id == Id).FirstOrDefault();
+            if (agentId <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Please enter agent id"
+                });
+            }
+
+            var response = await _agentsService.GetAgentByIdAsync(clientId, agentId);
 
             if (response == null)
             {

@@ -1,4 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace WhatsAppAPISolutionDL.Models
 {
@@ -75,6 +78,8 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.LastOnline).HasColumnType("datetime");
+
+                entity.Property(e => e.PreferredLanguage).HasMaxLength(20);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
             });

@@ -52,6 +52,7 @@
 
         PurchaseReturn = 8,
         TransferConversationToAgent = 8,
+        GetById = 8,
 
         AssignConversationToAgent = 9,
 

@@ -13,5 +13,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> AddAgentTimingsAsync(AgentTimingDto model);
         Task<List<UAgentTiming>> GetAgentTimingListAsync(int clientId, int agentId);
         Task<List<UEntityDto>> GetAgentsAsync(int clientId, int senderId = 0, string searchStr = "");
+        Task<UGetAgentById> GetAgentByIdAsync(int clientId, int agentId);
     }
 }
