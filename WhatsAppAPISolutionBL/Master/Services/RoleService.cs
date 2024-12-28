@@ -18,9 +18,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _dbContext2 = dbContext2;
         }
 
-        public async Task<List<Role>> GetRoleListAsync(int ClientId)
+        public async Task<List<URole>> GetRoleListAsync(int ClientId)
         {
-            var response = await _dbContext.Roles.FromSqlInterpolated($"exec usp_Roles_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}").ToListAsync();
+            var response = await _dbContext2.Roles.FromSqlInterpolated($"exec usp_Roles_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}").ToListAsync();
             return response;
         }
 

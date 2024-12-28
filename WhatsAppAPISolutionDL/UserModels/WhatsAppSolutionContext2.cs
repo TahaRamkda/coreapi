@@ -50,6 +50,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<JsonData> JsonDatas { get; set; } = null!;
         public virtual DbSet<UGetAgentById> GetAgentByIds { get; set; } = null!;
         public virtual DbSet<UDefaultTemplateList> GetDefaultTemplates { get; set; } = null!;
+        public virtual DbSet<URole> Roles { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -82,6 +83,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UEntity2Dto>().HasNoKey();
             modelBuilder.Entity<UGetAgentById>().HasNoKey();
             modelBuilder.Entity<UDefaultTemplateList>().HasNoKey();
+            modelBuilder.Entity<URole>().HasNoKey();
         }
     }
 }

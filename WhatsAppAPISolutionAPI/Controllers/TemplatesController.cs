@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 
@@ -128,6 +129,33 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = "Body text required"
                 });
 
+            if (template.Buttons != null && template.Buttons.Any())
+            {
+                if (template.Buttons.Count() > 10)
+                {
+                    return Ok(new ApiResult
+                    {
+                        Message = "Cannot add more than 10 buttons."
+                    });
+                }
+
+                if (template.Buttons.Count(x => x.Type == (int)ButtonTypeEnum.PHONE_NUMBER) > 1)
+                {
+                    return Ok(new ApiResult
+                    {
+                        Message = "Cannot add more than 1 phone number button."
+                    });
+                }
+
+                if (template.Buttons.Count(x => x.Type == (int)ButtonTypeEnum.URL) > 2)
+                {
+                    return Ok(new ApiResult
+                    {
+                        Message = "Cannot add more than 2 URL buttons."
+                    });
+                }
+            }
+
             var response = await _templateService.AddTemplateAsync(template);
             if (response == null || response.Status <= 0)
             {
@@ -186,6 +214,33 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
                     Message = "Body text required"
                 });
+
+            if (template.Buttons != null && template.Buttons.Any())
+            {
+                if (template.Buttons.Count() > 10)
+                {
+                    return Ok(new ApiResult
+                    {
+                        Message = "Cannot add more than 10 buttons."
+                    });
+                }
+
+                if (template.Buttons.Count(x => x.Type == (int)ButtonTypeEnum.PHONE_NUMBER) > 1)
+                {
+                    return Ok(new ApiResult
+                    {
+                        Message = "Cannot add more than 1 phone number button."
+                    });
+                }
+
+                if (template.Buttons.Count(x => x.Type == (int)ButtonTypeEnum.URL) > 2)
+                {
+                    return Ok(new ApiResult
+                    {
+                        Message = "Cannot add more than 2 URL buttons."
+                    });
+                }
+            }
 
             var response = await _templateService.UpdateTemplateAsync(template);
             if (response == null || response.Status <= 0)

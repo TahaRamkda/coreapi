@@ -10,6 +10,7 @@ using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
+using static WhatsAppAPISolutionDL.Dto.WhatsAppMessageReceiveDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -55,7 +56,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             //Check if template name already exists
             var templateNameExist = await _dbContext.Templates
-                .Where(x => x.ClientId == template.ClientId
+                .Where(x => x.RecordStatus == 1
+                && x.ClientId == template.ClientId
                 && x.SenderId == template.SenderNameId
                 && x.TemplateName != null
                 && x.Language != null
@@ -73,7 +75,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (template.Header != null)
             {
-                if (template.Header.Format != (int)TemplateHeaderEnum.TEXT)
+                if (template.Header.Format != (int)TemplateHeaderEnum.TEXT && template.Header.Format != (int)TemplateHeaderEnum.NONE)
                 {
                     if (template.MediaId <= 0)
                         return new UResponseWithID
@@ -168,20 +170,22 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 foreach (var button in template.Buttons)
                 {
-                    if (button.TextCount == 0)
-                        button.Values = null;
+                    //if (button.TextCount == 0)
+                    //    button.Values = null;
+
                     if (button.ActionType == (int)ActionTypeEnum.TEMPLATE && button.ActionId <= 0)
                         return new UResponseWithID
                         {
                             Status = 0,
                             Message = "Template Id required in action id when action type is template"
                         };
+
                     var param = new TemplateParameter
                     {
                         Sequence = button.Index,
                         ParamName = button.Text,
-                        ParamText = string.Empty,
-                        ParamDefaultValue = button.Url,
+                        ParamText = String.Empty,
+                        ParamDefaultValue = String.Empty, //button.Url,
                         IsDynamic = false,
                         ParamType = (int)TemplateParamEnum.Button,
                         ButtonType = button.Type,
@@ -193,21 +197,23 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     // Handle URL button cases
                     if (button.Type == (int)ButtonTypeEnum.URL)
                     {
-                        if (button.TextCount == 0)
-                        {
-                            param.ParamText = button.Url; // Use URL as text
-                        }
-                        else if (button.TextCount == 1)
-                        {
-                            param.ParamText = button.Url; // Use URL as text
-                            param.ParamDefaultValue = button.Values.Any() ? button.Values[0].Value : "";
-                            param.IsDynamic = true; // Mark as dynamic
-                        }
+                        //if (button.TextCount == 0)
+                        //{
+                        //param.ParamText = button.Url; // Use URL as text
+                        //}
+                        //else if (button.TextCount == 1)
+                        //{
+                        param.ParamText = button.Url; // Use URL as text
+                        param.ParamDefaultValue = button.Values != null && !String.IsNullOrWhiteSpace(button.Values.Value) ? button.Values.Value : "";
+                        param.IsDynamic = button.Values != null && !String.IsNullOrWhiteSpace(button.Values.Value); // Mark as dynamic
+                        //}
                     }
                     else if (button.Type == (int)ButtonTypeEnum.PHONE_NUMBER)
                     {
-                        param.ParamDefaultValue = button.PhoneNumber;
+                        param.ParamText = button.PhoneNumber;
+                        //param.ParamDefaultValue = button.PhoneNumber;
                     }
+
                     buttonValues.Add(param);
                 }
             }
@@ -262,7 +268,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         Text = item.Text,
                         PhoneNumber = item.PhoneNumber,
                         Url = item.Url,
-                        Example = item.Values?.FirstOrDefault()?.Value,
+                        Example = item.Values != null && !String.IsNullOrWhiteSpace(item.Values.Value) ? item.Values.Value : "",
                     });
                 }
 
@@ -360,7 +366,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (template.Header != null)
             {
-                if (template.Header.Format != (int)TemplateHeaderEnum.TEXT)
+                if (template.Header.Format != (int)TemplateHeaderEnum.TEXT && template.Header.Format != (int)TemplateHeaderEnum.NONE)
                 {
                     if (template.MediaId <= 0)
                         return new UResponseWithID()
@@ -447,12 +453,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     bodyValues.Add(param);
                 }
             }
+
             if (template.Buttons != null && template.Buttons.Any())
             {
                 foreach (var button in template.Buttons)
                 {
-                    if (button.TextCount == 0)
-                        button.Values = null;
+                    //if (button.TextCount == 0)
+                    //    button.Values = null;
 
                     if (button.ActionType == (int)ActionTypeEnum.TEMPLATE && button.ActionId <= 0)
                         return new UResponseWithID()
@@ -465,8 +472,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     {
                         Sequence = button.Index,
                         ParamName = button.Text,
-                        ParamText = string.Empty,
-                        ParamDefaultValue = button.Url,
+                        ParamText = String.Empty,
+                        ParamDefaultValue = String.Empty, //button.Url,
                         IsDynamic = false,
                         ParamType = (int)TemplateParamEnum.Button,
                         ButtonType = button.Type,
@@ -478,21 +485,23 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     // Handle URL button cases
                     if (button.Type == (int)ButtonTypeEnum.URL)
                     {
-                        if (button.TextCount == 0)
-                        {
-                            param.ParamText = button.Url; // Use URL as text
-                        }
-                        else if (button.TextCount == 1)
-                        {
-                            param.ParamText = button.Url; // Use URL as text
-                            param.ParamDefaultValue = button.Values.Any() ? button.Values[0].Value : "";
-                            param.IsDynamic = true; // Mark as dynamic
-                        }
+                        //if (button.TextCount == 0)
+                        //{
+                        //param.ParamText = button.Url; // Use URL as text
+                        //}
+                        //else if (button.TextCount == 1)
+                        //{
+                        param.ParamText = button.Url; // Use URL as text
+                        param.ParamDefaultValue = button.Values != null && !String.IsNullOrWhiteSpace(button.Values.Value) ? button.Values.Value : "";
+                        param.IsDynamic = button.Values != null && !String.IsNullOrWhiteSpace(button.Values.Value); // Mark as dynamic
+                        //}
                     }
                     else if (button.Type == (int)ButtonTypeEnum.PHONE_NUMBER)
                     {
-                        param.ParamDefaultValue = button.PhoneNumber;
+                        param.ParamText = button.PhoneNumber;
+                        //param.ParamDefaultValue = button.PhoneNumber;
                     }
+
                     buttonValues.Add(param);
                 }
             }
@@ -547,7 +556,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         Text = item.Text,
                         PhoneNumber = item.PhoneNumber,
                         Url = item.Url,
-                        Example = item.Values?.FirstOrDefault()?.Value,
+                        Example = item.Values != null && !String.IsNullOrWhiteSpace(item.Values.Value) ? item.Values.Value : ""
                     });
                 }
 

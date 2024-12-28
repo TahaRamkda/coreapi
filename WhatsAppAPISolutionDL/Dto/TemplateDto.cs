@@ -61,15 +61,15 @@ namespace WhatsAppAPISolutionDL.Dto
         {
             public ButtonComponent()
             {
-                Values = new List<KeyValue>();
+                Values = new KeyValue();
             }
             public int? Type { get; set; }
             public string Text { get; set; } = String.Empty;
             public string PhoneNumber { get; set; } = String.Empty;
-            public int TextCount { get; set; }
+            //public int TextCount { get; set; }
             public int Index { get; set; }
             public string Url { get; set; } = String.Empty;
-            public List<KeyValue> Values { get; set; }
+            public KeyValue Values { get; set; }
             public int ActionId { get; set; }
             public int ActionType { get; set; }
             public string ButtonId { get; set; }
