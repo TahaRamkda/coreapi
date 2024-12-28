@@ -13,7 +13,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
     {
         public Task<List<User>> GetUserListAsync(int ClientId);
         public Task<User> RegisterUser(int ClientId);
-        public Task<UUser> Login(string UserName, string Password, int RoleId = 0);
+        public Task<UUser> Login(string UserName, string Password, int MasterRoleTypeId = 0);
         public Task<UResponse> AddUserAsync(UserDto user);
         public Task<UResponse> UpdateUserAsync(UserDto user);
         public Task<UResponse> AddUserTokenAsync(UserDto user);

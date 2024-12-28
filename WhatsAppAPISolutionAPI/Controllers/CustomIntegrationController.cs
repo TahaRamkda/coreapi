@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers
@@ -27,13 +28,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger = logger;
             _userService = userService;
         }
-         
+
         [HttpGet("sendsms")]
         public async Task<IActionResult> GetSendSmsAsync([FromQuery] SendSmsDto sendSms)
         {
             return await ProcessSmsRequest(sendSms);
         }
-         
+
         [HttpPost("sendsms")]
         public async Task<IActionResult> PostSendSmsAsync([FromBody] SendSmsDto sendSms)
         {
@@ -61,7 +62,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             // User login validation
             //passing RoleId=6 for APIUsers
-            var res = await _userService.Login(sendSms.Username.Trim(), sendSms.Password.Trim(), 6);
+            var res = await _userService.Login(sendSms.Username.Trim(), sendSms.Password.Trim(), (int)MasterRoleTypeEnum.APIUser);
             if (res == null || res.Status <= 0)
                 return Ok("error - Incorrect Username or Password");
 

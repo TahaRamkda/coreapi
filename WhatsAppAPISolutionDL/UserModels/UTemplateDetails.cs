@@ -65,7 +65,7 @@ namespace WhatsAppAPISolutionDL.UserModels
     {
         public ButtonValue()
         {
-            Values = new KeyValue();
+            //Values = new KeyValue();
         }
 
         public string ButtonId { get; set; }

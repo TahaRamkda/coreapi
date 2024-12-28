@@ -655,7 +655,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             pDetails.HeaderValue = new KeyValue()
                             {
                                 Index = headerValue.Sequence,
-                                Value = headerValue.ParamName,
+                                Value = headerValue.ParamDefaultValue,
                                 DefaultValue = headerValue.ParamDefaultValue
                             };
                         }
@@ -667,7 +667,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 pDetails.BodyValues.Add(new KeyValue()
                                 {
                                     Index = item.Sequence,
-                                    Value = item.ParamName,
+                                    Value = item.ParamDefaultValue,
                                     DefaultValue = item.ParamDefaultValue
                                 });
                             }
@@ -677,18 +677,31 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         {
                             foreach (var item in buttonValues)
                             {
-                                var buttonValue = new ButtonValue()
+                                var buttonValue = new ButtonValue
                                 {
                                     ButtonId = item.ButtonId,
                                     Type = item.ButtonType,
                                     Text = item.ParamName,
-                                    PhoneNumber = item.ParamDefaultValue,
-                                    Url = item.ParamDefaultValue,
-                                    IsDynamic = item.IsDynamic,
-                                    Sequence = item.Sequence
+                                    Sequence = item.Sequence ?? 0,
+                                    Index = item.Sequence ?? 0
                                 };
 
-                                buttonValue.Values.Value = item.ParamDefaultValue;
+                                if ((ButtonTypeEnum)item.ButtonType == ButtonTypeEnum.PHONE_NUMBER)
+                                    buttonValue.PhoneNumber = item.ParamText;
+                                else if ((ButtonTypeEnum)item.ButtonType == ButtonTypeEnum.URL)
+                                {
+                                    buttonValue.IsDynamic = item.IsDynamic;
+                                    buttonValue.Url = item.ParamText;
+                                    if (!String.IsNullOrWhiteSpace(item.ParamDefaultValue))
+                                    {
+                                        buttonValue.Values = new KeyValue
+                                        {
+                                            Value = item.ParamDefaultValue,
+                                            DefaultValue = item.ParamDefaultValue
+                                        };
+                                    }
+                                }
+
                                 pDetails.ButtonValues.Add(buttonValue);
                             }
                         }

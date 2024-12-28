@@ -16,6 +16,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public int? Sequence { get; set; }
         public string ParamName { get; set; }
         public int? ParamType { get; set; }
+        public string ParamText { get; set; }
         public string ParamDefaultValue { get; set; }
         public bool IsDynamic { get; set; }
         public int? ButtonType { get; set; }

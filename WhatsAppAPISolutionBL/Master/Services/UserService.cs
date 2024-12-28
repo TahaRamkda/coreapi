@@ -27,9 +27,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             throw new NotImplementedException();
         }
 
-        public async Task<UUser> Login(string UserName, string Password, int RoleId = 0)
+        public async Task<UUser> Login(string UserName, string Password, int MasterRoleTypeId = 0)
         {
-            var userDetails = await _dbContext2.Users.FromSqlInterpolated($"exec usp_Users_Login @UserName={UserName}, @Password={Password}, @RoleId={RoleId}").IgnoreQueryFilters().ToListAsync();
+            var userDetails = await _dbContext2.Users.FromSqlInterpolated($"exec usp_Users_Login @UserName={UserName}, @Password={Password}, @MasterRoleTypeId={MasterRoleTypeId}").IgnoreQueryFilters().ToListAsync();
             if (userDetails != null && userDetails[0].Status > 0)
                 userDetails[0].Permission = await _dbContext2.Permissions.FromSqlInterpolated($"exec usp_GetUserPermission @UserId={userDetails[0].UserId}").IgnoreQueryFilters().ToListAsync();
 

@@ -70,7 +70,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
             int senderId = 0;
             if (!String.IsNullOrWhiteSpace(templateName))
             {
-                var template = await _dbContext.Templates.Where(x => x.ClientId == ClientId && x.TemplateName == templateName).FirstOrDefaultAsync();
+                var template = await _dbContext.Templates.Where(x => x.ClientId == ClientId && x.TemplateName.ToLower() == templateName.ToLower()).FirstOrDefaultAsync();
+                if (template == null)
+                {
+                    return new ApiResult
+                    {
+                        Message = $"No template found with given name {templateName}"
+                    };
+                }
+
                 if (template != null)
                 {
                     tempPayload.TemplateId = template.Id;
