@@ -42,7 +42,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getagentconversationlist")]
         public async Task<ActionResult> GetAgentConversationListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
-            var res = await _conversationService.GetAgentConversationListAsync(clientId, senderId, id, agentId);
+            var res = await _conversationService.GetAgentConversationListAsync(clientId, senderId, id, agentId, pageNo, pageSize);
 
             return Ok(new ApiResult
             {
@@ -136,6 +136,19 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Success = true,
                 Result = response,
                 Message = "Data updated successfully"
+            });
+        }
+
+        [HttpGet("getconversationreportlist")]
+        public async Task<ActionResult> GetConversationReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        {
+            var res = await _conversationService.GetConversationReportListAsync(clientId, senderId, id, agentId, pageNo, pageSize);
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = res,
+                Message = "Data fetch successfully"
             });
         }
     }

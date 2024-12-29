@@ -17,6 +17,8 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string ContactPersonEmail { get; set; }
         public string ContactPersonPhone { get; set; }
         public decimal? BalanceAlertLimit { get; set; }
+        public string Prefix { get; set; }
+        public string Timezone { get; set; }
         public int? CreatedBy { get; set; }
         public string CreatedDate { get; set; }
         public int? UpdatedBy { get; set; }

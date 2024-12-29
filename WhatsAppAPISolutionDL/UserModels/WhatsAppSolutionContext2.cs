@@ -51,6 +51,10 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UGetAgentById> GetAgentByIds { get; set; } = null!;
         public virtual DbSet<UDefaultTemplateList> GetDefaultTemplates { get; set; } = null!;
         public virtual DbSet<URole> Roles { get; set; } = null!;
+        public virtual DbSet<UCampaignContactStat> CampaignContactStats { get; set; } = null!;
+        public virtual DbSet<UCampaignDetail> CampaignDetails { get; set; } = null!;
+        public virtual DbSet<UCampaignDetailParam> CampaignDetailParams { get; set; } = null!;
+        public virtual DbSet<UConversationReportList> ConversationReports { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -84,6 +88,10 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UGetAgentById>().HasNoKey();
             modelBuilder.Entity<UDefaultTemplateList>().HasNoKey();
             modelBuilder.Entity<URole>().HasNoKey();
+            modelBuilder.Entity<UCampaignContactStat>().HasNoKey();
+            modelBuilder.Entity<UCampaignDetail>().HasNoKey();
+            modelBuilder.Entity<UCampaignDetailParam>().HasNoKey();
+            modelBuilder.Entity<UConversationReportList>().HasNoKey();
         }
     }
 }

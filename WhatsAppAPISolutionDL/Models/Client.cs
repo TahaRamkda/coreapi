@@ -25,5 +25,6 @@ namespace WhatsAppAPISolutionDL.Models
         public decimal? AvailableBalance { get; set; }
         public string DefaultMarket { get; set; }
         public string Timezone { get; set; }
+        public string Prefix { get; set; }
     }
 }

@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace WhatsAppAPISolutionDL.Models
 {
-    public partial class ConversationLog
+    public partial class AgentLog
     {
         public int Id { get; set; }
         public int? ClientId { get; set; }
-        public int? ConversationId { get; set; }
-        public int? ActionType { get; set; }
         public int? AgentId { get; set; }
+        public int? ActionType { get; set; }
+        public int? ConversationId { get; set; }
         public int? ActionBy { get; set; }
         public string Comment { get; set; }
         public DateTime? CreatedDate { get; set; }

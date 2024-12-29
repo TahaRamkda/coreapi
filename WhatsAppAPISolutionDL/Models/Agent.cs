@@ -11,6 +11,7 @@ namespace WhatsAppAPISolutionDL.Models
         public string AgentLname { get; set; }
         public int? Status { get; set; }
         public int? RecordStatus { get; set; }
+        public int? IsDisabled { get; set; }
         public DateTime? LastOnline { get; set; }
         public string PreferredLanguage { get; set; }
         public DateTime? CreatedDate { get; set; }

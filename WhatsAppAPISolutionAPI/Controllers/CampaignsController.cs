@@ -17,23 +17,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
     {
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<CampaignsController> _logger;
-        private readonly IOptions<BridgeConfigurationSettings> _bridgeConfigurationSettings;
-        private readonly HttpClient _httpClient;
-        private readonly string baseUrl = String.Empty;
         private readonly ICampaignService _campaignService;
 
         public CampaignsController(
             WhatsAppSolutionContext dbContext,
             ILogger<CampaignsController> logger,
-          IOptions<BridgeConfigurationSettings> bridgeConfigurationSettings,
-          IHttpClientFactory httpClientFactory,
-          ICampaignService campaignService)
+            IHttpClientFactory httpClientFactory,
+            ICampaignService campaignService)
         {
             _dbContext = dbContext;
             _logger = logger;
-            _bridgeConfigurationSettings = bridgeConfigurationSettings;
-            _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
-            baseUrl = _httpClient.BaseAddress.AbsoluteUri;
             _campaignService = campaignService;
         }
 
@@ -135,7 +128,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -160,7 +153,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -185,7 +178,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -203,17 +196,92 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             if (campaign.CampaignId <= 0)
                 return Ok(new ApiResult
-                { 
+                {
                     Message = "Campaign Id required"
                 });
             if (!campaign.PhoneNumbers.Any())
                 return Ok(new ApiResult
-                { 
+                {
                     Message = "Please add atleast one phone number"
                 });
 
             var response = await _campaignService.SendCampaignMessagesAsync(campaign);
             return Ok(response);
+        }
+
+        [HttpGet("getcampaigncontactstats")]
+        public async Task<ActionResult> GetCampaignContactStatsAsync(int ClientId, int CampaignId = 0)
+        {
+            _logger.LogInformation("Calling function GetCampaignListAsync request with ClientId={ClientId}, CampaignId={CampaignId}", ClientId, CampaignId);
+
+            var res = await _campaignService.GetCampaignContactStatsAsync(ClientId, CampaignId);
+
+            _logger.LogInformation("Recieved GetCampaignListAsync response with data={data}", JsonConvert.SerializeObject(res));
+
+            if (res == null)
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "No data found"
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = res,
+                Message = "Data fetch successfully"
+            });
+        }
+
+        [HttpGet("deletefrequentlycontactedcontacts")]
+        public async Task<ActionResult> DeleteFrequentlyContactedContactsAsync(int ClientId, int CampaignId, int LastContactedInDays)
+        {
+            _logger.LogInformation("Calling function DeleteFrequentlyContactedContactsAsync request with ClientId={ClientId}, CampaignId={CampaignId},LastContactedInDays={LastContactedInDays}", ClientId, CampaignId, LastContactedInDays);
+
+            var res = await _campaignService.DeleteFreqContactedContactsAsync(ClientId, CampaignId, LastContactedInDays);
+
+            _logger.LogInformation("Received DeleteFrequentlyContactedContactsAsync response with data={data}", JsonConvert.SerializeObject(res));
+
+            if (res == null)
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "No data found"
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = res,
+                Message = "Data fetch successfully"
+            });
+        }
+
+        [HttpGet("getcampaigndetail")]
+        public async Task<ActionResult> GetCampaignDetailAsync(int ClientId, int CampaignId)
+        {
+            _logger.LogInformation("Calling function GetCampaignDetailAsyn request with ClientId={ClientId}, CampaignId={CampaignId}", ClientId, CampaignId);
+
+            var res = await _campaignService.GetCampaignDetailAsync(ClientId, CampaignId);
+
+            _logger.LogInformation("Received GetCampaignDetailAsyn response with data={data}", JsonConvert.SerializeObject(res));
+
+            if (res == null)
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "No data found"
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = res,
+                Message = "Data fetch successfully"
+            });
         }
     }
 }

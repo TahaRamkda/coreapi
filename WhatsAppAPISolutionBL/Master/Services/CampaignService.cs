@@ -1,11 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using WhatsAppAPISolutionBL.Master.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
@@ -18,22 +12,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
     public class CampaignService : ICampaignService
     {
         private readonly WhatsAppSolutionContext _dbContext;
-        private readonly WhatsAppSolutionContext2 _dbContext2;
-        private readonly ITemplateService _templateService;
-        private readonly HttpClient _httpClient;
+        private readonly WhatsAppSolutionContext2 _dbContext2; 
         private readonly ICommunicationService _communicationService;
 
         public CampaignService(
             WhatsAppSolutionContext dbContext,
-            WhatsAppSolutionContext2 dbContext2,
-            ITemplateService templateService,
-            IHttpClientFactory httpClientFactory,
+            WhatsAppSolutionContext2 dbContext2,  
             ICommunicationService communicationService)
         {
             _dbContext = dbContext;
-            _dbContext2 = dbContext2;
-            _templateService = templateService;
-            _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
+            _dbContext2 = dbContext2;  
             _communicationService = communicationService;
         }
 
@@ -42,6 +30,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var response = await _dbContext2.Campaigns.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}, @CampaignId={CampaignId}, @FromDate={FromDate}, @ToDate={ToDate}, @SearchStr={SearchStr}, @SortBy={SortBy}, @PageNo={PageNo}, @PageSize={PageSize}, @SenderId={SenderId}").ToListAsync();
             return response;
         }
+
         public async Task<UResponse> AddCampaignAsync(CampaignDto campaign)
         {
             var campaignParamJson = JsonSerializer.Serialize(campaign.CampaignParameters);
@@ -51,11 +40,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response[0];
         }
+
         public async Task<UResponse> ActivateCampaignAsync(ActivateCampaignDto campaign)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.ActivateCampaign}, @CampaignId={campaign.CampaignId}, @ClientId={campaign.ClientId}, @ScheduleDate={campaign.ScheduleDate}, @ActionBy={campaign.ActionBy}").ToListAsync();
             return response[0];
         }
+
         public async Task<UResponse> UpdateCampaignAsync(CampaignDto campaign)
         {
             var campaignParamJson = JsonSerializer.Serialize(campaign.CampaignParameters);
@@ -76,14 +67,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var campaignData = await _dbContext.Campaigns.Where(x => x.CampaignId == campaign.CampaignId).FirstOrDefaultAsync();
             if (campaignData == null)
-                return new ApiResult 
+                return new ApiResult
                 {
                     StatusCode = 0,
                     Message = "No campaign found with this Campaign Id"
                 };
 
             if (campaignData.TemplateId <= 0)
-                return new ApiResult 
+                return new ApiResult
                 {
                     StatusCode = 0,
                     Message = "No template id found in this campaign please add template"
@@ -97,7 +88,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 TemplateId = campaignData.TemplateId,
                 PhoneNumbers = campaign.PhoneNumbers,
                 ParentId = campaignData.CampaignId,
-                ModuleId=(int)ModuleEnum.Campaign
+                ModuleId = (int)ModuleEnum.Campaign
             };
 
             tempPayload.Params = await _dbContext.CampaignParams.Where(x => x.CampaignId == campaign.CampaignId)
@@ -109,6 +100,38 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }).ToListAsync();
 
             return await _communicationService.SendTemplateMessageAsync(tempPayload);
+        }
+
+        public async Task<UCampaignContactStat> GetCampaignContactStatsAsync(int ClientId, int CampaignId)
+        {
+            var response = await _dbContext2.CampaignContactStats.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.CampaignContactStats}, @ClientId={ClientId}, @CampaignId={CampaignId}").ToListAsync();
+            if (response != null && response.Any()) return response[0];
+
+            return null;
+        }
+
+        public async Task<UResponse> DeleteFreqContactedContactsAsync(int ClientId, int CampaignId, int LastContactedInDays)
+        {
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.DeleteFreqContactedContacts}, @ClientId={ClientId}, @CampaignId={CampaignId}, @LastContactedInDays={LastContactedInDays}").ToListAsync();
+            if (response != null && response.Any()) return response[0];
+
+            return null;
+        }
+
+        public async Task<UCampaignDetail> GetCampaignDetailAsync(int ClientId, int CampaignId)
+        {
+            var response = await _dbContext2.CampaignDetails.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.GetDetails}, @ClientId={ClientId}, @CampaignId={CampaignId}").ToListAsync();
+            if (response != null && response.Any())
+            {
+                var campaignDetail = response[0];
+                var response1 = await _dbContext2.CampaignDetailParams.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.GetParams}, @ClientId={ClientId}, @CampaignId={CampaignId}").ToListAsync();
+                if (response1 != null && response1.Any())
+                    campaignDetail.Parameters.AddRange(response1.ToList());
+
+                return campaignDetail;
+            }
+
+            return null;
         }
     }
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace WhatsAppAPISolutionDL.Models
 {
@@ -17,6 +14,7 @@ namespace WhatsAppAPISolutionDL.Models
         }
 
         public virtual DbSet<Agent> Agents { get; set; }
+        public virtual DbSet<AgentLog> AgentLogs { get; set; }
         public virtual DbSet<AgentSenderMap> AgentSenderMaps { get; set; }
         public virtual DbSet<AgentTiming> AgentTimings { get; set; }
         public virtual DbSet<Apimessage> Apimessages { get; set; }
@@ -51,6 +49,7 @@ namespace WhatsAppAPISolutionDL.Models
         public virtual DbSet<UnsubscribedNumber> UnsubscribedNumbers { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<UsersRole> UsersRoles { get; set; }
+        public virtual DbSet<VwUsersRole> VwUsersRoles { get; set; }
         public virtual DbSet<WhatsAppPricing> WhatsAppPricings { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -82,6 +81,13 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.PreferredLanguage).HasMaxLength(20);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<AgentLog>(entity =>
+            {
+                entity.Property(e => e.Comment).HasMaxLength(500);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             });
 
             modelBuilder.Entity<AgentSenderMap>(entity =>
@@ -248,6 +254,8 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.DefaultMarket).HasMaxLength(150);
+
+                entity.Property(e => e.Prefix).HasMaxLength(3);
 
                 entity.Property(e => e.Timezone).HasMaxLength(150);
 
@@ -505,6 +513,8 @@ namespace WhatsAppAPISolutionDL.Models
 
             modelBuilder.Entity<PermissionTask>(entity =>
             {
+                entity.Property(e => e.PermissionTaskId).ValueGeneratedNever();
+
                 entity.Property(e => e.PermissionTaskName).HasMaxLength(200);
             });
 
@@ -680,15 +690,22 @@ namespace WhatsAppAPISolutionDL.Models
 
             modelBuilder.Entity<User>(entity =>
             {
+                entity.HasIndex(e => e.UserName, "UserNameUnique")
+                    .IsUnique();
+
                 entity.Property(e => e.CreatedBy).HasMaxLength(250);
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.EmailAddress).HasMaxLength(250);
 
                 entity.Property(e => e.FullName).HasMaxLength(250);
 
                 entity.Property(e => e.Hash).HasMaxLength(250);
 
                 entity.Property(e => e.Password).HasMaxLength(250);
+
+                entity.Property(e => e.PhoneNumber).HasMaxLength(250);
 
                 entity.Property(e => e.RefreshTokenExpiry).HasColumnType("datetime");
 
@@ -707,6 +724,21 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.CreatedBy).HasMaxLength(250);
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<VwUsersRole>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.ToView("vw_UsersRoles");
+
+                entity.Property(e => e.CreatedBy).HasMaxLength(250);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.RoleName).HasMaxLength(250);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
             });

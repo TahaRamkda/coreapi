@@ -18,6 +18,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public decimal? Limit { get; set; }
         public string Quality { get; set; }
         public int? LogoMediaId { get; set; }
+        public bool? Verified { get; set; }
         public string MediaPath { get; set; }
         public int? CreatedBy { get; set; }
         public string CreatedDate { get; set; }

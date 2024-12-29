@@ -43,6 +43,7 @@
         UpdateTemplateStatus = 6,
         SetAgentStatus = 6,
         ConversationListByConversation = 6,
+        CampaignContactStats = 6,
 
         CancelOrder = 7,
         SettleDistributorPurchaseWithAmount = 7,
@@ -63,15 +64,21 @@
 
         GetAssetPaymentTypes = 51,
         GetTemplateCategories = 51,
-        
-        
+        ConversationReportList = 51,
+
+        GetDetails = 41,
+        GetParams = 42,
+
+
         GetLanguages = 52,
 
         GetDefaultTemplates = 53,
-         
+
 
         UpdateBankAccountAmount = 60,
         GetProductModuleType = 60,
-        GetQuotationStatus = 60
+        GetQuotationStatus = 60,
+
+        DeleteFreqContactedContacts = 61
     }
 }
