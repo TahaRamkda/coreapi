@@ -222,5 +222,17 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = String.Empty
             });
         }
+
+        [HttpGet("getagentsupervisorreport")]
+        public async Task<ActionResult> GetAgentSupervisorReportListAsync(int clientId, string searchStr = "", int status = 0, int senderId = 0, DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        {
+            var res = await _agentsService.GetAgentSupervisorReportListAsync(clientId, searchStr, status, senderId, fromDate, toDate, sortBy, pageNo, pageSize);
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = res,
+                Message = "Data fetch successfully"
+            });
+        }
     }
 }

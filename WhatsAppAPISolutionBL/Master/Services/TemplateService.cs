@@ -696,6 +696,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                     {
                                         buttonValue.Values = new KeyValue
                                         {
+                                            Index = item.Sequence,
                                             Value = item.ParamDefaultValue,
                                             DefaultValue = item.ParamDefaultValue
                                         };

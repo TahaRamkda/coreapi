@@ -88,16 +88,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             var paramList = new List<ParamData>
             {
-                new ParamData { ParamText = sendSms.HParam, ParamType = (int)TemplateParamEnum.Header },
-                new ParamData { ParamText = sendSms.BParam1, ParamType = (int)TemplateParamEnum.Body  },
-                new ParamData { ParamText = sendSms.BParam2, ParamType = (int)TemplateParamEnum.Body  },
-                new ParamData { ParamText = sendSms.BParam3, ParamType = (int)TemplateParamEnum.Body  },
-                new ParamData { ParamText = sendSms.BParam4, ParamType = (int)TemplateParamEnum.Body  },
-                new ParamData { ParamText = sendSms.BtnParam1, ParamType = (int)TemplateParamEnum.Button  },
-                new ParamData { ParamText = sendSms.BtnParam2, ParamType = (int)TemplateParamEnum.Button  },
-                new ParamData { ParamText = sendSms.BtnParam3, ParamType = (int)TemplateParamEnum.Button  }
+                new ParamData { ParamText = sendSms.HParam, ParamType = (int)TemplateParamEnum.Header, Sequence = 1 },
+                new ParamData { ParamText = sendSms.BParam1, ParamType = (int)TemplateParamEnum.Body, Sequence = 1  },
+                new ParamData { ParamText = sendSms.BParam2, ParamType = (int)TemplateParamEnum.Body, Sequence = 2  },
+                new ParamData { ParamText = sendSms.BParam3, ParamType = (int)TemplateParamEnum.Body, Sequence = 3  },
+                new ParamData { ParamText = sendSms.BParam4, ParamType = (int)TemplateParamEnum.Body, Sequence = 4  },
+                new ParamData { ParamText = sendSms.BtnParam1, ParamType = (int)TemplateParamEnum.Button, Sequence = 0  },
+                new ParamData { ParamText = sendSms.BtnParam2, ParamType = (int)TemplateParamEnum.Button, Sequence = 1  },
+                new ParamData { ParamText = sendSms.BtnParam3, ParamType = (int)TemplateParamEnum.Button, Sequence = 2  }
             };
-
+             
             // Add each ParamData object to tempPayload.Params
             tempPayload.Params.AddRange(paramList);
 

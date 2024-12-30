@@ -5,6 +5,7 @@ using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -64,12 +65,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response;
         }
 
-        public async Task<UGetAgentById> GetAgentByIdAsync(int clientId, int agentId)
+        public async Task<UAgentDetail> GetAgentByIdAsync(int clientId, int agentId)
         {
-            var response = await _dbContext2.GetAgentByIds.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.GetById}, @ClientId={clientId}, @Id={agentId}").ToListAsync();
+            var response = await _dbContext2.AgentDetails.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.GetById}, @ClientId={clientId}, @Id={agentId}").ToListAsync();
             if (response == null || response.Count == 0)
                 return null;
             return response[0];
+        }
+
+        public async Task<List<UAgentSupervisorReport>> GetAgentSupervisorReportListAsync(int clientId, string searchStr = "", int status = 0, int senderId = 0, DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        {
+            var response = await _dbContext2.AgentSupervisorReports.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.GetAgentSupervisorReport}, @ClientId={clientId}, @SearchStr={searchStr ?? ""}, @Status={status}, @SenderId={senderId}, @FromDate={fromDate}, @ToDate={toDate}, @SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}").ToListAsync();
+            return response;
         }
     }
 }

@@ -47,14 +47,15 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UConversation> Conversations { get; set; } = null!;
         public virtual DbSet<UAgentConversationList> AgentConversationLists { get; set; } = null!;
         public virtual DbSet<UConversationListByConversation> ConversationListByConversations { get; set; } = null!;
-        public virtual DbSet<JsonData> JsonDatas { get; set; } = null!;
-        public virtual DbSet<UGetAgentById> GetAgentByIds { get; set; } = null!;
+        public virtual DbSet<JsonData> JsonDatas { get; set; } = null!; 
         public virtual DbSet<UDefaultTemplateList> GetDefaultTemplates { get; set; } = null!;
         public virtual DbSet<URole> Roles { get; set; } = null!;
         public virtual DbSet<UCampaignContactStat> CampaignContactStats { get; set; } = null!;
         public virtual DbSet<UCampaignDetail> CampaignDetails { get; set; } = null!;
         public virtual DbSet<UCampaignDetailParam> CampaignDetailParams { get; set; } = null!;
         public virtual DbSet<UConversationReportList> ConversationReports { get; set; } = null!;
+        public virtual DbSet<UAgentDetail> AgentDetails { get; set; } = null!;
+        public virtual DbSet<UAgentSupervisorReport> AgentSupervisorReports { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -84,14 +85,15 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UConversation>().HasNoKey();
             modelBuilder.Entity<UAgentConversationList>().HasNoKey();
             modelBuilder.Entity<UConversationListByConversation>().HasNoKey();
-            modelBuilder.Entity<UEntity2Dto>().HasNoKey();
-            modelBuilder.Entity<UGetAgentById>().HasNoKey();
+            modelBuilder.Entity<UEntity2Dto>().HasNoKey(); 
             modelBuilder.Entity<UDefaultTemplateList>().HasNoKey();
             modelBuilder.Entity<URole>().HasNoKey();
             modelBuilder.Entity<UCampaignContactStat>().HasNoKey();
             modelBuilder.Entity<UCampaignDetail>().HasNoKey();
             modelBuilder.Entity<UCampaignDetailParam>().HasNoKey();
             modelBuilder.Entity<UConversationReportList>().HasNoKey();
+            modelBuilder.Entity<UAgentDetail>().HasNoKey();
+            modelBuilder.Entity<UAgentSupervisorReport>().HasNoKey();
         }
     }
 }

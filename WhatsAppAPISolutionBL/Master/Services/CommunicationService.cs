@@ -70,52 +70,63 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 TemplateName = templateDetails.TemplateName
             };
 
-            if (templateDetails.HeaderParamCount > 0 && !string.IsNullOrEmpty(headerParam))
+            var headerType = (TemplateHeaderEnum)templateDetails.HeaderType;
+            if (headerType == TemplateHeaderEnum.TEXT && templateDetails.HeaderParamCount > 0)
+            {
+                if (String.IsNullOrEmpty(headerParam))
+                {
+                    return new ApiResult
+                    {
+                        StatusCode = 0,
+                        Message = $"error - HParam is required."
+                    };
+                }
+
+                var headerComponents = new SendTemplateMessageDto.TemplateComponent()
+                {
+                    ComponentType = TemplateParamEnum.Header.ToString()
+                };
+
+                headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                {
+                    Type = headerType.ToString(),
+                    Value = headerParam,
+                    Index = templateDetails.HeaderValue != null ? templateDetails.HeaderValue.Index : 0
+                });
+
+                sendMessage.Components.Add(headerComponents);
+            }
+            else if (headerType == TemplateHeaderEnum.IMAGE
+                    || headerType == TemplateHeaderEnum.DOCUMENT
+                    || headerType == TemplateHeaderEnum.VIDEO)
             {
                 var headerComponents = new SendTemplateMessageDto.TemplateComponent()
                 {
                     ComponentType = TemplateParamEnum.Header.ToString()
                 };
 
-                var headerType = (TemplateHeaderEnum)templateDetails.HeaderType;
-                if (headerType == TemplateHeaderEnum.TEXT)
+                var media = _dbContext.Medias.Find(templateDetails.MediaId);
+                if (media != null)
                 {
-                    if (templateDetails.HeaderParamCount > 0 && string.IsNullOrEmpty(headerParam))
-                    {
-                        return new ApiResult
-                        {
-                            StatusCode = 0,
-                            Message = $"error - HParam is required."
-                        };
-                    }
-
+                    var mediaPath = String.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, media.MediaPath);
                     headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
                     {
                         Type = headerType.ToString(),
-                        Value = headerParam,
-                        Index = templateDetails.HeaderValue.Index
+                        Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath,
+                        Index = templateDetails.HeaderValue != null ? templateDetails.HeaderValue.Index : 0
                     });
                 }
-                else if (headerType == TemplateHeaderEnum.IMAGE
-                    || headerType == TemplateHeaderEnum.DOCUMENT
-                    || headerType == TemplateHeaderEnum.VIDEO)
+                else
                 {
-                    var media = _dbContext.Medias.Find(templateDetails.MediaId);
-                    if (media != null)
+                    return new ApiResult
                     {
-                        var mediaPath = String.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, media.MediaPath);
-                        headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                        {
-                            Type = headerType.ToString(),
-                            Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath,
-                            Index = templateDetails.HeaderValue.Index
-                        });
-                    }
+                        StatusCode = 0,
+                        Message = $"error - Cannot find template media."
+                    };
                 }
 
                 sendMessage.Components.Add(headerComponents);
             }
-
 
             if (templateDetails.BodyParamCount > 0)
             {
@@ -177,7 +188,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     var paramValue = param.ParamText; // Use ParamDefaultValue or another field to get the parameter's value
 
                     // Optionally, you can use ParamName, ParamText, or ParamDefaultValue to get the value
-                    buttonParameters.Add(i, paramValue);
+                    buttonParameters.Add(param.Sequence ?? 0, paramValue);
                 }
 
                 // Get the ordered list of ButtonValues

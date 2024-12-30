@@ -12,16 +12,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
     public class CampaignService : ICampaignService
     {
         private readonly WhatsAppSolutionContext _dbContext;
-        private readonly WhatsAppSolutionContext2 _dbContext2; 
+        private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly ICommunicationService _communicationService;
 
         public CampaignService(
             WhatsAppSolutionContext dbContext,
-            WhatsAppSolutionContext2 dbContext2,  
+            WhatsAppSolutionContext2 dbContext2,
             ICommunicationService communicationService)
         {
             _dbContext = dbContext;
-            _dbContext2 = dbContext2;  
+            _dbContext2 = dbContext2;
             _communicationService = communicationService;
         }
 
@@ -96,7 +96,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 .Select(x => new ParamData
                 {
                     ParamText = x.ParamText,
-                    ParamType = x.ParamType
+                    ParamType = x.ParamType ,
+                    Sequence = x.Sequence
                 }).ToListAsync();
 
             return await _communicationService.SendTemplateMessageAsync(tempPayload);

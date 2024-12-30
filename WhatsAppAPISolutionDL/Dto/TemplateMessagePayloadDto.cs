@@ -28,6 +28,7 @@ namespace WhatsAppAPISolutionDL.Dto
     public class ParamData
     {
         public string ParamText { get; set; }
-        public int? ParamType { get; set; }
+        public int? ParamType { get; set; } 
+        public int? Sequence { get; set; } 
     }
 }

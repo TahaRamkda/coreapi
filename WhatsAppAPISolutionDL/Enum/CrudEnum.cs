@@ -60,14 +60,18 @@
         GetAllLoanTransactions = 10,
         GetLatestConversationByConversationId = 10,
 
+        GetAgentSupervisorReport = 40,
+
+        GetDetails = 41,
+        GetParams = 42,
+
+
         GetEntities = 50,
 
         GetAssetPaymentTypes = 51,
         GetTemplateCategories = 51,
         ConversationReportList = 51,
 
-        GetDetails = 41,
-        GetParams = 42,
 
 
         GetLanguages = 52,
