@@ -104,6 +104,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 messageType = 1; //Convert.ToInt32(MessageReceiveTypeEnum.TEXT);
                 messageText = messageReceive.text.body ?? "";
             }
+            else if (messageReceive.type == MessageReceiveTypeEnum.REACTION.ToString())
+            {
+                messageType = 1; //Convert.ToInt32(MessageReceiveTypeEnum.TEXT);
+                messageText = messageReceive.reaction.emoji ?? "";
+            }
             else if (messageReceive.type == MessageReceiveTypeEnum.IMAGE.ToString())
             {
                 messageType = 2; // Convert.ToInt32(MessageReceiveTypeEnum.IMAGE);
@@ -168,7 +173,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             await _communicationService.SendInteractiveMessageAsync(action, template.ClientId == 0 ? 0 : template.ClientId.Value, messageReceive.from);
                     }
                 }
-                
+
                 if (action.ModuleId == (int)ModuleEnum.Chat && action.ParentId > 0) //If conversation is going on
                 {
                     var conversation = await _conversationService.GetLatestConversationMessageByConversationAsync(clientId: Convert.ToInt32(messageReceive.client_Id), id: action.ParentId.Value);

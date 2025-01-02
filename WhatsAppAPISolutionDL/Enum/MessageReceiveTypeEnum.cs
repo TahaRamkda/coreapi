@@ -11,6 +11,7 @@
         LOCATION = 6,
         STICKER = 7,
         INTERACTIVE = 8,
-        AUDIO = 9
+        AUDIO = 9,
+        REACTION = 10
     }
 }
