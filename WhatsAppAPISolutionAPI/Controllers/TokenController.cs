@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using WhatsAppAPISolutionAPI.Security;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.User;
 using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers

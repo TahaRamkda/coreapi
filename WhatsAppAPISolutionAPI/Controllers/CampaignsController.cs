@@ -4,7 +4,8 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Dto.Campaign;
+using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers

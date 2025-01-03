@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Dto.Group;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.UserModels.Entity;
+using WhatsAppAPISolutionDL.UserModels.Group;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {

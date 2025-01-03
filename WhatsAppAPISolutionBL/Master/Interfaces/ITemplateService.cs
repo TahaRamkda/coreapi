@@ -1,5 +1,6 @@
-﻿using WhatsAppAPISolutionDL.Dto;
-using WhatsAppAPISolutionDL.UserModels;
+﻿using WhatsAppAPISolutionDL.Dto.Template;
+using WhatsAppAPISolutionDL.UserModels.Entity;
+using WhatsAppAPISolutionDL.UserModels.Template;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
 {

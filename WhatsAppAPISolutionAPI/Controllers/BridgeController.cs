@@ -4,7 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.Message;
+using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers

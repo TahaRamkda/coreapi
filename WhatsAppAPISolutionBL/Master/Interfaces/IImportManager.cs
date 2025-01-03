@@ -1,4 +1,4 @@
-﻿using WhatsAppAPISolutionDL.Dto;
+﻿using WhatsAppAPISolutionDL.Dto.Contact;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
 {

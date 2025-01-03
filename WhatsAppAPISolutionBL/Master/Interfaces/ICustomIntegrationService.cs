@@ -1,4 +1,5 @@
-﻿using WhatsAppAPISolutionDL.Dto;
+﻿using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.UserModels;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces

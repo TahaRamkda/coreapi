@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionBL.Master.Services;
-using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.Group;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
@@ -41,12 +42,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getgroupbyid")]
-        public ActionResult GetGroupByIdAsync(int clientId, int id)
+        public async Task<ActionResult> GetGroupByIdAsync(int clientId, int id)
         {
             if (id <= 0)
                 return Ok(new ApiResult { Message = "not found" });
- 
-            var response = _groupService.GetGroupByIdAsync(clientId, id);
+
+            var response = await _groupService.GetGroupByIdAsync(clientId, id);
 
             if (response == null)
             {

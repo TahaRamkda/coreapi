@@ -4,7 +4,8 @@ using System.Drawing.Printing;
 using System.Globalization;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionBL.Master.Services;
-using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Dto.Client;
+using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers

@@ -2,6 +2,7 @@
 using System.Text;
 using System.Text.Json;
 using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Dto.Common;
 
 namespace WhatsAppAPISolutionAPI.Middleware
 {

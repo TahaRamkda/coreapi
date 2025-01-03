@@ -4,10 +4,11 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
-using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.Setting;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -48,34 +49,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data fetch successfully"
             });
         }
-
-        [HttpGet("gettemplatebyid")]
-        public ActionResult GetTemplateByIdAsync(int Id)
-        {
-            if (Id <= 0)
-            {
-                return NotFound("not found");
-            }
-
-            var response = _dbContext.Templates.Where(x => x.Id == Id).FirstOrDefault();
-
-            if (response == null)
-            {
-                return Ok(new ApiResult
-                {
-                    Result = "",
-                    Message = "No record found with this id"
-                });
-            }
-
-            return Ok(new ApiResult
-            {
-                Success = true,
-                Result = response,
-                Message = "Data fetch successfully"
-            });
-        }
-
+         
         [HttpPost("addTemplate")]
         public async Task<IActionResult> AddTemplateAsync([FromBody] TemplateDto template)
         {

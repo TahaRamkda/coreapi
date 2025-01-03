@@ -7,6 +7,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Net.Http.Headers;
+using WhatsAppAPISolutionDL.UserModels.Agent;
+using WhatsAppAPISolutionDL.UserModels.Campaign;
+using WhatsAppAPISolutionDL.UserModels.Client;
+using WhatsAppAPISolutionDL.UserModels.Contact;
+using WhatsAppAPISolutionDL.UserModels.Conversation;
+using WhatsAppAPISolutionDL.UserModels.Template;
+using WhatsAppAPISolutionDL.UserModels.Entity;
+using WhatsAppAPISolutionDL.UserModels.User;
+using WhatsAppAPISolutionDL.UserModels.Group;
+using WhatsAppAPISolutionDL.UserModels.Permission;
+using WhatsAppAPISolutionDL.UserModels.Message;
+using WhatsAppAPISolutionDL.UserModels.SenderName;
+using WhatsAppAPISolutionDL.UserModels.Dashboard;
+using WhatsAppAPISolutionDL.UserModels.Media;
 
 namespace WhatsAppAPISolutionDL.UserModels
 {
@@ -61,6 +75,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UGroupDetail> GroupDetails { get; set; } = null!;
         public virtual DbSet<URoleDetail> RoleDetails { get; set; } = null!;
         public virtual DbSet<USenderNameDetail> SenderNameDetails { get; set; } = null!;
+        public virtual DbSet<UUserDetail> UserDetails { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -104,6 +119,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UGroupDetail>().HasNoKey();
             modelBuilder.Entity<URoleDetail>().HasNoKey();
             modelBuilder.Entity<USenderNameDetail>().HasNoKey();
+            modelBuilder.Entity<UUserDetail>().HasNoKey();
         }
     }
 }

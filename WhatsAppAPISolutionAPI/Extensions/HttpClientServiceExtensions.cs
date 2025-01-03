@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using WhatsAppAPISolutionAPI.Setting;
-using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.Setting;
 
 namespace WhatsAppAPISolutionAPI.Extensions
 {

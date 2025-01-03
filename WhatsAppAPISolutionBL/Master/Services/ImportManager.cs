@@ -1,6 +1,6 @@
 ﻿using OfficeOpenXml;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Dto.Contact;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {

@@ -1,7 +1,8 @@
-﻿using WhatsAppAPISolutionDL.Dto;
+﻿using WhatsAppAPISolutionDL.Dto.Media;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
-using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.UserModels.Entity;
+using WhatsAppAPISolutionDL.UserModels.Media;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
 {

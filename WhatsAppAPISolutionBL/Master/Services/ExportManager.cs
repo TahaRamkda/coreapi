@@ -1,10 +1,7 @@
 ﻿using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using WhatsAppAPISolutionBL.Master.Help;
+using WhatsAppAPISolutionBL.Master.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionDL.UserModels;
-using WhatsAppAPISolutionDL.Extensions;
-using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {

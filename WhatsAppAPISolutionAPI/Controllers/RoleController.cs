@@ -2,7 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionBL.Master.Services;
-using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.User;
 using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers
@@ -38,12 +39,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getRolebyid")]
-        public ActionResult GetRoleByIdAsync(int clientId, int id)
+        public async Task<ActionResult> GetRoleByIdAsync(int clientId, int id)
         {
             if (id <= 0)
                 return NotFound("not found");
 
-            var response = _rolesService.GetRoleByIdAsync(clientId, id);
+            var response = await _rolesService.GetRoleByIdAsync(clientId, id);
             if (response == null)
             {
                 return Ok(new ApiResult

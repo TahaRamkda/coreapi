@@ -5,12 +5,15 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
-using static WhatsAppAPISolutionDL.Dto.WhatsAppMessageReceiveDto;
+using WhatsAppAPISolutionDL.UserModels.Entity;
+using WhatsAppAPISolutionDL.UserModels.Template;
+using static WhatsAppAPISolutionDL.Dto.Message.WhatsAppMessageReceiveDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {

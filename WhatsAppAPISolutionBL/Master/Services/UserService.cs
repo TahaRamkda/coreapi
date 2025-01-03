@@ -2,12 +2,14 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using WhatsAppAPISolutionDL.Enum;
+using WhatsAppAPISolutionDL.UserModels.User;
+using WhatsAppAPISolutionDL.UserModels.Entity;
+using WhatsAppAPISolutionDL.Dto.User;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -76,6 +78,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.AddUserToken}, @ClientId={user.ClientId}, @UserId={user.UserId}, @AccessToken={user.AccessToken}, @RefreshToken={user.RefreshToken}, @RefreshTokenExpiry={user.RefreshTokenExpiry}").ToListAsync();
             return response[0];
         }
-
+        
+        public async Task<UUserDetail> GetUserByIdAsync(int clientId, int userId)
+        {
+            var response = await _dbContext2.UserDetails.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.GetById}, @ClientId={clientId}, @UserId={userId}").ToListAsync();
+            if (response == null || response.Count == 0)
+                return null;
+            return response[0];
+        }
     }
 }

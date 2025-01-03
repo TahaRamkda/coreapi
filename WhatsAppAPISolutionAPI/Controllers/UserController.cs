@@ -5,7 +5,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using WhatsAppAPISolutionAPI.Security;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionDL.Dto;
+using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.User;
 using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers
@@ -82,33 +83,25 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getuserbyid")]
-        public async Task<ActionResult> GetUserByIdAsync(int Id)
+        public async Task<ActionResult> GetUserByIdAsync(int clientId, int id)
         {
-            var user = _dbContext.Users.Where(x => x.UserId == Id && x.RecordStatus != -1).FirstOrDefault();
+            if (id <= 0)
+                return Ok(new ApiResult { Message = "not found" });
 
+            var user = await _userService.GetUserByIdAsync(clientId, id);
             if (user == null)
             {
                 return Ok(new ApiResult
                 {
-
                     Result = "",
                     Message = "No record found with this id"
                 });
             }
-            var roleIds = await _dbContext.UsersRoles.Where(x => x.UserId == user.UserId).Select(x => x.RoleId).ToListAsync();
 
             return Ok(new ApiResult
             {
                 Success = true,
-                Result = new UserDto
-                {
-                    UserId = user.UserId,
-                    ClientId = user.ClientId,
-                    UserName = user.UserName,
-                    IsActive = user.IsActive,
-                    FullName = user.FullName,
-                    UserRoles = roleIds != null ? string.Join(",", roleIds) : string.Empty
-                },
+                Result = user,
                 Message = "Data fetch successfully"
             });
         }
