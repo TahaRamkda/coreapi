@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WhatsAppAPISolutionDL.Models;
-
-namespace WhatsAppAPISolutionDL.Dto
+﻿namespace WhatsAppAPISolutionDL.Dto
 {
     public partial class CampaignDto
     {
@@ -15,14 +8,13 @@ namespace WhatsAppAPISolutionDL.Dto
             CampaignContacts = new List<CampaignContactDto>();
         }
 
+        public int ClientId { get; set; }
         public int CampaignId { get; set; }
         public string CampaignName { get; set; }
-        public int ClientId { get; set; }
         public int SenderId { get; set; }
         public int TemplateId { get; set; }
         public DateTime? ScheduleDate { get; set; }
-        public string CampaignType { get; set; }
-        //public string Status { get; set; }
+        public string CampaignType { get; set; } 
         public string GroupIds { get; set; }
         public int? ActionBy { get; set; }
         public List<CampaignParamDto> CampaignParameters { get; set; }

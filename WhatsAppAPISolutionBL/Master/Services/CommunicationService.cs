@@ -119,8 +119,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 else
                 {
                     return new ApiResult
-                    {
-                        StatusCode = 0,
+                    { 
                         Message = $"error - Cannot find template media."
                     };
                 }

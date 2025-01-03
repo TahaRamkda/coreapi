@@ -42,41 +42,26 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getsenderNamebyid")]
-        public ActionResult GetSenderNameByIdAsync(int id)
+        public async Task<ActionResult> GetSenderNameByIdAsync(int clientId, int id)
         {
             if (id <= 0)
             {
-                return NotFound("not found");
+                return Ok(new ApiResult { Message = "not found" });
             }
 
-            var response = _dbContext.SenderNames.Where(x => x.SenderId == id).FirstOrDefault();
-
-            if (response == null)
+            var res = await _senderNameService.GetSenderNameByIdAsync(clientId, id);
+            if (res == null)
             {
                 return Ok(new ApiResult
                 {
-                    Result = "",
                     Message = "No record found with this id"
                 });
             }
 
-            var media = _dbContext.Medias.Find(response.LogoMediaId);
-
             return Ok(new ApiResult
             {
                 Success = true,
-                Result = new GetSenderNameDto
-                {
-                    SenderId = response.SenderId,
-                    BusinessAccountId = response.BusinessAccountId,
-                    ClientId = response.ClientId,
-                    Limit = response.Limit,
-                    PhoneNumber = response.PhoneNumber,
-                    PhoneNumberId = response.PhoneNumberId,
-                    Quality = response.Quality,
-                    LogoMediaId = response.LogoMediaId ?? 0,
-                    LogoUrl = media != null ? media.MediaPath : String.Empty
-                },
+                Result = res,
                 Message = "Data fetch successfully"
             });
         }
@@ -259,7 +244,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data fetch successfully"
             });
         }
-         
+
         [HttpGet("getsendernames")]
         public async Task<IActionResult> GetSenderNamesAsync(int clientId, string searchStr = "")
         {

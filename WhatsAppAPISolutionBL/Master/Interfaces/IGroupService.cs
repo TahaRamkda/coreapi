@@ -10,5 +10,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> UpdateGroupAsync(GroupDto group);
         Task<UResponse> DeleteGroupAsync(int groupId);
         Task<List<UEntityDto>> GetGroupsAsync(int clientId, string searchStr = "");
+        Task<UGroupDetail> GetGroupByIdAsync(int clientId, int groupId);
     }
 }

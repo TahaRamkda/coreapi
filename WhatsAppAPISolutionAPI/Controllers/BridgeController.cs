@@ -38,7 +38,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             try
             {
                 _logger.LogInformation("Calling function TemplateSync");
-                _logger.LogInformation("Recieved Template Sync response from bridge with template data={data}", JsonConvert.SerializeObject(templateData));
+                _logger.LogInformation("Received Template Sync response from bridge with template data={data}", JsonConvert.SerializeObject(templateData));
 
                 var data = System.Text.Json.JsonSerializer.Serialize(templateData);
                 
@@ -61,7 +61,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                         
                         if (template == null)
                         {
-                            _logger.LogInformation("Recieved Template Sync response from bridge but template not exist in our database with id={id}", tempParam.Id);
+                            _logger.LogInformation("Received Template Sync response from bridge but template not exist in our database with id={id}", tempParam.Id);
                             return Ok(new ApiResult
                             { 
                                 Message = "Template id not exist"
@@ -80,14 +80,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
                         var response = await _templateService.UpdateTemplateStatusByIdAsync(tempDto);
                         if (response == null || response.Status <= 0)
                         {
-                            _logger.LogError("Recieved Template Sync response from bridge but unable to update template status in our database with id={id} and error = {error}", tempParam.Id, JsonConvert.SerializeObject(response?.Message));
+                            _logger.LogError("Received Template Sync response from bridge but unable to update template status in our database with id={id} and error = {error}", tempParam.Id, JsonConvert.SerializeObject(response?.Message));
                             return Ok(new ApiResult
                             { 
                                 Result = response,
                                 Message = response?.Message
                             });
                         }
-                        _logger.LogInformation("Recieved Template Sync response from bridge and updated in our database with response={response}", JsonConvert.SerializeObject(response));
+                        _logger.LogInformation("Received Template Sync response from bridge and updated in our database with response={response}", JsonConvert.SerializeObject(response));
                         return Ok(new ApiResult
                         {
                             Success = true,
@@ -96,7 +96,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                         });
                     }
                 }
-                _logger.LogError("Recieved Template Sync response from bridge with errors = {error}", JsonConvert.SerializeObject(templateData));
+                _logger.LogError("Received Template Sync response from bridge with errors = {error}", JsonConvert.SerializeObject(templateData));
                 return Ok(new ApiResult
                 { 
                     Message = "error in fetching template"
@@ -150,7 +150,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _messageService.AddMessageReceivedLogAsync(messageReceive);
 
-            _logger.LogInformation("Recieved Add Message response from database with response={response}", JsonConvert.SerializeObject(response));
+            _logger.LogInformation("Received Add Message response from database with response={response}", JsonConvert.SerializeObject(response));
 
             return Ok(new ApiResult
             {

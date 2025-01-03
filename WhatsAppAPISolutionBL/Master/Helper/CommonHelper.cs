@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text.RegularExpressions;
 
 namespace WhatsAppAPISolutionBL.Master.Helper
 {
@@ -38,6 +34,13 @@ namespace WhatsAppAPISolutionBL.Master.Helper
 
             //Replace empty string and + signs
             return phoneNumber.Replace("+", "").Trim();
+        }
+
+        public static bool IsValidUsername(string username)
+        {
+            // Regex pattern to match only letters, numbers, - and ., with no whitespace
+            string pattern = @"^[a-zA-Z0-9.-]+$";
+            return Regex.IsMatch(username, pattern);
         }
     }
 }

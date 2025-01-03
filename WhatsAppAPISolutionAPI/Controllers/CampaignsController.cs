@@ -38,46 +38,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var res = await _campaignService.GetCampaignListAsync(ClientId, CampaignId, FromDate, ToDate, SearchStr, SortBy, PageNo, PageSize, SenderId);
 
-            _logger.LogInformation("Recieved GetCampaignListAsync response with data={data}", JsonConvert.SerializeObject(res));
+            _logger.LogInformation("Received GetCampaignListAsync response with data={data}", JsonConvert.SerializeObject(res));
 
             return Ok(new ApiResult
             {
                 Success = true,
                 Result = res,
-                Message = "Data fetch successfully"
-            });
-        }
-
-        [HttpGet("getcampaignbyid")]
-        public ActionResult GetCampaignByIdAsync(int Id)
-        {
-            _logger.LogInformation("Calling function GetCampaignByIdAsync request with id={id}", Id);
-
-            if (Id <= 0)
-            {
-                return NotFound("not found");
-            }
-
-            var response = _dbContext.Campaigns.Where(x => x.CampaignId == Id).FirstOrDefault();
-
-            if (response == null)
-            {
-                _logger.LogInformation("Recieved GetCampaignByIdAsync without any response - no record found with id={id}", Id);
-
-                return Ok(new ApiResult
-                {
-
-                    Result = "",
-                    Message = "No record found with this id"
-                });
-            }
-
-            _logger.LogInformation("Recieved response from GetCampaignByIdAsync with id={id} and response = {response}", Id, JsonConvert.SerializeObject(response));
-
-            return Ok(new ApiResult
-            {
-                Success = true,
-                Result = response,
                 Message = "Data fetch successfully"
             });
         }
@@ -92,10 +58,18 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 return BadRequest();
             }
 
+            if (campaign.TemplateId <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Please select template"
+                });
+            }
+
             var response = await _campaignService.AddCampaignAsync(campaign);
             if (response == null || response.Status <= 0)
             {
-                _logger.LogError("Recieved response from AddCampaignAsync with error = {error}", JsonConvert.SerializeObject(response?.Message));
+                _logger.LogError("Received response from AddCampaignAsync with error = {error}", JsonConvert.SerializeObject(response?.Message));
 
                 return Ok(new ApiResult
                 {
@@ -104,7 +78,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 });
             }
 
-            _logger.LogError("Recieved response from AddCampaignAsync with response = {response}", JsonConvert.SerializeObject(response));
+            _logger.LogInformation("Received response from AddCampaignAsync with response = {response}", JsonConvert.SerializeObject(response));
 
             return Ok(new ApiResult
             {
@@ -124,6 +98,30 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 return BadRequest();
             }
 
+            if (campaign.ClientId <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Please select client"
+                });
+            }
+
+            if (campaign.CampaignId <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Please select campaign"
+                });
+            }
+
+            if (!campaign.ScheduleDate.HasValue)
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Please select schedule date"
+                });
+            }
+
             var response = await _campaignService.ActivateCampaignAsync(campaign);
             if (response == null || response.Status <= 0)
             {
@@ -133,6 +131,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = response?.Message
                 });
             }
+
             return Ok(new ApiResult
             {
                 Success = true,
@@ -149,6 +148,22 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 return BadRequest();
             }
 
+            if (campaign.ClientId <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Please select client"
+                });
+            }
+
+            if (campaign.CampaignId <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Please select campaign"
+                });
+            }
+
             var response = await _campaignService.UpdateCampaignAsync(campaign);
             if (response == null || response.Status <= 0)
             {
@@ -158,6 +173,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = response?.Message
                 });
             }
+
             return Ok(new ApiResult
             {
                 Success = true,
@@ -169,9 +185,20 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("settlecampaign")]
         public async Task<IActionResult> SettleCampaignAsync(int ClientId, int CampaignId)
         {
-            if (ClientId <= 0 || CampaignId <= 0)
+            if (ClientId <= 0)
             {
-                return NotFound("not found");
+                return Ok(new ApiResult
+                {
+                    Message = "Please select client"
+                });
+            }
+
+            if (CampaignId <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Please select campaign"
+                });
             }
 
             var response = await _campaignService.SettleCampaignAsync(ClientId, CampaignId);
@@ -197,9 +224,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (campaign.CampaignId <= 0)
                 return Ok(new ApiResult
                 {
-                    Message = "Campaign Id required"
+                    Message = "Campaign is required"
                 });
-            if (!campaign.PhoneNumbers.Any())
+            if (campaign.PhoneNumbers == null || !campaign.PhoneNumbers.Any())
                 return Ok(new ApiResult
                 {
                     Message = "Please add atleast one phone number"
@@ -214,9 +241,21 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             _logger.LogInformation("Calling function GetCampaignListAsync request with ClientId={ClientId}, CampaignId={CampaignId}", ClientId, CampaignId);
 
+            if (ClientId <= 0)
+                return Ok(new ApiResult
+                {
+                    Message = "Client is required"
+                });
+
+            if (CampaignId <= 0)
+                return Ok(new ApiResult
+                {
+                    Message = "Campaign is required"
+                });
+
             var res = await _campaignService.GetCampaignContactStatsAsync(ClientId, CampaignId);
 
-            _logger.LogInformation("Recieved GetCampaignListAsync response with data={data}", JsonConvert.SerializeObject(res));
+            _logger.LogInformation("Received GetCampaignListAsync response with data={data}", JsonConvert.SerializeObject(res));
 
             if (res == null)
             {
@@ -238,6 +277,24 @@ namespace WhatsAppAPISolutionAPI.Controllers
         public async Task<ActionResult> DeleteFrequentlyContactedContactsAsync(int ClientId, int CampaignId, int LastContactedInDays)
         {
             _logger.LogInformation("Calling function DeleteFrequentlyContactedContactsAsync request with ClientId={ClientId}, CampaignId={CampaignId},LastContactedInDays={LastContactedInDays}", ClientId, CampaignId, LastContactedInDays);
+
+            if (ClientId <= 0)
+                return Ok(new ApiResult
+                {
+                    Message = "Client is required"
+                });
+
+            if (CampaignId <= 0)
+                return Ok(new ApiResult
+                {
+                    Message = "Campaign is required"
+                });
+
+            if (LastContactedInDays <= 0)
+                return Ok(new ApiResult
+                {
+                    Message = "Last contacted in days is required"
+                });
 
             var res = await _campaignService.DeleteFreqContactedContactsAsync(ClientId, CampaignId, LastContactedInDays);
 
@@ -263,6 +320,18 @@ namespace WhatsAppAPISolutionAPI.Controllers
         public async Task<ActionResult> GetCampaignDetailAsync(int ClientId, int CampaignId)
         {
             _logger.LogInformation("Calling function GetCampaignDetailAsyn request with ClientId={ClientId}, CampaignId={CampaignId}", ClientId, CampaignId);
+
+            if (ClientId <= 0)
+                return Ok(new ApiResult
+                {
+                    Message = "Client is required"
+                });
+
+            if (CampaignId <= 0)
+                return Ok(new ApiResult
+                {
+                    Message = "Campaign is required"
+                });
 
             var res = await _campaignService.GetCampaignDetailAsync(ClientId, CampaignId);
 

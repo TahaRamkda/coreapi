@@ -41,14 +41,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getgroupbyid")]
-        public ActionResult GetGroupByIdAsync(int Id)
+        public ActionResult GetGroupByIdAsync(int clientId, int id)
         {
-            if (Id <= 0)
-            {
-                return NotFound("not found");
-            }
-
-            var response = _dbContext.Groups.Where(x => x.GroupId == Id).FirstOrDefault();
+            if (id <= 0)
+                return Ok(new ApiResult { Message = "not found" });
+ 
+            var response = _groupService.GetGroupByIdAsync(clientId, id);
 
             if (response == null)
             {

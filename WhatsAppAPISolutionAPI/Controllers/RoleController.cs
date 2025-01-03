@@ -38,20 +38,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getRolebyid")]
-        public ActionResult GetRoleByIdAsync(int id)
+        public ActionResult GetRoleByIdAsync(int clientId, int id)
         {
             if (id <= 0)
-            {
                 return NotFound("not found");
-            }
 
-            var response = _dbContext.Roles.Where(x => x.RoleId == id).FirstOrDefault();
-
+            var response = _rolesService.GetRoleByIdAsync(clientId, id);
             if (response == null)
             {
                 return Ok(new ApiResult
                 {
-                    Result = "",
                     Message = "No record found with this id"
                 });
             }

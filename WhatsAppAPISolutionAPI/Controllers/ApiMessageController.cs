@@ -33,7 +33,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var res = await _aPIMessageService.GetAPIMessageListAsync(ClientId, APIMessageId, TemplateId, Status, WaID, FromDate, ToDate, SearchStr, TrxType, SortBy, PageNo, PageSize);
 
-            _logger.LogInformation("Recieved GetApiMessageList response with data={data}", JsonConvert.SerializeObject(res));
+            _logger.LogInformation("Received GetApiMessageList response with data={data}", JsonConvert.SerializeObject(res));
 
             return Ok(new ApiResult
             {

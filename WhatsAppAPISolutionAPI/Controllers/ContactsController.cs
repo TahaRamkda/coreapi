@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
 
@@ -37,16 +38,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getcontactbyid")]
-        public ActionResult GetContactByIdAsync(int Id)
+        public async Task<ActionResult> GetContactByIdAsync(int clientId, int id)
         {
-            if (Id <= 0)
-            {
-                return NotFound("not found");
-            }
+            if (id <= 0)
+                return Ok(new ApiResult { Message = "not found" });
 
-            var response = _dbContext.Contacts.Where(x => x.ContactId == Id).FirstOrDefault();
-
-            if (response == null)
+            var res = await _contactService.GetContactByIdAsync(clientId, id);
+            if (res == null)
             {
                 return Ok(new ApiResult
                 {
@@ -58,7 +56,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             return Ok(new ApiResult
             {
                 Success = true,
-                Result = response,
+                Result = res,
                 Message = "Data fetch successfully"
             });
         }
@@ -87,7 +85,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data added successfully"
             });
         }
-         
+
         [HttpPut("updatecontact")]
         public async Task<IActionResult> UpdateContactAsync(ContactDto contact)
         {

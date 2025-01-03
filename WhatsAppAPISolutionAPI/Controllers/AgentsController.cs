@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WhatsAppAPISolutionBL.Master.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Models;
@@ -82,6 +83,56 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 return BadRequest();
             }
 
+            if (agent.ClientId <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Please enter client id"
+                });
+            }
+
+            if (String.IsNullOrWhiteSpace(agent.AgentFName))
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Please enter agent first name"
+                });
+            }
+
+            if (String.IsNullOrWhiteSpace(agent.AgentFName))
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Please enter agent last name"
+                });
+            }
+
+            if (String.IsNullOrWhiteSpace(agent.UserName))
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Please enter user name"
+                });
+            }
+
+            agent.UserName = agent.UserName.Trim();
+            agent.Password = agent.Password.Trim();
+            if (!CommonHelper.IsValidUsername(agent.UserName))
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "The username should contains only alphanumeric value and no special character other than - and ."
+                });
+            }
+             
+            if (String.IsNullOrWhiteSpace(agent.Password))
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Please enter password"
+                });
+            }
+
             var response = await _agentsService.AddAgentAsync(agent);
             if (response == null || response.Status <= 0)
             {
@@ -107,6 +158,30 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 return BadRequest();
             }
 
+            if (agent.ClientId <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Please enter client id"
+                });
+            }
+
+            if (String.IsNullOrWhiteSpace(agent.AgentFName))
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Please enter agent first name"
+                });
+            }
+
+            if (String.IsNullOrWhiteSpace(agent.AgentFName))
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Please enter agent last name"
+                });
+            }
+
             var response = await _agentsService.UpdateAgentAsync(agent);
             if (response == null || response.Status <= 0)
             {
@@ -128,7 +203,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
         public async Task<IActionResult> DeleteAgentAsync(int Id)
         {
             if (Id <= 0)
-                return NotFound("not found");
+                return Ok(new ApiResult
+                {
+                    Message = "Please select agent"
+                });
 
             var response = await _agentsService.DeleteAgentAsync(Id);
             if (response == null || response.Status <= 0)
@@ -150,6 +228,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("setagentstatus")]
         public async Task<IActionResult> SetAgentStatusAsync(int id, int status)
         {
+            if (id <= 0)
+                return Ok(new ApiResult
+                {
+                    Message = "Please select agent"
+                });
+
             var response = await _agentsService.SetAgentStatusAsync(id, status);
             if (response == null || response.Status <= 0)
             {
@@ -171,6 +255,25 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("addagenttimings")]
         public async Task<IActionResult> AddAgentTimingsAsync(AgentTimingDto model)
         {
+            if (model.ClientId <= 0)
+                return Ok(new ApiResult
+                {
+                    Message = "Please select client"
+                });
+
+            if (model.AgentId <= 0)
+                return Ok(new ApiResult
+                {
+                    Message = "Please select agent"
+                });
+
+
+            if (model.Timings == null || model.Timings.Count == 0)
+                return Ok(new ApiResult
+                {
+                    Message = "Please enter timings"
+                });
+
             var response = await _agentsService.AddAgentTimingsAsync(model);
             if (response == null || response.Status <= 0)
             {

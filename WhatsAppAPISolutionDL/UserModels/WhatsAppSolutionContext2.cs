@@ -56,6 +56,11 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UConversationReportList> ConversationReports { get; set; } = null!;
         public virtual DbSet<UAgentDetail> AgentDetails { get; set; } = null!;
         public virtual DbSet<UAgentSupervisorReport> AgentSupervisorReports { get; set; } = null!;
+        public virtual DbSet<UClientDetail> ClientDetails { get; set; } = null!;
+        public virtual DbSet<UContactDetail> ContactDetails { get; set; } = null!;
+        public virtual DbSet<UGroupDetail> GroupDetails { get; set; } = null!;
+        public virtual DbSet<URoleDetail> RoleDetails { get; set; } = null!;
+        public virtual DbSet<USenderNameDetail> SenderNameDetails { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -94,6 +99,11 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UConversationReportList>().HasNoKey();
             modelBuilder.Entity<UAgentDetail>().HasNoKey();
             modelBuilder.Entity<UAgentSupervisorReport>().HasNoKey();
+            modelBuilder.Entity<UClientDetail>().HasNoKey();
+            modelBuilder.Entity<UContactDetail>().HasNoKey();
+            modelBuilder.Entity<UGroupDetail>().HasNoKey();
+            modelBuilder.Entity<URoleDetail>().HasNoKey();
+            modelBuilder.Entity<USenderNameDetail>().HasNoKey();
         }
     }
 }

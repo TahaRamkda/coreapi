@@ -10,5 +10,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> UpdateClientAsync(ClientDto client);
         Task<UResponse> DeleteClientAsync(int clientId);
         Task<List<UEntityDto>> GetClientsAsync(int clientId, string searchStr = "");
+        Task<UClientDetail> GetClientByIdAsync(int clientId);
     }
 }

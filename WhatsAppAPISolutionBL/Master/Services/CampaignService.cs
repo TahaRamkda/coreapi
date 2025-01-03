@@ -80,6 +80,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Message = "No template id found in this campaign please add template"
                 };
 
+            if (campaign.PhoneNumbers == null || campaign.PhoneNumbers.Count == 0)
+                return new ApiResult
+                {
+                    StatusCode = 0,
+                    Message = "Please enter phone numbers"
+                };
+
             campaign.PhoneNumbers = campaign.PhoneNumbers.TrimPhoneNumbers();
 
             var tempPayload = new TemplateMessagePayloadDto()
@@ -96,7 +103,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 .Select(x => new ParamData
                 {
                     ParamText = x.ParamText,
-                    ParamType = x.ParamType ,
+                    ParamType = x.ParamType,
                     Sequence = x.Sequence
                 }).ToListAsync();
 

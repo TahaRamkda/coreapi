@@ -1,5 +1,4 @@
 ﻿using WhatsAppAPISolutionDL.Dto;
-using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
@@ -11,5 +10,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> UpdateRoleAsync(RoleDto role);
         Task<UResponse> DeleteRoleAsync(int RoleId);
         Task<List<UEntityDto>> GetRolesAsync(int clientId, string searchStr = "");
+        Task<URoleDetail> GetRoleByIdAsync(int clientId, int roleId);
     }
 }

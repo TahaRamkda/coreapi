@@ -10,5 +10,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> UpdateSenderNameAsync(SenderNameDto senderName);
         Task<UResponse> DeleteSenderNameAsync(int SenderNameId);
         Task<List<UEntityDto>> GetSenderNamesAsync(int clientId, string searchStr = "");
+        Task<USenderNameDetail> GetSenderNameByIdAsync(int clientId, int senderId);
     }
 }

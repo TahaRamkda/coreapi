@@ -48,5 +48,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_Groups_Ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId},  @SearchStr={searchStr}").ToListAsync();
             return response;
         }
+
+        public async Task<UGroupDetail> GetGroupByIdAsync(int clientId, int groupId)
+        {
+            var response = await _dbContext2.GroupDetails.FromSqlInterpolated($"exec usp_Groups_Ops @ActionId={(int)CrudEnum.GetById}, @ClientId={clientId},@GroupId={groupId}").ToListAsync();
+            if (response == null || response.Count == 0)
+                return null;
+            return response[0];
+        } 
     }
 }

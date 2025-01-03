@@ -35,7 +35,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response[0];
         }
 
-         
+
         public async Task<UResponse> UpdateContactAsync(ContactDto contact)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Contacts_Ops @ActionId={(int)CrudEnum.Update}, @ContactId={contact.ContactId}, @GroupId={contact.GroupId}, @FirstName={contact.FirstName}, @LastName={contact.LastName}, @PhoneNumber={contact.PhoneNumber}, @EmailAddress={contact.EmailAddress}, @AreaName={contact.AreaName}, @ActionBy={contact.ActionBy}").ToListAsync();
@@ -47,7 +47,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Contacts_Ops @ActionId={(int)CrudEnum.Delete}, @ContactId={ContactId}").ToListAsync();
             return response[0];
         }
-         
+
         public async Task<UResponse> ImportBulkContacts(ImportContactDto model)
         {
             var contacts = _importManager.ImportContactsFromXlsx(model.File.OpenReadStream());
@@ -62,6 +62,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             var contactsJson = JsonSerializer.Serialize(contacts);
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Contacts_Ops  @ActionId={(int)CrudEnum.BulkContact}, @ClientId={model.ClientId}, @BulkContact={contactsJson}, @ActionBy={model.ActionBy}").ToListAsync();
+            return response[0];
+        }
+
+        public async Task<UContactDetail> GetContactByIdAsync(int clientId, int contactId)
+        {
+            var response = await _dbContext2.ContactDetails.FromSqlInterpolated($"exec usp_Contacts_Ops @ActionId={(int)CrudEnum.GetById}, @ClientId={clientId},@ContactId={contactId}").ToListAsync();
+            if (response == null || response.Count == 0)
+                return null;
             return response[0];
         }
     }
