@@ -28,8 +28,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Message
         public decimal? EstPrice { get; set; }
         public decimal? Commission { get; set; }
         public int CurrentStatus { get; set; }
-        public string CurrentStatusName { get; set; }
-        public int? CreatedBy { get; set; }
+        public string CurrentStatusName { get; set; } 
         public string CreatedDate { get; set; }
     }
 }

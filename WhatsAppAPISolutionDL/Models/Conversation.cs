@@ -28,5 +28,6 @@ namespace WhatsAppAPISolutionDL.Models
         public string LastMessageText { get; set; }
         public int? LastMessageMediaId { get; set; }
         public int? UnreadCount { get; set; }
+        public DateTime? ForceClosedDate { get; set; }
     }
 }

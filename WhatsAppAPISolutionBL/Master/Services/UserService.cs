@@ -67,9 +67,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response[0];
         }
 
-        public async Task<List<User>> GetUsersListAsync(int ClientId)
+        public async Task<List<UUserList>> GetUsersListAsync(int clientId, string searchStr = "")
         {
-            var response = await _dbContext.Users.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}").ToListAsync();
+            var response = await _dbContext2.UserLists.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SearchStr={searchStr}").ToListAsync();
             return response;
         }
 

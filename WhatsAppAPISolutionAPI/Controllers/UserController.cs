@@ -211,11 +211,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getuserslist")]
-        public async Task<ActionResult> GetUsersListAsync(int clientId)
+        public async Task<ActionResult> GetUsersListAsync(int clientId, string searchStr = "")
         {
             try
             {
-                var res = await _userService.GetUsersListAsync(clientId);
+                var res = await _userService.GetUsersListAsync(clientId, searchStr);
                 return Ok(new ApiResult
                 {
                     Success = true,

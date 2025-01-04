@@ -20,5 +20,9 @@ namespace WhatsAppAPISolutionDL.Models
         public int? MediaId { get; set; }
         public DateTime? DeliveredDate { get; set; }
         public DateTime? ReadDate { get; set; }
+        public int? ParentMessageTypeId { get; set; }
+        public string ParentMessageContent { get; set; }
+        public int? ParentMediaId { get; set; }
+        public int? ParentMessageId { get; set; }
     }
 }

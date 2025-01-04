@@ -76,6 +76,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<URoleDetail> RoleDetails { get; set; } = null!;
         public virtual DbSet<USenderNameDetail> SenderNameDetails { get; set; } = null!;
         public virtual DbSet<UUserDetail> UserDetails { get; set; } = null!;
+        public virtual DbSet<UUserList> UserLists{ get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -120,6 +121,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<URoleDetail>().HasNoKey();
             modelBuilder.Entity<USenderNameDetail>().HasNoKey();
             modelBuilder.Entity<UUserDetail>().HasNoKey();
+            modelBuilder.Entity<UUserList>().HasNoKey();
         }
     }
 }

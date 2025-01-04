@@ -15,7 +15,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> AddUserTokenAsync(UserDto user);
         Task<UResponse> DeleteUserAsync(int UserId, int ClientId);
         Task<UResponse> ChangePasswordAsync(UserDto user);
-        Task<List<User>> GetUsersListAsync(int ClientId);
         Task<UUserDetail> GetUserByIdAsync(int clientId, int userId);
+        Task<List<UUserList>> GetUsersListAsync(int clientId, string searchStr = "");
     }
 }
