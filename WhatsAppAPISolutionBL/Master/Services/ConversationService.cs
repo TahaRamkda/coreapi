@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Conversation;
@@ -107,23 +108,23 @@ namespace WhatsAppAPISolutionBL.Master.Services
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public async Task<UResponse> AssignConversationToAgentAsync(List<AssignConversationDto> model)
+        public async Task<UResponse> AssignConversationToAgentAsync(List<AssignConversationDto> models)
         {
-            foreach (var item in model)
+            foreach (var item in models)
             {
                 //If assigned agent template id is present, send a default template
-                if (item.AssignedAgentTemplateId > 0)
+                if (item.ActionId > 0)
                 {
-                    var template = await _dbContext.Templates.FindAsync(item.AssignedAgentTemplateId);
+                    var template = await _dbContext.Templates.FindAsync(item.ActionId);
                     if (template != null && template.TransactionType == 2)
                     {
                         var bodyParams = new List<string> { item.AgentName };
                         await _communicationService.SendInteractiveMessageAsync(new UMessageReceived
                         {
-                            ActionId = item.AssignedAgentTemplateId,
-                            ModuleId = (int)ModuleEnum.Chat,
-                            ParentId = item.ConversationId 
-                        }, template.ClientId == 0 ? 0 : template.ClientId.Value, item.PhoneNumber, "", bodyParams);
+                            ActionId = item.ActionId,
+                            ModuleId = item.ModuleId,
+                            ParentId = item.ParentId
+                        }, template.ClientId ?? 0, item.PhoneNumber, "", bodyParams);
                     }
                 }
 
@@ -134,19 +135,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     if (ConversationHub.connections.TryGetValue(item.AgentId, out connectionId))
                     {
-                        var conversations = await this.GetAgentConversationListAsync(clientId: item.ClientId, agentId: item.AgentId, id: item.ConversationId);
+                        var conversations = await this.GetAgentConversationListAsync(clientId: item.ClientId, agentId: item.AgentId, id: item.ParentId);
                         if (conversations != null && conversations.Any())
                         {
                             var conversation = conversations[0];
                             await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationAssigned.ToString(), conversation);
-                            _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), item.AgentId, item.ConversationId, i);
+                            _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), item.AgentId, item.ParentId, i);
                             break;
                         }
                         else
-                            _logger.LogError("SignalR, cannot find conversation with clientId {clienId}, agentId {agentId} and conversationId {conversationId} on try {try}", item.ClientId, item.AgentId, item.ConversationId, i);
+                            _logger.LogError("SignalR, cannot find conversation with clientId {clienId}, agentId {agentId} and conversationId {conversationId} on try {try}", item.ClientId, item.AgentId, item.ParentId, i);
                     }
                     else
-                        _logger.LogError("SignalR, No connection found for event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), item.AgentId, item.ConversationId, i);
+                        _logger.LogError("SignalR, No connection found for event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), item.AgentId, item.ParentId, i);
                 }
 
                 //if (i >= 5) // If max retry exceeded, unassign the conversation again
@@ -180,6 +181,65 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var response = await _dbContext2.ConversationReports.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.ConversationReportList},@ClientId={clientId},@Id={id},@SenderId={senderId},@AgentId={agentId}, @PageNo={pageNo}, @PageSize={pageSize}").ToListAsync();
             return response;
+        }
+
+        public async Task<UResponse> ExpiredConversationNotifyToAgentAsync(List<ExpiredConversationDto> models)
+        {
+            foreach (var item in models)
+            {
+                //If assigned agent template id is present, send a default template
+                if (item.ActionId > 0)
+                {
+                    var template = await _dbContext.Templates.FindAsync(item.ActionId);
+                    if (template != null && template.TransactionType == 2)
+                    {
+                        var bodyParams = new List<string> { item.AgentName };
+                        await _communicationService.SendInteractiveMessageAsync(new UMessageReceived
+                        {
+                            ActionId = item.ActionId,
+                            ModuleId = item.ModuleId,
+                            ParentId = item.ParentId
+                        }, template.ClientId ?? 0, item.PhoneNumber, "", bodyParams);
+                    }
+                }
+
+                // Look up the connection ID for the Agent ID and send the conversation
+                string connectionId = String.Empty;
+                int i;
+                for (i = 1; i <= 5; i++)
+                {
+                    if (ConversationHub.connections.TryGetValue(item.AgentId, out connectionId))
+                    {
+                        var conversations = await this.GetAgentConversationListAsync(clientId: item.ClientId, agentId: item.AgentId, id: item.ParentId);
+                        if (conversations != null && conversations.Any())
+                        {
+                            var conversation = conversations[0];
+                            await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), conversation);
+                            _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationUnAssigned.ToString(), item.AgentId, item.ParentId, i);
+                            break;
+                        }
+                        else
+                            _logger.LogError("SignalR, cannot find conversation with clientId {clienId}, agentId {agentId} and conversationId {conversationId} on try {try}", item.ClientId, item.AgentId, item.ParentId, i);
+                    }
+                    else
+                        _logger.LogError("SignalR, No connection found for event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationUnAssigned.ToString(), item.AgentId, item.ParentId, i);
+                }
+
+                //if (i >= 5) // If max retry exceeded, unassign the conversation again
+                //    await this.AddConversationToQueueAsync(clientId: clientId, id: id, comment: "Cannot send the conversation to agent!");
+
+                ////Send to all the agents except the agent that has been assigned just now
+                //if (!String.IsNullOrEmpty(connectionId))
+                //    await _conversationHubContext.Clients.AllExcept(connectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), id);
+                //else
+                //    await _conversationHubContext.Clients.All.SendAsync(SignalREnum.ConversationUnAssigned.ToString(), id);
+            }
+
+            return new UResponse
+            {
+                Status = 1,
+                Message = "Data updated successfully"
+            };
         }
     }
 }

@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Conversation;
+using WhatsAppAPISolutionDL.UserModels.Message;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -112,9 +114,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         [AllowAnonymous]
         [HttpPost("assignconversationtoagent")]
-        public async Task<ActionResult> AssignConversationToAgentAsync(List<AssignConversationDto> model)
+        public async Task<ActionResult> AssignConversationToAgentAsync(List<AssignConversationDto> models)
         {
-            if (model == null || model.Count == 0)
+            _logger.LogInformation("Calling function AssignConversationToAgentAsync with data={data}", JsonConvert.SerializeObject(models));
+
+            if (models == null || models.Count == 0)
             {
                 return Ok(new ApiResult
                 {
@@ -122,7 +126,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 });
             }
 
-            var response = await _conversationService.AssignConversationToAgentAsync(model);
+            var response = await _conversationService.AssignConversationToAgentAsync(models);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -150,6 +154,37 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Success = true,
                 Result = res,
                 Message = "Data fetch successfully"
+            });
+        }
+
+        [HttpPost("expiredconversationnotify")]
+        public async Task<ActionResult> ExpiredConversationNotifyAsync(List<ExpiredConversationDto> models)
+        {
+            _logger.LogInformation("Calling function ExpiredConversationNotifyAsync with data={data}", JsonConvert.SerializeObject(models));
+
+            if (models == null || models.Count == 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Message = "Invalid data provided"
+                });
+            }
+
+            var response = await _conversationService.ExpiredConversationNotifyToAgentAsync(models);
+            if (response == null || response.Status <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Result = response,
+                    Message = response?.Message
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = response,
+                Message = "Data updated successfully"
             });
         }
     }
