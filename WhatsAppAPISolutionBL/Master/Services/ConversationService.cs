@@ -166,9 +166,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
         }
 
-        public async Task<UConversationListByConversation> GetLatestConversationMessageByConversationAsync(int clientId = 0, int id = 0)
+        public async Task<ULatestConversationByConversation> GetLatestConversationMessageByConversationAsync(int clientId = 0, int id = 0)
         {
-            var response = await _dbContext2.ConversationListByConversations.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetLatestConversationByConversationId},@ClientId={clientId},@Id={id}").ToListAsync();
+            var response = await _dbContext2.LatestConversationByConversations.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetLatestConversationByConversationId},@ClientId={clientId},@Id={id}").ToListAsync();
 
             if (response.Any())
                 return response[0];

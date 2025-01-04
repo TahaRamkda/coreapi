@@ -20,7 +20,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 
         Task<UResponse> TransferConversationToAgentAsync(int clientId = 0, int id = 0, int agentId = 0, string comment = "");
         Task<UResponse> AssignConversationToAgentAsync(List<AssignConversationDto> model);
-        Task<UConversationListByConversation> GetLatestConversationMessageByConversationAsync(int clientId = 0, int id = 0);
+        Task<ULatestConversationByConversation> GetLatestConversationMessageByConversationAsync(int clientId = 0, int id = 0);
         Task<List<UConversationReportList>> GetConversationReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue);
     }
 }

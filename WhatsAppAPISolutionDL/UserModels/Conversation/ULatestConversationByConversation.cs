@@ -1,8 +1,6 @@
-﻿using WhatsAppAPISolutionDL.UserModels.Entity;
-
-namespace WhatsAppAPISolutionDL.UserModels.Conversation
+﻿namespace WhatsAppAPISolutionDL.UserModels.Conversation
 {
-    public partial class UConversationListByConversation : UListEntity
+    public class ULatestConversationByConversation
     {
         public int? MessageId { get; set; }
         public int? ClientId { get; set; }
