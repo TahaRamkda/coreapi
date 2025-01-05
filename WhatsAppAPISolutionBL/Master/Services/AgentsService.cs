@@ -43,9 +43,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.Delete}, @Id={AgentId}").ToListAsync();
             return response[0];
         }
-        public async Task<UResponse> SetAgentStatusAsync(int id, int status)
+        public async Task<UResponse> SetAgentStatusAsync(int agentId, int status)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.SetAgentStatus}, @Id={id}, @Status={status}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.SetAgentStatus}, @Id={agentId}, @Status={status}").ToListAsync();
+            return response[0];
+        }
+
+        public async Task<UResponse> SetAgentDisableAsync(int clientId, int agentId, bool disable)
+        {
+            int status = disable ? 1 : 0;
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.SetAgentEnableDisable}, @ClientId={clientId}, @Id={agentId}, @IsDisabled={status}").ToListAsync();
             return response[0];
         }
 
@@ -79,6 +86,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var response = await _dbContext2.AgentSupervisorReports.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.GetAgentSupervisorReport}, @ClientId={clientId}, @SearchStr={searchStr ?? ""}, @Status={status}, @SenderId={senderId}, @FromDate={fromDate}, @ToDate={toDate}, @SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}").ToListAsync();
             return response;
+        }
+
+        public async Task<UAgentStat> GetAgentStatsAsync(int clientId, int agentId, int senderId = 0)
+        {
+            var response = await _dbContext2.AgentStats.FromSqlInterpolated($"exec usp_Conversations_AgentStats @ClientId={clientId}, @AgentId={agentId}, @SenderId={senderId}").ToListAsync();
+
+            if (response != null && response.Count > 0)
+                return response[0];
+
+            return null;
         }
     }
 }

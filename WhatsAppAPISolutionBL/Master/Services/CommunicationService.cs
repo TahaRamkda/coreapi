@@ -439,6 +439,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (templateDetails.ButtonValues == null || !templateDetails.ButtonValues.Any()
             && !String.IsNullOrWhiteSpace(templateDetails.BodyText))
             {
+                //add footer
+
                 return await SendMessageAsync(new SendMessageRequestDto
                 {
                     ClientId = clientId,

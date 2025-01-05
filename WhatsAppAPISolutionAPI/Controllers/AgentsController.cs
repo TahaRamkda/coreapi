@@ -126,7 +126,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     Message = "The username should contains only alphanumeric value and no special character other than - and ."
                 });
             }
-             
+
             if (String.IsNullOrWhiteSpace(agent.Password))
             {
                 return Ok(new ApiResult
@@ -228,15 +228,48 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpPost("setagentstatus")]
-        public async Task<IActionResult> SetAgentStatusAsync(int id, int status)
-        {
-            if (id <= 0)
+        public async Task<IActionResult> SetAgentStatusAsync(int agentId, int status)
+        { 
+            if (agentId <= 0)
                 return Ok(new ApiResult
                 {
                     Message = "Please select agent"
                 });
 
-            var response = await _agentsService.SetAgentStatusAsync(id, status);
+            var response = await _agentsService.SetAgentStatusAsync(agentId, status);
+            if (response == null || response.Status <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Result = response,
+                    Message = response?.Message
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = response,
+                Message = "Status Updated successfully"
+            });
+        }
+
+        [HttpPost("setagentdisable")]
+        public async Task<IActionResult> SetAgentDisableAsync(int clientId, int agentId, bool disable)
+        {
+            if (clientId <= 0)
+                return Ok(new ApiResult
+                {
+                    Message = "Please select client"
+                });
+
+            if (agentId <= 0)
+                return Ok(new ApiResult
+                {
+                    Message = "Please select agent"
+                });
+
+            var response = await _agentsService.SetAgentDisableAsync(clientId, agentId, disable);
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -339,5 +372,24 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data fetch successfully"
             });
         }
+
+        [HttpGet("GetAgentStats")]
+        public async Task<ActionResult> GetAgentStatsAsync(int clientId, int agentId, int senderId = 0)
+        {
+            var res = await _agentsService.GetAgentStatsAsync(clientId, agentId, senderId);
+            if (res == null)
+            {
+                return Ok(new ApiResult { Message = "Cannot fetch agent stats" });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                StatusCode = 200,
+                Result = res,
+                Message = "Data fetch successfully"
+            });
+        }
+
     }
 }

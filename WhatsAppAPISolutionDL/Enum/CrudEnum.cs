@@ -50,6 +50,7 @@
         UpdateQuotationStatus = 7,
         GetTemplateParameterDetails = 7,
         AddConversationToQueue = 7,
+        SetAgentEnableDisable = 7,
 
         PurchaseReturn = 8,
         TransferConversationToAgent = 8,
