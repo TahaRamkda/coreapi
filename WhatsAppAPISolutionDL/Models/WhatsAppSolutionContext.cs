@@ -1,4 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace WhatsAppAPISolutionDL.Models
 {
@@ -30,6 +33,9 @@ namespace WhatsAppAPISolutionDL.Models
         public virtual DbSet<ConversationMessage> ConversationMessages { get; set; }
         public virtual DbSet<Country> Countries { get; set; }
         public virtual DbSet<Group> Groups { get; set; }
+        public virtual DbSet<InteractiveTemplate> InteractiveTemplates { get; set; }
+        public virtual DbSet<InteractiveTemplateButton> InteractiveTemplateButtons { get; set; }
+        public virtual DbSet<InteractiveTemplateParameter> InteractiveTemplateParameters { get; set; }
         public virtual DbSet<Language> Languages { get; set; }
         public virtual DbSet<MasterDatum> MasterData { get; set; }
         public virtual DbSet<Media> Medias { get; set; }
@@ -295,6 +301,8 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
 
+                entity.Property(e => e.ForceClosedDate).HasColumnType("datetime");
+
                 entity.Property(e => e.FullName).HasMaxLength(200);
 
                 entity.Property(e => e.PhoneNumber).HasMaxLength(15);
@@ -374,6 +382,51 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.GroupName).HasMaxLength(250);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<InteractiveTemplate>(entity =>
+            {
+                entity.Property(e => e.BodyText).HasMaxLength(500);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.FooterText).HasMaxLength(250);
+
+                entity.Property(e => e.HeaderText).HasMaxLength(250);
+
+                entity.Property(e => e.Language).HasMaxLength(50);
+
+                entity.Property(e => e.TemplateName).HasMaxLength(250);
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<InteractiveTemplateButton>(entity =>
+            {
+                entity.HasKey(e => e.ButtonId)
+                    .HasName("PK__InteractiveTemplate__C4B2843895F26480");
+
+                entity.Property(e => e.ButtonText).HasMaxLength(150);
+
+                entity.Property(e => e.ButtonValue).HasMaxLength(250);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<InteractiveTemplateParameter>(entity =>
+            {
+                entity.HasKey(e => e.ParamId)
+                    .HasName("PK__InteractiveParameter__C4B2843895F26480");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.ParamName).HasMaxLength(150);
+
+                entity.Property(e => e.PersonalizationDefaultValue).HasMaxLength(200);
+
+                entity.Property(e => e.PersonalizationField).HasMaxLength(200);
             });
 
             modelBuilder.Entity<Language>(entity =>
@@ -589,11 +642,7 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.HasKey(e => e.ParamId)
                     .HasName("PK__Template__C4B2843895F26480");
 
-                entity.Property(e => e.ActionText).HasMaxLength(250);
-
                 entity.Property(e => e.ButtonId).HasMaxLength(250);
-
-                entity.Property(e => e.ContactLevelField).HasMaxLength(100);
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
@@ -692,8 +741,6 @@ namespace WhatsAppAPISolutionDL.Models
             {
                 entity.HasIndex(e => e.UserName, "UserNameUnique")
                     .IsUnique();
-
-                entity.Property(e => e.CreatedBy).HasMaxLength(250);
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 

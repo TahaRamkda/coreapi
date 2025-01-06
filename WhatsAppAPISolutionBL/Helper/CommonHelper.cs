@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace WhatsAppAPISolutionBL.Master.Helper
+namespace WhatsAppAPISolutionBL.Helper
 {
     public static class CommonHelper
     {
@@ -24,13 +24,13 @@ namespace WhatsAppAPISolutionBL.Master.Helper
                 return new List<string>();
 
             //Replace empty string and + signs
-            return phoneNumbers.Where(x => !String.IsNullOrWhiteSpace(x)).Select(x => x.Replace("+", "").Trim()).ToList();
+            return phoneNumbers.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Replace("+", "").Trim()).ToList();
         }
 
         public static string TrimPhoneNumbers(this string phoneNumber)
         {
-            if (String.IsNullOrWhiteSpace(phoneNumber))
-                return String.Empty;
+            if (string.IsNullOrWhiteSpace(phoneNumber))
+                return string.Empty;
 
             //Replace empty string and + signs
             return phoneNumber.Replace("+", "").Trim();
@@ -41,6 +41,20 @@ namespace WhatsAppAPISolutionBL.Master.Helper
             // Regex pattern to match only letters, numbers, - and ., with no whitespace
             string pattern = @"^[a-zA-Z0-9.-]+$";
             return Regex.IsMatch(username, pattern);
+        }
+         
+        public static bool IsValidUrl(string url)
+        {
+            // Check basic structure
+            if (Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult) &&
+                (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+            {
+                // Check for a valid host with a top-level domain
+                string domainPattern = @"^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+                return Regex.IsMatch(uriResult.Host, domainPattern);
+            }
+
+            return false;
         }
     }
 }

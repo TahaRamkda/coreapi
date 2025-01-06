@@ -72,7 +72,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 return new UResponseWithID
                 {
                     Status = 0,
-                    Message = "Template name already exist"
+                    Message = "Template with same name already exist"
                 };
             }
 
@@ -84,7 +84,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         return new UResponseWithID
                         {
                             Status = 0,
-                            Message = "Media Id required when header type is not text"
+                            Message = "Media is required when header type is not text"
                         };
 
                     var mediaDetail = await _dbContext.Medias.FindAsync(template.MediaId);
@@ -96,7 +96,26 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         };
                     else
                         mediaUrl = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, mediaDetail.MediaPath);
+
+                    if (mediaDetail.SenderNameId != template.SenderNameId)
+                    {
+                        return new UResponseWithID
+                        {
+                            Status = 0,
+                            Message = "Media does not exist for this sender"
+                        };
+                    }
                 }
+
+                if (template.Header.Format == (int)TemplateHeaderEnum.TEXT && String.IsNullOrWhiteSpace(template.Header.Text))
+                {
+                    return new UResponseWithID
+                    {
+                        Status = 0,
+                        Message = "Header text is required"
+                    };
+                }
+
                 if (!string.IsNullOrEmpty(template.Header.Text))
                 {
                     MatchCollection matches = regex.Matches(template.Header.Text);

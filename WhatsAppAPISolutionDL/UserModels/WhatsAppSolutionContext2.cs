@@ -1,26 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using WhatsAppAPISolutionDL.Dto;
-using WhatsAppAPISolutionDL.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Net.Http.Headers;
 using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.Campaign;
 using WhatsAppAPISolutionDL.UserModels.Client;
 using WhatsAppAPISolutionDL.UserModels.Contact;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
-using WhatsAppAPISolutionDL.UserModels.Template;
-using WhatsAppAPISolutionDL.UserModels.Entity;
-using WhatsAppAPISolutionDL.UserModels.User;
-using WhatsAppAPISolutionDL.UserModels.Group;
-using WhatsAppAPISolutionDL.UserModels.Permission;
-using WhatsAppAPISolutionDL.UserModels.Message;
-using WhatsAppAPISolutionDL.UserModels.SenderName;
 using WhatsAppAPISolutionDL.UserModels.Dashboard;
+using WhatsAppAPISolutionDL.UserModels.Entity;
+using WhatsAppAPISolutionDL.UserModels.Group;
+using WhatsAppAPISolutionDL.UserModels.InteractiveTemplate;
 using WhatsAppAPISolutionDL.UserModels.Media;
+using WhatsAppAPISolutionDL.UserModels.Message;
+using WhatsAppAPISolutionDL.UserModels.Permission;
+using WhatsAppAPISolutionDL.UserModels.SenderName;
+using WhatsAppAPISolutionDL.UserModels.Template;
+using WhatsAppAPISolutionDL.UserModels.User;
 
 namespace WhatsAppAPISolutionDL.UserModels
 {
@@ -79,6 +72,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UUserList> UserLists{ get; set; } = null!;
         public virtual DbSet<ULatestConversationByConversation> LatestConversationByConversations { get; set; } = null!;
         public virtual DbSet<UAgentStat> AgentStats { get; set; } = null!;
+        public virtual DbSet<UInteractiveTemplate> InteractiveTemplates { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -126,6 +120,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UUserList>().HasNoKey();
             modelBuilder.Entity<ULatestConversationByConversation>().HasNoKey();
             modelBuilder.Entity<UAgentStat>().HasNoKey();
+            modelBuilder.Entity<UInteractiveTemplate>().HasNoKey();
         }
     }
 }

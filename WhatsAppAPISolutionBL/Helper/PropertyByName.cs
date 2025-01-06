@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WhatsAppAPISolutionBL.Master.Helper
+namespace WhatsAppAPISolutionBL.Helper
 {
     public class PropertyByName<T>
     {
