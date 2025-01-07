@@ -12,8 +12,10 @@
         public int ModuleId { get; set; }
         public int ParentId { get; set; }
         public int ActionId { get; set; }
+        public int MessageTypeId { get; set; }
+        public int MessageReferenceId { get; set; }
         public int Type { get; set; }
-        public string Message { get; set; }
+        public string MessageContent { get; set; }
         public int? MediaId { get; set; }
         public string FileName { get; set; }
         public List<string> PhoneNumbers { get; set; }

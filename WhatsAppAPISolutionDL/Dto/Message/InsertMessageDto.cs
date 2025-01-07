@@ -14,14 +14,16 @@ namespace WhatsAppAPISolutionDL.Dto.Message
         public int ParentId { get; set; }
         public int ModuleId { get; set; }
         public int ClientId { get; set; }
-        public int TemplateId { get; set; }
+        public int SenderId { get; set; }
+        public int MessageReferenceId { get; set; }
         public string WaId { get; set; }
         public int MediaId { get; set; }
         public MessageStatusEnum Status { get; set; }
         public string UpdateDateTime { get; set; }
         public string RecipientId { get; set; }
-        public string MessageText { get; set; }
+        public string MessageContent { get; set; }
         public int MessageType { get; set; }
+        public string ButtonJson { get; set; }
         public ConversationDto Conversation { get; set; }
         public PricingDto Pricing { get; set; }
         public ErrorDto Error { get; set; }

@@ -27,41 +27,40 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response;
         }
 
-        public async Task<UResponse> AddMessageSentLogAsync(InsertMessageDto messageStatus)
+        public async Task<UResponse> AddMessageSentLogAsync(InsertMessageDto model)
         {
-            int eventType = (int)messageStatus.Status;
-            int eventStatus = messageStatus.Status == MessageStatusEnum.FAILED ? 0 : 1;
+            int eventType = (int)model.Status;
+            int eventStatus = model.Status == MessageStatusEnum.FAILED ? 0 : 1;
             string conversationId = "";
             string eventMessage = "";
             string pricingModel = "";
             string category = "";
-            int senderId = 0;
             bool billable = false;
 
-            if (messageStatus.PhoneNumberId != null)
+            if (model.PhoneNumberId != null && model.SenderId == 0) //If sender id is not available, search via phone number id
             {
-                if (!string.IsNullOrEmpty(messageStatus.PhoneNumberId.DisplayPhoneNumber)
-                    && !string.IsNullOrEmpty(messageStatus.PhoneNumberId.PhoneNumberId))
+                if (!string.IsNullOrEmpty(model.PhoneNumberId.DisplayPhoneNumber)
+                    && !string.IsNullOrEmpty(model.PhoneNumberId.PhoneNumberId))
                 {
-                    var senderName = await _dbContext.SenderNames.Where(x => x.ClientId == messageStatus.ClientId && x.PhoneNumberId == messageStatus.PhoneNumberId.PhoneNumberId).FirstOrDefaultAsync();
-                    senderId = senderName != null ? senderName.SenderId : 0;
+                    var senderName = await _dbContext.SenderNames.Where(x => x.ClientId == model.ClientId && x.PhoneNumberId == model.PhoneNumberId.PhoneNumberId).FirstOrDefaultAsync();
+                    model.SenderId = senderName != null ? senderName.SenderId : 0;
                 }
             }
 
-            if (messageStatus.Conversation != null)
-                conversationId = messageStatus.Conversation.Id;
+            if (model.Conversation != null)
+                conversationId = model.Conversation.Id;
 
-            if (messageStatus.Error != null)
-                eventMessage = messageStatus.Error.ErrorDetails;
+            if (model.Error != null)
+                eventMessage = model.Error.ErrorDetails;
 
-            if (messageStatus.Pricing != null)
+            if (model.Pricing != null)
             {
-                pricingModel = messageStatus.Pricing.PricingModel;
-                billable = messageStatus.Pricing.Billable;
-                category = messageStatus.Pricing.Category;
+                pricingModel = model.Pricing.PricingModel;
+                billable = model.Pricing.Billable;
+                category = model.Pricing.Category;
             }
 
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_MessageSentLogs_StatusUpdate @ModuleId={messageStatus.ModuleId}, @ClientId={messageStatus.ClientId}, @ParentId={messageStatus.ParentId}, @SenderId={senderId}, @PhoneNumber={messageStatus.RecipientId}, @WaId={messageStatus.WaId}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={messageStatus.UpdateDateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}, @TemplateId={messageStatus.TemplateId}, @MessageType={messageStatus.MessageType}, @MessageText={messageStatus.MessageText}, @MediaId={messageStatus.MediaId}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_MessageSentLogs_StatusUpdate @ModuleId={model.ModuleId}, @ClientId={model.ClientId}, @ParentId={model.ParentId}, @SenderId={model.SenderId}, @PhoneNumber={model.RecipientId}, @WaId={model.WaId}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={model.UpdateDateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}, @MessageReferenceId={model.MessageReferenceId}, @MessageType={model.MessageType}, @MessageContent={model.MessageContent}, @MediaId={model.MediaId}, @ButtonJson={model.ButtonJson}").ToListAsync();
             return response[0];
         }
     }

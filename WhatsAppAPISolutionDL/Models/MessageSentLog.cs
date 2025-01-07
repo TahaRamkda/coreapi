@@ -10,7 +10,10 @@ namespace WhatsAppAPISolutionDL.Models
         public int? SenderId { get; set; }
         public int? ModuleId { get; set; }
         public int? ParentId { get; set; }
-        public int? TemplateId { get; set; }
+        public int? MessageType { get; set; }
+        public string MessageContent { get; set; }
+        public int? MessageReferenceId { get; set; }
+        public int? MediaId { get; set; }
         public string PhoneNumber { get; set; }
         public string WaId { get; set; }
         public string WaId2 { get; set; }
@@ -26,14 +29,11 @@ namespace WhatsAppAPISolutionDL.Models
         public string ReadMessage { get; set; }
         public string PricingModel { get; set; }
         public bool? Billable { get; set; }
-        public string MessageText { get; set; }
-        public int? MessageType { get; set; }
         public string Category { get; set; }
         public decimal? EstPrice { get; set; }
         public decimal? Commission { get; set; }
         public string FailedMessage { get; set; }
         public DateTime? FailedTime { get; set; }
         public DateTime? CreatedDate { get; set; }
-        public int? MediaId { get; set; }
     }
 }

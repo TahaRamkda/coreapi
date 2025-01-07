@@ -73,6 +73,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<ULatestConversationByConversation> LatestConversationByConversations { get; set; } = null!;
         public virtual DbSet<UAgentStat> AgentStats { get; set; } = null!;
         public virtual DbSet<UInteractiveTemplate> InteractiveTemplates { get; set; } = null!;
+        public virtual DbSet<UInteractiveTemplateDetail> InteractiveTemplateDetails { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -121,6 +122,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<ULatestConversationByConversation>().HasNoKey();
             modelBuilder.Entity<UAgentStat>().HasNoKey();
             modelBuilder.Entity<UInteractiveTemplate>().HasNoKey();
+            modelBuilder.Entity<UInteractiveTemplateDetail>().HasNoKey();
         }
     }
 }

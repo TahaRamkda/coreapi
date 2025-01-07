@@ -21,9 +21,9 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         /// <param name="messageReceive"></param>
         /// <returns></returns>
         Task<UMessageReceived> AddMessageReceivedLogAsync(WhatsAppMessageReceiveDto messageReceive);
-
-        Task<UResponse> SendMessageAsync(SendMessageRequestDto model);
-
+         
         Task<ApiResult> SendAgentMessageAsync(SendAgentMessageRequestDto model);
+
+        Task<ApiResult> SendAgentInteractiveMessageAsync(SendAgentInteractiveMessageRequestDto model);
     }
 }

@@ -174,5 +174,42 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data added successfully"
             });
         }
+
+        [HttpGet("getinteractivetemplatedetail")]
+        public async Task<ActionResult> GetInteractiveTemplateDetailAsync(int clientId, int senderId, int interactiveTemplateId)
+        {
+            var res = await _interactiveTemplateService.GetInteractiveTemplateDetailsAsync(clientId, senderId, interactiveTemplateId);
+            if (res == null)
+                return Ok(new ApiResult { Message = "Template not found" });
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = res,
+                Message = "Data fetch successfully"
+            });
+        }
+
+        [HttpGet("getagentinteractivetemplates")]
+        public async Task<IActionResult> GetAgentInteractiveTemplatesAsync(int clientId, int senderId, string language = "", string searchStr = "")
+        {
+            var templates = await _interactiveTemplateService.GetAgentInteractiveTemplatesAsync(clientId, senderId, language, searchStr);
+            if (templates == null || !templates.Any())
+            {
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Result = null,
+                    Message = "No records found"
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = templates,
+                Message = String.Empty
+            });
+        }
     }
 }

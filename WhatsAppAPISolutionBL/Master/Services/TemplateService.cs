@@ -674,7 +674,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         var headerValue = templateParameters.Where(x => x.ParamType == (int)TemplateParamEnum.Header).FirstOrDefault();
                         if (headerValue != null)
                         {
-                            pDetails.HeaderValue = new KeyValue()
+                            pDetails.HeaderValue = new KeyValue 
                             {
                                 Index = headerValue.Sequence,
                                 Value = headerValue.ParamDefaultValue,
@@ -686,7 +686,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         {
                             foreach (var item in bodyValue)
                             {
-                                pDetails.BodyValues.Add(new KeyValue()
+                                pDetails.BodyValues.Add(new KeyValue 
                                 {
                                     Index = item.Sequence,
                                     Value = item.ParamDefaultValue,

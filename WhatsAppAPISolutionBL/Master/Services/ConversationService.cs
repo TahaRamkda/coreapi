@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Conversation;
@@ -113,18 +114,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
             foreach (var item in models)
             {
                 //If assigned agent template id is present, send a default template
-                if (item.ActionId > 0)
+                if (item.ActionType > 0 && item.ActionId > 0)
                 {
-                    var template = await _dbContext.Templates.FindAsync(item.ActionId);
-                    if (template != null && template.TransactionType == 2)
+                    if (item.ActionType == 1)
                     {
-                        var bodyParams = new List<string> { item.AgentName };
                         await _communicationService.SendInteractiveMessageAsync(new UMessageReceived
                         {
                             ActionId = item.ActionId,
                             ModuleId = item.ModuleId,
                             ParentId = item.ParentId
-                        }, template.ClientId ?? 0, item.PhoneNumber, "", bodyParams);
+                        }, item.ClientId, item.SenderId, item.PhoneNumber, values: item.Values);
                     }
                 }
 
@@ -188,18 +187,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
             foreach (var item in models)
             {
                 //If assigned agent template id is present, send a default template
-                if (item.ActionId > 0)
+                if (item.ActionType > 0 && item.ActionId > 0)
                 {
-                    var template = await _dbContext.Templates.FindAsync(item.ActionId);
-                    if (template != null && template.TransactionType == 2)
+                    if (item.ActionType == 1)
                     {
-                        var bodyParams = new List<string> { item.AgentName };
                         await _communicationService.SendInteractiveMessageAsync(new UMessageReceived
                         {
                             ActionId = item.ActionId,
                             ModuleId = item.ModuleId,
                             ParentId = item.ParentId
-                        }, template.ClientId ?? 0, item.PhoneNumber, "", bodyParams);
+                        }, item.ClientId, item.SenderId, item.PhoneNumber, values: item.Values);
                     }
                 }
 

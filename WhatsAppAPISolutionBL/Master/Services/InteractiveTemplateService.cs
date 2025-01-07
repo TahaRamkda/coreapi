@@ -338,5 +338,31 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 Message = response[0].Message
             };
         }
+
+        public async Task<UInteractiveTemplateDetail> GetInteractiveTemplateDetailsAsync(int clientId, int senderId, int interactiveTemplateId)
+        {
+            var response = await _dbContext2.InteractiveTemplateDetails.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.GetTemplateDetails}, @ClientId={clientId}, @SenderId={senderId}, @InteractiveTemplateId={interactiveTemplateId}").ToListAsync();
+            if (response != null && response.Any())
+            {
+                var interactiveTemplate = response[0];
+                interactiveTemplate.Buttons = !String.IsNullOrWhiteSpace(interactiveTemplate.ButtonsJson)
+                    ? JsonConvert.DeserializeObject<List<UInteractiveTemplateDetail.InteractiveButton>>(interactiveTemplate.ButtonsJson)
+                    : new List<UInteractiveTemplateDetail.InteractiveButton>();
+
+                interactiveTemplate.Parameters = !String.IsNullOrWhiteSpace(interactiveTemplate.ParametersJson)
+                    ? JsonConvert.DeserializeObject<List<UInteractiveTemplateDetail.InteractiveParameter>>(interactiveTemplate.ParametersJson)
+                    : new List<UInteractiveTemplateDetail.InteractiveParameter>();
+
+                return interactiveTemplate;
+            }
+
+            return null;
+        }
+
+        public async Task<List<UEntityDto>> GetAgentInteractiveTemplatesAsync(int clientId, int senderId, string language = "", string searchStr = "")
+        {
+            var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.GetAgentInteractiveTemplates}, @ClientId={clientId},  @SenderId={senderId}, @Language={language},@SearchStr={searchStr}").ToListAsync();
+            return response;
+        }
     }
 }

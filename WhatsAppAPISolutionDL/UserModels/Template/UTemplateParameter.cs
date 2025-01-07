@@ -21,7 +21,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Template
         public bool IsDynamic { get; set; }
         public int? ButtonType { get; set; }
         public string ButtonId { get; set; }
-        public int? Status { get; set; }
+        //public int? Status { get; set; }
         public int? CreatedBy { get; set; }
         public string CreatedDate { get; set; }
         public int? UpdatedBy { get; set; }

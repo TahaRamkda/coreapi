@@ -100,57 +100,57 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (messageReceive.type == MessageReceiveTypeEnum.BUTTON.ToString())
             {
-                messageType = 1; // Convert.ToInt32(MessageReceiveTypeEnum.BUTTON);
+                messageType = (int)MainMessageTypeEnum.TEXT; // Convert.ToInt32(MessageReceiveTypeEnum.BUTTON);
                 messageText = messageReceive.button.payload ?? "";
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.TEXT.ToString())
             {
-                messageType = 1; //Convert.ToInt32(MessageReceiveTypeEnum.TEXT);
+                messageType = (int)MainMessageTypeEnum.TEXT; //Convert.ToInt32(MessageReceiveTypeEnum.TEXT);
                 messageText = messageReceive.text.body ?? "";
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.REACTION.ToString())
             {
-                messageType = 1; //Convert.ToInt32(MessageReceiveTypeEnum.TEXT);
+                messageType = (int)MainMessageTypeEnum.TEXT; //Convert.ToInt32(MessageReceiveTypeEnum.TEXT);
                 messageText = messageReceive.reaction.emoji ?? "";
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.IMAGE.ToString())
             {
-                messageType = 2; // Convert.ToInt32(MessageReceiveTypeEnum.IMAGE);
+                messageType = (int)MainMessageTypeEnum.MEDIA; // Convert.ToInt32(MessageReceiveTypeEnum.IMAGE);
                 mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.image.id);
                 messageText = messageReceive.image.caption ?? "";
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.VIDEO.ToString())
             {
-                messageType = 2; // Convert.ToInt32(MessageReceiveTypeEnum.VIDEO);
+                messageType = (int)MainMessageTypeEnum.MEDIA; // Convert.ToInt32(MessageReceiveTypeEnum.VIDEO);
                 mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.video.id);
                 messageText = messageReceive.video.caption ?? "";
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.AUDIO.ToString())
             {
-                messageType = 2; // Convert.ToInt32(MessageReceiveTypeEnum.VIDEO);
+                messageType = (int)MainMessageTypeEnum.MEDIA; // Convert.ToInt32(MessageReceiveTypeEnum.VIDEO);
                 mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.audio.id);
                 messageText = "";
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.DOCUMENT.ToString())
             {
-                messageType = 2; // Convert.ToInt32(MessageReceiveTypeEnum.DOCUMENT);
+                messageType = (int)MainMessageTypeEnum.MEDIA; // Convert.ToInt32(MessageReceiveTypeEnum.DOCUMENT);
                 mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.document.id);
                 messageText = messageReceive.document.caption ?? "";
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.LOCATION.ToString())
             {
-                messageType = 3;// Convert.ToInt32(MessageReceiveTypeEnum.LOCATION);
+                messageType = (int)MainMessageTypeEnum.LOCATION;// Convert.ToInt32(MessageReceiveTypeEnum.LOCATION);
                 messageText = String.Concat(messageReceive.location.latitude, ",", messageReceive.location.longitude);
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.STICKER.ToString())
             {
-                messageType = 2; // Convert.ToInt32(MessageReceiveTypeEnum.STICKER);
+                messageType = (int)MainMessageTypeEnum.MEDIA; // Convert.ToInt32(MessageReceiveTypeEnum.STICKER);
                 mediaId = await _mediaService.DownloadWhatsAppMediaToLocal(client, senderName, messageReceive.sticker.id);
                 messageText = messageReceive.sticker.caption ?? "";
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.INTERACTIVE.ToString())
             {
-                messageType = 1; // Convert.ToInt32(MessageReceiveTypeEnum.INTERACTIVE);
+                messageType = (int)MainMessageTypeEnum.TEXT; // Convert.ToInt32(MessageReceiveTypeEnum.INTERACTIVE);
                 if (messageReceive.buttonReply != null)
                 {
                     messageText = messageReceive.buttonReply.title ?? "";
@@ -170,12 +170,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var action = response[0];
                 if (action.ActionType > 0 && action.ActionId > 0)
                 {
-                    if (action.ActionType == 1) //Send template or interactive message or normal message
-                    {
-                        var template = await _dbContext.Templates.FindAsync(action.ActionId);
-                        if (template != null && template.TransactionType == 2)
-                            await _communicationService.SendInteractiveMessageAsync(action, template.ClientId == 0 ? 0 : template.ClientId.Value, messageReceive.from);
-                    }
+                    if (action.ActionType == 1) //Send template or interactive message or normal message 
+                        await _communicationService.SendInteractiveMessageAsync(action, client.ClientId, senderName.SenderId, messageReceive.from);
                 }
 
                 if (action.ModuleId == (int)ModuleEnum.Chat && action.ParentId > 0) //If conversation is going on
@@ -215,14 +211,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response != null && response.Any() ? response[0] : null;
         }
 
-        public async Task<UResponse> SendMessageAsync(SendMessageRequestDto model)
-        {
-            return await _communicationService.SendMessageAsync(model);
-        }
-
         public async Task<ApiResult> SendAgentMessageAsync(SendAgentMessageRequestDto model)
         {
             return await _communicationService.SendAgentMessageAsync(model);
+        }
+
+        public async Task<ApiResult> SendAgentInteractiveMessageAsync(SendAgentInteractiveMessageRequestDto model)
+        {
+            return await _communicationService.SendAgentInteractiveMessageAsync(model);
         }
     }
 }
