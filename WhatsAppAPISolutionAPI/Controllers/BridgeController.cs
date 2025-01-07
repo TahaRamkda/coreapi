@@ -39,7 +39,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             try
             {
-                _logger.LogInformation("Calling function TemplateSync");
+                _logger.LogInformation("Calling api TemplateSync");
                 _logger.LogInformation("Received Template Sync response from bridge with template data={data}", JsonConvert.SerializeObject(templateData));
 
                 var data = System.Text.Json.JsonSerializer.Serialize(templateData);
@@ -126,6 +126,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             }
 
             var response = await _messageService.UpdateMessageStatusAsync(messageStatus);
+
+            _logger.LogInformation("Received api WhatsAppMessageStatusUpdate response with data={data}", JsonConvert.SerializeObject(response));
+
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -152,7 +155,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _messageService.AddMessageReceivedLogAsync(messageReceive);
 
-            _logger.LogInformation("Received Add Message response from database with response={response}", JsonConvert.SerializeObject(response));
+            _logger.LogInformation("Received api WhatsAppMessageReceive response with data={data}", JsonConvert.SerializeObject(response));
 
             return Ok(new ApiResult
             {

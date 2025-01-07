@@ -8,6 +8,8 @@ using WhatsAppAPISolutionDL.Dto.Campaign;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.UserModels.Agent;
+using WhatsAppAPISolutionDL.UserModels.Campaign;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -124,6 +126,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             }
 
             var response = await _campaignService.ActivateCampaignAsync(campaign);
+
+            _logger.LogInformation("Received api ActivateCampaignAsync response with data={data}", JsonConvert.SerializeObject(response));
+
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -144,6 +149,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPut("updatecampaign")]
         public async Task<IActionResult> UpdateCampaignAsync([FromBody] CampaignDto campaign)
         {
+            _logger.LogInformation("Calling api UpdateCampaignAsync with request={requst}", JsonConvert.SerializeObject(campaign));
+
             if (campaign == null)
             {
                 return BadRequest();
@@ -166,6 +173,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             }
 
             var response = await _campaignService.UpdateCampaignAsync(campaign);
+
+            _logger.LogInformation("Received api UpdateCampaignAsync response with data={data}", JsonConvert.SerializeObject(response));
+
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -186,6 +196,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("settlecampaign")]
         public async Task<IActionResult> SettleCampaignAsync(int ClientId, int CampaignId)
         {
+            _logger.LogInformation("Calling api SettleCampaignAsync with ClientId={ClientId}, CampaignId={CampaignId}", ClientId, CampaignId);
+
             if (ClientId <= 0)
             {
                 return Ok(new ApiResult
@@ -203,6 +215,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             }
 
             var response = await _campaignService.SettleCampaignAsync(ClientId, CampaignId);
+
+            _logger.LogInformation("Received api SettleCampaignAsync response with data={data}", JsonConvert.SerializeObject(response));
+
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -222,6 +237,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("sendcampaign")]
         public async Task<IActionResult> SendCampaignAsync([FromBody] SendCampaignDto campaign)
         {
+            _logger.LogInformation("Calling api SendCampaignAsync with request={requst}", JsonConvert.SerializeObject(campaign));
+
             if (campaign.CampaignId <= 0)
                 return Ok(new ApiResult
                 {
@@ -234,6 +251,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 });
 
             var response = await _campaignService.SendCampaignMessagesAsync(campaign);
+
+            _logger.LogInformation("Received api SendCampaignAsync response with data={data}", JsonConvert.SerializeObject(response));
+
             return Ok(response);
         }
 
