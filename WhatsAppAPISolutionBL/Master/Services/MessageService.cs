@@ -170,7 +170,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var action = response[0];
                 if (action.ActionType > 0 && action.ActionId > 0)
                 {
-                    if (action.ActionType == 1) //Send template or interactive message or normal message 
+                    if (action.ActionType == (int)ActionTypeEnum.TEMPLATE) //Send template or interactive message or normal message 
                         await _communicationService.SendInteractiveMessageAsync(action, client.ClientId, senderName.SenderId, messageReceive.from);
                 }
 

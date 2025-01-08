@@ -116,7 +116,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 //If assigned agent template id is present, send a default template
                 if (item.ActionType > 0 && item.ActionId > 0)
                 {
-                    if (item.ActionType == 1)
+                    if (item.ActionType == (int)ActionTypeEnum.TEMPLATE)
                     {
                         await _communicationService.SendInteractiveMessageAsync(new UMessageReceived
                         {
@@ -189,7 +189,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 //If assigned agent template id is present, send a default template
                 if (item.ActionType > 0 && item.ActionId > 0)
                 {
-                    if (item.ActionType == 1)
+                    if (item.ActionType == (int)ActionTypeEnum.TEMPLATE)
                     {
                         await _communicationService.SendInteractiveMessageAsync(new UMessageReceived
                         {
