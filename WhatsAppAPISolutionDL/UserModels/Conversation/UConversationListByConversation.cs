@@ -22,6 +22,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Conversation
         public int? ParentMessageId { get; set; }
         public int? ParentMessageTypeId { get; set; }
         public string ParentMessageContent { get; set; }
+        public string ButtonJson { get; set; }
         public int? ParentMediaId { get; set; }
         public string CreatedDate { get; set; }
     }

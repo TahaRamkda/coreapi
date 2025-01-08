@@ -364,5 +364,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.GetAgentInteractiveTemplates}, @ClientId={clientId},  @SenderId={senderId}, @Language={language},@SearchStr={searchStr}").ToListAsync();
             return response;
         }
+
+        public async Task<List<UEntityDto>> GetInteractiveTemplateWithoutParamsAsync(int clientId, int senderId, string language = "", string searchStr = "")
+        {
+            var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.GetAgentInteractiveTemplatesWithoutParam}, @ClientId={clientId},  @SenderId={senderId}, @Language={language},@SearchStr={searchStr}").ToListAsync();
+            return response;
+        }
     }
 }

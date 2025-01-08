@@ -11,5 +11,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> UpdateInteractiveTemplateAsync(InteractiveTemplateDto model);
         Task<UInteractiveTemplateDetail> GetInteractiveTemplateDetailsAsync(int clientId, int senderId, int interactiveTemplateId);
         Task<List<UEntityDto>> GetAgentInteractiveTemplatesAsync(int clientId, int senderId, string language = "", string searchStr = "");
+        Task<List<UEntityDto>> GetInteractiveTemplateWithoutParamsAsync(int clientId, int senderId, string language = "", string searchStr = "");
     }
 }

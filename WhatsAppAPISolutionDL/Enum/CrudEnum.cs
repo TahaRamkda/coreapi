@@ -52,6 +52,7 @@
         GetTemplateParameterDetails = 7,
         AddConversationToQueue = 7,
         SetAgentEnableDisable = 7,
+        GetAgentInteractiveTemplatesWithoutParam = 7,
 
         PurchaseReturn = 8,
         TransferConversationToAgent = 8,

@@ -211,5 +211,27 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = String.Empty
             });
         }
+
+        [HttpGet("getinteractivetemplatewithoutparams")]
+        public async Task<IActionResult> GetInteractiveTemplateWithoutParamsAsync(int clientId, int senderId, string language = "", string searchStr = "")
+        {
+            var templates = await _interactiveTemplateService.GetInteractiveTemplateWithoutParamsAsync(clientId, senderId, language, searchStr);
+            if (templates == null || !templates.Any())
+            {
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Result = null,
+                    Message = "No records found"
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = templates,
+                Message = String.Empty
+            });
+        }
     }
 }

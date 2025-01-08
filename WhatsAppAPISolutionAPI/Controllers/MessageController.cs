@@ -6,6 +6,7 @@ using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Media;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.UserModels.Entity;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -129,7 +130,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 {
                     Message = "Please select interactive template"
                 });
-             
+
             if (model.File != null && model.File.Length > 0)
             {
                 var extension = Path.GetExtension(model.File.FileName);
