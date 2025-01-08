@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System.Drawing.Printing;
 using System.Globalization;
 using WhatsAppAPISolutionBL.Master.Interfaces;
@@ -7,6 +10,8 @@ using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto.Client;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.UserModels.Agent;
+using WhatsAppAPISolutionDL.UserModels.Entity;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -31,7 +36,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getclientslist")]
         public async Task<ActionResult> GetClientsListAsync(string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
         {
+            _logger.LogInformation("Calling api GetClientsListAsync with searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", SearchStr, SortBy, PageNo, PageSize);
+
             var res = await _clientService.GetClientListAsync(SearchStr, SortBy, PageNo, PageSize);
+
+            _logger.LogInformation("Received api GetClientsListAsync response with data={data}", JsonConvert.SerializeObject(res));
+
             return Ok(new ApiResult
             {
                 Success = true,
@@ -43,12 +53,17 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getclientbyid")]
         public async Task<ActionResult> GetClientByIdAsync(int id)
         {
+            _logger.LogInformation("Calling api GetClientByIdAsync with id={id}", id);
+
             if (id <= 0)
             {
                 return NotFound("not found");
             }
 
             var res = await _clientService.GetClientByIdAsync(id);
+
+            _logger.LogInformation("Received api GetClientByIdAsync response with data={data}", JsonConvert.SerializeObject(res));
+
             if (res == null)
             {
                 return Ok(new ApiResult
@@ -68,12 +83,17 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("addClient")]
         public async Task<IActionResult> AddClientAsync([FromBody] ClientDto client)
         {
+            _logger.LogInformation("Calling api AddClientAsync with request={requst}", JsonConvert.SerializeObject(client));
+
             if (client == null)
             {
                 return BadRequest();
             }
 
             var response = await _clientService.AddClientAsync(client);
+
+            _logger.LogInformation("Received api AddClientAsync response with data={data}", JsonConvert.SerializeObject(response));
+
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -93,12 +113,17 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPut("updateclient")]
         public async Task<IActionResult> UpdateClientAsync(ClientDto client)
         {
+            _logger.LogInformation("Calling api UpdateClientAsync with request={requst}", JsonConvert.SerializeObject(client));
+
             if (client == null)
             {
                 return BadRequest();
             }
 
             var response = await _clientService.UpdateClientAsync(client);
+
+            _logger.LogInformation("Received api UpdateClientAsync response with data={data}", JsonConvert.SerializeObject(response));
+
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -119,12 +144,17 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpDelete("deleteclient")]
         public async Task<IActionResult> DeleteClientAsync(int ClientId)
         {
+            _logger.LogInformation("Calling api DeleteClientAsync with ClientId={ClientId}", ClientId);
+
             if (ClientId <= 0)
             {
                 return NotFound("not found");
             }
 
             var response = await _clientService.DeleteClientAsync(ClientId);
+
+            _logger.LogInformation("Received api DeleteClientAsync response with data={data}", JsonConvert.SerializeObject(response));
+
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -146,6 +176,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getclientinformation")]
         public ActionResult GetClientInformationAsync(int ClientId)
         {
+            _logger.LogInformation("Calling api GetClientInformationAsync with ClientId={ClientId}", ClientId);
+
             if (ClientId <= 0)
             {
                 return NotFound("not found");
@@ -162,6 +194,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
                                 AppId = a.AppId,
                                 BusinessId = a.BusinessId
                             }).FirstOrDefault();
+
+            _logger.LogInformation("Received api GetClientInformationAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null)
             {
@@ -183,7 +217,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getclients")]
         public async Task<IActionResult> GetClientsAsync(int clientId, string searchStr = "")
         {
+            _logger.LogInformation("Calling api GetClientsAsync with clientId={clientId}, searchStr={searchStr}", clientId, searchStr);
+
             var clients = await _clientService.GetClientsAsync(clientId, searchStr);
+
+            _logger.LogInformation("Received api GetClientsAsync response with data={data}", JsonConvert.SerializeObject(clients));
+
             if (clients == null || !clients.Any())
             {
                 return Ok(new ApiResult
