@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Drawing.Printing;
+using System.Globalization;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Dto.Common;
@@ -28,6 +30,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getdashboardsummary")]
         public async Task<ActionResult> GetDashboardSummaryAsync(int clientId, int senderId, DateTime? fromDate = null, DateTime? toDate = null)
         {
+            _logger.LogInformation("Calling api GetDashboardSummaryAsync with clientId={clientId}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}", clientId, senderId, fromDate, toDate);
+
             if (!fromDate.HasValue && !toDate.HasValue)
             {
                 return Ok(new ApiResult
@@ -54,6 +58,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("gettemplateinsight")]
         public async Task<ActionResult> GetTemplateInsightAsync(int clientId, int templateId = 0, DateTime? fromDate = null, DateTime? toDate = null)
         {
+            _logger.LogInformation("Calling api GetTemplateInsightAsync with clientId={clientId}, templateId={templateId}, fromDate={fromDate}, toDate={toDate}", clientId, templateId, fromDate, toDate);
+
             if (!fromDate.HasValue && !toDate.HasValue)
             {
                 return Ok(new ApiResult

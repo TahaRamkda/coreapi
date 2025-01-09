@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Helper;
@@ -7,6 +8,7 @@ using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.InteractiveTemplate;
 using WhatsAppAPISolutionDL.Enum;
+using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -29,6 +31,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getinteractivetemplateslist")]
         public async Task<ActionResult> GetInteractiveTemplatesListAsync(int clientId, int senderId = 0, string searchStr = "", DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
+            _logger.LogInformation("Calling api GetAgentsListAsync with clientId={clientId}, senderId={senderId}, searchStr={searchStr}, fromDate={fromDate}, toDate={toDate}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, senderId, searchStr, fromDate, toDate, sortBy, pageNo, pageSize);
+
             var res = await _interactiveTemplateService.GetInteractiveTemplateListAsync(clientId, senderId, searchStr, fromDate, toDate, sortBy, pageNo, pageSize);
             return Ok(new ApiResult
             {
@@ -41,7 +45,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("addinteractivetemplate")]
         public async Task<IActionResult> AddInteractiveTemplateAsync([FromBody] InteractiveTemplateDto model)
         {
-            _logger.LogInformation("Received AddInteractiveTemplateAsync request with data={data}", JsonConvert.SerializeObject(model));
+            _logger.LogInformation("Calling api AddInteractiveTemplateAsync request with data={data}", JsonConvert.SerializeObject(model));
 
             if (model == null)
                 return Ok(new ApiResult { Message = "Bad request" });
@@ -88,6 +92,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             }
 
             var response = await _interactiveTemplateService.AddInteractiveTemplateAsync(model);
+
+            _logger.LogInformation("Received api AddInteractiveTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
+
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -108,7 +115,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("updateinteractivetemplate")]
         public async Task<IActionResult> UpdateInteractiveTemplateAsync([FromBody] InteractiveTemplateDto model)
         {
-            _logger.LogInformation("Received UpdateInteractiveTemplateAsync request with data={data}", JsonConvert.SerializeObject(model));
+            _logger.LogInformation("Calling api UpdateInteractiveTemplateAsync request with data={data}", JsonConvert.SerializeObject(model));
 
             if (model == null)
                 return Ok(new ApiResult { Message = "Bad request" });
@@ -158,6 +165,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             }
 
             var response = await _interactiveTemplateService.UpdateInteractiveTemplateAsync(model);
+
+            _logger.LogInformation("Received api UpdateInteractiveTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
+
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -178,7 +188,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getinteractivetemplatedetail")]
         public async Task<ActionResult> GetInteractiveTemplateDetailAsync(int clientId, int senderId, int interactiveTemplateId)
         {
+            _logger.LogInformation("Calling api GetInteractiveTemplateDetailAsync with clientId={clientId}, senderId={senderId}, interactiveTemplateId={interactiveTemplateId}", clientId, senderId, interactiveTemplateId);
+
             var res = await _interactiveTemplateService.GetInteractiveTemplateDetailsAsync(clientId, senderId, interactiveTemplateId);
+
+            _logger.LogInformation("Received api GetInteractiveTemplateDetailAsync response with data={data}", JsonConvert.SerializeObject(res));
+
             if (res == null)
                 return Ok(new ApiResult { Message = "Template not found" });
 
@@ -193,6 +208,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getagentinteractivetemplates")]
         public async Task<IActionResult> GetAgentInteractiveTemplatesAsync(int clientId, int senderId, string language = "", string searchStr = "")
         {
+            _logger.LogInformation("Calling api GetAgentInteractiveTemplatesAsync with clientId={clientId}, senderId={senderId}, language={language}, searchStr={searchStr}", clientId, senderId, language, searchStr);
+
             var templates = await _interactiveTemplateService.GetAgentInteractiveTemplatesAsync(clientId, senderId, language, searchStr);
             if (templates == null || !templates.Any())
             {
@@ -215,6 +232,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getinteractivetemplatewithoutparams")]
         public async Task<IActionResult> GetInteractiveTemplateWithoutParamsAsync(int clientId, int senderId, string language = "", string searchStr = "")
         {
+            _logger.LogInformation("Calling api GetInteractiveTemplateWithoutParamsAsync with clientId={clientId}, senderId={senderId}, language={language}, searchStr={searchStr}", clientId, senderId, language, searchStr);
+
             var templates = await _interactiveTemplateService.GetInteractiveTemplateWithoutParamsAsync(clientId, senderId, language, searchStr);
             if (templates == null || !templates.Any())
             {

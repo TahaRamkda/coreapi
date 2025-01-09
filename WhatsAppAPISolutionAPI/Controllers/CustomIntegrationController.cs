@@ -32,12 +32,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("sendsms")]
         public async Task<IActionResult> GetSendSmsAsync([FromQuery] SendSmsDto sendSms)
         {
+            _logger.LogInformation("Calling api GetSendSmsAsync with data={data}", JsonConvert.SerializeObject(sendSms));
+
             return await ProcessSmsRequest(sendSms);
         }
 
         [HttpPost("sendsms")]
         public async Task<IActionResult> PostSendSmsAsync([FromBody] SendSmsDto sendSms)
         {
+            _logger.LogInformation("Calling api PostSendSmsAsync with data={data}", JsonConvert.SerializeObject(sendSms));
+
             string request = JsonConvert.SerializeObject(sendSms);
             return await ProcessSmsRequest(sendSms);
         }
@@ -68,6 +72,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             // Send SMS request
             var response = await _customIntegrationService.SendSmsAsync(sendSms, res.ClientId, (int)res.UserId);
+
+            _logger.LogInformation("Received api SendSmsAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             return Ok(response);
         }
