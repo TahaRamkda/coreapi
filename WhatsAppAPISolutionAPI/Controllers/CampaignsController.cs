@@ -41,8 +41,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var res = await _campaignService.GetCampaignListAsync(ClientId, CampaignId, FromDate, ToDate, SearchStr, SortBy, PageNo, PageSize, SenderId);
 
-            _logger.LogInformation("Received GetCampaignListAsync response with data={data}", JsonConvert.SerializeObject(res));
-
             return Ok(new ApiResult
             {
                 Success = true,

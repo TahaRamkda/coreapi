@@ -40,8 +40,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var res = await _clientService.GetClientListAsync(SearchStr, SortBy, PageNo, PageSize);
 
-            _logger.LogInformation("Received api GetClientsListAsync response with data={data}", JsonConvert.SerializeObject(res));
-
             return Ok(new ApiResult
             {
                 Success = true,
