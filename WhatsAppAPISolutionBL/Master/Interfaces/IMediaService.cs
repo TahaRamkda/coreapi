@@ -28,5 +28,13 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         /// <param name="extension"></param>
         /// <returns></returns>
         bool CheckAllowedMediaType(string extension);
+
+        /// <summary>
+        /// Check allowed media header type
+        /// </summary>
+        /// <param name="headerType"></param>
+        /// <param name="extension"></param>
+        /// <returns></returns>
+        bool CheckAllowedTemplateHeaderType(TemplateHeaderEnum headerType, string extension);
     }
 }

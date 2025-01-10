@@ -316,6 +316,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return allowedMediaExtensions.Contains(extension.ToLower());
         }
 
+        public bool CheckAllowedTemplateHeaderType(TemplateHeaderEnum headerType, string extension)
+        {
+            if (String.IsNullOrWhiteSpace(extension)) return false;
+
+            if (headerType == TemplateHeaderEnum.IMAGE)
+                return new List<string> { ".jpg", ".jpeg", ".png" }.Contains(extension.ToLower());
+            else if (headerType == TemplateHeaderEnum.VIDEO)
+                return new List<string> { ".webp", ".3gp", ".mp4" }.Contains(extension.ToLower());
+            else if (headerType == TemplateHeaderEnum.DOCUMENT)
+                return new List<string> { ".txt", ".xls", ".xlsx", ".doc", ".docx", ".ppt", ".pptx", ".pdf" }.Contains(extension.ToLower());
+
+            return false;
+        }
+
         private async Task<UResponseWithID> UploadMediaToFacebook(MediaUploadDto model, int mediaId, string fileUrl)
         {
             var mediaUpload = new MediaUploadBridgeDto

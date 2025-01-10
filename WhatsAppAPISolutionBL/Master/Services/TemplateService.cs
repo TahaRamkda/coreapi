@@ -23,16 +23,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly HttpClient _httpClient;
         private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
+        private readonly IMediaService _mediaService;
 
         public TemplateService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
-          IHttpClientFactory httpClientFactory,
-          IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings)
+            IHttpClientFactory httpClientFactory,
+            IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings,
+            IMediaService mediaService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
+            _mediaService = mediaService;
         }
 
         public async Task<List<UTemplate>> GetTemplateListAsync(int clientId, int transactionType = 0, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
@@ -78,7 +81,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (template.Header != null)
             {
-                if (template.Header.Format != (int)TemplateHeaderEnum.TEXT && template.Header.Format != (int)TemplateHeaderEnum.NONE)
+                if (template.Header.Format == (int)TemplateHeaderEnum.IMAGE
+                    || template.Header.Format == (int)TemplateHeaderEnum.VIDEO
+                    || template.Header.Format == (int)TemplateHeaderEnum.DOCUMENT)
                 {
                     if (template.MediaId <= 0)
                         return new UResponseWithID
@@ -103,6 +108,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         {
                             Status = 0,
                             Message = "Media does not exist for this sender"
+                        };
+                    }
+
+                    var allowedMedia = _mediaService.CheckAllowedTemplateHeaderType((TemplateHeaderEnum)template.Header.Format, mediaDetail.FileExtension);
+                    if (!allowedMedia)
+                    {
+                        return new UResponseWithID
+                        {
+                            Status = 0,
+                            Message = $"Not allowed media for header type - {(TemplateHeaderEnum)template.Header.Format}"
                         };
                     }
                 }
@@ -388,7 +403,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (template.Header != null)
             {
-                if (template.Header.Format != (int)TemplateHeaderEnum.TEXT && template.Header.Format != (int)TemplateHeaderEnum.NONE)
+                if (template.Header.Format == (int)TemplateHeaderEnum.IMAGE
+                    || template.Header.Format == (int)TemplateHeaderEnum.VIDEO
+                    || template.Header.Format == (int)TemplateHeaderEnum.DOCUMENT)
                 {
                     if (template.MediaId <= 0)
                         return new UResponseWithID()
@@ -404,7 +421,27 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             Message = "Media not exist"
                         };
                     else
-                        mediaUrl = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, mediaDetail.MediaPath); ;
+                        mediaUrl = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, mediaDetail.MediaPath);
+
+                    if (mediaDetail.SenderNameId != template.SenderNameId)
+                    {
+                        return new UResponseWithID
+                        {
+                            Status = 0,
+                            Message = "Media does not exist for this sender"
+                        };
+                    }
+
+                    var allowedMedia = _mediaService.CheckAllowedTemplateHeaderType((TemplateHeaderEnum)template.Header.Format, mediaDetail.FileExtension);
+                    if (!allowedMedia)
+                    {
+                        return new UResponseWithID
+                        {
+                            Status = 0,
+                            Message = $"Not allowed media for header type - {(TemplateHeaderEnum)template.Header.Format}"
+                        };
+                    }
+
                 }
                 if (!string.IsNullOrEmpty(template.Header.Text))
                 {

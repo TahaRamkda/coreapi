@@ -311,7 +311,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
             model.MessageContent = model.MessageContent.Trim();
             model.PhoneNumbers = model.PhoneNumbers.TrimPhoneNumbers();
             string mediaId = "";
-            if (model.Type == (int)MessageTypeEnum.IMAGE || model.Type == (int)MessageTypeEnum.DOCUMENT)
+
+            if (model.Type == (int)MessageTypeEnum.IMAGE
+                || model.Type == (int)MessageTypeEnum.DOCUMENT
+                || model.Type == (int)MessageTypeEnum.VIDEO)
             {
                 var media = await _dbContext.Medias.Where(x => x.Id == model.MediaId && x.RecordStatus != -1).FirstOrDefaultAsync();
                 if (media != null)
@@ -407,7 +410,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var headerType = (TemplateHeaderEnum)interactiveTemplate.HeaderType;
 
             //Try to fetch the media
-            if (headerType != TemplateHeaderEnum.NONE && headerType != TemplateHeaderEnum.TEXT) //Try to get the media
+            if (headerType == TemplateHeaderEnum.IMAGE
+                || headerType == TemplateHeaderEnum.VIDEO
+                || headerType == TemplateHeaderEnum.DOCUMENT) //Try to get the media
                 media = await _dbContext.Medias.FindAsync(mediaId > 0 ? mediaId : interactiveTemplate.MediaId);
 
             string headerText = interactiveTemplate.HeaderText ?? "";

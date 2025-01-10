@@ -17,14 +17,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly ILogger<InteractiveTemplateService> _logger;
+        private readonly IMediaService _mediaService;
 
         public InteractiveTemplateService(WhatsAppSolutionContext dbContext,
           WhatsAppSolutionContext2 dbContext2,
-          ILogger<InteractiveTemplateService> logger)
+          ILogger<InteractiveTemplateService> logger,
+          IMediaService mediaService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _logger = logger;
+            _mediaService = mediaService;
         }
 
         public async Task<List<UInteractiveTemplate>> GetInteractiveTemplateListAsync(int clientId, int senderId = 0, string searchStr = "", DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
@@ -72,7 +75,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (model.Header != null)
             {
                 headerType = model.Header.Format;
-                if (model.Header.Format != (int)TemplateHeaderEnum.TEXT && model.Header.Format != (int)TemplateHeaderEnum.NONE)
+                if (model.Header.Format == (int)TemplateHeaderEnum.IMAGE
+                    || model.Header.Format == (int)TemplateHeaderEnum.VIDEO
+                    || model.Header.Format == (int)TemplateHeaderEnum.DOCUMENT)
                 {
                     if (model.MediaId <= 0)
                         return new UResponse
@@ -95,6 +100,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         {
                             Status = 0,
                             Message = "Media does not exist for this sender"
+                        };
+                    }
+
+                    var allowedMedia = _mediaService.CheckAllowedTemplateHeaderType((TemplateHeaderEnum)model.Header.Format, mediaDetail.FileExtension);
+                    if (!allowedMedia)
+                    {
+                        return new UResponse
+                        {
+                            Status = 0,
+                            Message = $"Not allowed media for header type - {(TemplateHeaderEnum)model.Header.Format}"
                         };
                     }
                 }
@@ -230,7 +245,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (model.Header != null)
             {
                 headerType = model.Header.Format;
-                if (model.Header.Format != (int)TemplateHeaderEnum.TEXT && model.Header.Format != (int)TemplateHeaderEnum.NONE)
+                if (model.Header.Format == (int)TemplateHeaderEnum.IMAGE
+                    || model.Header.Format == (int)TemplateHeaderEnum.VIDEO
+                    || model.Header.Format == (int)TemplateHeaderEnum.DOCUMENT)
                 {
                     if (model.MediaId <= 0)
                         return new UResponse
@@ -253,6 +270,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         {
                             Status = 0,
                             Message = "Media does not exist for this sender"
+                        };
+                    }
+
+                    var allowedMedia = _mediaService.CheckAllowedTemplateHeaderType((TemplateHeaderEnum)model.Header.Format, mediaDetail.FileExtension);
+                    if (!allowedMedia)
+                    {
+                        return new UResponse
+                        {
+                            Status = 0,
+                            Message = $"Not allowed media for header type - {(TemplateHeaderEnum)model.Header.Format}"
                         };
                     }
                 }
