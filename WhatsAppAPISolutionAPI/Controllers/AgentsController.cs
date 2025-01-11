@@ -417,6 +417,33 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
+        [HttpGet("getactiveagents")]
+        public async Task<IActionResult> GetActiveAgentsAsync(int clientId, int senderId, string searchStr = "")
+        {
+            _logger.LogInformation("Calling api GetActiveAgentsAsync with clientId={clientId}, senderId={senderId}, searchStr={searchStr}", clientId, senderId, searchStr);
+
+            var agents = await _agentsService.GetActiveAgentsAsync(clientId, senderId, searchStr);
+
+            _logger.LogInformation("Received api GetActiveAgentsAsync response with data={data}", JsonConvert.SerializeObject(agents));
+
+            if (agents == null || !agents.Any())
+            {
+                return Ok(new ApiResult
+                {
+                    Success = false,
+                    Result = null,
+                    Message = "No records found"
+                });
+            }
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = agents,
+                Message = String.Empty
+            });
+        }
+ 
         [HttpGet("getagentsupervisorreport")]
         public async Task<ActionResult> GetAgentSupervisorReportListAsync(int clientId, string searchStr = "", int status = 0, int senderId = 0, DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {

@@ -74,6 +74,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response;
         }
 
+        public async Task<List<UEntityDto>> GetActiveAgentsAsync(int clientId, int senderId = 0, string searchStr = "")
+        {
+            var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.GetActiveAgents}, @ClientId={clientId}, @SenderId={senderId}, @SearchStr={searchStr}").ToListAsync();
+            return response;
+        }
+
         public async Task<UAgentDetail> GetAgentByIdAsync(int clientId, int agentId)
         {
             var response = await _dbContext2.AgentDetails.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.GetById}, @ClientId={clientId}, @Id={agentId}").ToListAsync();

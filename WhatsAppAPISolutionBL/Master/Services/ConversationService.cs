@@ -127,6 +127,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     }
                 }
 
+                //If agent id is less than 0 then don't send signalR
+                if (item.AgentId <= 0)
+                    continue;
+
                 // Look up the connection ID for the Agent ID and send the conversation
                 string connectionId = String.Empty;
                 int i;
@@ -199,6 +203,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         }, item.ClientId, item.SenderId, item.PhoneNumber, values: item.Values);
                     }
                 }
+
+                //If agent id is less than 0 then don't send signalR
+                if (item.AgentId <= 0)
+                    continue;
 
                 // Look up the connection ID for the Agent ID and send the conversation
                 string connectionId = String.Empty;

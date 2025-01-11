@@ -74,6 +74,7 @@
         GetAssetPaymentTypes = 51,
         GetTemplateCategories = 51,
         ConversationReportList = 51,
+        GetActiveAgents = 51,
 
 
 
