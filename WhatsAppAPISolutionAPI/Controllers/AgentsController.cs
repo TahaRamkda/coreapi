@@ -258,7 +258,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
-        [HttpPost("setagentstatus")]
+        [HttpGet("setagentstatus")]
         public async Task<IActionResult> SetAgentStatusAsync(int agentId, int status)
         {
             _logger.LogInformation("Calling api SetAgentStatusAsync with agentId={agentId}, status={status}", agentId, status);
@@ -290,7 +290,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
-        [HttpPost("setagentdisable")]
+        [HttpGet("setagentdisable")]
         public async Task<IActionResult> SetAgentDisableAsync(int clientId, int agentId, bool disable)
         {
             _logger.LogInformation("Calling api SetAgentDisableAsync with clientId={clientId}, agentId={agentId}, disable={disable}", clientId, agentId, disable);
