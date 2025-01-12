@@ -110,7 +110,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     ComponentType = TemplateParamEnum.Header.ToString()
                 };
 
-                var media = _dbContext.Medias.Find(templateDetails.MediaId);
+                var media = _dbContext.Medias.Find(templateMessage.MediaId > 0 ? templateMessage.MediaId : templateDetails.MediaId); //If in campaign media id is present take reference from there, else default media
                 if (media != null)
                 {
                     var mediaPath = String.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, media.MediaPath);

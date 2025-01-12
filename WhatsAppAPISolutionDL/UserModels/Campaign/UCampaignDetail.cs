@@ -23,6 +23,11 @@ namespace WhatsAppAPISolutionDL.UserModels.Campaign
         public int? DeliveredCount { get; set; }
         public int? UndeliveredCount { get; set; }
         public string GroupIds { get; set; }
+        public int? MediaId { get; set; }
+        public string MediaURL { get; set; }
+        public string ContentType { get; set; }
+        public string FileExtension { get; set; }
+        public string FileName { get; set; }
         public int? CreatedBy { get; set; }
         public string CreatedByName { get; set; }
         public string CreatedDate { get; set; }

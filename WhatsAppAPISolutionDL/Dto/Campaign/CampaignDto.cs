@@ -16,6 +16,7 @@
         public DateTime? ScheduleDate { get; set; }
         public string CampaignType { get; set; }
         public string GroupIds { get; set; }
+        public int MediaId { get; set; }
         public int? ActionBy { get; set; }
         public List<CampaignParamDto> CampaignParameters { get; set; }
         public List<CampaignContactDto> CampaignContacts { get; set; }

@@ -20,6 +20,7 @@ namespace WhatsAppAPISolutionDL.Dto.Template
         public int TemplateId { get; set; }
         public int ModuleId { get; set; }
         public int ParentId { get; set; }
+        public int MediaId { get; set; }
         public bool IsApiMessage { get; set; }
         public List<ParamData> Params { get; set; }
         public List<string> PhoneNumbers { get; set; }

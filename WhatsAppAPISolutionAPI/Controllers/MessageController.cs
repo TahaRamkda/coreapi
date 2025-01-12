@@ -6,7 +6,6 @@ using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Media;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
-using WhatsAppAPISolutionDL.UserModels.Entity;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {

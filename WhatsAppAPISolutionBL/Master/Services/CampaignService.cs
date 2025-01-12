@@ -18,15 +18,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly ICommunicationService _communicationService;
+        private readonly IMediaService _mediaService;
 
         public CampaignService(
             WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
-            ICommunicationService communicationService)
+            ICommunicationService communicationService,
+            IMediaService mediaService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _communicationService = communicationService;
+            _mediaService = mediaService;
         }
 
         public async Task<List<UCampaign>> GetCampaignListAsync(int ClientId, int CampaignId = 0, DateTime? FromDate = null, DateTime? ToDate = null, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue, int SenderId = 0)
@@ -35,12 +38,61 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response;
         }
 
-        public async Task<UResponse> AddCampaignAsync(CampaignDto campaign)
+        public async Task<UResponse> AddCampaignAsync(CampaignDto model)
         {
-            var campaignParamJson = JsonSerializer.Serialize(campaign.CampaignParameters);
-            var campaignContactJson = JsonSerializer.Serialize(campaign.CampaignContacts);
+            var template = await _dbContext.Templates.FindAsync(model.TemplateId);
+            if (template == null)
+            {
+                return new UResponse
+                {
+                    Status = 0,
+                    Message = "No template selected"
+                };
+            }
 
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.Add}, @CampaignName={campaign.CampaignName}, @ClientId={campaign.ClientId}, @SenderId={campaign.SenderId}, @TemplateId={campaign.TemplateId}, @ScheduleDate={campaign.ScheduleDate}, @CampaignType={campaign.CampaignType}, @CampaignParamsJSON={campaignParamJson}, @CampaignContactsJSON={campaignContactJson}, @GroupIds={campaign.GroupIds}, @ActionBy={campaign.ActionBy}").ToListAsync();
+            if (template.HeaderType == (int)TemplateHeaderEnum.IMAGE || template.HeaderType == (int)TemplateHeaderEnum.VIDEO || template.HeaderType == (int)TemplateHeaderEnum.DOCUMENT)
+            {
+                if (model.MediaId <= 0)
+                {
+                    return new UResponse
+                    {
+                        Status = 0,
+                        Message = "Media is required for the campaign"
+                    };
+                }
+
+                var mediaDetail = await _dbContext.Medias.FindAsync(model.MediaId);
+                if (mediaDetail == null || String.IsNullOrEmpty(mediaDetail.MediaPath))
+                    return new UResponse
+                    {
+                        Status = 0,
+                        Message = "Media not exist"
+                    };
+
+                if (mediaDetail.SenderNameId != model.SenderId)
+                {
+                    return new UResponse
+                    {
+                        Status = 0,
+                        Message = "Media does not exist for this sender"
+                    };
+                }
+
+                var allowedMedia = _mediaService.CheckAllowedTemplateHeaderType((TemplateHeaderEnum)template.HeaderType, mediaDetail.FileExtension);
+                if (!allowedMedia)
+                {
+                    return new UResponse
+                    {
+                        Status = 0,
+                        Message = $"Not allowed media for header type - {(TemplateHeaderEnum)template.HeaderType}"
+                    };
+                }
+            }
+
+            var campaignParamJson = JsonSerializer.Serialize(model.CampaignParameters);
+            var campaignContactJson = JsonSerializer.Serialize(model.CampaignContacts);
+
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.Add}, @CampaignName={model.CampaignName}, @ClientId={model.ClientId}, @SenderId={model.SenderId}, @TemplateId={model.TemplateId}, @ScheduleDate={model.ScheduleDate}, @CampaignType={model.CampaignType}, @CampaignParamsJSON={campaignParamJson}, @CampaignContactsJSON={campaignContactJson}, @GroupIds={model.GroupIds},@MediaId={model.MediaId}, @ActionBy={model.ActionBy}").ToListAsync();
 
             return response[0];
         }
@@ -51,12 +103,61 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response[0];
         }
 
-        public async Task<UResponse> UpdateCampaignAsync(CampaignDto campaign)
+        public async Task<UResponse> UpdateCampaignAsync(CampaignDto model)
         {
-            var campaignParamJson = JsonSerializer.Serialize(campaign.CampaignParameters);
-            var campaignContactJson = JsonSerializer.Serialize(campaign.CampaignContacts);
+            var template = await _dbContext.Templates.FindAsync(model.TemplateId);
+            if (template == null)
+            {
+                return new UResponse
+                {
+                    Status = 0,
+                    Message = "No template selected"
+                };
+            }
 
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.Update}, @CampaignId={campaign.CampaignId}, @CampaignName={campaign.CampaignName}, @ClientId={campaign.ClientId}, @SenderId={campaign.SenderId}, @TemplateId={campaign.TemplateId}, @ScheduleDate={campaign.ScheduleDate}, @CampaignType={campaign.CampaignType}, @CampaignParamsJSON={campaignParamJson}, @CampaignContactsJSON={campaignContactJson}, @GroupIds={campaign.GroupIds}, @ActionBy={campaign.ActionBy}").ToListAsync();
+            if (template.HeaderType == (int)TemplateHeaderEnum.IMAGE || template.HeaderType == (int)TemplateHeaderEnum.VIDEO || template.HeaderType == (int)TemplateHeaderEnum.DOCUMENT)
+            {
+                if (model.MediaId <= 0)
+                {
+                    return new UResponse
+                    {
+                        Status = 0,
+                        Message = "Media is required for the campaign"
+                    };
+                }
+
+                var mediaDetail = await _dbContext.Medias.FindAsync(model.MediaId);
+                if (mediaDetail == null || String.IsNullOrEmpty(mediaDetail.MediaPath))
+                    return new UResponse
+                    {
+                        Status = 0,
+                        Message = "Media not exist"
+                    };
+
+                if (mediaDetail.SenderNameId != model.SenderId)
+                {
+                    return new UResponse
+                    {
+                        Status = 0,
+                        Message = "Media does not exist for this sender"
+                    };
+                }
+
+                var allowedMedia = _mediaService.CheckAllowedTemplateHeaderType((TemplateHeaderEnum)template.HeaderType, mediaDetail.FileExtension);
+                if (!allowedMedia)
+                {
+                    return new UResponse
+                    {
+                        Status = 0,
+                        Message = $"Not allowed media for header type - {(TemplateHeaderEnum)template.HeaderType}"
+                    };
+                }
+            }
+
+            var campaignParamJson = JsonSerializer.Serialize(model.CampaignParameters);
+            var campaignContactJson = JsonSerializer.Serialize(model.CampaignContacts);
+
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.Update}, @CampaignId={model.CampaignId}, @CampaignName={model.CampaignName}, @ClientId={model.ClientId}, @SenderId={model.SenderId}, @TemplateId={model.TemplateId}, @ScheduleDate={model.ScheduleDate}, @CampaignType={model.CampaignType}, @CampaignParamsJSON={campaignParamJson}, @CampaignContactsJSON={campaignContactJson}, @GroupIds={model.GroupIds}, @MediaId={model.MediaId}, @ActionBy={model.ActionBy}").ToListAsync();
 
             return response[0];
         }
@@ -69,7 +170,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<ApiResult> SendCampaignMessagesAsync(SendCampaignDto campaign)
         {
-            var campaignData = await _dbContext.Campaigns.Where(x => x.CampaignId == campaign.CampaignId).FirstOrDefaultAsync();
+            var campaignData = await _dbContext.Campaigns.FindAsync(campaign.CampaignId);
             if (campaignData == null)
                 return new ApiResult
                 {
@@ -99,6 +200,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 TemplateId = campaignData.TemplateId,
                 PhoneNumbers = campaign.PhoneNumbers,
                 ParentId = campaignData.CampaignId,
+                MediaId = campaignData.MediaId ?? 0,
                 ModuleId = (int)ModuleEnum.Campaign
             };
 
