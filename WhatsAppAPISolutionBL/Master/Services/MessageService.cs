@@ -193,14 +193,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 _logger.LogError("SignalR, No connection found for event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.MessageReceived.ToString(), conversation.AgentId ?? 0, conversation.Id ?? 0, i);
                         }
 
-                        if (i >= 5) // If max retry exceeded, unassign the conversation again
-                            await _conversationService.AddConversationToQueueAsync(clientId: conversation.ClientId ?? 0, id: conversation.Id ?? 0, comment: "Cannot send the conversation to agent!");
+                        //if (i >= 5) // If max retry exceeded, unassign the conversation again
+                        //    await _conversationService.AddConversationToQueueAsync(clientId: conversation.ClientId ?? 0, id: conversation.Id ?? 0, comment: "Cannot send the conversation to agent!");
 
-                        //Send to all the agents except the agent that has been assigned just now
-                        if (!String.IsNullOrEmpty(connectionId))
-                            await _conversationHubContext.Clients.AllExcept(connectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), conversation.Id ?? 0);
-                        else
-                            await _conversationHubContext.Clients.All.SendAsync(SignalREnum.ConversationUnAssigned.ToString(), conversation.Id ?? 0);
+                        ////Send to all the agents except the agent that has been assigned just now
+                        //if (!String.IsNullOrEmpty(connectionId))
+                        //    await _conversationHubContext.Clients.AllExcept(connectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), conversation.Id ?? 0);
+                        //else
+                        //    await _conversationHubContext.Clients.All.SendAsync(SignalREnum.ConversationUnAssigned.ToString(), conversation.Id ?? 0);
                     }
                     else
                         _logger.LogError("Cannot find conversation with ClientId {ClientId} and Id {Id}", conversation.AgentId ?? 0, conversation.Id ?? 0);
