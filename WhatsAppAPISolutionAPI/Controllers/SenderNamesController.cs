@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto.Common;
@@ -7,6 +10,7 @@ using WhatsAppAPISolutionDL.Dto.Media;
 using WhatsAppAPISolutionDL.Dto.SenderName;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.UserModels.Agent;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -34,6 +38,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getsenderNameslist")]
         public async Task<ActionResult> GetSenderNamesListAsync(int ClientId)
         {
+            _logger.LogInformation("Calling api GetSenderNamesListAsync with clientId={clientId}", ClientId);
+
             var res = await _senderNameService.GetSenderNameListAsync(ClientId);
             return Ok(new ApiResult
             {
@@ -46,12 +52,17 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getsenderNamebyid")]
         public async Task<ActionResult> GetSenderNameByIdAsync(int clientId, int id)
         {
+            _logger.LogInformation("Calling api GetSenderNameByIdAsync with clientId={clientId}, id={id}", clientId, id);
+
             if (id <= 0)
             {
                 return Ok(new ApiResult { Message = "not found" });
             }
 
             var res = await _senderNameService.GetSenderNameByIdAsync(clientId, id);
+
+            _logger.LogInformation("Received api GetSenderNameByIdAsync response with data={data}", JsonConvert.SerializeObject(res));
+
             if (res == null)
             {
                 return Ok(new ApiResult
@@ -71,6 +82,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("addsenderName")]
         public async Task<ActionResult> AddSenderNameAsync([FromForm] SenderNameDto model)
         {
+            _logger.LogInformation("Calling api AddSenderNameAsync with request={requst}", JsonConvert.SerializeObject(model));
+
             if (model == null)
                 return BadRequest();
 
@@ -107,6 +120,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             }
 
             var response = await _senderNameService.AddSenderNameAsync(model);
+
+            _logger.LogInformation("Received api AddSenderNameAsync response with data={data}", JsonConvert.SerializeObject(response));
+
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -126,6 +142,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPut("updatesenderName")]
         public async Task<IActionResult> UpdateSenderNameAsync([FromForm] SenderNameDto model)
         {
+            _logger.LogInformation("Calling api UpdateSenderNameAsync with request={requst}", JsonConvert.SerializeObject(model));
+
             if (model == null)
             {
                 return BadRequest();
@@ -164,6 +182,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             }
 
             var response = await _senderNameService.UpdateSenderNameAsync(model);
+
+            _logger.LogInformation("Received api UpdateSenderNameAsync response with data={data}", JsonConvert.SerializeObject(response));
+
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -183,12 +204,17 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpDelete("deletesenderName")]
         public async Task<IActionResult> DeleteSenderNameAsync(int SenderNameId)
         {
+            _logger.LogInformation("Calling api DeleteSenderNameAsync with SenderNameId={SenderNameId}", SenderNameId);
+
             if (SenderNameId <= 0)
             {
                 return NotFound("not found");
             }
 
             var response = await _senderNameService.DeleteSenderNameAsync(SenderNameId);
+
+            _logger.LogInformation("Received api DeleteSenderNameAsync response with data={data}", JsonConvert.SerializeObject(response));
+
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
@@ -209,6 +235,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getsendernameinformation")]
         public ActionResult GetSenderNameInformationAsync(int ClientId, int SenderNameId)
         {
+            _logger.LogInformation("Calling api GetSenderNameInformationAsync with ClientId={ClientId}, SenderNameId={SenderNameId}", ClientId, SenderNameId);
+
             if (ClientId <= 0)
             {
                 return NotFound("not found");
@@ -230,6 +258,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
                                 BusinessId = b.BusinessId
                             }).FirstOrDefault();
 
+            _logger.LogInformation("Received api GetSenderNameInformationAsync response with data={data}", JsonConvert.SerializeObject(response));
+
             if (response == null)
             {
                 return Ok(new ApiResult
@@ -250,6 +280,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getsendernames")]
         public async Task<IActionResult> GetSenderNamesAsync(int clientId, string searchStr = "")
         {
+            _logger.LogInformation("Calling api GetSenderNamesAsync with ClientId={ClientId}, searchStr={searchStr}", clientId, searchStr);
+
             var models = await _senderNameService.GetSenderNamesAsync(clientId, searchStr);
             if (models == null || !models.Any())
             {
