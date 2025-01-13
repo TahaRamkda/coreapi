@@ -67,12 +67,19 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 if (model.Buttons.Count() > 10)
                     return Ok(new ApiResult { Message = "Cannot add more than 10 buttons." });
 
+                var urlButtonExists = model.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.URL || x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER);
+                if (urlButtonExists > 0)
+                {
+                    if (model.Buttons.Count() > 1)
+                        return Ok(new ApiResult { Message = "Cannot add more than 1 buttons if either URL or Phone Number button exists." });
+                }
+
                 if (model.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER) > 1)
                     return Ok(new ApiResult { Message = "Cannot add more than 1 phone number button." });
 
-                if (model.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.URL) > 2)
-                    return Ok(new ApiResult { Message = "Cannot add more than 2 URL buttons." });
-
+                if (model.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.URL) > 1)
+                    return Ok(new ApiResult { Message = "Cannot add more than 1 URL buttons." });
+                 
                 // Validate no duplicate button names
                 var duplicateNames = model.Buttons.GroupBy(item => item.ButtonText?.Trim()).Where(group => group.Count() > 1).Select(group => group.Key).ToList();
 
@@ -140,12 +147,19 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 if (model.Buttons.Count() > 10)
                     return Ok(new ApiResult { Message = "Cannot add more than 10 buttons." });
 
+                var urlButtonExists = model.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.URL || x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER);
+                if (urlButtonExists > 0)
+                {
+                    if (model.Buttons.Count() > 1)
+                        return Ok(new ApiResult { Message = "Cannot add more than 1 buttons if either URL or Phone Number button exists." });
+                }
+
                 if (model.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER) > 1)
                     return Ok(new ApiResult { Message = "Cannot add more than 1 phone number button." });
 
-                if (model.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.URL) > 2)
-                    return Ok(new ApiResult { Message = "Cannot add more than 2 URL buttons." });
-
+                if (model.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.URL) > 1)
+                    return Ok(new ApiResult { Message = "Cannot add more than 1 URL buttons." });
+                 
                 // Validate no duplicate button names
                 var duplicateNames = model.Buttons.GroupBy(item => item.ButtonText?.Trim()).Where(group => group.Count() > 1).Select(group => group.Key).ToList();
 

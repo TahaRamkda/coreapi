@@ -308,7 +308,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> SendMessageAsync(SendMessageRequestDto model)
         {
-            model.MessageContent = model.MessageContent.Trim();
+            model.MessageContent = (model.MessageContent ?? "").Trim();
             model.PhoneNumbers = model.PhoneNumbers.TrimPhoneNumbers();
             string mediaId = "";
 
@@ -469,15 +469,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (!String.IsNullOrWhiteSpace(bodyText))
             {
-                messageContent.AppendLine();
-                messageContent.AppendLine(bodyText);
+                messageContent.Append(bodyText);
                 messageContent.AppendLine();
             }
 
             if (!String.IsNullOrWhiteSpace(footerText))
             {
-                messageContent.AppendLine();
-                messageContent.AppendLine(footerText);
+                messageContent.Append(footerText);
             }
 
             //In interactive button is required, if not available send normal message
@@ -563,7 +561,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     if (buttonType == ButtonTypeEnum.PHONE_NUMBER)
                     {
                         buttonType = ButtonTypeEnum.URL;
-                        button.ButtonValue = String.Concat("tel:", button.ButtonValue);
+                        button.ButtonValue = String.Concat("tel:", button.ButtonValue ?? "").Replace("-", "").Trim(); //Replace +965-99310864
                     }
 
                     sendMessage.Buttons.Add(new SendInteractiveMessageRequestDto.ButtonDto
