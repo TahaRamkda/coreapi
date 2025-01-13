@@ -76,6 +76,8 @@ namespace WhatsAppAPISolutionDL.UserModels.Template
         public string Url { get; set; } = string.Empty;
         public bool IsDynamic { get; set; }
         public int? Sequence { get; set; }
+        public int? ActionId { get; set; }
+        public int? ActionType { get; set; }
         public KeyValue Values { get; set; }
     }
     public class KeyValue

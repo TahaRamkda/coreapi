@@ -742,7 +742,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                     Type = item.ButtonType,
                                     Text = item.ParamName,
                                     Sequence = item.Sequence ?? 0,
-                                    Index = item.Sequence ?? 0
+                                    Index = item.Sequence ?? 0,
+                                    ActionId = item.ActionId,   
+                                    ActionType = item.ActionType,
                                 };
 
                                 if ((ButtonTypeEnum)item.ButtonType == ButtonTypeEnum.PHONE_NUMBER)
