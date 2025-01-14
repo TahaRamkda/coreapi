@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using WhatsAppAPISolutionAPI.Security;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto;
@@ -20,20 +23,30 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly TokenService _tokenService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly IUserService _userService;
+        private readonly ILogger<TokenController> _logger;
 
-        public TokenController(IConfiguration config, WhatsAppSolutionContext context, TokenService tokenService, WhatsAppSolutionContext dbContext, IUserService userService)
+        public TokenController(
+            IConfiguration config,
+            WhatsAppSolutionContext context,
+            TokenService tokenService,
+            WhatsAppSolutionContext dbContext,
+            IUserService userService,
+            ILogger<TokenController> logger)
         {
             _configuration = config;
             _context = context;
             _tokenService = tokenService;
             _dbContext = dbContext;
             _userService = userService;
+            _logger = logger;
         }
 
         [HttpGet]
         [Route("refresh")]
         public async Task<IActionResult> Refresh(string AccessTokenData, string RefreshTokenData)
         {
+            _logger.LogInformation("Calling api Refresh with AccessTokenData={AccessTokenData}, RefreshTokenData={RefreshTokenData}", AccessTokenData, RefreshTokenData);
+
             if (String.IsNullOrEmpty(AccessTokenData) || String.IsNullOrEmpty(RefreshTokenData))
                 return BadRequest("Invalid client request");
 
@@ -63,7 +76,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 RefreshTokenExpiry = refreshTokenExpiryTime
             };
 
-            await _userService.AddUserTokenAsync(user);
+            var users = await _userService.AddUserTokenAsync(user);
+
+            _logger.LogInformation("Received api Refresh response with data={data}", JsonConvert.SerializeObject(users));
 
             return Ok(new ApiResult
             {
@@ -82,6 +97,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [Route("revoke")]
         public async Task<IActionResult> Revoke(int UserId)
         {
+            _logger.LogInformation("Calling api Revoke with UserId={UserId}", UserId);
+
             var data = _dbContext.Users.Where(x => x.UserId == UserId && x.RecordStatus != -1).FirstOrDefault();
             if (data == null)
                 return BadRequest();
@@ -96,6 +113,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             };
 
             var users = await _userService.AddUserTokenAsync(user);
+
+            _logger.LogInformation("Received api Revoke response with data={data}", JsonConvert.SerializeObject(users));
+
             return NoContent();
         }
     }

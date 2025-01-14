@@ -1,11 +1,15 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Agent;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Media;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.UserModels.Agent;
+using WhatsAppAPISolutionDL.UserModels.Entity;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -33,6 +37,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("sendagentmessage")]
         public async Task<IActionResult> SendAgentMessageAsync([FromForm] SendAgentMessageRequestDto model)
         {
+            _logger.LogInformation("Calling api SendAgentMessageAsync with request={requst}", JsonConvert.SerializeObject(model));
+
             if (model == null)
                 return BadRequest();
 
@@ -97,12 +103,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var result = await _messageService.SendAgentMessageAsync(model);
 
+            _logger.LogInformation("Received api SendAgentMessageAsync response with data={data}", JsonConvert.SerializeObject(result));
+
             return Ok(result);
         }
 
         [HttpPost("sendagentinteractivemessage")]
         public async Task<IActionResult> SendAgentInteractiveMessageAsync([FromForm] SendAgentInteractiveMessageRequestDto model)
         {
+            _logger.LogInformation("Calling api SendAgentInteractiveMessageAsync with request={requst}", JsonConvert.SerializeObject(model));
+
             if (model == null)
                 return BadRequest();
 
@@ -164,6 +174,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             }
 
             var result = await _messageService.SendAgentInteractiveMessageAsync(model);
+
+            _logger.LogInformation("Received api SendAgentInteractiveMessageAsync response with data={data}", JsonConvert.SerializeObject(result));
+
             return Ok(result);
         }
     }
