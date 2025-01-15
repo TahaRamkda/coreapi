@@ -170,9 +170,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
         }
 
-        public async Task<ULatestConversationByConversation> GetLatestConversationMessageByConversationAsync(int clientId = 0, int id = 0)
+        //public async Task<ULatestConversationByConversation> GetLatestConversationMessageByConversationAsync(int clientId = 0, int id = 0)
+        //{
+        //    var response = await _dbContext2.LatestConversationByConversations.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetLatestConversationByConversationId},@ClientId={clientId},@Id={id}").ToListAsync();
+
+        //    if (response.Any())
+        //        return response[0];
+
+        //    return null;
+        //}
+
+        public async Task<ULatestConversationByConversation> GetConversationMessageByMessageIdAsync(int clientId = 0, int senderId = 0, int conversationId = 0, int conversationMessageId = 0, int status = 0)
         {
-            var response = await _dbContext2.LatestConversationByConversations.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetLatestConversationByConversationId},@ClientId={clientId},@Id={id}").ToListAsync();
+            var response = await _dbContext2.LatestConversationByConversations.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetConversationByMessageId},@ClientId={clientId}, @SenderId={senderId},@Id={conversationId}, @MessageId={conversationMessageId}, @Status={status}").ToListAsync();
 
             if (response.Any())
                 return response[0];
@@ -204,8 +214,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     }
                 }
 
-                //If agent id is less than 0 then don't send signalR
-                if (item.AgentId <= 0)
+                //If agentId or parentId is less than 0 then don't send signalR
+                if (item.AgentId <= 0 || item.ParentId <= 0)
                     continue;
 
                 // Look up the connection ID for the Agent ID and send the conversation
@@ -215,11 +225,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     if (ConversationHub.connections.TryGetValue(item.AgentId, out connectionId))
                     {
-                        var conversations = await this.GetAgentConversationListAsync(clientId: item.ClientId, agentId: item.AgentId, id: item.ParentId);
-                        if (conversations != null && conversations.Any())
+                        if (item.ParentId > 0) //Send the conversation id for removal from chats through SignalR
                         {
-                            var conversation = conversations[0];
-                            await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), conversation);
+                            await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), item.ParentId);
                             _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationUnAssigned.ToString(), item.AgentId, item.ParentId, i);
                             break;
                         }

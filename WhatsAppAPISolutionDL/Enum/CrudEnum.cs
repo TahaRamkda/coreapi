@@ -63,6 +63,9 @@
         GetAllLoanTransactions = 10,
         GetLatestConversationByConversationId = 10,
 
+        GetConversationByMessageId = 15,
+
+
         GetAgentSupervisorReport = 40,
 
         GetDetails = 41,

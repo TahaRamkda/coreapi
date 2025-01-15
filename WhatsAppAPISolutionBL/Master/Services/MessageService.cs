@@ -173,10 +173,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         await _communicationService.SendInteractiveMessageAsync(action, client.ClientId, senderName.SenderId, messageReceive.from);
                 }
 
-                if (action.ModuleId == (int)ModuleEnum.Chat && action.ParentId > 0) //If conversation is going on
+                if (action.ModuleId == (int)ModuleEnum.Chat && action.ConversationMessageId > 0) //If conversation is going on
                 {
-                    var conversation = await _conversationService.GetLatestConversationMessageByConversationAsync(clientId: Convert.ToInt32(messageReceive.client_Id), id: action.ParentId.Value);
-                    if (conversation != null)
+                    var conversation = await _conversationService.GetConversationMessageByMessageIdAsync(clientId: client.ClientId, conversationMessageId: action.ConversationMessageId.Value, status: (int)ConversationStatusEnum.AgentAssigned);
+                    if (conversation != null && conversation.AgentId > 0) //Check if agent id exist
                     {
                         // Look up the connection ID for the Agent ID and send the conversation
                         string connectionId = String.Empty;
@@ -201,9 +201,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         //    await _conversationHubContext.Clients.AllExcept(connectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), conversation.Id ?? 0);
                         //else
                         //    await _conversationHubContext.Clients.All.SendAsync(SignalREnum.ConversationUnAssigned.ToString(), conversation.Id ?? 0);
-                    }
-                    else
-                        _logger.LogError("Cannot find conversation with ClientId {ClientId} and Id {Id}", conversation.AgentId ?? 0, conversation.Id ?? 0);
+                    } 
                 }
             }
 

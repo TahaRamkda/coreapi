@@ -28,7 +28,7 @@ namespace WhatsAppAPISolutionDL.Hubs
                 }
 
                 //Make agent active
-                await _agentsService.SetAgentStatusAsync(Convert.ToInt32(agentId), (int)AgentStatus.Active);
+                await _agentsService.SetAgentStatusAsync(Convert.ToInt32(agentId), (int)AgentStatusEnum.Active);
             }
 
             await base.OnConnectedAsync();
@@ -49,7 +49,7 @@ namespace WhatsAppAPISolutionDL.Hubs
             }
 
             //Make agent inactive
-            await _agentsService.SetAgentStatusAsync(Convert.ToInt32(agentId), (int)AgentStatus.Inactive);
+            await _agentsService.SetAgentStatusAsync(Convert.ToInt32(agentId), (int)AgentStatusEnum.Inactive);
             await base.OnDisconnectedAsync(exception);
         } 
     }

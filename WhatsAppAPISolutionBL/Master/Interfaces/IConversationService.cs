@@ -17,7 +17,8 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> AddConversationToQueueAsync(int clientId = 0, int id = 0, string comment = "");
         Task<UResponse> TransferConversationToAgentAsync(int clientId = 0, int id = 0, int agentId = 0, string comment = "");
         Task<UResponse> AssignConversationToAgentAsync(List<AssignConversationDto> model);
-        Task<ULatestConversationByConversation> GetLatestConversationMessageByConversationAsync(int clientId = 0, int id = 0);
+        //Task<ULatestConversationByConversation> GetLatestConversationMessageByConversationAsync(int clientId = 0, int id = 0);
+        Task<ULatestConversationByConversation> GetConversationMessageByMessageIdAsync(int clientId = 0, int senderId = 0, int conversationId = 0, int conversationMessageId = 0, int status = 0);
         Task<List<UConversationReportList>> GetConversationReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue);
         Task<UResponse> ExpiredConversationNotifyToAgentAsync(List<ExpiredConversationDto> models);
     }
