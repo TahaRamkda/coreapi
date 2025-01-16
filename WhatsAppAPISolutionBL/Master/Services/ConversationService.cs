@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Conversation;
@@ -64,7 +62,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response[0];
         }
 
-        public async Task<UResponse> TransferConversationToAgentAsync(int clientId = 0, int id = 0, int agentId = 0, string comment = "")
+        public async Task<UResponse> TransferConversationToAgentAsync(int clientId = 0, int id = 0, int oldAgentId = 0, int agentId = 0, string comment = "")
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.TransferConversationToAgent},@ClientId={clientId},@Id={id},@AgentId={agentId},@Comment={comment}").ToListAsync();
             if (response != null && response.Any())
@@ -91,10 +89,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         _logger.LogError("SignalR, No connection found for event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), agentId, id, i);
                 }
 
+                //Send conversation unassigned
+                if (oldAgentId > 0)
+                {
+                    string unassignedConnectionId = String.Empty;
+                    if (ConversationHub.connections.TryGetValue(oldAgentId, out unassignedConnectionId))
+                    {
+                        await _conversationHubContext.Clients.Client(unassignedConnectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), id);
+                        _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationUnAssigned.ToString(), agentId, id, i);
+                    }
+                }
+
                 //if (i >= 5) // If max retry exceeded, unassign the conversation again
                 //    await this.AddConversationToQueueAsync(clientId: clientId, id: id, comment: "Cannot send the conversation to agent!");
 
-                ////Send to all the agents except the agent that has been assigned just now
+                //Send to all the agents except the agent that has been assigned just now
                 //if (!String.IsNullOrEmpty(connectionId))
                 //    await _conversationHubContext.Clients.AllExcept(connectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), id);
                 //else

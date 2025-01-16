@@ -102,11 +102,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("transferconversationtoagent")]
-        public async Task<ActionResult> TransferConversationToAgentAsync(int clientId = 0, int id = 0, int agentId = 0, string comment = "")
+        public async Task<ActionResult> TransferConversationToAgentAsync(int clientId = 0, int id = 0, int oldAgentId = 0, int agentId = 0, string comment = "")
         {
-            _logger.LogInformation("Calling api TransferConversationToAgentAsync with clientId={clientId}, id={id}, agentId={agentId}, comment={comment}", clientId, id, agentId, comment);
+            _logger.LogInformation("Calling api TransferConversationToAgentAsync with clientId={clientId}, id={id}, oldAgentId={oldAgentId}, agentId={agentId}, comment={comment}", clientId, id, oldAgentId, agentId, comment);
 
-            var response = await _conversationService.TransferConversationToAgentAsync(clientId, id, agentId, comment);
+            var response = await _conversationService.TransferConversationToAgentAsync(clientId, id, oldAgentId, agentId, comment);
 
             _logger.LogInformation("Received api TransferConversationToAgentAsync response with data={data}", JsonConvert.SerializeObject(response));
 
