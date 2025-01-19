@@ -1,14 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System.Drawing.Printing;
-using System.Globalization;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionDL.Dto;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Media;
 using WhatsAppAPISolutionDL.Enum;
-using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -87,11 +83,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getmedialist")]
-        public async Task<ActionResult> GetMediaListAsync(int clientId, string contentTypeStr = "", int PageNo = 0, int PageSize = int.MaxValue)
+        public async Task<ActionResult> GetMediaListAsync(int clientId, int senderId = 0, string contentTypeStr = "", int PageNo = 0, int PageSize = int.MaxValue)
         {
-            _logger.LogInformation("Calling api GetMediaListAsync with clientId={clientId}, contentTypeStr={contentTypeStr}, pageNo={pageNo}, pageSize={pageSize}", clientId, contentTypeStr,  PageNo, PageSize);
+            _logger.LogInformation("Calling api GetMediaListAsync with clientId={clientId}, senderId={senderId}, contentTypeStr={contentTypeStr}, pageNo={pageNo}, pageSize={pageSize}", clientId, senderId, contentTypeStr, PageNo, PageSize);
 
-            var res = await _mediaService.GetMediaListAsync(clientId, contentTypeStr, PageNo, PageSize);
+            var res = await _mediaService.GetMediaListAsync(clientId, senderId, contentTypeStr, PageNo, PageSize);
             return Ok(new ApiResult
             {
                 Success = true,

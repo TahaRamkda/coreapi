@@ -12,6 +12,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Media
         public int? ClientId { get; set; }
         public string WhatsAppBusinessAccountId { get; set; }
         public int? SenderNameId { get; set; }
+        public string SenderName { get; set; }
         public string MediaUrl { get; set; }
         public string MediaId { get; set; }
         public string MediaPath { get; set; }
