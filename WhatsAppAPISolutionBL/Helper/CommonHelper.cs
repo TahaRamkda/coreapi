@@ -42,7 +42,7 @@ namespace WhatsAppAPISolutionBL.Helper
             string pattern = @"^[a-zA-Z0-9.-]+$";
             return Regex.IsMatch(username, pattern);
         }
-         
+
         public static bool IsValidUrl(string url)
         {
             // Check basic structure
@@ -55,6 +55,28 @@ namespace WhatsAppAPISolutionBL.Helper
             }
 
             return false;
+        }
+
+        public static string Base64Encode(string plainText)
+        {
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+            return System.Convert.ToBase64String(plainTextBytes);
+        }
+
+        public static string Base64Decode(string base64EncodedData)
+        {
+            var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
+            return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+        }
+
+        public static string GenerateRandomKey()
+        {
+            const string chars = "ABCDEFGHIJKLNPQRSTUVWXYZabcdefghijklnpqrstuvwxyz0123456789";
+            Random random = new Random();
+            string randomKey = new string(Enumerable.Repeat(chars, 6)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+
+            return randomKey; // string randomKey = GenerateRandomKey(6);
         }
     }
 }

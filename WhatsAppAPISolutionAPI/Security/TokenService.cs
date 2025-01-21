@@ -6,7 +6,7 @@ using System.Text;
 
 namespace WhatsAppAPISolutionAPI.Security
 {
-    public class TokenService 
+    public class TokenService
     {
         public IConfiguration _configuration;
         public TokenService(IConfiguration configuration)

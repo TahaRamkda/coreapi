@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using WhatsAppAPISolutionAPI.Security;
+using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.User;
@@ -64,8 +65,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 //JWT token and refresh token and save in db
                 var claims = new List<Claim> {
                     new Claim(ClaimTypes.Name, res.UserName),
+                    //new Claim("UserId", CommonHelper.Base64Encode(String.Concat(CommonHelper.GenerateRandomKey(), "M", res.UserId, "O",CommonHelper.GenerateRandomKey()))),
+                    //new Claim("ClientId", CommonHelper.Base64Encode(String.Concat(CommonHelper.GenerateRandomKey(), "M", res.ClientId, "O",CommonHelper.GenerateRandomKey()))),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 };
+
+                //take 4 letter alphanumeric _ id _ take 4 letter alphanumeric
 
                 var accessToken = _tokenService.GenerateAccessToken(claims);
                 var refreshToken = _tokenService.GenerateRefreshToken();

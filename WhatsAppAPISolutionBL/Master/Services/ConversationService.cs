@@ -222,7 +222,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         }, item.ClientId, item.SenderId, item.PhoneNumber, values: item.Values);
                     }
                 }
-
+                 
                 //If agentId or parentId is less than 0 then don't send signalR
                 if (item.AgentId <= 0 || item.ParentId <= 0)
                     continue;
@@ -232,6 +232,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 int i;
                 for (i = 1; i <= 5; i++)
                 {
+                    _logger.LogInformation("Start searching SignalR connection in function ExpiredConversationNotifyToAgentAsync with agentId {agentId} parentId {parentId}", item.AgentId, item.ParentId);
+
                     if (ConversationHub.connections.TryGetValue(item.AgentId, out connectionId))
                     {
                         if (item.ParentId > 0) //Send the conversation id for removal from chats through SignalR

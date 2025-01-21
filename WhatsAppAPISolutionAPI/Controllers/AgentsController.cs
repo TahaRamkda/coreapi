@@ -38,7 +38,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         [HttpGet("getagentlist")]
         public async Task<ActionResult> GetAgentsListAsync(int clientId, string searchStr = "", int status = 0, int senderId = 0, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
-        {
+        { 
             _logger.LogInformation("Calling api GetAgentsListAsync with clientId={clientId}, searchStr={searchStr}, status={status}, senderId={senderId}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, searchStr, status, senderId, sortBy, pageNo, pageSize);
 
             var res = await _agentsService.GetAgentListAsync(clientId, searchStr, status, senderId, sortBy, pageNo, pageSize);
@@ -380,7 +380,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var res = await _agentsService.GetAgentTimingListAsync(clientId, agentId);
 
-            _logger.LogInformation("Received api GetAgentTimingListAsync response with data={data}", JsonConvert.SerializeObject(res));
+            //_logger.LogInformation("Received api GetAgentTimingListAsync response with data={data}", JsonConvert.SerializeObject(res));
 
             return Ok(new ApiResult
             {
@@ -397,7 +397,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var agents = await _agentsService.GetAgentsAsync(clientId, senderId, searchStr);
 
-            _logger.LogInformation("Received api GetAgentsAsync response with data={data}", JsonConvert.SerializeObject(agents));
+            //_logger.LogInformation("Received api GetAgentsAsync response with data={data}", JsonConvert.SerializeObject(agents));
 
             if (agents == null || !agents.Any())
             {
@@ -424,7 +424,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var agents = await _agentsService.GetActiveAgentsAsync(clientId, senderId, searchStr);
 
-            _logger.LogInformation("Received api GetActiveAgentsAsync response with data={data}", JsonConvert.SerializeObject(agents));
+            //_logger.LogInformation("Received api GetActiveAgentsAsync response with data={data}", JsonConvert.SerializeObject(agents));
 
             if (agents == null || !agents.Any())
             {
@@ -451,7 +451,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var res = await _agentsService.GetAgentSupervisorReportListAsync(clientId, searchStr, status, senderId, fromDate, toDate, sortBy, pageNo, pageSize);
 
-            _logger.LogInformation("Received api GetAgentSupervisorReportListAsync response with data={data}", JsonConvert.SerializeObject(res));
+            //_logger.LogInformation("Received api GetAgentSupervisorReportListAsync response with data={data}", JsonConvert.SerializeObject(res));
             
             return Ok(new ApiResult
             {
@@ -468,7 +468,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var res = await _agentsService.GetAgentStatsAsync(clientId, agentId, senderId);
 
-            _logger.LogInformation("Received api GetAgentStatsAsync response with data={data}", JsonConvert.SerializeObject(res));
+            //_logger.LogInformation("Received api GetAgentStatsAsync response with data={data}", JsonConvert.SerializeObject(res));
 
             if (res == null)
             {

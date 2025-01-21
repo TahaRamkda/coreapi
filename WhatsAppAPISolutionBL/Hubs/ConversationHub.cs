@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Enum;
 
@@ -9,10 +9,13 @@ namespace WhatsAppAPISolutionDL.Hubs
     {
         public static readonly Dictionary<int, string> connections = new();
         private readonly IAgentsService _agentsService;
+        private readonly ILogger<ConversationHub> _logger;
 
-        public ConversationHub(IAgentsService agentsService)
+        public ConversationHub(IAgentsService agentsService,
+            ILogger<ConversationHub> logger)
         {
             _agentsService = agentsService;
+            _logger = logger;
         }
 
         public override async Task OnConnectedAsync()
@@ -27,8 +30,10 @@ namespace WhatsAppAPISolutionDL.Hubs
                     connections[parsedAgentId] = Context.ConnectionId;
                 }
 
+                _logger.LogInformation("Agent {agentId} connected on ConversationHub with connectionId {connectionId}", parsedAgentId, Context.ConnectionId);
+
                 //Make agent active
-                await _agentsService.SetAgentStatusAsync(Convert.ToInt32(agentId), (int)AgentStatusEnum.Active);
+                await _agentsService.SetAgentStatusAsync(Convert.ToInt32(parsedAgentId), (int)AgentStatusEnum.Active);
             }
 
             await base.OnConnectedAsync();
@@ -47,10 +52,12 @@ namespace WhatsAppAPISolutionDL.Hubs
                     connections.Remove(agentId);
                 }
             }
-
+             
+            _logger.LogInformation("Agent {agentId} disconnected on ConversationHub with connectionId {connectionId}", agentId, connectionId);
+ 
             //Make agent inactive
             await _agentsService.SetAgentStatusAsync(Convert.ToInt32(agentId), (int)AgentStatusEnum.Inactive);
             await base.OnDisconnectedAsync(exception);
-        } 
+        }
     }
 }
