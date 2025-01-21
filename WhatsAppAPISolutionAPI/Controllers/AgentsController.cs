@@ -461,7 +461,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
-        [HttpGet("GetAgentStats")]
+        [HttpGet("getagentstats")]
         public async Task<ActionResult> GetAgentStatsAsync(int clientId, int agentId, int senderId = 0)
         {
             _logger.LogInformation("Calling api GetAgentStatsAsync with clientId={clientId}, agentId={agentId}, senderId={senderId}", clientId, agentId, senderId);
@@ -470,11 +470,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             //_logger.LogInformation("Received api GetAgentStatsAsync response with data={data}", JsonConvert.SerializeObject(res));
 
-            if (res == null)
-            {
+            if (res == null) 
                 return Ok(new ApiResult { Message = "Cannot fetch agent stats" });
-            }
-
+              
             return Ok(new ApiResult
             {
                 Success = true,

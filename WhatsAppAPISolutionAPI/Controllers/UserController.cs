@@ -43,7 +43,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("Login")]
+        [HttpGet("login")]
         public async Task<ActionResult> Login(string Username, string Password)
         {
             _logger.LogInformation("Calling api Login with Username={Username}, Password={Password}", Username, Password);

@@ -2,13 +2,18 @@
 {
     public class UAgentStat
     {
-        public int TotalAssigned { get; set; }
-        public int TotalActive { get; set; }
-        public int TotalClosed { get; set; }
-        public int ExpiredChats { get; set; }
-        public int ForceClosedChats { get; set; }
-        public int ClosedChats { get; set; }
-        public int AvgChatDuration { get; set; }
-        public int ResponseTime { get; set; }
+        public int? AgentId { get; set; }
+        public string AgentName { get; set; } 
+        public int? ActiveChat { get; set; }
+        public int? AssignedChat { get; set; }
+        public int? UnAssignedChat { get; set; }
+        public int? AbandonChat { get; set; }
+        public int? ExpiredChat { get; set; }
+        public int? ForceClosedChat { get; set; }
+        public int? ClosedChat { get; set; }
+        public decimal? Rating { get; set; }
+        public int? AvgResponseTime { get; set; }
+        public int? AvgChatTime { get; set; }
+        public int? IsDisabled { get; set; } 
     }
 }

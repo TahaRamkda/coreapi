@@ -7,7 +7,6 @@ using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.Entity;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
