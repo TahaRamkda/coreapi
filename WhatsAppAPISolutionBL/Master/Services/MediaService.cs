@@ -159,7 +159,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponseWithID> AddMediaAsync(MediaUploadDto media)
         {
-            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={media.ClientId}, @WhatsAppBusinessAccountId={media.WhatsAppBusinessAccountId}, @SenderNameId={media.SenderNameId}, @MediaPath={media.MediaPath}, @ContentType={media.ContentType}, @FileSize={media.FileSize}, @FileName={media.FileName}, @FileExtension={media.FileExtension}, @MediaSourceId={media.MediaSourceId}, @ActionBy={media.ActionBy}, @MediaId={media.MediaId}").ToListAsync();
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={media.ClientId}, @WhatsAppBusinessAccountId={media.WhatsAppBusinessAccountId}, @SenderNameId={media.SenderNameId}, @MediaPath={media.MediaPath}, @ContentType={media.ContentType}, @FileSize={media.FileSize}, @FileName={media.FileName}, @FileExtension={media.FileExtension}, @MediaSourceId={media.MediaSourceId}, @ActionBy={media.ActionBy}, @MediaId={media.MediaId}").ToListAsync();//@MediaTypeId={media.MediaTypeId}
             return response[0];
         }
 
@@ -214,6 +214,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 if (!string.IsNullOrEmpty(fileUrl))
                     fileUrl = fileUrl.Replace("\\", "/");
 
+                var mediaTypeId = GetMediaTypeIdFromExtension(fileExtension);
+
                 // Create response details
                 var media = new MediaUploadDto
                 {
@@ -225,7 +227,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     ContentType = model.File.ContentType,
                     MediaPath = mediaPath,
                     MediaSourceId = model.MediaSourceId,
-                    ActionBy = model.ActionBy
+                    ActionBy = model.ActionBy,
+                    MediaTypeId = mediaTypeId
                 };
 
                 var insMedia = await AddMediaAsync(media);
