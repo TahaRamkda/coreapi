@@ -90,8 +90,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (model.File != null && model.File.Length > 0)
             {
                 var extension = Path.GetExtension(model.File.FileName);
-                var allowedExtensions = new List<string> { ".jpg", ".jpeg", ".png" };
-                if (!allowedExtensions.Contains(extension.ToLower()))
+                if (!_mediaService.CheckAllowedImageType(extension))
                 {
                     return Ok(new ApiResult
                     {
@@ -151,9 +150,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             if (model.File != null && model.File.Length > 0)
             {
-                var extension = Path.GetExtension(model.File.FileName);
-                var allowedExtensions = new List<string> { ".jpg", ".jpeg", ".png" };
-                if (!allowedExtensions.Contains(extension.ToLower()))
+                var extension = Path.GetExtension(model.File.FileName); 
+                if (!_mediaService.CheckAllowedImageType(extension))
                 {
                     return Ok(new ApiResult
                     {

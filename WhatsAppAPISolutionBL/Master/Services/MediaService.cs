@@ -27,6 +27,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly ILogger<MediaService> _logger;
         private readonly IOptions<BridgeConfigurationSettings> _bridgeConfigurationSettings;
         private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
+        private readonly List<string> _allowedImageExtensions = new List<string> { ".jpg", ".jpeg", ".png" };
+        private readonly List<string> _allowedVideoExtensions = new List<string> { ".webp", ".3gp", ".mp4" };
+        private readonly List<string> _allowedDocumentExtensions = new List<string> { ".txt", ".xls", ".xlsx", ".doc", ".docx", ".ppt", ".pptx", ".pdf" };
+        private readonly List<string> _allowedAudioExtensions = new List<string> { ".aac", ".amr", ".mp3", ".m4a", ".ogg" };
 
         #endregion
 
@@ -49,6 +53,98 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
             if (!Directory.Exists(_uploadPath))
                 Directory.CreateDirectory(_uploadPath);
+        }
+
+        #endregion
+
+        #region Utilities
+
+        private async Task<UResponseWithID> UploadMediaToFacebook(MediaUploadDto model, int mediaId, string fileUrl)
+        {
+            var mediaUpload = new MediaUploadBridgeDto
+            {
+                clientId = model.ClientId.ToString(),
+                senderNameId = model.SenderNameId.ToString(),
+                medias = new List<MediaUploadBridgeDto.Media> {
+                    new MediaUploadBridgeDto.Media {
+                        id = mediaId.ToString(),
+                        url = fileUrl
+                    }
+                }
+            };
+
+            var requestStr = JsonConvert.SerializeObject(mediaUpload);
+
+            var response = await _httpClient.PostAsync($"/api/Upload/UploadMedia", new StringContent(requestStr, null, "application/json"));
+            var content = await response.Content.ReadAsStringAsync();
+
+            var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
+            if (result != null && result.success)
+            {
+                var data = JsonConvert.SerializeObject(result.result);
+                var mediaResult = JsonConvert.DeserializeObject<List<MediaResultDto>>(data);
+                if (mediaResult != null && mediaResult.Any())
+                {
+                    if (!string.IsNullOrEmpty(mediaResult[0].mediaId))
+                    {
+                        var updateDto = new MediaUploadDto
+                        {
+                            Id = Convert.ToInt32(mediaResult[0].id),
+                            MediaId = mediaResult[0].mediaId
+                        };
+
+                        var updateMedia = await UpdateMediaAsync(updateDto);
+                        if (updateMedia == null || updateMedia.Status <= 0)
+                        {
+                            return new UResponseWithID
+                            {
+                                Status = 0,
+                                Message = updateMedia?.Message
+                            };
+                        }
+                        else
+                        {
+                            return new UResponseWithID
+                            {
+                                Status = 1,
+                                Id = updateDto.Id,
+                                Message = "Media added successfully"
+                            };
+                        }
+                    }
+
+                    return new UResponseWithID()
+                    {
+                        Status = 1,
+                        Message = "Media added but unable to get media id from facebook"
+                    };
+                }
+            }
+
+            return new UResponseWithID()
+            {
+                Status = 0,
+                Message = "Something went wrong, cannot upload media right now"
+            };
+        }
+
+        private int GetMediaTypeIdFromExtension(string fileExtension)
+        {
+            if (String.IsNullOrWhiteSpace(fileExtension))
+                return 0;
+
+            fileExtension = fileExtension.ToLower();
+            int type = 0;
+            if (_allowedImageExtensions.Contains(fileExtension))
+                type = (int)MediaTypeEnum.IMAGE;
+            else if (_allowedVideoExtensions.Contains(fileExtension))
+                type = (int)MediaTypeEnum.VIDEO;
+            else if (_allowedDocumentExtensions.Contains(fileExtension))
+                type = (int)MediaTypeEnum.DOCUMENT;
+            else if (_allowedAudioExtensions.Contains(fileExtension))
+                type = (int)MediaTypeEnum.AUDIO;
+
+            return type;
         }
 
         #endregion
@@ -263,43 +359,42 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 return MessageTypeEnum.TEXT;
 
             MessageTypeEnum type = MessageTypeEnum.TEXT;
-            switch (media.FileExtension.ToLower())
-            {
-                case ".aac":
-                case ".amr":
-                case ".mp3":
-                case ".m4a":
-                case ".ogg":
-                    type = MessageTypeEnum.AUDIO;
-                    break;
-                case ".txt":
-                case ".xls":
-                case ".xlsx":
-                case ".doc":
-                case ".docx":
-                case ".ppt":
-                case ".pptx":
-                case ".pdf":
-                    type = MessageTypeEnum.DOCUMENT;
-                    break;
-                case ".jpg":
-                case ".jpeg":
-                case ".png":
-                    type = MessageTypeEnum.IMAGE;
-                    break;
-                case ".webp":
-                case ".3gp":
-                case ".mp4":
-                    type = MessageTypeEnum.VIDEO;
-                    break;
-                default: break;
-            }
+            string fileExtension = media.FileExtension.ToLower();
+
+            if (_allowedAudioExtensions.Contains(fileExtension))
+                type = MessageTypeEnum.AUDIO;
+            else if (_allowedDocumentExtensions.Contains(fileExtension))
+                type = MessageTypeEnum.DOCUMENT;
+            else if (_allowedImageExtensions.Contains(fileExtension))
+                type = MessageTypeEnum.IMAGE;
+            else if (_allowedVideoExtensions.Contains(fileExtension))
+                type = MessageTypeEnum.VIDEO;
 
             return type;
         }
 
         /// <summary>
-        /// Check allowed media types
+        /// Check allowed media types for message
+        /// </summary>
+        /// <param name="extension"></param>
+        /// <returns></returns>
+        public bool CheckAllowedMediaTypeForMessage(string extension)
+        {
+            if (String.IsNullOrWhiteSpace(extension)) return false;
+
+            extension = extension.ToLower();
+
+            List<string> allowedMediaExtensions = new List<string>();
+            allowedMediaExtensions.AddRange(_allowedAudioExtensions); //Audio types
+            allowedMediaExtensions.AddRange(_allowedDocumentExtensions); //Document types
+            allowedMediaExtensions.AddRange(_allowedImageExtensions); // Image types
+            allowedMediaExtensions.AddRange(_allowedVideoExtensions); // Video types
+
+            return allowedMediaExtensions.Contains(extension.ToLower());
+        }
+
+        /// <summary>
+        /// Check allowed media types 
         /// </summary>
         /// <param name="extension"></param>
         /// <returns></returns>
@@ -307,11 +402,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             if (String.IsNullOrWhiteSpace(extension)) return false;
 
+            extension = extension.ToLower();
+
             List<string> allowedMediaExtensions = new List<string>();
-            allowedMediaExtensions.AddRange(new List<string> { ".aac", ".amr", ".mp3", ".m4a", ".ogg" }); //Audio types
-            allowedMediaExtensions.AddRange(new List<string> { ".txt", ".xls", ".xlsx", ".doc", ".docx", ".ppt", ".pptx", ".pdf" }); //Document types
-            allowedMediaExtensions.AddRange(new List<string> { ".jpg", ".jpeg", ".png" }); // Image types
-            allowedMediaExtensions.AddRange(new List<string> { ".webp", ".3gp", ".mp4" }); // Video types
+            allowedMediaExtensions.AddRange(_allowedDocumentExtensions); //Document types
+            allowedMediaExtensions.AddRange(_allowedImageExtensions); // Image types
+            allowedMediaExtensions.AddRange(_allowedVideoExtensions); // Video types
 
             return allowedMediaExtensions.Contains(extension.ToLower());
         }
@@ -320,83 +416,40 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             if (String.IsNullOrWhiteSpace(extension)) return false;
 
+            extension = extension.ToLower();
+
             if (headerType == TemplateHeaderEnum.IMAGE)
-                return new List<string> { ".jpg", ".jpeg", ".png" }.Contains(extension.ToLower());
+                return _allowedImageExtensions.Contains(extension);
             else if (headerType == TemplateHeaderEnum.VIDEO)
-                return new List<string> { ".webp", ".3gp", ".mp4" }.Contains(extension.ToLower());
+                return _allowedVideoExtensions.Contains(extension);
             else if (headerType == TemplateHeaderEnum.DOCUMENT)
-                return new List<string> { ".txt", ".xls", ".xlsx", ".doc", ".docx", ".ppt", ".pptx", ".pdf" }.Contains(extension.ToLower());
+                return _allowedDocumentExtensions.Contains(extension);
 
             return false;
         }
 
-        private async Task<UResponseWithID> UploadMediaToFacebook(MediaUploadDto model, int mediaId, string fileUrl)
+        public bool CheckAllowedImageType(string extension)
         {
-            var mediaUpload = new MediaUploadBridgeDto
-            {
-                clientId = model.ClientId.ToString(),
-                senderNameId = model.SenderNameId.ToString(),
-                medias = new List<MediaUploadBridgeDto.Media> {
-                    new MediaUploadBridgeDto.Media {
-                        id = mediaId.ToString(),
-                        url = fileUrl
-                    }
-                }
-            };
+            if (String.IsNullOrWhiteSpace(extension)) return false;
 
-            var requestStr = JsonConvert.SerializeObject(mediaUpload);
+            extension = extension.ToLower();
+            return _allowedImageExtensions.Contains(extension.ToLower());
+        }
 
-            var response = await _httpClient.PostAsync($"/api/Upload/UploadMedia", new StringContent(requestStr, null, "application/json"));
-            var content = await response.Content.ReadAsStringAsync();
+        public bool CheckAllowedVideoType(string extension)
+        {
+            if (String.IsNullOrWhiteSpace(extension)) return false;
 
-            var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
-            if (result != null && result.success)
-            {
-                var data = JsonConvert.SerializeObject(result.result);
-                var mediaResult = JsonConvert.DeserializeObject<List<MediaResultDto>>(data);
-                if (mediaResult != null && mediaResult.Any())
-                {
-                    if (!string.IsNullOrEmpty(mediaResult[0].mediaId))
-                    {
-                        var updateDto = new MediaUploadDto
-                        {
-                            Id = Convert.ToInt32(mediaResult[0].id),
-                            MediaId = mediaResult[0].mediaId
-                        };
+            extension = extension.ToLower();
+            return _allowedVideoExtensions.Contains(extension.ToLower());
+        }
 
-                        var updateMedia = await UpdateMediaAsync(updateDto);
-                        if (updateMedia == null || updateMedia.Status <= 0)
-                        {
-                            return new UResponseWithID
-                            {
-                                Status = 0,
-                                Message = updateMedia?.Message
-                            };
-                        }
-                        else
-                        {
-                            return new UResponseWithID
-                            {
-                                Status = 1,
-                                Id = updateDto.Id,
-                                Message = "Media added successfully"
-                            };
-                        }
-                    }
+        public bool CheckAllowedDocumentType(string extension)
+        {
+            if (String.IsNullOrWhiteSpace(extension)) return false;
 
-                    return new UResponseWithID()
-                    {
-                        Status = 1,
-                        Message = "Media added but unable to get media id from facebook"
-                    };
-                }
-            }
-
-            return new UResponseWithID()
-            {
-                Status = 0,
-                Message = "Something went wrong, cannot upload media right now"
-            };
+            extension = extension.ToLower();
+            return _allowedDocumentExtensions.Contains(extension.ToLower());
         }
 
         #endregion

@@ -51,8 +51,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             //Restrict other media types
             var extension = Path.GetExtension(model.File.FileName);
-            var allowedExtensions = new List<string> { ".jpg", ".jpeg", ".png", ".3gp", ".mp4", ".xls", ".xlsx", ".doc", ".docx", ".ppt", ".pptx", ".pdf" };
-            if (!allowedExtensions.Contains(extension.ToLower()))
+            if (!_mediaService.CheckAllowedMediaType(extension))
             {
                 return Ok(new ApiResult
                 {

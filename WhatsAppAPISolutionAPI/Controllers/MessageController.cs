@@ -71,7 +71,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (model.File != null && model.File.Length > 0)
             {
                 var extension = Path.GetExtension(model.File.FileName);
-                if (!_mediaService.CheckAllowedMediaType(extension))
+                if (!_mediaService.CheckAllowedMediaTypeForMessage(extension))
                 {
                     return Ok(new ApiResult
                     {
