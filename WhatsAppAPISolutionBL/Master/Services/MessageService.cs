@@ -173,7 +173,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         await _communicationService.SendInteractiveMessageAsync(action, client.ClientId, senderName.SenderId, messageReceive.from);
                 }
 
-                if (action.ModuleId == (int)ModuleEnum.Chat && action.ConversationMessageId > 0) //If conversation is going on
+                if (action.ModuleId == (int)ModuleEnum.Chat && action.ConversationMessageId > 0 && action.IsFoul == 0) //If conversation is going on and no foul word received
                 {
                     var conversation = await _conversationService.GetConversationMessageByMessageIdAsync(clientId: client.ClientId, conversationMessageId: action.ConversationMessageId.Value, status: (int)ConversationStatusEnum.AgentAssigned);
                     if (conversation != null && conversation.AgentId > 0) //Check if agent id exist
@@ -201,7 +201,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         //    await _conversationHubContext.Clients.AllExcept(connectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), conversation.Id ?? 0);
                         //else
                         //    await _conversationHubContext.Clients.All.SendAsync(SignalREnum.ConversationUnAssigned.ToString(), conversation.Id ?? 0);
-                    } 
+                    }
                 }
             }
 
