@@ -7,5 +7,6 @@
         public int? ModuleId { get; set; }
         public int? ParentId { get; set; }
         public int? ConversationMessageId { get; set; }
+        public int? IsFoul { get; set; }
     }
 }
