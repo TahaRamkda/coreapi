@@ -8,7 +8,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface IMediaService
     {
-        Task<List<UMediaUpload>> GetMediaListAsync(int clientId, int senderId = 0, string contentTypeStr = "", int pageNo = 0, int pageSize = int.MaxValue);
+        Task<List<UMediaUpload>> GetMediaListAsync(int clientId, int senderId = 0, string contentTypeStr = "", int pageNo = 0, int pageSize = int.MaxValue, int mediaTypeId = 0);
         Task<UResponseWithID> AddMediaAsync(MediaUploadDto media);
         Task<UResponseWithID> UploadMediaAsync(MediaFileDto media);
         Task<UResponseWithID> UpdateMediaAsync(MediaUploadDto media);

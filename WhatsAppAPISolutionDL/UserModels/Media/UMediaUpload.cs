@@ -20,5 +20,6 @@ namespace WhatsAppAPISolutionDL.UserModels.Media
         public int? FileSize { get; set; }
         public string FileName { get; set; }
         public string FileExtension { get; set; }
+        public int MediaTypeId { get; set; }
     }
 }

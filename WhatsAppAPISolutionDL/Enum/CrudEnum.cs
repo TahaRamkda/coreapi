@@ -5,6 +5,7 @@
         Add = 1,
         AllocateSalary = 1,
         GetClientInvoiceNumber = 1,
+        GetAppSettings = 1,
 
         Update = 2,
         RepayLoan = 2,

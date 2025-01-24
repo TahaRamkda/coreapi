@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WhatsAppAPISolutionDL.UserModels.Agent;
+using WhatsAppAPISolutionDL.UserModels.AppSetting;
 using WhatsAppAPISolutionDL.UserModels.Campaign;
 using WhatsAppAPISolutionDL.UserModels.Client;
 using WhatsAppAPISolutionDL.UserModels.Contact;
@@ -74,6 +75,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UAgentStat> AgentStats { get; set; } = null!;
         public virtual DbSet<UInteractiveTemplate> InteractiveTemplates { get; set; } = null!;
         public virtual DbSet<UInteractiveTemplateDetail> InteractiveTemplateDetails { get; set; } = null!;
+        public virtual DbSet<UAppSetting> AppSetting { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -123,6 +125,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UAgentStat>().HasNoKey();
             modelBuilder.Entity<UInteractiveTemplate>().HasNoKey();
             modelBuilder.Entity<UInteractiveTemplateDetail>().HasNoKey();
+            modelBuilder.Entity<UAppSetting>().HasNoKey();
         }
     }
 }

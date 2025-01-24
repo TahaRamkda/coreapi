@@ -27,7 +27,7 @@
 
   <ItemGroup>
     <Folder Include="Models\" />
-    <Folder Include="Uploads\" />
+    <Folder Include="Media\" />
   </ItemGroup>
 
 </Project>

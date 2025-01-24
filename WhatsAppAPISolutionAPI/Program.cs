@@ -86,9 +86,9 @@ builder.Services.AddSwaggerGen(setup =>
 var app = builder.Build();
 app.UseStaticFiles(new StaticFileOptions()
 {
-    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Uploads/")),
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Media/")),
 
-    RequestPath = new PathString("/Uploads")
+    RequestPath = new PathString("/Media")
 });
 
 bool enableGlobalExceptionHandler = Convert.ToBoolean(builder.Configuration["EnableGlobalExceptionHandler"]);

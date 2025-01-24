@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -21,6 +22,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         #region Fields
 
         private readonly string _uploadPath;
+        private readonly string _staticFolderPath;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly HttpClient _httpClient;
@@ -50,9 +52,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _bridgeConfigurationSettings = bridgeConfigurationSettings;
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
 
-            _uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
-            if (!Directory.Exists(_uploadPath))
-                Directory.CreateDirectory(_uploadPath);
+            _staticFolderPath = _apiSolutionConfigurationSettings.Value.StaticFolderPath;
+            //_uploadPath = Path.Combine(Directory.GetCurrentDirectory(), _apiSolutionConfigurationSettings.Value.StaticFolderPath);
+            _uploadPath = Directory.GetCurrentDirectory();
+            if (!Directory.Exists(Path.Combine(_uploadPath, _staticFolderPath)))
+                Directory.CreateDirectory(Path.Combine(_uploadPath, _staticFolderPath));
         }
 
         #endregion
@@ -151,15 +155,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         #region Methods
 
-        public async Task<List<UMediaUpload>> GetMediaListAsync(int clientId, int senderId = 0, string contentTypeStr = "", int PageNo = 0, int PageSize = int.MaxValue)
+        public async Task<List<UMediaUpload>> GetMediaListAsync(int clientId, int senderId = 0, string contentTypeStr = "", int PageNo = 0, int PageSize = int.MaxValue, int mediaTypeId = 0)
         {
-            var response = await _dbContext2.UMediaUploads.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SenderNameId={senderId}, @ContentTypeStr={contentTypeStr}, @PageNo={PageNo}, @PageSize={PageSize}").ToListAsync();
+            var response = await _dbContext2.UMediaUploads.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SenderNameId={senderId}, @ContentTypeStr={contentTypeStr}, @PageNo={PageNo}, @PageSize={PageSize}, @MediaTypeId={mediaTypeId}").ToListAsync();
             return response;
         }
 
         public async Task<UResponseWithID> AddMediaAsync(MediaUploadDto media)
         {
-            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={media.ClientId}, @WhatsAppBusinessAccountId={media.WhatsAppBusinessAccountId}, @SenderNameId={media.SenderNameId}, @MediaPath={media.MediaPath}, @ContentType={media.ContentType}, @FileSize={media.FileSize}, @FileName={media.FileName}, @FileExtension={media.FileExtension}, @MediaSourceId={media.MediaSourceId}, @ActionBy={media.ActionBy}, @MediaId={media.MediaId}").ToListAsync();//@MediaTypeId={media.MediaTypeId}
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={media.ClientId}, @WhatsAppBusinessAccountId={media.WhatsAppBusinessAccountId}, @SenderNameId={media.SenderNameId}, @MediaPath={media.MediaPath}, @ContentType={media.ContentType}, @FileSize={media.FileSize}, @FileName={media.FileName}, @FileExtension={media.FileExtension}, @MediaSourceId={media.MediaSourceId}, @ActionBy={media.ActionBy}, @MediaId={media.MediaId}, @MediaTypeId={media.MediaTypeId}").ToListAsync();
             return response[0];
         }
 
@@ -175,31 +179,75 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (model.File != null && model.File.Length > 0)
             {
-                // Check file size (20 MB = 20 * 1024 * 1024 bytes)
-                int maxFileSize = (_apiSolutionConfigurationSettings.Value.MaxFileSizeInMB == 0 ? 20 : _apiSolutionConfigurationSettings.Value.MaxFileSizeInMB);
-                int maxFileLength = maxFileSize * 1024 * 1024; // 20 MB
+                var originalFileName = model.File.FileName.Replace(" ", "_").Trim();
+                var fileExtension = Path.GetExtension(originalFileName);
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(originalFileName);
+                var mediaTypeId = GetMediaTypeIdFromExtension(fileExtension);
+                int maxFileSize = 0;
+
+                string keyNames = string.Join(",", new[] { MediaSizeEnum.ImageSizeInMB.ToString(), MediaSizeEnum.VideoSizeInMB.ToString(), MediaSizeEnum.DocumentSizeInMB.ToString(), MediaSizeEnum.AudioSizeInMB.ToString() });
+                var response = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_Appsettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @KeyName={keyNames}, @ClientId={model.ClientId}, @SenderId={model.SenderNameId}").ToListAsync();
+
+                // Determine the key name based on the media type
+                string keyName = mediaTypeId switch
+                {
+                    (int)MediaTypeEnum.IMAGE => MediaSizeEnum.ImageSizeInMB.ToString(),
+                    (int)MediaTypeEnum.VIDEO => MediaSizeEnum.VideoSizeInMB.ToString(),
+                    (int)MediaTypeEnum.DOCUMENT => MediaSizeEnum.DocumentSizeInMB.ToString(),
+                    (int)MediaTypeEnum.AUDIO => MediaSizeEnum.AudioSizeInMB.ToString(),
+                    _ => null
+                };
+
+                if (!string.IsNullOrEmpty(keyName))
+                {
+                    var mediaSize = response.FirstOrDefault(x => x.KeyName == keyName);
+                    if (mediaSize != null)
+                        maxFileSize = Convert.ToInt32(mediaSize.Val);
+                }
+
+                // Check file size
+                int maxFileLength = maxFileSize * 1024 * 1024;
 
                 if (model.File.Length > maxFileLength)
                 {
                     return new UResponseWithID
                     {
                         Status = 0,
-                        Message = "File size must not exceed 20 MB."
+                        Message = $"File size must not exceed {maxFileSize} MB."
                     };
                 }
 
-                var originalFileName = model.File.FileName.Replace(" ", "_").Trim();
-                var filePath = Path.Combine(_uploadPath, originalFileName);
+                // Determine media type folder name
+                string mediaTypeFolder = String.Empty;
 
-                var fileExtension = Path.GetExtension(originalFileName);
-                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(originalFileName);
+                if (model.MediaSourceId == (int)MediaSourceEnum.Conversation)
+                    mediaTypeFolder = Path.Combine(MediaSourceEnum.Conversation.ToString(), Enum.GetName(typeof(MediaTypeEnum), mediaTypeId));
+                else if (model.MediaSourceId == (int)MediaSourceEnum.Admin)
+                    mediaTypeFolder = Path.Combine(MediaSourceEnum.Admin.ToString(), Enum.GetName(typeof(MediaTypeEnum), mediaTypeId));
+
+                // Create folder path: uploads/clientId/senderId/mediaType
+                string mediaFolder = _staticFolderPath;
+                if (model.ClientId > 0)
+                    mediaFolder = Path.Combine(mediaFolder, model.ClientId.ToString());
+
+                if (model.SenderNameId > 0)
+                    mediaFolder = Path.Combine(mediaFolder, model.SenderNameId.ToString());
+
+                mediaFolder = Path.Combine(mediaFolder, mediaTypeFolder);
+
+                // Ensure directories exist
+                if (!Directory.Exists(Path.Combine(_uploadPath, mediaFolder)))
+                    Directory.CreateDirectory(mediaFolder);
+
+                // Construct the final file path
+                var filePath = Path.Combine(_uploadPath, mediaFolder, originalFileName);
+
                 int counter = 1;
-
                 // Check if the file already exists and create a unique filename if it does
                 while (File.Exists(filePath))
                 {
                     var newFileName = $"{fileNameWithoutExtension}_{counter}{fileExtension}";
-                    filePath = Path.Combine(_uploadPath, newFileName);
+                    filePath = Path.Combine(_uploadPath, mediaFolder, newFileName);
                     counter++;
                 }
 
@@ -208,13 +256,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     await model.File.CopyToAsync(stream);
                 }
 
-                var absolutePath = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, _apiSolutionConfigurationSettings.Value.StaticFolderPath);
-                var mediaPath = Path.Combine(_apiSolutionConfigurationSettings.Value.StaticFolderPath, Path.GetFileName(filePath));
-                var fileUrl = Path.Combine(absolutePath, Path.GetFileName(filePath));
+                var absolutePath = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL);
+                var mediaPath = Path.Combine(mediaFolder, Path.GetFileName(filePath));
+                var fileUrl = Path.Combine(absolutePath, mediaFolder, Path.GetFileName(filePath));
+
                 if (!string.IsNullOrEmpty(fileUrl))
                     fileUrl = fileUrl.Replace("\\", "/");
-
-                var mediaTypeId = GetMediaTypeIdFromExtension(fileExtension);
 
                 // Create response details
                 var media = new MediaUploadDto
@@ -234,7 +281,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var insMedia = await AddMediaAsync(media);
                 if (insMedia != null && insMedia.Id > 0)
                 {
-                    //If upload media to facebook
+                    // If upload media to Facebook
                     if (model.UploadToFacebook)
                         return await UploadMediaToFacebook(media, insMedia.Id, fileUrl);
 
@@ -259,7 +306,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 Message = "Something went wrong, cannot upload media right now"
             };
         }
-
         public async Task<UResponseWithID> UpdateMediaAsync(MediaUploadDto media)
         {
             var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Update}, @Id={media.Id}, @MediaId={media.MediaId}, @ActionBy={media.ActionBy}").ToListAsync();
