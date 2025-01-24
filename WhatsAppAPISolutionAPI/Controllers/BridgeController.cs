@@ -70,7 +70,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                             });
                         }
                         
-                        var tempDto = new TemplateDto 
+                        var tempDto = new TemplateStatusUpdateDto 
                         {
                             Id = template.Id,
                             TemplateId = tempParam.Id,

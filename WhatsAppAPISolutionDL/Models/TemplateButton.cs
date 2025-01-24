@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace WhatsAppAPISolutionDL.Models
 {
-    public partial class InteractiveTemplateButton
+    public partial class TemplateButton
     {
         public int ButtonId { get; set; }
-        public int? InteractiveTemplateId { get; set; }
+        public int? TemplateId { get; set; }
         public int? ClientId { get; set; }
         public string ButtonText { get; set; }
         public string ButtonValue { get; set; }

@@ -1,17 +1,15 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionAPI.Setting;
+using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
-using WhatsAppAPISolutionDL.UserModels.Agent;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -56,89 +54,57 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpPost("addTemplate")]
-        public async Task<IActionResult> AddTemplateAsync([FromBody] TemplateDto template)
+        public async Task<IActionResult> AddTemplateAsync([FromBody] TemplateDto model)
         {
-            _logger.LogInformation("Calling api AddTemplateAsync with request={requst}", JsonConvert.SerializeObject(template));
+            _logger.LogInformation("Calling api AddTemplateAsync with request {request}", JsonConvert.SerializeObject(model));
 
-            if (template == null)
+            if (model == null)
                 return BadRequest();
 
-            if (string.IsNullOrEmpty(template.Name))
-                return Ok(new ApiResult
-                {
+            if (String.IsNullOrEmpty(model.Name))
+                return Ok(new ApiResult { Message = "Please insert template name" });
 
-                    Message = "Please insert template name"
-                });
+            if (model.ClientId <= 0)
+                return Ok(new ApiResult { Message = "Please insert client Id" });
 
-            if (template.ClientId <= 0)
-                return Ok(new ApiResult
-                {
+            if (model.SenderNameId <= 0)
+                return Ok(new ApiResult { Message = "Please insert sender Id" });
 
-                    Message = "Please insert client Id"
-                });
+            if (String.IsNullOrWhiteSpace(model.Category))
+                return Ok(new ApiResult { Message = "Please select category" });
 
-            if (template.SenderNameId <= 0)
-                return Ok(new ApiResult
-                {
+            if (String.IsNullOrWhiteSpace(model.Language))
+                return Ok(new ApiResult { Message = "Please select language" });
 
-                    Message = "Please insert sender Id"
-                });
+            if (model.Body == null || String.IsNullOrEmpty(model.Body.Text))
+                return Ok(new ApiResult { Message = "Body text required" });
 
-            if (template.TransactionType <= 0)
-                return Ok(new ApiResult
-                {
-
-                    Message = "Please insert transaction type"
-                });
-
-            if (String.IsNullOrWhiteSpace(template.Category))
-                return Ok(new ApiResult
-                {
-                    Message = "Please select category"
-                });
-
-            if (String.IsNullOrWhiteSpace(template.Language))
-                return Ok(new ApiResult
-                {
-                    Message = "Please select language"
-                });
-
-            if (template.Body == null || string.IsNullOrEmpty(template.Body.Text))
-                return Ok(new ApiResult
-                {
-
-                    Message = "Body text required"
-                });
-
-            if (template.Buttons != null && template.Buttons.Any())
+            if (model.Buttons != null && model.Buttons.Any())
             {
-                if (template.Buttons.Count() > 10)
-                {
-                    return Ok(new ApiResult
-                    {
-                        Message = "Cannot add more than 10 buttons."
-                    });
-                }
+                if (model.Buttons.Count > 10)
+                    return Ok(new ApiResult { Message = "Cannot add more than 10 buttons" });
 
-                if (template.Buttons.Count(x => x.Type == (int)ButtonTypeEnum.PHONE_NUMBER) > 1)
-                {
-                    return Ok(new ApiResult
-                    {
-                        Message = "Cannot add more than 1 phone number button."
-                    });
-                }
+                if (model.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER) > 1)
+                    return Ok(new ApiResult { Message = "Cannot add more than 1 phone number button" });
 
-                if (template.Buttons.Count(x => x.Type == (int)ButtonTypeEnum.URL) > 2)
-                {
-                    return Ok(new ApiResult
-                    {
-                        Message = "Cannot add more than 2 URL buttons."
-                    });
-                }
+                if (model.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.URL) > 2)
+                    return Ok(new ApiResult { Message = "Cannot add more than 2 URL buttons" });
+
+                // Validate no duplicate button names
+                var duplicateNames = model.Buttons.GroupBy(item => item.ButtonText?.Trim()).Where(group => group.Count() > 1).Select(group => group.Key).ToList();
+                if (duplicateNames.Any())
+                    return Ok(new ApiResult { Message = "Button names should be unique." });
+
+                // Validate Button URLs  
+                var invalidUrls = model.Buttons
+                    .Where(item => item.ButtonType == (int)ButtonTypeEnum.URL && !CommonHelper.IsValidUrl(item.ButtonValue))
+                    .ToList();
+
+                if (invalidUrls.Any())
+                    return Ok(new ApiResult { Message = "Invalid url provided in buttons" });
             }
 
-            var response = await _templateService.AddTemplateAsync(template);
-
+            var response = await _templateService.AddTemplateAsync(model);
             _logger.LogInformation("Received api AddTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
@@ -157,98 +123,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data added successfully"
             });
         }
-
-        [HttpPut("updatetemplate")]
-        public async Task<IActionResult> UpdateTemplateAsync(TemplateDto template)
-        {
-            _logger.LogInformation("Calling api UpdateTemplateAsync with request={requst}", JsonConvert.SerializeObject(template));
-
-            if (template == null)
-                return BadRequest();
-
-            if (string.IsNullOrEmpty(template.Name))
-                return Ok(new ApiResult
-                {
-
-                    Message = "Please insert template name"
-                });
-
-            if (template.ClientId <= 0)
-                return Ok(new ApiResult
-                {
-
-                    Message = "Please insert client Id"
-                });
-
-            if (template.SenderNameId <= 0)
-                return Ok(new ApiResult
-                {
-
-                    Message = "Please insert sender Id"
-                });
-
-            if (template.TransactionType <= 0)
-                return Ok(new ApiResult
-                {
-
-                    Message = "Please insert transaction type"
-                });
-
-            if (template.Body == null && string.IsNullOrEmpty(template.Body.Text))
-                return Ok(new ApiResult
-                {
-
-                    Message = "Body text required"
-                });
-
-            if (template.Buttons != null && template.Buttons.Any())
-            {
-                if (template.Buttons.Count() > 10)
-                {
-                    return Ok(new ApiResult
-                    {
-                        Message = "Cannot add more than 10 buttons."
-                    });
-                }
-
-                if (template.Buttons.Count(x => x.Type == (int)ButtonTypeEnum.PHONE_NUMBER) > 1)
-                {
-                    return Ok(new ApiResult
-                    {
-                        Message = "Cannot add more than 1 phone number button."
-                    });
-                }
-
-                if (template.Buttons.Count(x => x.Type == (int)ButtonTypeEnum.URL) > 2)
-                {
-                    return Ok(new ApiResult
-                    {
-                        Message = "Cannot add more than 2 URL buttons."
-                    });
-                }
-            }
-
-            var response = await _templateService.UpdateTemplateAsync(template);
-
-            _logger.LogInformation("Received api UpdateTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
-
-            if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
-            return Ok(new ApiResult
-            {
-                Success = true,
-                Result = response,
-                Message = "Data updated successfully"
-            });
-        }
-
+         
         [HttpDelete("deletetemplate")]
         public async Task<IActionResult> DeleteTemplateAsync(int Id)
         {

@@ -21,6 +21,7 @@
         public BodyComponent Body { get; set; }
         public FooterComponent Footer { get; set; }
         public List<ButtonComponent> Buttons { get; set; }
+
         public partial class HeaderComponent
         {
             public HeaderComponent()
@@ -51,7 +52,6 @@
             {
             }
 
-            public int ButtonId { get; set; }
             public string ButtonText { get; set; } = string.Empty;
             public string ButtonValue { get; set; } = string.Empty;
             public int ButtonType { get; set; }
@@ -62,8 +62,7 @@
     }
 
     public class InteractiveParameter
-    {
-        public int ParamId { get; set; }
+    { 
         public string ParamName { get; set; }
         public int PersonalizationType { get; set; }
         public string PersonalizationField { get; set; }

@@ -10,14 +10,8 @@ namespace WhatsAppAPISolutionDL.Models
         public int? ClientId { get; set; }
         public int? Sequence { get; set; }
         public string ParamName { get; set; }
-        public string ParamText { get; set; }
         public int? ParamType { get; set; }
         public string ParamDefaultValue { get; set; }
-        public bool? IsDynamic { get; set; }
-        public int? ButtonType { get; set; }
-        public int? ActionId { get; set; }
-        public int? ActionType { get; set; }
-        public string ButtonId { get; set; }
         public int? CreatedBy { get; set; }
         public DateTime? CreatedDate { get; set; }
         public int? UpdatedBy { get; set; }
