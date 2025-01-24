@@ -26,7 +26,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly IAgentsService _agentsService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<AgentsController> _logger;
-
+         
         public AgentsController(IAgentsService agentsService,
             WhatsAppSolutionContext dbContext,
             ILogger<AgentsController> logger)
@@ -34,6 +34,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _agentsService = agentsService;
             _dbContext = dbContext;
             _logger = logger;
+
         }
 
         [HttpGet("getagentlist")]
