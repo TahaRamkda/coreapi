@@ -79,7 +79,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
                 if (model.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.URL) > 1)
                     return Ok(new ApiResult { Message = "Cannot add more than 1 URL buttons." });
-                 
+
+                if (model.Buttons.Any(x => String.IsNullOrWhiteSpace(x.ButtonText)))
+                    return Ok(new ApiResult { Message = "Please insert button text for all buttons" });
+
+                if (model.Buttons.Any(x => (x.ButtonType == (int)ButtonTypeEnum.URL || x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER) && String.IsNullOrWhiteSpace(x.ButtonValue)))
+                    return Ok(new ApiResult { Message = "Please insert button values for all URL and Phone number buttons" });
+ 
                 // Validate no duplicate button names
                 var duplicateNames = model.Buttons.GroupBy(item => item.ButtonText?.Trim()).Where(group => group.Count() > 1).Select(group => group.Key).ToList();
 

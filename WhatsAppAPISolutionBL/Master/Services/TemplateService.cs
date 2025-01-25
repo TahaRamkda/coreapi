@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System.Data;
-using System.Text.Json;
+using System.Text;
 using System.Text.RegularExpressions;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
@@ -62,7 +64,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
             //Globals
             //Regex regex = new Regex(@"{{\d+}}");
             Regex regex = new Regex(@"\{\{.*?\}\}");
-            string mediaUrl = String.Empty;
             int headerType = 0;
             string headerText = String.Empty;
             int headerTextCount = 0;
@@ -98,7 +99,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     if (!allowedMedia)
                         return new UResponseWithID { Status = 0, Message = $"Not allowed media for header type - {headerFormat}" };
 
-                    mediaUrl = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, mediaDetail.MediaPath);
                 }
 
                 if (headerFormat == TemplateHeaderEnum.TEXT)
@@ -141,7 +141,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 MatchCollection matches = regex.Matches(model.Body.Text);
                 if (matches.Count > 0)
                 {
-                    var distinctMatch = matches.Select(x => x.Value).Distinct();
+                    var distinctMatch = matches.Select(x => x.Value).Distinct().ToList();
 
                     if (model.Body.DynamicValues == null || model.Body.DynamicValues.Count == 0)
                         return new UResponseWithID { Status = 0, Message = "Body text parameter is required" };
@@ -175,26 +175,30 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     if (button.ActionType == (int)ActionTypeEnum.TEMPLATE && button.ActionId <= 0)
                         return new UResponseWithID { Status = 0, Message = $"Template id required in action id when action type is {(int)ActionTypeEnum.TEMPLATE}" };
 
-                    button.ButtonValue = button.ButtonValue.Trim();
-                    MatchCollection matches = regex.Matches(button.ButtonValue);
-                    if (matches.Count > 0)
+                    button.ButtonValue = (button.ButtonValue ?? "").Trim();
+
+                    if (!String.IsNullOrWhiteSpace(button.ButtonValue))
                     {
-                        if (button.ButtonType != (int)ButtonTypeEnum.URL)
-                            return new UResponseWithID { Status = 0, Message = $"Dynamic parameter not allowed in button type {(ButtonTypeEnum)button.ButtonType}" };
-
-                        if (button.DynamicValue == null)
-                            return new UResponseWithID { Status = 0, Message = "Button default parameter is required" };
-
-                        if (matches.Count > 1)
-                            return new UResponseWithID { Status = 0, Message = "Only one button parameter is allowed" };
-
-                        parameters.Add(new TemplateDto.TemplateParameter
+                        MatchCollection matches = regex.Matches(button.ButtonValue);
+                        if (matches.Count > 0)
                         {
-                            ParamType = (int)TemplateParamEnum.Button,
-                            ParamName = button.DynamicValue.ParamName,
-                            ParamDefaultValue = button.DynamicValue.ParamValue,
-                            Sequence = 1
-                        });
+                            if (button.ButtonType != (int)ButtonTypeEnum.URL)
+                                return new UResponseWithID { Status = 0, Message = $"Dynamic parameter not allowed in button type {(ButtonTypeEnum)button.ButtonType}" };
+
+                            if (button.DynamicValue == null)
+                                return new UResponseWithID { Status = 0, Message = "Button default parameter is required" };
+
+                            if (matches.Count > 1)
+                                return new UResponseWithID { Status = 0, Message = "Only one button parameter is allowed" };
+
+                            parameters.Add(new TemplateDto.TemplateParameter
+                            {
+                                ParamType = (int)TemplateParamEnum.Button,
+                                ParamName = button.DynamicValue.ParamName,
+                                ParamDefaultValue = button.DynamicValue.ParamValue,
+                                Sequence = button.Sequence //Assigning button sequence
+                            });
+                        }
                     }
 
                     buttons.Add(new TemplateDto.TemplateButton
@@ -210,8 +214,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
             }
 
-            var parameterJson = JsonSerializer.Serialize(parameters);
-            var buttonJson = JsonSerializer.Serialize(buttons);
+            var parameterJson = JsonConvert.SerializeObject(parameters);
+            var buttonJson = JsonConvert.SerializeObject(buttons);
 
             var responseList = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={model.ClientId}, @SenderId={model.SenderNameId},  @TemplateName={model.Name},@Category={model.Category}, @Language={model.Language}, @HeaderType={headerType}, @HeaderParamCount={headerTextCount}, @HeaderText={headerText},@MediaId={model.MediaId}, @BodyText={bodyText}, @BodyParamCount={bodyTextCount}, @FooterText={footerText}, @ButtonsJson={buttonJson},@ParametersJson={parameterJson}, @ActionBy={model.ActionBy}").ToListAsync();
             if (responseList == null || !responseList.Any())
@@ -221,113 +225,180 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (response.Status <= 0)
                 return new UResponseWithID { Status = 0, Message = response.Message };
 
-            return new UResponseWithID { Status = 0, Message = "Oops somethng went wrong" };
+            //Push template to facebook
+            return await PushTemplateToFacebook(model.ClientId, response.Id);
         }
 
-        //private async Task PushTemplateToFacebook()
-        //{
-        //    if (response[0].Status > 0)
-        //    {
-        //        var tempateResponse = new TemplateRequestDto
-        //        {
-        //            ClientId = template.ClientId.ToString(),
-        //            SenderNameId = template.SenderNameId.ToString(),
-        //            Name = template.Name,
-        //            Category = template.Category,
-        //            LanguageCode = template.Language,
-        //        };
+        private async Task<UResponseWithID> PushTemplateToFacebook(int clientId, int templateId)
+        {
+            var model = await GetTemplateDetailAsync(clientId, templateId);
+            if (model == null)
+                return new UResponseWithID { Status = 0, Message = "Cannot fetch template details" };
 
-        //        tempateResponse.Header = new TemplateRequestDto.HeaderDto
-        //        {
-        //            Format = ((TemplateHeaderEnum)template.Header.Format).ToString(),
-        //            MediaUrl = mediaUrl,
-        //            Text = template.Header.Text,
-        //            Example = template.Header.Values?.FirstOrDefault()?.Value ?? ""
-        //        };
+            var tempateResponse = new TemplateRequestDto
+            {
+                ClientId = model.ClientId.ToString(),
+                SenderNameId = model.SenderId.ToString(),
+                Name = model.TemplateName,
+                Category = model.Category,
+                LanguageCode = model.Language,
+            };
 
-        //        tempateResponse.Body = new TemplateRequestDto.BodyDto
-        //        {
-        //            Text = template.Body.Text,
-        //            Examples = template.Body?.Values?.Select(x => x.Value).ToList() ?? new List<string>()
-        //        };
+            string pattern = @"\{\{.*?\}\}";
 
-        //        tempateResponse.Footer = new TemplateRequestDto.FooterDto
-        //        {
-        //            Text = template.Footer.Text
-        //        };
+            #region Header
 
-        //        foreach (var item in template.Buttons)
-        //        {
-        //            tempateResponse.Buttons.Add(new TemplateRequestDto.ButtonDto
-        //            {
-        //                Type = ((ButtonTypeEnum)item.Type).ToString(),
-        //                Text = item.Text,
-        //                PhoneNumber = item.PhoneNumber,
-        //                Url = item.Url,
-        //                Example = item.Values != null && !String.IsNullOrWhiteSpace(item.Values.Value) ? item.Values.Value : "",
-        //            });
-        //        }
+            string headerText = String.Empty;
+            string headerMediaUrl = String.Empty;
+            if (!String.IsNullOrWhiteSpace(model.HeaderText))
+            {
+                int placeholderCount = 0;
+                headerText = Regex.Replace(model.HeaderText, pattern, match => { placeholderCount++; return $"{{{{{placeholderCount}}}}}"; });
+            }
 
-        //        var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(tempateResponse), Encoding.UTF8, "application/json");
-        //        var response1 = await _httpClient.PostAsync($"/api/Template/TemplateMessageOps", res);
-        //        var content = await response1.Content.ReadAsStringAsync();
+            if (model.MediaId > 0)
+            {
+                var media = await _dbContext.Medias.FindAsync(model.MediaId);
+                headerMediaUrl = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, media.MediaPath);
+            }
 
-        //        var result = JsonSerializer.Deserialize<SyncResultDto>(content);
-        //        if (result != null && result.success)
-        //        {
-        //            var data = JsonSerializer.Serialize(result.result);
-        //            var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<TemplateResultDto>(data);
-        //            if (tempResult != null)
-        //            {
-        //                if (!string.IsNullOrEmpty(tempResult.id) && !string.IsNullOrEmpty(tempResult.status))
-        //                {
-        //                    var updateTemp = new TemplateDto
-        //                    {
-        //                        Id = response[0].Id,
-        //                        TemplateId = tempResult.id,
-        //                        Status = tempResult.status,
-        //                        Category = tempResult.category,
-        //                        ActionBy = template.ActionBy
-        //                    };
+            var headerParam = model.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Header).Select(x => new { x.ParamName, x.ParamDefaultValue }).FirstOrDefault();
+            tempateResponse.Header = new TemplateRequestDto.HeaderDto
+            {
+                Format = ((TemplateHeaderEnum)model.HeaderType).ToString(),
+                MediaUrl = headerMediaUrl,
+                Text = headerText,
+                Example = headerParam != null ? headerParam.ParamDefaultValue : String.Empty
+            };
 
-        //                    var updateTemplate = await UpdateTemplateStatusByIdAsync(updateTemp);
-        //                    if (updateTemplate == null || updateTemplate.Status <= 0)
-        //                    {
-        //                        return new UResponseWithID
-        //                        {
-        //                            Status = 201, //Created but not created in facebook
-        //                            Message = "Template created in system but was not created on facebook because of: \n" + updateTemplate?.Message,
-        //                            Id = response[0].Id
-        //                        };
-        //                    }
+            #endregion
 
-        //                    return new UResponseWithID
-        //                    {
-        //                        Status = 200,
-        //                        Message = "Template added successfully"
-        //                    };
-        //                }
-        //            }
-        //        }
-        //        else if (result != null && !result.success)
-        //        {
-        //            return new UResponseWithID
-        //            {
-        //                Status = 201, //Created but not created in facebook
-        //                Message = "Template created in system but was not created on facebook because of: \n" + result.message,
-        //                Id = response[0].Id
-        //            };
-        //        }
-        //    }
-        //    else if (response[0].Status <= 0)
-        //    {
-        //        return new UResponseWithID()
-        //        {
-        //            Status = 0,
-        //            Message = response[0].Message
-        //        };
-        //    }
-        //}
+            #region Body
+
+            if (!String.IsNullOrWhiteSpace(model.BodyText))
+            {
+                //Replace the {{example}} with {{1}} and so on...
+                int placeholderCount = 0;
+                string bodyText = Regex.Replace(model.BodyText, pattern, match => { placeholderCount++; return $"{{{{{placeholderCount}}}}}"; });
+
+                var bodyParams = model.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Body).ToDictionary(item => item.ParamName, item => item.ParamDefaultValue);
+
+                // Create a list to store default values in the order they appear
+                var bodyDefaultValues = new List<string>();
+
+                // Regex to match placeholders
+                MatchCollection matches = Regex.Matches(model.BodyText, pattern);
+                foreach (Match match in matches)
+                {
+                    string paramName = match.Value; // Get the matched placeholder
+                    if (bodyParams.ContainsKey(paramName))
+                        bodyDefaultValues.Add(bodyParams[paramName]); // Add the corresponding default value
+                }
+
+                tempateResponse.Body = new TemplateRequestDto.BodyDto
+                {
+                    Text = bodyText,
+                    Examples = bodyDefaultValues
+                };
+            }
+
+            #endregion
+
+            #region Footer
+
+            if (!String.IsNullOrWhiteSpace(model.FooterText))
+            {
+                tempateResponse.Footer = new TemplateRequestDto.FooterDto
+                {
+                    Text = model.FooterText
+                };
+            }
+
+            #endregion
+
+            #region Button
+
+            foreach (var item in model.Buttons)
+            {
+                var buttonType = ((ButtonTypeEnum)item.ButtonType);
+                string buttonValue = item.ButtonValue;
+
+                UTemplateDetail.Parameter buttonParam = null;
+                if (buttonType == ButtonTypeEnum.URL)
+                {
+                    //Replace the {{example}} with {{1}} and so on...
+                    int placeholderCount = 0;
+                    buttonValue = Regex.Replace(item.ButtonValue, pattern, match => { placeholderCount++; return $"{{{{{placeholderCount}}}}}"; });
+
+                    MatchCollection matches = Regex.Matches(item.ButtonValue, pattern);
+                    if (matches != null && matches.Count > 0)
+                        buttonParam = model.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button && x.ParamName == matches[0].Value).FirstOrDefault();
+                }
+
+                tempateResponse.Buttons.Add(new TemplateRequestDto.ButtonDto
+                {
+                    Type = buttonType.ToString(),
+                    Text = item.ButtonText,
+                    PhoneNumber = buttonType == ButtonTypeEnum.PHONE_NUMBER ? buttonValue : String.Empty,
+                    Url = buttonType == ButtonTypeEnum.URL ? buttonValue : String.Empty,
+                    Example = buttonParam != null ? buttonParam.ParamDefaultValue : String.Empty
+                });
+            }
+
+            #endregion
+
+            var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(tempateResponse), Encoding.UTF8, "application/json");
+            var response1 = await _httpClient.PostAsync($"/api/Template/TemplateMessageOps", res);
+            var content = await response1.Content.ReadAsStringAsync();
+
+            var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
+            if (result != null && result.success)
+            {
+                var data = JsonConvert.SerializeObject(result.result);
+                var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<TemplateResultDto>(data);
+                if (tempResult != null)
+                {
+                    if (!string.IsNullOrEmpty(tempResult.id) && !string.IsNullOrEmpty(tempResult.status))
+                    {
+                        var updateTemp = new TemplateStatusUpdateDto
+                        {
+                            Id = model.Id,
+                            TemplateId = tempResult.id,
+                            Status = tempResult.status,
+                            Category = tempResult.category
+                        };
+
+                        var updateTemplate = await UpdateTemplateStatusByIdAsync(updateTemp);
+                        if (updateTemplate == null || updateTemplate.Status <= 0)
+                        {
+                            return new UResponseWithID
+                            {
+                                Id = model.Id,
+                                Status = 201, //Created but not created in facebook
+                                Message = "Template created in system but not on facebook because: \n" + updateTemplate?.Message
+                            };
+                        }
+
+                        return new UResponseWithID
+                        {
+                            Status = 200,
+                            Message = "Template added successfully"
+                        };
+                    }
+                }
+            }
+            else if (result != null && !result.success)
+            {
+                return new UResponseWithID
+                {
+                    Status = 201, //Created but not created in facebook
+                    Message = "Template created in system but not created on facebook because: \n" + result.message,
+                    Id = model.Id
+                };
+            }
+
+            return new UResponseWithID { Status = 0, Message = "Something went wrong while sending request to facebook" };
+        }
 
         public async Task<UResponseWithID> DeleteTemplateAsync(int Id)
         {
@@ -341,83 +412,24 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response[0];
         }
 
-        public async Task<UTemplateDetails> GetTemplateDetailsAsync(int client_Id, int template_Id = 0)
+        public async Task<UTemplateDetail> GetTemplateDetailAsync(int clientId, int templateId)
         {
-            UTemplateDetails pDetails = null;
-
-            var response = await _dbContext2.TemplateDetails.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetTemplateDetails}, @ClientId={client_Id}, @TemplatesId={template_Id}").ToListAsync();
+            var response = await _dbContext2.TemplateDetails.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetTemplateDetails}, @ClientId={clientId}, @TemplatesId={templateId}").ToListAsync();
             if (response != null && response.Any())
             {
-                pDetails = response[0];
-                if (pDetails.Id > 0)
-                {
-                    var templateParameters = await GetTemplateParametersAsync(client_Id, template_Id);
-                    if (templateParameters.Any())
-                    {
-                        var headerValue = templateParameters.Where(x => x.ParamType == (int)TemplateParamEnum.Header).FirstOrDefault();
-                        if (headerValue != null)
-                        {
-                            pDetails.HeaderValue = new KeyValue
-                            {
-                                Index = headerValue.Sequence,
-                                Value = headerValue.ParamDefaultValue,
-                                DefaultValue = headerValue.ParamDefaultValue
-                            };
-                        }
-                        var bodyValue = templateParameters.Where(x => x.ParamType == (int)TemplateParamEnum.Body).ToList();
-                        if (bodyValue != null)
-                        {
-                            foreach (var item in bodyValue)
-                            {
-                                pDetails.BodyValues.Add(new KeyValue
-                                {
-                                    Index = item.Sequence,
-                                    Value = item.ParamDefaultValue,
-                                    DefaultValue = item.ParamDefaultValue
-                                });
-                            }
-                        }
-                        var buttonValues = templateParameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button).ToList();
-                        if (buttonValues != null)
-                        {
-                            foreach (var item in buttonValues)
-                            {
-                                var buttonValue = new ButtonValue
-                                {
-                                    ButtonId = item.ButtonId,
-                                    Type = item.ButtonType,
-                                    Text = item.ParamName,
-                                    Sequence = item.Sequence ?? 0,
-                                    Index = item.Sequence ?? 0,
-                                    ActionId = item.ActionId,
-                                    ActionType = item.ActionType,
-                                };
+                var template = response[0];
+                template.Buttons = !String.IsNullOrWhiteSpace(template.ButtonsJson)
+                    ? JsonConvert.DeserializeObject<List<UTemplateDetail.Button>>(template.ButtonsJson)
+                    : new List<UTemplateDetail.Button>();
 
-                                if ((ButtonTypeEnum)item.ButtonType == ButtonTypeEnum.PHONE_NUMBER)
-                                    buttonValue.PhoneNumber = item.ParamText;
-                                else if ((ButtonTypeEnum)item.ButtonType == ButtonTypeEnum.URL)
-                                {
-                                    buttonValue.IsDynamic = item.IsDynamic;
-                                    buttonValue.Url = item.ParamText;
-                                    if (!String.IsNullOrWhiteSpace(item.ParamDefaultValue))
-                                    {
-                                        buttonValue.Values = new KeyValue
-                                        {
-                                            Index = item.Sequence,
-                                            Value = item.ParamDefaultValue,
-                                            DefaultValue = item.ParamDefaultValue
-                                        };
-                                    }
-                                }
+                template.Parameters = !String.IsNullOrWhiteSpace(template.ParametersJson)
+                    ? JsonConvert.DeserializeObject<List<UTemplateDetail.Parameter>>(template.ParametersJson)
+                    : new List<UTemplateDetail.Parameter>();
 
-                                pDetails.ButtonValues.Add(buttonValue);
-                            }
-                        }
-                    }
-                }
+                return template;
             }
 
-            return pDetails;
+            return null;
         }
 
         private async Task<List<UTemplateParameter>> GetTemplateParametersAsync(int client_Id, int template_Id = 0)

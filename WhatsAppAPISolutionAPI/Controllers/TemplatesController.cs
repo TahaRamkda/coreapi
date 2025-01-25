@@ -10,6 +10,7 @@ using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
+using WhatsAppAPISolutionDL.UserModels.Template;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -90,6 +91,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 if (model.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.URL) > 2)
                     return Ok(new ApiResult { Message = "Cannot add more than 2 URL buttons" });
 
+                if (model.Buttons.Any(x => String.IsNullOrWhiteSpace(x.ButtonText)))
+                    return Ok(new ApiResult { Message = "Please insert button text for all buttons" });
+
+                if (model.Buttons.Any(x => (x.ButtonType == (int)ButtonTypeEnum.URL || x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER) && String.IsNullOrWhiteSpace(x.ButtonValue)))
+                    return Ok(new ApiResult { Message = "Please insert button values for all URL and Phone number buttons" });
+
                 // Validate no duplicate button names
                 var duplicateNames = model.Buttons.GroupBy(item => item.ButtonText?.Trim()).Where(group => group.Count() > 1).Select(group => group.Key).ToList();
                 if (duplicateNames.Any())
@@ -123,7 +130,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data added successfully"
             });
         }
-         
+
         [HttpDelete("deletetemplate")]
         public async Task<IActionResult> DeleteTemplateAsync(int Id)
         {
@@ -222,14 +229,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             _logger.LogInformation("Calling api GetTemplateDetailsAsync with ClientId={ClientId} and Id={Id}", ClientId, Id);
 
-            var res = await _templateService.GetTemplateDetailsAsync(ClientId, Id);
+            var response = await _templateService.GetTemplateDetailAsync(ClientId, Id);
 
-            _logger.LogInformation("Received api GetTemplateDetailsAsync response with data={data}", JsonConvert.SerializeObject(res));
+            _logger.LogInformation("Received api GetTemplateDetailsAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             return Ok(new ApiResult
             {
                 Success = true,
-                Result = res,
+                Result = response,
                 Message = "Data fetch successfully"
             });
         }

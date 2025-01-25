@@ -14,6 +14,7 @@ using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Message;
+using WhatsAppAPISolutionDL.UserModels.Template;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -50,7 +51,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<ApiResult> SendTemplateMessageAsync(TemplateMessagePayloadDto templateMessage)
         {
-            var templateDetails = await _templateService.GetTemplateDetailsAsync(templateMessage.ClientId, templateMessage.TemplateId);
+            UTemplateDetail templateDetails = null; //await _templateService.GetTemplateDetailsAsync(templateMessage.ClientId, templateMessage.TemplateId);
             if (templateDetails == null)
                 return new ApiResult
                 {
@@ -96,7 +97,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     Type = headerType.ToString(),
                     Value = headerParam,
-                    Index = templateDetails.HeaderValue != null ? templateDetails.HeaderValue.Index : 0
+                   // Index = templateDetails.HeaderValue != null ? templateDetails.HeaderValue.Index : 0
                 });
 
                 sendMessage.Components.Add(headerComponents);
@@ -118,7 +119,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     {
                         Type = headerType.ToString(),
                         Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath,
-                        Index = templateDetails.HeaderValue != null ? templateDetails.HeaderValue.Index : 0
+                      //  Index = templateDetails.HeaderValue != null ? templateDetails.HeaderValue.Index : 0
                     });
                 }
                 else
@@ -148,89 +149,89 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     bodyParameters.Add(i, paramValue);
                 }
 
-                for (int i = 0; i < templateDetails.BodyValues.Count(); i++)
-                {
-                    // Check if the parameter for the given index is null or empty
-                    if (bodyParameters.ContainsKey(i))
-                    {
-                        var paramValue = bodyParameters[i];
+                //for (int i = 0; i < templateDetails.BodyValues.Count(); i++)
+                //{
+                //    // Check if the parameter for the given index is null or empty
+                //    if (bodyParameters.ContainsKey(i))
+                //    {
+                //        var paramValue = bodyParameters[i];
 
-                        // If parameter is null or empty, throw an error
-                        if (string.IsNullOrEmpty(paramValue))
-                        {
-                            //throw new Exception($"Error: BParam{i + 1} is required when index is {i}.");
-                            return new ApiResult
-                            {
-                                StatusCode = 0,
-                                Message = $"error - BParam{i + 1} is required when body parameter is greater than {i}."
-                            };
-                        }
+                //        // If parameter is null or empty, throw an error
+                //        if (string.IsNullOrEmpty(paramValue))
+                //        {
+                //            //throw new Exception($"Error: BParam{i + 1} is required when index is {i}.");
+                //            return new ApiResult
+                //            {
+                //                StatusCode = 0,
+                //                Message = $"error - BParam{i + 1} is required when body parameter is greater than {i}."
+                //            };
+                //        }
 
-                        // Add the parameter to the bodyComponents if it's valid
-                        bodyComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                        {
-                            Type = "text",
-                            Value = paramValue,
-                            Index = i
-                        });
-                    }
-                }
+                //        // Add the parameter to the bodyComponents if it's valid
+                //        bodyComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                //        {
+                //            Type = "text",
+                //            Value = paramValue,
+                //            Index = i
+                //        });
+                //    }
+                //}
 
                 sendMessage.Components.Add(bodyComponents);
             }
 
-            if (templateDetails.ButtonValues.Any())
-            {
-                var buttonComponents = new SendTemplateMessageDto.TemplateComponent()
-                {
-                    ComponentType = TemplateParamEnum.Button.ToString()
-                };
+            //if (templateDetails.ButtonValues.Any())
+            //{
+            //    var buttonComponents = new SendTemplateMessageDto.TemplateComponent()
+            //    {
+            //        ComponentType = TemplateParamEnum.Button.ToString()
+            //    };
 
-                for (int i = 0; i < buttonParams.Count; i++)
-                {
-                    var param = buttonParams[i];
-                    var paramValue = param.ParamText; // Use ParamDefaultValue or another field to get the parameter's value
+            //    for (int i = 0; i < buttonParams.Count; i++)
+            //    {
+            //        var param = buttonParams[i];
+            //        var paramValue = param.ParamText; // Use ParamDefaultValue or another field to get the parameter's value
 
-                    // Optionally, you can use ParamName, ParamText, or ParamDefaultValue to get the value
-                    buttonParameters.Add(param.Sequence ?? 0, paramValue);
-                }
+            //        // Optionally, you can use ParamName, ParamText, or ParamDefaultValue to get the value
+            //        buttonParameters.Add(param.Sequence ?? 0, paramValue);
+            //    }
 
-                // Get the ordered list of ButtonValues
-                var orderedButtonValues = templateDetails.ButtonValues.OrderBy(x => x.Sequence).ToList();
+            //    // Get the ordered list of ButtonValues
+            //    var orderedButtonValues = templateDetails.ButtonValues.OrderBy(x => x.Sequence).ToList();
 
-                for (int i = 0; i < orderedButtonValues.Count; i++)
-                {
-                    if (orderedButtonValues[i].Type == (int)ButtonTypeEnum.URL && orderedButtonValues[i].IsDynamic)
-                    {
-                        // Check if the parameter for the given index is null or empty
-                        if (buttonParameters.ContainsKey(i))
-                        {
-                            var paramValue = buttonParameters[i];
+            //    for (int i = 0; i < orderedButtonValues.Count; i++)
+            //    {
+            //        if (orderedButtonValues[i].Type == (int)ButtonTypeEnum.URL && orderedButtonValues[i].IsDynamic)
+            //        {
+            //            // Check if the parameter for the given index is null or empty
+            //            if (buttonParameters.ContainsKey(i))
+            //            {
+            //                var paramValue = buttonParameters[i];
 
-                            // If parameter is null or empty, throw an error
-                            if (string.IsNullOrEmpty(paramValue))
-                            {
-                                //throw new Exception($"Error: BtnParam{i + 1} is required when index is {i}.");
-                                return new ApiResult
-                                {
-                                    StatusCode = 0,
-                                    Message = $"error - BtnParam{i + 1} is required when button parameter is greater than {i}."
-                                };
-                            }
+            //                // If parameter is null or empty, throw an error
+            //                if (string.IsNullOrEmpty(paramValue))
+            //                {
+            //                    //throw new Exception($"Error: BtnParam{i + 1} is required when index is {i}.");
+            //                    return new ApiResult
+            //                    {
+            //                        StatusCode = 0,
+            //                        Message = $"error - BtnParam{i + 1} is required when button parameter is greater than {i}."
+            //                    };
+            //                }
 
-                            // Add the parameter to the buttonComponents if it's valid
-                            buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                            {
-                                Type = ((ButtonTypeEnum)orderedButtonValues[i].Type).ToString(),
-                                Value = paramValue,
-                                Index = i
-                            });
-                        }
-                    }
-                }
+            //                // Add the parameter to the buttonComponents if it's valid
+            //                buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+            //                {
+            //                    Type = ((ButtonTypeEnum)orderedButtonValues[i].Type).ToString(),
+            //                    Value = paramValue,
+            //                    Index = i
+            //                });
+            //            }
+            //        }
+            //    }
 
-                sendMessage.Components.Add(buttonComponents);
-            }
+            //    sendMessage.Components.Add(buttonComponents);
+            //}
 
             var request = JsonConvert.SerializeObject(sendMessage);
             var res = new StringContent(request, Encoding.UTF8, "application/json");

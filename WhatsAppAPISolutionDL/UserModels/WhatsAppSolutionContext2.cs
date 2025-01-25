@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WhatsAppAPISolutionDL.UserModels.Agent;
-using WhatsAppAPISolutionDL.UserModels.AppSetting;
 using WhatsAppAPISolutionDL.UserModels.Campaign;
 using WhatsAppAPISolutionDL.UserModels.Client;
 using WhatsAppAPISolutionDL.UserModels.Contact;
@@ -45,7 +44,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UTemplate> Templates { get; set; } = null!;
         public virtual DbSet<UTemplateParameter> TemplateParameters { get; set; } = null!;
         public virtual DbSet<UMediaUpload> UMediaUploads { get; set; } = null!;
-        public virtual DbSet<UTemplateDetails> TemplateDetails { get; set; } = null!;
+        public virtual DbSet<UTemplateDetail> TemplateDetails { get; set; } = null!;
         public virtual DbSet<UCampaign> Campaigns { get; set; } = null!;
         public virtual DbSet<UAPIMessage> APIMessages { get; set; } = null!;
         public virtual DbSet<UMessageSentLog> MessageSentLogs { get; set; } = null!;
@@ -75,7 +74,6 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UAgentStat> AgentStats { get; set; } = null!;
         public virtual DbSet<UInteractiveTemplate> InteractiveTemplates { get; set; } = null!;
         public virtual DbSet<UInteractiveTemplateDetail> InteractiveTemplateDetails { get; set; } = null!;
-        public virtual DbSet<UAppSetting> AppSetting { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -95,7 +93,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UTemplate>().HasNoKey();
             modelBuilder.Entity<UTemplateParameter>().HasNoKey();
             modelBuilder.Entity<UMediaUpload>().HasNoKey();
-            modelBuilder.Entity<UTemplateDetails>().HasNoKey();
+            modelBuilder.Entity<UTemplateDetail>().HasNoKey();
             modelBuilder.Entity<UCampaign>().HasNoKey();
             modelBuilder.Entity<UAPIMessage>().HasNoKey();
             modelBuilder.Entity<UMessageSentLog>().HasNoKey();
@@ -125,7 +123,6 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UAgentStat>().HasNoKey();
             modelBuilder.Entity<UInteractiveTemplate>().HasNoKey();
             modelBuilder.Entity<UInteractiveTemplateDetail>().HasNoKey();
-            modelBuilder.Entity<UAppSetting>().HasNoKey();
         }
     }
 }

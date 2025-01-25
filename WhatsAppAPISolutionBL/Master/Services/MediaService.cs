@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -186,24 +185,24 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 int maxFileSize = 0;
 
                 string keyNames = string.Join(",", new[] { MediaSizeEnum.ImageSizeInMB.ToString(), MediaSizeEnum.VideoSizeInMB.ToString(), MediaSizeEnum.DocumentSizeInMB.ToString(), MediaSizeEnum.AudioSizeInMB.ToString() });
-                var response = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_Appsettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @KeyName={keyNames}, @ClientId={model.ClientId}, @SenderId={model.SenderNameId}").ToListAsync();
+                //var response = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_Appsettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @KeyName={keyNames}, @ClientId={model.ClientId}, @SenderId={model.SenderNameId}").ToListAsync();
 
-                // Determine the key name based on the media type
-                string keyName = mediaTypeId switch
-                {
-                    (int)MediaTypeEnum.IMAGE => MediaSizeEnum.ImageSizeInMB.ToString(),
-                    (int)MediaTypeEnum.VIDEO => MediaSizeEnum.VideoSizeInMB.ToString(),
-                    (int)MediaTypeEnum.DOCUMENT => MediaSizeEnum.DocumentSizeInMB.ToString(),
-                    (int)MediaTypeEnum.AUDIO => MediaSizeEnum.AudioSizeInMB.ToString(),
-                    _ => null
-                };
+                //// Determine the key name based on the media type
+                //string keyName = mediaTypeId switch
+                //{
+                //    (int)MediaTypeEnum.IMAGE => MediaSizeEnum.ImageSizeInMB.ToString(),
+                //    (int)MediaTypeEnum.VIDEO => MediaSizeEnum.VideoSizeInMB.ToString(),
+                //    (int)MediaTypeEnum.DOCUMENT => MediaSizeEnum.DocumentSizeInMB.ToString(),
+                //    (int)MediaTypeEnum.AUDIO => MediaSizeEnum.AudioSizeInMB.ToString(),
+                //    _ => null
+                //};
 
-                if (!string.IsNullOrEmpty(keyName))
-                {
-                    var mediaSize = response.FirstOrDefault(x => x.KeyName == keyName);
-                    if (mediaSize != null)
-                        maxFileSize = Convert.ToInt32(mediaSize.Val);
-                }
+                //if (!string.IsNullOrEmpty(keyName))
+                //{
+                //    var mediaSize = response.FirstOrDefault(x => x.KeyName == keyName);
+                //    if (mediaSize != null)
+                //        maxFileSize = Convert.ToInt32(mediaSize.Val);
+                //}
 
                 // Check file size
                 int maxFileLength = maxFileSize * 1024 * 1024;
