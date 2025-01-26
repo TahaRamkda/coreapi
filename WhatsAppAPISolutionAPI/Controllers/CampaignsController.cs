@@ -50,18 +50,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Calling function AddCampaignAsync with request = {request}", JsonConvert.SerializeObject(campaign));
 
             if (campaign == null)
-            {
                 return BadRequest();
-            }
 
-            if (campaign.TemplateId <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Message = "Please select template"
-                });
-            }
-
+            if (campaign.TemplateId <= 0) 
+                return Ok(new ApiResult { Message = "Please select template" });
+              
             var response = await _campaignService.AddCampaignAsync(campaign);
             if (response == null || response.Status <= 0)
             {

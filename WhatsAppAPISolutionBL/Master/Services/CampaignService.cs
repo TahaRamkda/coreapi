@@ -19,17 +19,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly ICommunicationService _communicationService;
         private readonly IMediaService _mediaService;
+        private readonly ITemplateService _templateService;
 
         public CampaignService(
             WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
             ICommunicationService communicationService,
-            IMediaService mediaService)
+            IMediaService mediaService,
+            ITemplateService templateService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _communicationService = communicationService;
             _mediaService = mediaService;
+            _templateService = templateService;
         }
 
         public async Task<List<UCampaign>> GetCampaignListAsync(int ClientId, int CampaignId = 0, DateTime? FromDate = null, DateTime? ToDate = null, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue, int SenderId = 0)
@@ -40,54 +43,98 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> AddCampaignAsync(CampaignDto model)
         {
-            var template = await _dbContext.Templates.FindAsync(model.TemplateId);
+            var template = await _templateService.GetTemplateDetailAsync(model.ClientId, model.TemplateId);
             if (template == null)
-            {
-                return new UResponse
-                {
-                    Status = 0,
-                    Message = "No template selected"
-                };
-            }
+                return new UResponse { Status = 0, Message = "No template selected" };
+
+            #region Validations
 
             if (template.HeaderType == (int)TemplateHeaderEnum.IMAGE || template.HeaderType == (int)TemplateHeaderEnum.VIDEO || template.HeaderType == (int)TemplateHeaderEnum.DOCUMENT)
             {
                 if (model.MediaId <= 0)
-                {
-                    return new UResponse
-                    {
-                        Status = 0,
-                        Message = "Media is required for the campaign"
-                    };
-                }
+                    return new UResponse { Status = 0, Message = "Media is required for the campaign" };
 
                 var mediaDetail = await _dbContext.Medias.FindAsync(model.MediaId);
                 if (mediaDetail == null || String.IsNullOrEmpty(mediaDetail.MediaPath))
-                    return new UResponse
-                    {
-                        Status = 0,
-                        Message = "Media not exist"
-                    };
+                    return new UResponse { Status = 0, Message = "Media not exist" };
 
                 if (mediaDetail.SenderNameId != model.SenderId)
-                {
-                    return new UResponse
-                    {
-                        Status = 0,
-                        Message = "Media does not exist for this sender"
-                    };
-                }
+                    return new UResponse { Status = 0, Message = "Media does not exist for this sender" };
 
                 var allowedMedia = _mediaService.CheckAllowedTemplateHeaderType((TemplateHeaderEnum)template.HeaderType, mediaDetail.FileExtension);
                 if (!allowedMedia)
-                {
-                    return new UResponse
-                    {
-                        Status = 0,
-                        Message = $"Not allowed media for header type - {(TemplateHeaderEnum)template.HeaderType}"
-                    };
-                }
+                    return new UResponse { Status = 0, Message = $"Not allowed media for header type - {(TemplateHeaderEnum)template.HeaderType}" };
             }
+             
+            if (template.Parameters.Count == 0 && (model.CampaignParameters != null && model.CampaignParameters.Count > 0))
+                return new UResponse { Status = 0, Message = "Parameters are not required for this template" };
+
+            if (template.Parameters.Count > 0 && (model.CampaignParameters == null || model.CampaignParameters.Count == 0))
+                return new UResponse { Status = 0, Message = "Parameters are required for this template" };
+
+            var templateHeaderParam = template.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Header).FirstOrDefault();
+            if (templateHeaderParam != null)
+            {
+                var campaignHeaderParam = model.CampaignParameters.Where(x => x.ParamType == (int)TemplateParamEnum.Header).FirstOrDefault();
+                if (campaignHeaderParam == null)
+                    return new UResponse { Status = 0, Message = "Header parameter is required" };
+
+                if (templateHeaderParam.ParamName != campaignHeaderParam.ParamName)
+                    return new UResponse { Status = 0, Message = "Header parameter mismatched with template parameter" };
+
+                if (String.IsNullOrWhiteSpace(campaignHeaderParam.ParamValue))
+                    return new UResponse { Status = 0, Message = "Header parameter value is required" };
+            }
+
+            var templateBodyParams = template.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Body).ToList();
+            if (templateBodyParams.Count > 0)
+            {
+                var campaignBodyParams = model.CampaignParameters.Where(x => x.ParamType == (int)TemplateParamEnum.Body).ToList();
+                if (campaignBodyParams.Count == 0)
+                    return new UResponse { Status = 0, Message = "Body parameters is required" };
+
+                if (templateBodyParams.Count != campaignBodyParams.Count)
+                    return new UResponse { Status = 0, Message = "Body parameter mismatched with template parameter" };
+
+                if (campaignBodyParams.Any(x => String.IsNullOrWhiteSpace(x.ParamName)))
+                    return new UResponse { Status = 0, Message = "Body parameter name cannot be empty" };
+
+                if (campaignBodyParams.Any(x => String.IsNullOrWhiteSpace(x.ParamValue)))
+                    return new UResponse { Status = 0, Message = "All body parameter value is required" };
+
+                var templateBodyParamNames = templateBodyParams.Select(x => x.ParamName).ToList();
+                var campaignBodyParamNames = campaignBodyParams.Select(x => x.ParamName).ToList();
+
+                var areEqual = templateBodyParamNames.All(item => campaignBodyParamNames.Contains(item));
+                if (!areEqual)
+                    return new UResponse { Status = 0, Message = "Template body parameters does not match with campaign body parameters" };
+            }
+
+            var templateButtonParams = template.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button).ToList();
+            if (templateButtonParams.Count > 0)
+            {
+                var campaignButtonParams = model.CampaignParameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button).ToList();
+                if (campaignButtonParams.Count == 0)
+                    return new UResponse { Status = 0, Message = "Buttons parameters is required" };
+
+                if (templateButtonParams.Count != campaignButtonParams.Count)
+                    return new UResponse { Status = 0, Message = "Buttons parameter mismatched with template parameter" };
+
+                if (campaignButtonParams.Any(x => String.IsNullOrWhiteSpace(x.ParamName)))
+                    return new UResponse { Status = 0, Message = "Buttons parameter name cannot be empty" };
+
+                if (campaignButtonParams.Any(x => String.IsNullOrWhiteSpace(x.ParamValue)))
+                    return new UResponse { Status = 0, Message = "All buttons parameter value is required" };
+
+                var templateButtonParamNames = templateButtonParams.Select(x => x.ParamName).ToList();
+                var campaignButtonParamNames = campaignButtonParams.Select(x => x.ParamName).ToList();
+
+                var areEqual = templateButtonParamNames.All(item => campaignButtonParamNames.Contains(item));
+                if (!areEqual)
+                    return new UResponse { Status = 0, Message = "Template buttons parameters does not match with campaign buttons parameters" };
+            }
+
+            #endregion
 
             var campaignParamJson = JsonSerializer.Serialize(model.CampaignParameters);
             var campaignContactJson = JsonSerializer.Serialize(model.CampaignContacts);
@@ -105,54 +152,98 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> UpdateCampaignAsync(CampaignDto model)
         {
-            var template = await _dbContext.Templates.FindAsync(model.TemplateId);
+            var template = await _templateService.GetTemplateDetailAsync(model.ClientId, model.TemplateId);
             if (template == null)
-            {
-                return new UResponse
-                {
-                    Status = 0,
-                    Message = "No template selected"
-                };
-            }
+                return new UResponse { Status = 0, Message = "No template selected" };
+
+            #region Validations
 
             if (template.HeaderType == (int)TemplateHeaderEnum.IMAGE || template.HeaderType == (int)TemplateHeaderEnum.VIDEO || template.HeaderType == (int)TemplateHeaderEnum.DOCUMENT)
             {
                 if (model.MediaId <= 0)
-                {
-                    return new UResponse
-                    {
-                        Status = 0,
-                        Message = "Media is required for the campaign"
-                    };
-                }
+                    return new UResponse { Status = 0, Message = "Media is required for the campaign" };
 
                 var mediaDetail = await _dbContext.Medias.FindAsync(model.MediaId);
                 if (mediaDetail == null || String.IsNullOrEmpty(mediaDetail.MediaPath))
-                    return new UResponse
-                    {
-                        Status = 0,
-                        Message = "Media not exist"
-                    };
+                    return new UResponse { Status = 0, Message = "Media not exist" };
 
                 if (mediaDetail.SenderNameId != model.SenderId)
-                {
-                    return new UResponse
-                    {
-                        Status = 0,
-                        Message = "Media does not exist for this sender"
-                    };
-                }
+                    return new UResponse { Status = 0, Message = "Media does not exist for this sender" };
 
                 var allowedMedia = _mediaService.CheckAllowedTemplateHeaderType((TemplateHeaderEnum)template.HeaderType, mediaDetail.FileExtension);
                 if (!allowedMedia)
-                {
-                    return new UResponse
-                    {
-                        Status = 0,
-                        Message = $"Not allowed media for header type - {(TemplateHeaderEnum)template.HeaderType}"
-                    };
-                }
+                    return new UResponse { Status = 0, Message = $"Not allowed media for header type - {(TemplateHeaderEnum)template.HeaderType}" };
             }
+
+            if (template.Parameters.Count == 0 && (model.CampaignParameters != null && model.CampaignParameters.Count > 0))
+                return new UResponse { Status = 0, Message = "Parameters are not required for this template" };
+
+            if (template.Parameters.Count > 0 && (model.CampaignParameters == null || model.CampaignParameters.Count == 0))
+                return new UResponse { Status = 0, Message = "Parameters are required for this template" };
+
+            var templateHeaderParam = template.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Header).FirstOrDefault();
+            if (templateHeaderParam != null)
+            {
+                var campaignHeaderParam = model.CampaignParameters.Where(x => x.ParamType == (int)TemplateParamEnum.Header).FirstOrDefault();
+                if (campaignHeaderParam == null)
+                    return new UResponse { Status = 0, Message = "Header parameter is required" };
+
+                if (templateHeaderParam.ParamName != campaignHeaderParam.ParamName)
+                    return new UResponse { Status = 0, Message = "Header parameter mismatched with template parameter" };
+
+                if (String.IsNullOrWhiteSpace(campaignHeaderParam.ParamValue))
+                    return new UResponse { Status = 0, Message = "Header parameter value is required" };
+            }
+
+            var templateBodyParams = template.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Body).ToList();
+            if (templateBodyParams.Count > 0)
+            {
+                var campaignBodyParams = model.CampaignParameters.Where(x => x.ParamType == (int)TemplateParamEnum.Body).ToList();
+                if (campaignBodyParams.Count == 0)
+                    return new UResponse { Status = 0, Message = "Body parameters is required" };
+
+                if (templateBodyParams.Count != campaignBodyParams.Count)
+                    return new UResponse { Status = 0, Message = "Body parameter mismatched with template parameter" };
+
+                if (campaignBodyParams.Any(x => String.IsNullOrWhiteSpace(x.ParamName)))
+                    return new UResponse { Status = 0, Message = "Body parameter name cannot be empty" };
+
+                if (campaignBodyParams.Any(x => String.IsNullOrWhiteSpace(x.ParamValue)))
+                    return new UResponse { Status = 0, Message = "All body parameter value is required" };
+
+                var templateBodyParamNames = templateBodyParams.Select(x => x.ParamName).ToList();
+                var campaignBodyParamNames = campaignBodyParams.Select(x => x.ParamName).ToList();
+
+                var areEqual = templateBodyParamNames.All(item => campaignBodyParamNames.Contains(item));
+                if (!areEqual)
+                    return new UResponse { Status = 0, Message = "Template body parameters does not match with campaign body parameters" };
+            }
+
+            var templateButtonParams = template.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button).ToList();
+            if (templateButtonParams.Count > 0)
+            {
+                var campaignButtonParams = model.CampaignParameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button).ToList();
+                if (campaignButtonParams.Count == 0)
+                    return new UResponse { Status = 0, Message = "Buttons parameters is required" };
+
+                if (templateButtonParams.Count != campaignButtonParams.Count)
+                    return new UResponse { Status = 0, Message = "Buttons parameter mismatched with template parameter" };
+
+                if (campaignButtonParams.Any(x => String.IsNullOrWhiteSpace(x.ParamName)))
+                    return new UResponse { Status = 0, Message = "Buttons parameter name cannot be empty" };
+
+                if (campaignButtonParams.Any(x => String.IsNullOrWhiteSpace(x.ParamValue)))
+                    return new UResponse { Status = 0, Message = "All buttons parameter value is required" };
+
+                var templateButtonParamNames = templateButtonParams.Select(x => x.ParamName).ToList();
+                var campaignButtonParamNames = campaignButtonParams.Select(x => x.ParamName).ToList();
+
+                var areEqual = templateButtonParamNames.All(item => campaignButtonParamNames.Contains(item));
+                if (!areEqual)
+                    return new UResponse { Status = 0, Message = "Template buttons parameters does not match with campaign buttons parameters" };
+            }
+
+            #endregion
 
             var campaignParamJson = JsonSerializer.Serialize(model.CampaignParameters);
             var campaignContactJson = JsonSerializer.Serialize(model.CampaignContacts);

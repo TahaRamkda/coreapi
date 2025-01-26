@@ -109,6 +109,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
                 if (invalidUrls.Any())
                     return Ok(new ApiResult { Message = "Invalid url provided in buttons" });
+
+                var sameButtonParams = model.Buttons.Where(x => x.ButtonType == (int)ButtonTypeEnum.URL && x.DynamicValue != null).
+                                        Select(x => x.DynamicValue.ParamName).ToList().GroupBy(x => x)
+                                        .Any(g => g.Count() > 1);
+
+                if (sameButtonParams)
+                    return Ok(new ApiResult { Message = "Buttons cannot have same parameter name" });
             }
 
             var response = await _templateService.AddTemplateAsync(model);

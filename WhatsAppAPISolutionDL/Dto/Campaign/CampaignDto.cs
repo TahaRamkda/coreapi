@@ -21,16 +21,15 @@
         public List<CampaignParamDto> CampaignParameters { get; set; }
         public List<CampaignContactDto> CampaignContacts { get; set; }
     }
+
     public partial class CampaignParamDto
     {
-        public int? Sequence { get; set; }
         public string ParamName { get; set; }
-        public string ParamText { get; set; }
-        public int? ParamType { get; set; }
-        public string ParamDefaultValue { get; set; }
-        public bool? IsDynamic { get; set; }
-        public int? Status { get; set; }
+        public string ParamValue { get; set; }
+        public int? ParamType { get; set; } 
+        public int? Sequence { get; set; }
     }
+
     public partial class CampaignContactDto
     {
         public int? GroupId { get; set; }
