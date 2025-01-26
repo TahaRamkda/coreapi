@@ -41,8 +41,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Campaign
 
         public class Parameter
         {
-            public int? CampaignParamId { get; set; }
-            public int? CampaignId { get; set; }
+            public int? CampaignParamId { get; set; } 
             public int? Sequence { get; set; }
             public string ParamName { get; set; }
             public string ParamValue { get; set; }

@@ -145,7 +145,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             if (campaign.CampaignId <= 0)
                 return Ok(new ApiResult { Message = "Please select campaign" });
- 
+
             var response = await _campaignService.UpdateCampaignAsync(campaign);
 
             _logger.LogInformation("Received api UpdateCampaignAsync response with data={data}", JsonConvert.SerializeObject(response));
@@ -312,29 +312,18 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Calling function GetCampaignDetailAsyn request with ClientId={ClientId}, CampaignId={CampaignId}", ClientId, CampaignId);
 
             if (ClientId <= 0)
-                return Ok(new ApiResult
-                {
-                    Message = "Client is required"
-                });
+                return Ok(new ApiResult { Message = "Client is required" });
 
             if (CampaignId <= 0)
-                return Ok(new ApiResult
-                {
-                    Message = "Campaign is required"
-                });
+                return Ok(new ApiResult { Message = "Campaign is required" });
 
             var res = await _campaignService.GetCampaignDetailAsync(ClientId, CampaignId);
 
             _logger.LogInformation("Received GetCampaignDetailAsyn response with data={data}", JsonConvert.SerializeObject(res));
 
             if (res == null)
-            {
-                return Ok(new ApiResult
-                {
-                    Message = "No data found"
-                });
-            }
-
+                return Ok(new ApiResult { Message = "No data found" });
+ 
             return Ok(new ApiResult
             {
                 Success = true,
