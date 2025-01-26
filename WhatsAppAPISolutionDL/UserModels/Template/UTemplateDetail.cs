@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 
 namespace WhatsAppAPISolutionDL.UserModels.Template
@@ -34,7 +35,9 @@ namespace WhatsAppAPISolutionDL.UserModels.Template
         public string BodyText { get; set; }
         public int? BodyParamCount { get; set; }
         public string FooterText { get; set; }
+        [JsonIgnore]
         public string ButtonsJson { get; set; }
+        [JsonIgnore]
         public string ParametersJson { get; set; }
 
         [NotMapped]

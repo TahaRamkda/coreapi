@@ -52,9 +52,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (campaign == null)
                 return BadRequest();
 
-            if (campaign.TemplateId <= 0) 
+            if (campaign.TemplateId <= 0)
                 return Ok(new ApiResult { Message = "Please select template" });
-              
+
             var response = await _campaignService.AddCampaignAsync(campaign);
             if (response == null || response.Status <= 0)
             {
@@ -138,26 +138,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Calling api UpdateCampaignAsync with request={requst}", JsonConvert.SerializeObject(campaign));
 
             if (campaign == null)
-            {
-                return BadRequest();
-            }
+                return Ok(new ApiResult { Message = "Campaign not found" });
 
             if (campaign.ClientId <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Message = "Please select client"
-                });
-            }
+                return Ok(new ApiResult { Message = "Please select client" });
 
             if (campaign.CampaignId <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Message = "Please select campaign"
-                });
-            }
-
+                return Ok(new ApiResult { Message = "Please select campaign" });
+ 
             var response = await _campaignService.UpdateCampaignAsync(campaign);
 
             _logger.LogInformation("Received api UpdateCampaignAsync response with data={data}", JsonConvert.SerializeObject(response));
@@ -226,15 +214,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Calling api SendCampaignAsync with request={requst}", JsonConvert.SerializeObject(campaign));
 
             if (campaign.CampaignId <= 0)
-                return Ok(new ApiResult
-                {
-                    Message = "Campaign is required"
-                });
+                return Ok(new ApiResult { Message = "Campaign is required" });
+
             if (campaign.PhoneNumbers == null || !campaign.PhoneNumbers.Any())
-                return Ok(new ApiResult
-                {
-                    Message = "Please add atleast one phone number"
-                });
+                return Ok(new ApiResult { Message = "Please add atleast one phone number" });
 
             var response = await _campaignService.SendCampaignMessagesAsync(campaign);
 

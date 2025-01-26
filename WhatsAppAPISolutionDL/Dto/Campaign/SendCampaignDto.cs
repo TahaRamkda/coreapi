@@ -12,6 +12,7 @@ namespace WhatsAppAPISolutionDL.Dto.Campaign
         {
             PhoneNumbers = new List<string>();
         }
+        public int ClientId { get; set; }
         public int CampaignId { get; set; }
         public List<string> PhoneNumbers { get; set; }
     }

@@ -90,18 +90,32 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
             }
 
-            var paramList = new List<ParamData>
-            {
-                new ParamData { ParamText = sendSms.HParam, ParamType = (int)TemplateParamEnum.Header, Sequence = 1 },
-                new ParamData { ParamText = sendSms.BParam1, ParamType = (int)TemplateParamEnum.Body, Sequence = 1  },
-                new ParamData { ParamText = sendSms.BParam2, ParamType = (int)TemplateParamEnum.Body, Sequence = 2  },
-                new ParamData { ParamText = sendSms.BParam3, ParamType = (int)TemplateParamEnum.Body, Sequence = 3  },
-                new ParamData { ParamText = sendSms.BParam4, ParamType = (int)TemplateParamEnum.Body, Sequence = 4  },
-                new ParamData { ParamText = sendSms.BtnParam1, ParamType = (int)TemplateParamEnum.Button, Sequence = 0  },
-                new ParamData { ParamText = sendSms.BtnParam2, ParamType = (int)TemplateParamEnum.Button, Sequence = 1  },
-                new ParamData { ParamText = sendSms.BtnParam3, ParamType = (int)TemplateParamEnum.Button, Sequence = 2  }
-            };
-             
+            var paramList = new List<ParamData>();
+
+            if (!String.IsNullOrWhiteSpace(sendSms.HParam))
+                paramList.Add(new ParamData { ParamType = (int)TemplateParamEnum.Header, ParamValue = sendSms.HParam, Sequence = 0 });
+
+            if (!String.IsNullOrWhiteSpace(sendSms.BParam1))
+                paramList.Add(new ParamData { ParamType = (int)TemplateParamEnum.Body, ParamValue = sendSms.BParam1, Sequence = 0 });
+
+            if (!String.IsNullOrWhiteSpace(sendSms.BParam2))
+                paramList.Add(new ParamData { ParamType = (int)TemplateParamEnum.Body, ParamValue = sendSms.BParam2, Sequence = 1 });
+
+            if (!String.IsNullOrWhiteSpace(sendSms.BParam3))
+                paramList.Add(new ParamData { ParamType = (int)TemplateParamEnum.Body, ParamValue = sendSms.BParam3, Sequence = 2 });
+
+            if (!String.IsNullOrWhiteSpace(sendSms.BParam4))
+                paramList.Add(new ParamData { ParamType = (int)TemplateParamEnum.Body, ParamValue = sendSms.BParam4, Sequence = 3 });
+
+            if (!String.IsNullOrWhiteSpace(sendSms.BtnParam1))
+                paramList.Add(new ParamData { ParamType = (int)TemplateParamEnum.Button, ParamValue = sendSms.BtnParam1, Sequence = 0 });
+
+            if (!String.IsNullOrWhiteSpace(sendSms.BtnParam2))
+                paramList.Add(new ParamData { ParamType = (int)TemplateParamEnum.Button, ParamValue = sendSms.BtnParam2, Sequence = 1 });
+
+            if (!String.IsNullOrWhiteSpace(sendSms.BtnParam3))
+                paramList.Add(new ParamData { ParamType = (int)TemplateParamEnum.Button, ParamValue = sendSms.BtnParam3, Sequence = 2 });
+
             // Add each ParamData object to tempPayload.Params
             tempPayload.Params.AddRange(paramList);
 

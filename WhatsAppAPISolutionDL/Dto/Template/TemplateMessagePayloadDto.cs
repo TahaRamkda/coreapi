@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WhatsAppAPISolutionDL.UserModels;
-
-namespace WhatsAppAPISolutionDL.Dto.Template
+﻿namespace WhatsAppAPISolutionDL.Dto.Template
 {
     public partial class TemplateMessagePayloadDto
     {
@@ -28,7 +21,7 @@ namespace WhatsAppAPISolutionDL.Dto.Template
     }
     public class ParamData
     {
-        public string ParamText { get; set; }
+        public string ParamValue { get; set; }
         public int? ParamType { get; set; }
         public int? Sequence { get; set; }
     }

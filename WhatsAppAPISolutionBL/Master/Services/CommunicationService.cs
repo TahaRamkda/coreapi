@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System.Security.Policy;
 using System.Text;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
@@ -49,189 +50,120 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _mediaService = mediaService;
         }
 
-        public async Task<ApiResult> SendTemplateMessageAsync(TemplateMessagePayloadDto templateMessage)
+        public async Task<ApiResult> SendTemplateMessageAsync(TemplateMessagePayloadDto model)
         {
-            UTemplateDetail templateDetails = null; //await _templateService.GetTemplateDetailsAsync(templateMessage.ClientId, templateMessage.TemplateId);
-            if (templateDetails == null)
-                return new ApiResult
-                {
-                    StatusCode = 0,
-                    Message = "Template not found or deleted"
-                };
+            var template = await _templateService.GetTemplateDetailAsync(model.ClientId, model.TemplateId);
+            if (template == null)
+                return new ApiResult { StatusCode = 0, Message = "Template not found or deleted" };
 
-            var headerParam = templateMessage.Params != null ? templateMessage.Params.Where(x => x.ParamType == (int)TemplateParamEnum.Header).FirstOrDefault()?.ParamText : "";
-            var bodyParams = templateMessage.Params != null ? templateMessage.Params.Where(x => x.ParamType == (int)TemplateParamEnum.Body).ToList() : null;
-            var buttonParams = templateMessage.Params != null ? templateMessage.Params.Where(x => x.ParamType == (int)TemplateParamEnum.Button).ToList() : null;
+            ParamData headerParameter = model.Params != null ? model.Params.Where(x => x.ParamType == (int)TemplateParamEnum.Header).FirstOrDefault() : null;
+            List<ParamData> bodyParameters = model.Params != null ? model.Params.Where(x => x.ParamType == (int)TemplateParamEnum.Body).ToList() : new List<ParamData>();
+            List<ParamData> buttonParameters = model.Params != null ? model.Params.Where(x => x.ParamType == (int)TemplateParamEnum.Button).ToList() : new List<ParamData>();
 
-            var bodyParameters = new Dictionary<int, string>();
-            var buttonParameters = new Dictionary<int, string>();
-
-            var sendMessage = new SendTemplateMessageDto()
+            var sendMessage = new SendTemplateMessageDto
             {
-                ClientId = templateDetails.ClientId.ToString(),
-                SenderNameId = templateDetails.SenderId.ToString(),
-                PhoneNumbers = templateMessage.PhoneNumbers,
-                LanguageCode = templateDetails.Language,
-                TemplateId = templateDetails.TemplateId,
-                TemplateName = templateDetails.TemplateName
+                ClientId = template.ClientId.ToString(),
+                SenderNameId = template.SenderId.ToString(),
+                PhoneNumbers = model.PhoneNumbers,
+                LanguageCode = template.Language,
+                TemplateId = template.TemplateId,
+                TemplateName = template.TemplateName
             };
 
-            var headerType = (TemplateHeaderEnum)templateDetails.HeaderType;
-            if (headerType == TemplateHeaderEnum.TEXT && templateDetails.HeaderParamCount > 0)
+            var headerType = (TemplateHeaderEnum)template.HeaderType;
+            if (headerType == TemplateHeaderEnum.TEXT && template.HeaderParamCount > 0)
             {
-                if (String.IsNullOrEmpty(headerParam))
-                {
-                    return new ApiResult
-                    {
-                        StatusCode = 0,
-                        Message = $"error - HParam is required."
-                    };
-                }
+                if (headerParameter == null || String.IsNullOrWhiteSpace(headerParameter.ParamValue))
+                    return new ApiResult { StatusCode = 0, Message = $"error - HParam is required." };
 
-                var headerComponents = new SendTemplateMessageDto.TemplateComponent()
+                var headerComponents = new SendTemplateMessageDto.TemplateComponent
                 {
-                    ComponentType = TemplateParamEnum.Header.ToString()
+                    ComponentType = nameof(TemplateParamEnum.Header)
                 };
 
-                headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue
                 {
                     Type = headerType.ToString(),
-                    Value = headerParam,
-                   // Index = templateDetails.HeaderValue != null ? templateDetails.HeaderValue.Index : 0
+                    Value = headerParameter.ParamValue,
+                    Index = headerParameter.Sequence,
                 });
 
                 sendMessage.Components.Add(headerComponents);
             }
-            else if (headerType == TemplateHeaderEnum.IMAGE
-                    || headerType == TemplateHeaderEnum.DOCUMENT
-                    || headerType == TemplateHeaderEnum.VIDEO)
+            else if (headerType == TemplateHeaderEnum.IMAGE || headerType == TemplateHeaderEnum.DOCUMENT || headerType == TemplateHeaderEnum.VIDEO)
             {
                 var headerComponents = new SendTemplateMessageDto.TemplateComponent()
                 {
                     ComponentType = TemplateParamEnum.Header.ToString()
                 };
 
-                var media = _dbContext.Medias.Find(templateMessage.MediaId > 0 ? templateMessage.MediaId : templateDetails.MediaId); //If in campaign media id is present take reference from there, else default media
+                var media = _dbContext.Medias.Find(model.MediaId > 0 ? model.MediaId : template.MediaId); //If in campaign media id is present take reference from there, else default media
                 if (media != null)
                 {
                     var mediaPath = String.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, media.MediaPath);
                     headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
                     {
                         Type = headerType.ToString(),
-                        Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath,
-                      //  Index = templateDetails.HeaderValue != null ? templateDetails.HeaderValue.Index : 0
+                        Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath
                     });
                 }
                 else
-                {
-                    return new ApiResult
-                    {
-                        Message = $"error - Cannot find template media."
-                    };
-                }
+                    return new ApiResult { Message = $"error - Cannot find template media." };
 
                 sendMessage.Components.Add(headerComponents);
             }
 
-            if (templateDetails.BodyParamCount > 0)
+            if (template.BodyParamCount > 0)
             {
+                if (bodyParameters.Count == 0 || bodyParameters.Count < template.BodyParamCount)
+                    return new ApiResult { StatusCode = 0, Message = $"error - Body paramaters passed is less than required parameters." };
+
                 var bodyComponents = new SendTemplateMessageDto.TemplateComponent()
                 {
                     ComponentType = TemplateParamEnum.Body.ToString()
                 };
 
-                for (int i = 0; i < bodyParams.Count; i++)
+                for (var i = 0; i < template.BodyParamCount; i++)
                 {
-                    var param = bodyParams[i];
-                    var paramValue = param.ParamText; // Use ParamDefaultValue or another field to get the parameter's value
+                    var param = bodyParameters.Where(x => x.Sequence == i).FirstOrDefault();
+                    if (param == null || String.IsNullOrWhiteSpace(param.ParamValue))
+                        return new ApiResult { StatusCode = 0, Message = $"error - BParam {i + 1} is not passed." };
 
-                    // Optionally, you can use ParamName, ParamText, or ParamDefaultValue to get the value
-                    bodyParameters.Add(i, paramValue);
+                    bodyComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                    {
+                        Type = "text",
+                        Value = param.ParamValue,
+                        Index = i
+                    });
                 }
-
-                //for (int i = 0; i < templateDetails.BodyValues.Count(); i++)
-                //{
-                //    // Check if the parameter for the given index is null or empty
-                //    if (bodyParameters.ContainsKey(i))
-                //    {
-                //        var paramValue = bodyParameters[i];
-
-                //        // If parameter is null or empty, throw an error
-                //        if (string.IsNullOrEmpty(paramValue))
-                //        {
-                //            //throw new Exception($"Error: BParam{i + 1} is required when index is {i}.");
-                //            return new ApiResult
-                //            {
-                //                StatusCode = 0,
-                //                Message = $"error - BParam{i + 1} is required when body parameter is greater than {i}."
-                //            };
-                //        }
-
-                //        // Add the parameter to the bodyComponents if it's valid
-                //        bodyComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                //        {
-                //            Type = "text",
-                //            Value = paramValue,
-                //            Index = i
-                //        });
-                //    }
-                //}
 
                 sendMessage.Components.Add(bodyComponents);
             }
 
-            //if (templateDetails.ButtonValues.Any())
-            //{
-            //    var buttonComponents = new SendTemplateMessageDto.TemplateComponent()
-            //    {
-            //        ComponentType = TemplateParamEnum.Button.ToString()
-            //    };
+            var templateButtonParams = template.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button).ToList();
+            if (templateButtonParams != null && templateButtonParams.Any())
+            {
+                var buttonComponents = new SendTemplateMessageDto.TemplateComponent()
+                {
+                    ComponentType = TemplateParamEnum.Button.ToString()
+                };
 
-            //    for (int i = 0; i < buttonParams.Count; i++)
-            //    {
-            //        var param = buttonParams[i];
-            //        var paramValue = param.ParamText; // Use ParamDefaultValue or another field to get the parameter's value
+                for (var i = 0; i < templateButtonParams.Count; i++)
+                {
+                    var param = buttonParameters.Where(x => x.Sequence == templateButtonParams[i].Sequence).FirstOrDefault();
+                    if (param == null || String.IsNullOrWhiteSpace(param.ParamValue))
+                        return new ApiResult { StatusCode = 0, Message = $"error - BtnParam {templateButtonParams[i].Sequence + 1} is not passed." };
 
-            //        // Optionally, you can use ParamName, ParamText, or ParamDefaultValue to get the value
-            //        buttonParameters.Add(param.Sequence ?? 0, paramValue);
-            //    }
+                    buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                    {
+                        Type = nameof(ButtonTypeEnum.URL),
+                        Value = param.ParamValue,
+                        Index = templateButtonParams[i].Sequence
+                    });
+                }
 
-            //    // Get the ordered list of ButtonValues
-            //    var orderedButtonValues = templateDetails.ButtonValues.OrderBy(x => x.Sequence).ToList();
-
-            //    for (int i = 0; i < orderedButtonValues.Count; i++)
-            //    {
-            //        if (orderedButtonValues[i].Type == (int)ButtonTypeEnum.URL && orderedButtonValues[i].IsDynamic)
-            //        {
-            //            // Check if the parameter for the given index is null or empty
-            //            if (buttonParameters.ContainsKey(i))
-            //            {
-            //                var paramValue = buttonParameters[i];
-
-            //                // If parameter is null or empty, throw an error
-            //                if (string.IsNullOrEmpty(paramValue))
-            //                {
-            //                    //throw new Exception($"Error: BtnParam{i + 1} is required when index is {i}.");
-            //                    return new ApiResult
-            //                    {
-            //                        StatusCode = 0,
-            //                        Message = $"error - BtnParam{i + 1} is required when button parameter is greater than {i}."
-            //                    };
-            //                }
-
-            //                // Add the parameter to the buttonComponents if it's valid
-            //                buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-            //                {
-            //                    Type = ((ButtonTypeEnum)orderedButtonValues[i].Type).ToString(),
-            //                    Value = paramValue,
-            //                    Index = i
-            //                });
-            //            }
-            //        }
-            //    }
-
-            //    sendMessage.Components.Add(buttonComponents);
-            //}
+                sendMessage.Components.Add(buttonComponents);
+            }
 
             var request = JsonConvert.SerializeObject(sendMessage);
             var res = new StringContent(request, Encoding.UTF8, "application/json");
@@ -249,7 +181,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     foreach (var item in tempResult)
                     {
-                        var model = new CustomIntegrationResult
+                        var response = new CustomIntegrationResult
                         {
                             Sent = item.success,
                             PhoneNumber = item.phoneNumber,
@@ -258,15 +190,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                         var message = new InsertMessageDto
                         {
-                            ClientId = templateDetails.ClientId ?? 0,
-                            SenderId = templateDetails.SenderId,
+                            ClientId = template.ClientId ?? 0,
+                            SenderId = template.SenderId,
                             WaId = item.waId,
                             RecipientId = item.phoneNumber,
                             Status = item.success ? MessageStatusEnum.SENT : MessageStatusEnum.FAILED,
-                            ModuleId = templateMessage.ModuleId,
-                            ParentId = templateMessage.ParentId,
+                            ModuleId = model.ModuleId,
+                            ParentId = model.ParentId,
                             MessageType = (int)MainMessageTypeEnum.TEMPLATE,
-                            MessageReferenceId = (int)templateDetails.Id
+                            MessageReferenceId = (int)template.Id
                         };
 
                         if (item.errors != null && item.errors.Any())
@@ -277,13 +209,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 ErrorDetails = errors
                             };
 
-                            model.Errors = errors;
+                            response.Errors = errors;
                         }
 
                         await _messageSentLogsService.AddMessageSentLogAsync(message);
 
                         //Add result to custom integration result models
-                        models.Add(model);
+                        models.Add(response);
                     }
                 }
             }

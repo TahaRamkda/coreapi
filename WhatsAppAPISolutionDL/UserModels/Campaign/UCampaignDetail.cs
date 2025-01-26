@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace WhatsAppAPISolutionDL.UserModels.Campaign
 {
@@ -6,7 +7,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Campaign
     {
         public UCampaignDetail()
         {
-            Parameters = new List<UCampaignDetailParam>();
+            Parameters = new List<Parameter>();
         }
 
         public int? CampaignId { get; set; }
@@ -32,7 +33,20 @@ namespace WhatsAppAPISolutionDL.UserModels.Campaign
         public string CreatedByName { get; set; }
         public string CreatedDate { get; set; }
 
-        [NotMapped]
-        public List<UCampaignDetailParam> Parameters { get; set; }
+        [JsonIgnore]
+        public string ParamsJson { get; set; }
+
+        [NotMapped] 
+        public List<Parameter> Parameters { get; set; }
+
+        public class Parameter
+        {
+            public int? CampaignParamId { get; set; }
+            public int? CampaignId { get; set; }
+            public int? Sequence { get; set; }
+            public string ParamName { get; set; }
+            public string ParamValue { get; set; }
+            public int? ParamType { get; set; }
+        }
     }
 }

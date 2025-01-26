@@ -59,7 +59,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 && x.Language.ToLower() == model.Language.ToLower()).FirstOrDefaultAsync();
 
             if (templateNameExist != null)
-                return new UResponseWithID { Status = 0, Message = "Template with same name already exist" };
+                return new UResponseWithID { Message = "Template with same name already exist" };
 
             //Globals
             //Regex regex = new Regex(@"{{\d+}}");
@@ -77,7 +77,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (model.Header != null)
             {
                 if (model.Header.Format <= 0)
-                    return new UResponseWithID { Status = 0, Message = "Header format not mentioned" };
+                    return new UResponseWithID { Message = "Header format not mentioned" };
 
                 headerType = model.Header.Format;
                 var headerFormat = (TemplateHeaderEnum)model.Header.Format;
@@ -86,25 +86,25 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     //Media related validations
                     if (model.MediaId <= 0)
-                        return new UResponseWithID { Status = 0, Message = "Media is required when header type is not text" };
+                        return new UResponseWithID { Message = "Media is required when header type is not text" };
 
                     var mediaDetail = await _dbContext.Medias.FindAsync(model.MediaId);
                     if (mediaDetail == null || string.IsNullOrEmpty(mediaDetail.MediaPath))
-                        return new UResponseWithID { Status = 0, Message = "Media not exist" };
+                        return new UResponseWithID { Message = "Media not exist" };
 
                     if (mediaDetail.SenderNameId != model.SenderNameId)
-                        return new UResponseWithID { Status = 0, Message = "Media does not exist for this sender" };
+                        return new UResponseWithID { Message = "Media does not exist for this sender" };
 
                     var allowedMedia = _mediaService.CheckAllowedTemplateHeaderType(headerFormat, mediaDetail.FileExtension);
                     if (!allowedMedia)
-                        return new UResponseWithID { Status = 0, Message = $"Not allowed media for header type - {headerFormat}" };
+                        return new UResponseWithID { Message = $"Not allowed media for header type - {headerFormat}" };
 
                 }
 
                 if (headerFormat == TemplateHeaderEnum.TEXT)
                 {
                     if (String.IsNullOrWhiteSpace(model.Header.Text))
-                        return new UResponseWithID { Status = 0, Message = "Header text is required" };
+                        return new UResponseWithID { Message = "Header text is required" };
 
                     model.Header.Text = model.Header.Text.Trim();
                     headerText = model.Header.Text;
@@ -112,11 +112,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     MatchCollection matches = regex.Matches(model.Header.Text);
                     if (matches.Count > 0)
                     {
-                        if (model.Header.DynamicValue == null)
-                            return new UResponseWithID { Status = 0, Message = "Header default parameter is required" };
+                        if (model.Header.DynamicValue == null || String.IsNullOrWhiteSpace(model.Header.DynamicValue.ParamName) || String.IsNullOrWhiteSpace(model.Header.DynamicValue.ParamValue))
+                            return new UResponseWithID { Message = "Header default parameter is required" };
 
                         if (matches.Count > 1)
-                            return new UResponseWithID { Status = 0, Message = "Only one header parameter is allowed" };
+                            return new UResponseWithID { Message = "Only one header parameter is allowed" };
+
+                        if (matches[0].Value != model.Header.DynamicValue.ParamName)
+                            return new UResponseWithID { Message = "Headere parameter passed does not match with header text" };
 
                         headerTextCount = matches.Count;
                         parameters.Add(new TemplateDto.TemplateParameter
@@ -124,7 +127,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             ParamType = (int)TemplateParamEnum.Header,
                             ParamName = model.Header.DynamicValue.ParamName,
                             ParamDefaultValue = model.Header.DynamicValue.ParamValue,
-                            Sequence = 1
+                            Sequence = 0
                         });
                     }
                 }
@@ -134,22 +137,35 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (model.Body != null)
             {
                 if (String.IsNullOrWhiteSpace(model.Body.Text))
-                    return new UResponseWithID { Status = 0, Message = "Body text is required" };
+                    return new UResponseWithID { Message = "Body text is required" };
 
                 model.Body.Text = model.Body.Text.Trim();
                 bodyText = model.Body.Text;
                 MatchCollection matches = regex.Matches(model.Body.Text);
                 if (matches.Count > 0)
                 {
-                    var distinctMatch = matches.Select(x => x.Value).Distinct().ToList();
-
                     if (model.Body.DynamicValues == null || model.Body.DynamicValues.Count == 0)
-                        return new UResponseWithID { Status = 0, Message = "Body text parameter is required" };
+                        return new UResponseWithID { Message = "Body text parameter is required" };
 
-                    if (distinctMatch.Count() != model.Body.DynamicValues.Count)
-                        return new UResponseWithID { Status = 0, Message = "Body text parameters is not matching with body text count" };
+                    var duplicate = matches.Select(x => x.Value).GroupBy(item => item).Where(group => group.Count() > 1).Select(group => group.Key).ToList();
+                    if (duplicate.Any())
+                        return new UResponseWithID { Message = "Cannot have duplicate parameters in body." };
 
-                    bodyTextCount = distinctMatch.Count();
+                    if (matches.Count != model.Body.DynamicValues.Count)
+                        return new UResponseWithID { Message = "Body text parameters is not matching with body text count" };
+
+                    var passedEmpty = model.Body.DynamicValues.Any(x => String.IsNullOrWhiteSpace(x.ParamName) || String.IsNullOrWhiteSpace(x.ParamValue));
+                    if (passedEmpty)
+                        return new UResponseWithID { Message = "Parameter name or value is not passed correctly in body" };
+
+                    var matchValues = matches.Select(x => x.Value).ToList();
+                    var bodyParams = model.Body.DynamicValues.Select(x => x.ParamName).ToList();
+
+                    var areEqual = matchValues.All(item => bodyParams.Contains(item));
+                    if (!areEqual)
+                        return new UResponseWithID { Message = "Body parameters passed does not match with body text" };
+
+                    bodyTextCount = matches.Count;
                     for (int i = 0; i < model.Body.DynamicValues.Count; i++)
                     {
                         var value = model.Body.DynamicValues[i];
@@ -158,7 +174,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             ParamType = (int)TemplateParamEnum.Body,
                             ParamName = value.ParamName,
                             ParamDefaultValue = value.ParamValue,
-                            Sequence = i + 1
+                            Sequence = i
                         });
                     }
                 }
@@ -173,7 +189,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     var button = model.Buttons[i];
                     if (button.ActionType == (int)ActionTypeEnum.TEMPLATE && button.ActionId <= 0)
-                        return new UResponseWithID { Status = 0, Message = $"Template id required in action id when action type is {(int)ActionTypeEnum.TEMPLATE}" };
+                        return new UResponseWithID { Message = $"Template id required in action id when action type is {(int)ActionTypeEnum.TEMPLATE}" };
 
                     button.ButtonValue = (button.ButtonValue ?? "").Trim();
 
@@ -183,13 +199,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         if (matches.Count > 0)
                         {
                             if (button.ButtonType != (int)ButtonTypeEnum.URL)
-                                return new UResponseWithID { Status = 0, Message = $"Dynamic parameter not allowed in button type {(ButtonTypeEnum)button.ButtonType}" };
+                                return new UResponseWithID { Message = $"Dynamic parameter not allowed in button type {(ButtonTypeEnum)button.ButtonType}" };
 
-                            if (button.DynamicValue == null)
-                                return new UResponseWithID { Status = 0, Message = "Button default parameter is required" };
+                            if (button.DynamicValue == null || String.IsNullOrWhiteSpace(button.DynamicValue.ParamName) || String.IsNullOrWhiteSpace(button.DynamicValue.ParamValue))
+                                return new UResponseWithID { Message = "Button default parameter is required" };
 
                             if (matches.Count > 1)
-                                return new UResponseWithID { Status = 0, Message = "Only one button parameter is allowed" };
+                                return new UResponseWithID { Message = "Only one button parameter is allowed" };
+
+                            if (matches[0].Value != button.DynamicValue.ParamName)
+                                return new UResponseWithID { Message = $"Button - {button.ButtonText} parameter passed does not match with button value" };
 
                             parameters.Add(new TemplateDto.TemplateParameter
                             {
@@ -219,11 +238,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             var responseList = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={model.ClientId}, @SenderId={model.SenderNameId},  @TemplateName={model.Name},@Category={model.Category}, @Language={model.Language}, @HeaderType={headerType}, @HeaderParamCount={headerTextCount}, @HeaderText={headerText},@MediaId={model.MediaId}, @BodyText={bodyText}, @BodyParamCount={bodyTextCount}, @FooterText={footerText}, @ButtonsJson={buttonJson},@ParametersJson={parameterJson}, @ActionBy={model.ActionBy}").ToListAsync();
             if (responseList == null || !responseList.Any())
-                return new UResponseWithID { Status = 0, Message = "Cannot add template" };
+                return new UResponseWithID { Message = "Cannot add template" };
 
             var response = responseList[0];
             if (response.Status <= 0)
-                return new UResponseWithID { Status = 0, Message = response.Message };
+                return new UResponseWithID { Message = response.Message };
 
             //Push template to facebook
             return await PushTemplateToFacebook(model.ClientId, response.Id);
@@ -233,7 +252,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var model = await GetTemplateDetailAsync(clientId, templateId);
             if (model == null)
-                return new UResponseWithID { Status = 0, Message = "Cannot fetch template details" };
+                return new UResponseWithID { Message = "Cannot fetch template details" };
 
             var tempateResponse = new TemplateRequestDto
             {
@@ -397,7 +416,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 };
             }
 
-            return new UResponseWithID { Status = 0, Message = "Something went wrong while sending request to facebook" };
+            return new UResponseWithID { Message = "Something went wrong while sending request to facebook" };
         }
 
         public async Task<UResponseWithID> DeleteTemplateAsync(int Id)
@@ -454,6 +473,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var response = await _dbContext2.Entity2.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetLanguages}, @SearchStr={searchStr}").ToListAsync();
             return response;
-        } 
+        }
     }
 }
