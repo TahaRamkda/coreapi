@@ -37,9 +37,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _mediaService = mediaService;
         }
 
-        public async Task<List<UTemplate>> GetTemplateListAsync(int clientId, int transactionType = 0, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        public async Task<List<UTemplate>> GetTemplateListAsync(int clientId, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
-            var response = await _dbContext2.Templates.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @TransactionType={transactionType}, @SearchStr={searchStr},@SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}").ToListAsync();
+            var response = await _dbContext2.Templates.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SearchStr={searchStr},@SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}").ToListAsync();
             return response;
         }
 
@@ -438,9 +438,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response;
         }
 
-        public async Task<List<UEntityDto>> GetTemplatesAsync(int clientId, int defaultType = 0, int senderId = 0, int transactionType = 0, string searchStr = "")
+        public async Task<List<UEntityDto>> GetTemplatesAsync(int clientId, int senderId = 0, string searchStr = "")
         {
-            var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId}, @DefaultType={defaultType}, @SenderId={senderId},@TransactionType={transactionType}, @SearchStr={searchStr}").ToListAsync();
+            var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId}, @SenderId={senderId}, @SearchStr={searchStr}").ToListAsync();
             return response;
         }
 
@@ -454,12 +454,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var response = await _dbContext2.Entity2.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetLanguages}, @SearchStr={searchStr}").ToListAsync();
             return response;
-        }
-
-        public async Task<List<UDefaultTemplateList>> GetDefaultTemplateListAsync(int clientId, int senderId = 0, int templateId = 0, int defaultType = 0, string searchStr = "")
-        {
-            var response = await _dbContext2.GetDefaultTemplates.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetDefaultTemplates}, @ClientId={clientId}, @SenderId={senderId},@TemplatesId={templateId},  @DefaultType={defaultType}, @SearchStr={searchStr}").ToListAsync();
-            return response;
-        }
+        } 
     }
 }

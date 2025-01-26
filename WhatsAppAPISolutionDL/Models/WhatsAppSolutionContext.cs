@@ -223,11 +223,9 @@ namespace WhatsAppAPISolutionDL.Models
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.ParamDefaultValue).HasMaxLength(150);
-
                 entity.Property(e => e.ParamName).HasMaxLength(255);
 
-                entity.Property(e => e.ParamText).HasMaxLength(255);
+                entity.Property(e => e.ParamValue).HasMaxLength(255);
             });
 
             modelBuilder.Entity<CampaignResponse>(entity =>

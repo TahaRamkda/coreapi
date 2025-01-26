@@ -41,11 +41,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("gettemplateslist")]
-        public async Task<ActionResult> GetTemplatesListAsync(int clientId, int transactionType = 0, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        public async Task<ActionResult> GetTemplatesListAsync(int clientId, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
-            _logger.LogInformation("Calling api GetAgentsListAsync with clientId={clientId}, transactionType={transactionType}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, transactionType, searchStr, sortBy, pageNo, pageSize);
+            _logger.LogInformation("Calling api GetAgentsListAsync with clientId={clientId}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, searchStr, sortBy, pageNo, pageSize);
 
-            var res = await _templateService.GetTemplateListAsync(clientId, transactionType, searchStr, sortBy, pageNo, pageSize);
+            var res = await _templateService.GetTemplateListAsync(clientId, searchStr, sortBy, pageNo, pageSize);
             return Ok(new ApiResult
             {
                 Success = true,
@@ -242,11 +242,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("gettemplates")]
-        public async Task<IActionResult> GetTemplatesAsync(int clientId, int defaultType = 0, int senderId = 0, int transactionType = 0, string searchStr = "")
+        public async Task<IActionResult> GetTemplatesAsync(int clientId, int senderId = 0, string searchStr = "")
         {
-            _logger.LogInformation("Calling api GetTemplatesAsync with ClientId={ClientId}, defaultType={defaultType}, senderId={senderId}, transactionType={transactionType}, searchStr={searchStr}", clientId, defaultType, senderId, transactionType, searchStr);
+            _logger.LogInformation("Calling api GetTemplatesAsync with ClientId={ClientId}, senderId={senderId}, searchStr={searchStr}", clientId, senderId, searchStr);
 
-            var templates = await _templateService.GetTemplatesAsync(clientId, defaultType, senderId, transactionType, searchStr);
+            var templates = await _templateService.GetTemplatesAsync(clientId, senderId, searchStr);
             if (templates == null || !templates.Any())
             {
                 return Ok(new ApiResult
@@ -310,20 +310,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Success = true,
                 Result = models,
                 Message = String.Empty
-            });
-        }
-
-        [HttpGet("getdefaulttemplateslist")]
-        public async Task<ActionResult> GetDefaultTemplatesListAsync(int clientId, int senderId = 0, int templateId = 0, int defaultType = 0, string searchStr = "")
-        {
-            _logger.LogInformation("Calling api GetDefaultTemplatesListAsync with ClientId={ClientId}, senderId={senderId}, templateId={templateId}, defaultType={defaultType}, searchStr={searchStr}", clientId, senderId, templateId, defaultType, searchStr);
-
-            var res = await _templateService.GetDefaultTemplateListAsync(clientId, senderId, templateId, defaultType, searchStr);
-            return Ok(new ApiResult
-            {
-                Success = true,
-                Result = res,
-                Message = "Data fetch successfully"
             });
         }
     }

@@ -205,10 +205,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
 
             tempPayload.Params = await _dbContext.CampaignParams.Where(x => x.CampaignId == campaign.CampaignId)
-                .Select(x => new { x.ParamText, x.ParamType, x.Sequence }).OrderBy(x => x.Sequence)
+                .Select(x => new { x.ParamName, x.ParamType, x.Sequence }).OrderBy(x => x.Sequence)
                 .Select(x => new ParamData
                 {
-                    ParamText = x.ParamText,
+                    ParamText = x.ParamName,
                     ParamType = x.ParamType,
                     Sequence = x.Sequence
                 }).ToListAsync();

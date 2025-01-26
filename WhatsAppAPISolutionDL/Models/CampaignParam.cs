@@ -9,11 +9,8 @@ namespace WhatsAppAPISolutionDL.Models
         public int? CampaignId { get; set; }
         public int? Sequence { get; set; }
         public string ParamName { get; set; }
-        public string ParamText { get; set; }
+        public string ParamValue { get; set; }
         public int? ParamType { get; set; }
-        public string ParamDefaultValue { get; set; }
-        public bool? IsDynamic { get; set; }
-        public int? Status { get; set; }
         public DateTime? CreatedDate { get; set; }
         public int? CreatedBy { get; set; }
     }
