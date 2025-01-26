@@ -219,7 +219,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var clients = await _clientService.GetClientsAsync(clientId, searchStr);
 
-            _logger.LogInformation("Received api GetClientsAsync response with data={data}", JsonConvert.SerializeObject(clients));
+            //_logger.LogInformation("Received api GetClientsAsync response with data={data}", JsonConvert.SerializeObject(clients));
 
             if (clients == null || !clients.Any())
             {

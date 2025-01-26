@@ -31,6 +31,7 @@ namespace WhatsAppAPISolutionAPI.Extensions
             services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<IImportManager, ImportManager>();
             services.AddScoped<IInteractiveTemplateService, InteractiveTemplateService>();
+            services.AddScoped<ISystemActionsService, SystemActionsService>();
 
             return services;
 
