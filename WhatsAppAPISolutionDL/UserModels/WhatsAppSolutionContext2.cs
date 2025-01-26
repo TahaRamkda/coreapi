@@ -12,6 +12,7 @@ using WhatsAppAPISolutionDL.UserModels.Media;
 using WhatsAppAPISolutionDL.UserModels.Message;
 using WhatsAppAPISolutionDL.UserModels.Permission;
 using WhatsAppAPISolutionDL.UserModels.SenderName;
+using WhatsAppAPISolutionDL.UserModels.SystemActions;
 using WhatsAppAPISolutionDL.UserModels.Template;
 using WhatsAppAPISolutionDL.UserModels.User;
 
@@ -74,6 +75,8 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UAgentStat> AgentStats { get; set; } = null!;
         public virtual DbSet<UInteractiveTemplate> InteractiveTemplates { get; set; } = null!;
         public virtual DbSet<UInteractiveTemplateDetail> InteractiveTemplateDetails { get; set; } = null!;
+        public virtual DbSet<USystemActions> SystemActions { get; set; } = null!;
+        public virtual DbSet<USystemActionsDetail> SystemActionsDetail { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -123,6 +126,8 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UAgentStat>().HasNoKey();
             modelBuilder.Entity<UInteractiveTemplate>().HasNoKey();
             modelBuilder.Entity<UInteractiveTemplateDetail>().HasNoKey();
+            modelBuilder.Entity<USystemActions>().HasNoKey();
+            modelBuilder.Entity<USystemActionsDetail>().HasNoKey();
         }
     }
 }
