@@ -47,7 +47,13 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddControllers();
-builder.Services.AddSignalR();
+
+// Configure SignalR options
+builder.Services.AddSignalR(options =>
+{
+    options.KeepAliveInterval = TimeSpan.FromSeconds(30); // Default: 15 seconds
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(1000); // Default: 30 seconds
+});
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

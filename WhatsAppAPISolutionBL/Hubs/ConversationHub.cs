@@ -52,12 +52,28 @@ namespace WhatsAppAPISolutionDL.Hubs
                     connections.Remove(agentId);
                 }
             }
-             
+
             _logger.LogInformation("Agent {agentId} disconnected on ConversationHub with connectionId {connectionId}", agentId, connectionId);
- 
+
+            // Optionally handle the exception if provided
+            if (exception != null)
+                _logger.LogError("Exception occurred, Agent {agentId} disconnected on ConversationHub with connectionId {connectionId} and with exception {ex}", agentId, connectionId, exception);
+
             //Make agent inactive
             await _agentsService.SetAgentStatusAsync(Convert.ToInt32(agentId), (int)AgentStatusEnum.Inactive);
             await base.OnDisconnectedAsync(exception);
+        }
+
+        // Handle heartbeat (client response)
+        public Task Heartbeat()
+        {
+            var connectionId = Context.ConnectionId;
+            int agentId = 0;
+            lock (connections)
+                agentId = connections.FirstOrDefault(x => x.Value == connectionId).Key;
+
+            _logger.LogInformation($"Heartbeat received in ConversationHub from agentId: {agentId} with connectionId {connectionId}");
+            return Task.CompletedTask;
         }
     }
 }
