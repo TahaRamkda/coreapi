@@ -1,15 +1,13 @@
-﻿using Azure;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionDL.Dto.User;
+using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using WhatsAppAPISolutionDL.Enum;
-using WhatsAppAPISolutionDL.UserModels.User;
 using WhatsAppAPISolutionDL.UserModels.Entity;
-using WhatsAppAPISolutionDL.Dto.User;
+using WhatsAppAPISolutionDL.UserModels.User;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -17,13 +15,34 @@ namespace WhatsAppAPISolutionBL.Master.Services
     {
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly WhatsAppSolutionContext _dbContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private ClaimsPrincipal User => _httpContextAccessor.HttpContext?.User;
 
-        public UserService(WhatsAppSolutionContext2 dbContext2, WhatsAppSolutionContext dbContext)
+        public UserService(WhatsAppSolutionContext2 dbContext2,
+            WhatsAppSolutionContext dbContext,
+            IHttpContextAccessor httpContextAccessor)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
+            _httpContextAccessor = httpContextAccessor;
         }
 
+        public int GetClientIdFromAccessToken()
+        {
+            int id = 0;
+            if (User != null)
+                int.TryParse(User?.FindFirst("ClientId")?.Value, out id);
+            return id;
+        }
+
+        public int GetUserIdFromAccessToken()
+        {
+            int id = 0;
+            if (User != null)
+                int.TryParse(User?.FindFirst("UserId")?.Value, out id);
+            return id;
+        }
+         
         public Task<List<User>> GetUserListAsync(int ClientId)
         {
             throw new NotImplementedException();
@@ -78,7 +97,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.AddUserToken}, @ClientId={user.ClientId}, @UserId={user.UserId}, @AccessToken={user.AccessToken}, @RefreshToken={user.RefreshToken}, @RefreshTokenExpiry={user.RefreshTokenExpiry}").ToListAsync();
             return response[0];
         }
-        
+
         public async Task<UUserDetail> GetUserByIdAsync(int clientId, int userId)
         {
             var response = await _dbContext2.UserDetails.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.GetById}, @ClientId={clientId}, @UserId={userId}").ToListAsync();

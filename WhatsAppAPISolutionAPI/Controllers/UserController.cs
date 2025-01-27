@@ -49,7 +49,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Calling api Login with Username={Username}, Password={Password}", Username, Password);
 
             if (!string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password))
-            {
+            { 
                 var res = await _userService.Login(Username.Trim(), Password.Trim());
 
                 _logger.LogInformation("Received api Login response with data={data}", JsonConvert.SerializeObject(res));
@@ -67,6 +67,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     new Claim(ClaimTypes.Name, res.UserName),
                     //new Claim("UserId", CommonHelper.Base64Encode(String.Concat(CommonHelper.GenerateRandomKey(), "M", res.UserId, "O",CommonHelper.GenerateRandomKey()))),
                     //new Claim("ClientId", CommonHelper.Base64Encode(String.Concat(CommonHelper.GenerateRandomKey(), "M", res.ClientId, "O",CommonHelper.GenerateRandomKey()))),
+                    new Claim("UserId", res.UserId.ToString()),
+                    new Claim("ClientId", res.ClientId.ToString()),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 };
 

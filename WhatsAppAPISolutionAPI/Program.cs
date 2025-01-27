@@ -16,6 +16,7 @@ ConfigurationManager configuration = builder.Configuration;
 builder.Host.UseSerilog((context, configuration) => configuration.ReadFrom.Configuration(context.Configuration).Enrich.FromLogContext());
 
 // Add services to the container.
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddApplicationServices(configuration);
 builder.Services.AddDatabaseServices(configuration);
 builder.Services.AddSettingServices(configuration);
