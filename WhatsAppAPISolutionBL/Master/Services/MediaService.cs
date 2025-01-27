@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -42,7 +43,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IHttpClientFactory httpClientFactory,
             ILogger<MediaService> logger,
             IOptions<BridgeConfigurationSettings> bridgeConfigurationSettings,
-            IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings)
+            IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings,
+            IWebHostEnvironment webHostEnvironment)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -52,10 +54,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
 
             _staticFolderPath = _apiSolutionConfigurationSettings.Value.StaticFolderPath;
+            ////_uploadPath = Path.Combine(Directory.GetCurrentDirectory(), _apiSolutionConfigurationSettings.Value.StaticFolderPath);
+            //_uploadPath = Directory.GetCurrentDirectory();
+            //if (!Directory.Exists(Path.Combine(_uploadPath, _staticFolderPath)))
+            //    Directory.CreateDirectory(Path.Combine(_uploadPath, _staticFolderPath));
+
             //_uploadPath = Path.Combine(Directory.GetCurrentDirectory(), _apiSolutionConfigurationSettings.Value.StaticFolderPath);
-            _uploadPath = Directory.GetCurrentDirectory();
-            if (!Directory.Exists(Path.Combine(_uploadPath, _staticFolderPath)))
-                Directory.CreateDirectory(Path.Combine(_uploadPath, _staticFolderPath));
+            //var a = Directory.GetCurrentDirectory();
+            _uploadPath = webHostEnvironment.ContentRootPath.TrimEnd('\\'); // Directory.GetCurrentDirectory();
         }
 
         #endregion
