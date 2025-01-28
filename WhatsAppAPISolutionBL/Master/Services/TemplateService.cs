@@ -340,7 +340,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             foreach (var item in model.Buttons)
             {
                 var buttonType = ((ButtonTypeEnum)item.ButtonType);
-                string buttonValue = item.ButtonValue;
+                string buttonValue = item.ButtonValue ?? "";
 
                 UTemplateDetail.Parameter buttonParam = null;
                 if (buttonType == ButtonTypeEnum.URL)
@@ -353,6 +353,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     if (matches != null && matches.Count > 0)
                         buttonParam = model.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button && x.ParamName == matches[0].Value).FirstOrDefault();
                 }
+
+                //Replace country code seperation, +965-99310864 -> +96599310864
+                if (buttonType == ButtonTypeEnum.PHONE_NUMBER)
+                    buttonValue = buttonValue.Replace("-", "");
 
                 tempateResponse.Buttons.Add(new TemplateRequestDto.ButtonDto
                 {
