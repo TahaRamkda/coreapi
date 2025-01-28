@@ -107,13 +107,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     MediaSourceId = (int)MediaSourceEnum.Admin
                 });
 
-                if (mediaUpload.Status <= 0 || mediaUpload.Id <= 0)
-                {
-                    return Ok(new ApiResult
-                    {
-                        Message = "Cannot upload media"
-                    });
-                }
+                if (mediaUpload.Status <= 0)
+                    return Ok(new ApiResult { Message = mediaUpload.Message });
 
                 model.MediaId = mediaUpload.Id;
             }
@@ -150,7 +145,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             if (model.File != null && model.File.Length > 0)
             {
-                var extension = Path.GetExtension(model.File.FileName); 
+                var extension = Path.GetExtension(model.File.FileName);
                 if (!_mediaService.CheckAllowedImageType(extension))
                 {
                     return Ok(new ApiResult
@@ -168,13 +163,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     MediaSourceId = (int)MediaSourceEnum.Admin
                 });
 
-                if (mediaUpload.Status <= 0 || mediaUpload.Id <= 0)
-                {
-                    return Ok(new ApiResult
-                    {
-                        Message = "Cannot upload media"
-                    });
-                }
+                if (mediaUpload.Status <= 0)
+                    return Ok(new ApiResult { Message = mediaUpload.Message });
 
                 model.MediaId = mediaUpload.Id;
             }

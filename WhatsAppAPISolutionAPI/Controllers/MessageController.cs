@@ -88,6 +88,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     ActionBy = model.ActionBy
                 });
 
+                if (mediaUploadResult.Status <= 0)
+                    return Ok(new ApiResult { Message = mediaUploadResult.Message });
+
                 var media = await _dbContext.Medias.FindAsync(mediaUploadResult.Id);
 
                 if (media == null || String.IsNullOrWhiteSpace(media.MediaId))
@@ -159,6 +162,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     MediaSourceId = (int)MediaSourceEnum.Conversation,
                     ActionBy = model.ActionBy
                 });
+
+                if (mediaUploadResult.Status <= 0)
+                    return Ok(new ApiResult { Message = mediaUploadResult.Message });
 
                 var media = await _dbContext.Medias.FindAsync(mediaUploadResult.Id);
 
