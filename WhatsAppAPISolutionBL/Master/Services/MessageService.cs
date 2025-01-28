@@ -42,6 +42,34 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _conversationService = conversationService;
         }
 
+        #region Utilities
+
+        private async Task<bool> IsFoulMessage(int clientId, int? senderId = 0, string msg = null)
+        {
+            if (String.IsNullOrWhiteSpace(msg))
+                return false;
+
+            string keyNames = CommonEnum.FoulLanguageWords.ToString();
+            var response = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_Appsettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @KeyName={keyNames}, @ClientId={clientId}, @SenderId={senderId}").ToListAsync();
+
+            // Check if the response contains data
+            if (response == null || !response.Any())
+                return false;
+
+            // Extract foul words from the first setting
+            var foulLanguageSetting = response.FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(foulLanguageSetting?.Val))
+                return false;
+
+            // Parse the foul words and clean up any whitespace
+            var foulWords = foulLanguageSetting.Val.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(word => word.Trim()).Where(word => !string.IsNullOrWhiteSpace(word)).ToArray();
+
+            // Check for whole-word matches in the message using LINQ and Regex
+            return foulWords.Any(word => System.Text.RegularExpressions.Regex.IsMatch(msg, $@"\b{System.Text.RegularExpressions.Regex.Escape(word)}\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase));
+        }
+
+        #endregion
+
         public async Task<UResponse> UpdateMessageStatusAsync(WhatsAppMessageStatusUpdateDto messageStatus)
         {
             var messageStatusEnum = (MessageStatusEnum)Enum.Parse(typeof(MessageStatusEnum), messageStatus.status.ToUpper());
@@ -96,6 +124,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             int mediaId = 0;
             messageReceive.type = messageReceive.type.ToUpper();
             string fullName = messageReceive.contact != null ? messageReceive.contact.name : String.Empty;
+            bool isFoulMsg = false;
 
             if (messageReceive.type == MessageReceiveTypeEnum.BUTTON.ToString())
             {
@@ -106,6 +135,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 messageType = (int)MainMessageTypeEnum.TEXT; //Convert.ToInt32(MessageReceiveTypeEnum.TEXT);
                 messageText = messageReceive.text.body ?? "";
+                isFoulMsg = await IsFoulMessage(client.ClientId, senderName?.SenderId ?? 0, messageText);
             }
             else if (messageReceive.type == MessageReceiveTypeEnum.REACTION.ToString())
             {
@@ -160,7 +190,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
             }
 
-            var response = await _dbContext2.UMessageReceiveds.FromSqlInterpolated($"exec usp_MessageReceivedLogs_ops @ClientId={messageReceive.client_Id}, @SenderId={senderName?.SenderId}, @WaId={messageReceive.wam_Id}, @ContextWaId={messageReceive.context?.wam_Id},@Name={fullName}, @PhoneNumber={messageReceive.from}, @ResponseType={messageType}, @ResponseText={messageText}, @MediaId={mediaId}").ToListAsync();
+            var response = await _dbContext2.UMessageReceiveds.FromSqlInterpolated($"exec usp_MessageReceivedLogs_ops @ClientId={messageReceive.client_Id}, @SenderId={senderName?.SenderId}, @WaId={messageReceive.wam_Id}, @ContextWaId={messageReceive.context?.wam_Id},@Name={fullName}, @PhoneNumber={messageReceive.from}, @ResponseType={messageType}, @ResponseText={messageText}, @MediaId={mediaId}, @IsFoul ={isFoulMsg}").ToListAsync();
 
             //Central service call
             if (response != null & response.Any())
