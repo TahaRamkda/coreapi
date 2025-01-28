@@ -73,6 +73,9 @@ namespace WhatsAppAPISolutionDL.Hubs
                 agentId = connections.FirstOrDefault(x => x.Value == connectionId).Key;
 
             _logger.LogInformation($"Heartbeat received in ConversationHub from agentId: {agentId} with connectionId {connectionId}");
+
+            Clients.Client(connectionId).SendAsync(SignalREnum.HeartbeatAcknowledged.ToString());
+
             return Task.CompletedTask;
         }
     }

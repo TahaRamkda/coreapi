@@ -5,6 +5,7 @@
         ConversationAssigned = 1,
         ConversationUnAssigned = 2,
         MessageReceived = 3,
-        AgentStatus = 4
+        AgentStatus = 4,
+        HeartbeatAcknowledged = 5
     }
 }
