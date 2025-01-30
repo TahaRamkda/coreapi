@@ -6,6 +6,7 @@
         LookingForAgent = 1,
         AgentAssigned = 2,
         ChatClosed = 3,
-        ChatExpired = 4
+        ChatExpired = 4,
+        ChatForceClosed = 5
     }
 }

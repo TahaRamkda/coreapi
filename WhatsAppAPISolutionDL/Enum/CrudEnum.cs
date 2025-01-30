@@ -82,6 +82,7 @@
 
 
         GetLanguages = 52,
+        ConversationDetailReportList = 52,
 
         GetDefaultTemplates = 53,
 

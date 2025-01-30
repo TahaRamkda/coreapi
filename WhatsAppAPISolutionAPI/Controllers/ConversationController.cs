@@ -163,11 +163,26 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getconversationreportlist")]
-        public async Task<ActionResult> GetConversationReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        public async Task<ActionResult> GetConversationReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "")
         {
-            _logger.LogInformation("Calling api GetConversationReportListAsync with clientId={clientId}, senderId={senderId}, id={id}, agentId={agentId}, pageNo={pageNo}, pageSize={pageSize}", clientId, senderId, id, agentId, pageNo, pageSize);
+            _logger.LogInformation("Calling api GetConversationReportListAsync with clientId={clientId}, senderId={senderId}, id={id}, agentId={agentId}, pageNo={pageNo}, pageSize={pageSize}, status={status}", clientId, senderId, id, agentId, pageNo, pageSize, status);
 
-            var res = await _conversationService.GetConversationReportListAsync(clientId, senderId, id, agentId, pageNo, pageSize);
+            var res = await _conversationService.GetConversationReportListAsync(clientId, senderId, id, agentId, pageNo, pageSize, status);
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = res,
+                Message = "Data fetch successfully"
+            });
+        }
+
+        [HttpGet("getconversationdetailreportlist")]
+        public async Task<ActionResult> GetConversationDetailReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            _logger.LogInformation("Calling api GetConversationDetailReportListAsync with clientId={clientId}, senderId={senderId}, id={id}, agentId={agentId}, pageNo={pageNo}, pageSize={pageSize}, status={status}, fromDate={fromDate}, toDate={toDate}", clientId, senderId, id, agentId, pageNo, pageSize, status, fromDate, toDate);
+
+            var res = await _conversationService.GetConversationDetailReportListAsync(clientId, senderId, id, agentId, pageNo, pageSize, status, fromDate, toDate);
 
             return Ok(new ApiResult
             {
