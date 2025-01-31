@@ -22,25 +22,32 @@ namespace WhatsAppAPISolutionAPI.Controllers
     [Authorize]
     public class GroupsController : ControllerBase
     {
+        private readonly int clientId;
         private readonly IGroupService _groupService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<GroupsController> _logger;
+        private readonly IUserService _userService;
 
         public GroupsController(IGroupService groupService,
             WhatsAppSolutionContext dbContext,
-            ILogger<GroupsController> logger)
+            ILogger<GroupsController> logger,
+            IUserService userService)
         {
             _groupService = groupService;
             _dbContext = dbContext;
             _logger = logger;
+            _userService = userService;
+
+
+            clientId = _userService.GetClientIdFromAccessToken();
         }
 
         [HttpGet("getgroupslist")]
-        public async Task<ActionResult> GetGroupsListAsync(int ClientId, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
+        public async Task<ActionResult> GetGroupsListAsync(string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
         {
-            _logger.LogInformation("Calling api GetGroupsListAsync with clientId={clientId}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", ClientId, SearchStr, SortBy, PageNo, PageSize);
+            _logger.LogInformation("Calling api GetGroupsListAsync with clientId={clientId}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, SearchStr, SortBy, PageNo, PageSize);
 
-            var res = await _groupService.GetGroupListAsync(ClientId, SearchStr, SortBy, PageNo, PageSize);
+            var res = await _groupService.GetGroupListAsync(clientId, SearchStr, SortBy, PageNo, PageSize);
             return Ok(new ApiResult
             {
                 Success = true,
@@ -50,9 +57,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getgroupbyid")]
-        public async Task<ActionResult> GetGroupByIdAsync(int clientId, int id)
+        public async Task<ActionResult> GetGroupByIdAsync(int id)
         {
             _logger.LogInformation("Calling api GetGroupByIdAsync with clientId={clientId}, id={id}", clientId, id);
+
+            if (clientId <= 0)
+                return Ok(new { Message = "Please enter client id" });
 
             if (id <= 0)
                 return Ok(new ApiResult { Message = "not found" });
@@ -62,13 +72,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Received api GetGroupByIdAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null)
-            {
-                return Ok(new ApiResult
-                {
-                    Result = "",
-                    Message = "No record found with this id"
-                });
-            }
+                return Ok(new ApiResult { Message = "No record found with this id" });
 
             return Ok(new ApiResult
             {
@@ -84,22 +88,22 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Calling api AddGroupAsync with request={requst}", JsonConvert.SerializeObject(group));
 
             if (group == null)
-            {
                 return BadRequest();
-            }
+
+            group.ClientId = clientId;
+            if (group.ClientId <= 0)
+                return Ok(new { Message = "Please enter client id" });
+
+            if (String.IsNullOrWhiteSpace(group.GroupName))
+                return Ok(new ApiResult { Message = "Please enter group name" });
 
             var response = await _groupService.AddGroupAsync(group);
 
             _logger.LogInformation("Received api AddGroupAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
+                return Ok(new ApiResult { Message = response?.Message });
+
             return Ok(new ApiResult
             {
                 Success = true,
@@ -114,22 +118,22 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Calling api UpdateGroupAsync with request={requst}", JsonConvert.SerializeObject(group));
 
             if (group == null)
-            {
                 return BadRequest();
-            }
+
+            group.ClientId = clientId;
+            if (group.ClientId <= 0)
+                return Ok(new { Message = "Please enter client id" });
+
+            if (String.IsNullOrWhiteSpace(group.GroupName))
+                return Ok(new ApiResult { Message = "Please enter group name" });
 
             var response = await _groupService.UpdateGroupAsync(group);
 
             _logger.LogInformation("Received api UpdateGroupAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
+                return Ok(new ApiResult { Message = response?.Message });
+
             return Ok(new ApiResult
             {
                 Success = true,
@@ -144,22 +148,15 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Calling api DeleteGroupAsync with GroupId={GroupId}", GroupId);
 
             if (GroupId <= 0)
-            {
                 return NotFound("not found");
-            }
 
             var response = await _groupService.DeleteGroupAsync(GroupId);
 
             _logger.LogInformation("Received api DeleteGroupAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
+                return Ok(new ApiResult { Message = response?.Message });
+
             return Ok(new ApiResult
             {
                 Success = true,
@@ -169,20 +166,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getgroups")]
-        public async Task<IActionResult> GetGroupsAsync(int clientId, string searchStr = "")
+        public async Task<IActionResult> GetGroupsAsync(string searchStr = "")
         {
             _logger.LogInformation("Calling api GetGroupsAsync with clientId={clientId}, searchStr={searchStr}", clientId, searchStr);
 
             var groups = await _groupService.GetGroupsAsync(clientId, searchStr);
             if (groups == null || !groups.Any())
-            {
-                return Ok(new ApiResult
-                {
-                    Success = false,
-                    Result = null,
-                    Message = "No records found"
-                });
-            }
+                return Ok(new ApiResult { Message = "No records found" });
 
             return Ok(new ApiResult
             {

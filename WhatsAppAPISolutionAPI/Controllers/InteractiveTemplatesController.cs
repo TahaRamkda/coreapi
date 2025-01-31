@@ -6,6 +6,7 @@ using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.InteractiveTemplate;
 using WhatsAppAPISolutionDL.Enum;
+using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -14,19 +15,26 @@ namespace WhatsAppAPISolutionAPI.Controllers
     [Authorize]
     public class InteractiveTemplatesController : ControllerBase
     {
+        private readonly int clientId;
         private readonly ILogger<InteractiveTemplatesController> _logger;
         private readonly IInteractiveTemplateService _interactiveTemplateService;
+        private readonly IUserService _userService;
 
         public InteractiveTemplatesController(ILogger<InteractiveTemplatesController> logger,
-            IInteractiveTemplateService interactiveTemplateService)
+            IInteractiveTemplateService interactiveTemplateService,
+            IUserService userService)
         {
             _logger = logger;
             _interactiveTemplateService = interactiveTemplateService;
+            _userService = userService;
+
+
+            clientId = _userService.GetClientIdFromAccessToken();
         }
 
 
         [HttpGet("getinteractivetemplateslist")]
-        public async Task<ActionResult> GetInteractiveTemplatesListAsync(int clientId, int senderId = 0, string searchStr = "", DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        public async Task<ActionResult> GetInteractiveTemplatesListAsync(int senderId = 0, string searchStr = "", DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
             _logger.LogInformation("Calling api GetAgentsListAsync with clientId={clientId}, senderId={senderId}, searchStr={searchStr}, fromDate={fromDate}, toDate={toDate}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, senderId, searchStr, fromDate, toDate, sortBy, pageNo, pageSize);
 
@@ -47,6 +55,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (model == null)
                 return Ok(new ApiResult { Message = "Bad request" });
 
+            model.ClientId = clientId;
             if (string.IsNullOrEmpty(model.Name))
                 return Ok(new ApiResult { Message = "Please insert template name" });
 
@@ -85,7 +94,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
                 if (model.Buttons.Any(x => (x.ButtonType == (int)ButtonTypeEnum.URL || x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER) && String.IsNullOrWhiteSpace(x.ButtonValue)))
                     return Ok(new ApiResult { Message = "Please insert button values for all URL and Phone number buttons" });
- 
+
                 // Validate no duplicate button names
                 var duplicateNames = model.Buttons.GroupBy(item => item.ButtonText?.Trim()).Where(group => group.Count() > 1).Select(group => group.Key).ToList();
 
@@ -106,13 +115,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Received api AddInteractiveTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
+                return Ok(new ApiResult { Message = response?.Message });
 
             return Ok(new ApiResult
             {
@@ -130,6 +133,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (model == null)
                 return Ok(new ApiResult { Message = "Bad request" });
 
+            model.ClientId = clientId;
             if (model.Id <= 0)
                 return Ok(new ApiResult { Message = "Please select template" });
 
@@ -165,7 +169,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
                 if (model.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.URL) > 1)
                     return Ok(new ApiResult { Message = "Cannot add more than 1 URL buttons." });
-                 
+
                 // Validate no duplicate button names
                 var duplicateNames = model.Buttons.GroupBy(item => item.ButtonText?.Trim()).Where(group => group.Count() > 1).Select(group => group.Key).ToList();
 
@@ -186,13 +190,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Received api UpdateInteractiveTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
+                return Ok(new ApiResult { Message = response?.Message });
 
             return Ok(new ApiResult
             {
@@ -203,7 +201,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getinteractivetemplatedetail")]
-        public async Task<ActionResult> GetInteractiveTemplateDetailAsync(int clientId, int senderId, int interactiveTemplateId)
+        public async Task<ActionResult> GetInteractiveTemplateDetailAsync(int senderId, int interactiveTemplateId)
         {
             _logger.LogInformation("Calling api GetInteractiveTemplateDetailAsync with clientId={clientId}, senderId={senderId}, interactiveTemplateId={interactiveTemplateId}", clientId, senderId, interactiveTemplateId);
 
@@ -223,20 +221,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getagentinteractivetemplates")]
-        public async Task<IActionResult> GetAgentInteractiveTemplatesAsync(int clientId, int senderId, string language = "", string searchStr = "")
+        public async Task<IActionResult> GetAgentInteractiveTemplatesAsync(int senderId, string language = "", string searchStr = "")
         {
             _logger.LogInformation("Calling api GetAgentInteractiveTemplatesAsync with clientId={clientId}, senderId={senderId}, language={language}, searchStr={searchStr}", clientId, senderId, language, searchStr);
 
             var templates = await _interactiveTemplateService.GetAgentInteractiveTemplatesAsync(clientId, senderId, language, searchStr);
             if (templates == null || !templates.Any())
-            {
-                return Ok(new ApiResult
-                {
-                    Success = false,
-                    Result = null,
-                    Message = "No records found"
-                });
-            }
+                return Ok(new ApiResult { Message = "No records found" });
 
             return Ok(new ApiResult
             {
@@ -247,20 +238,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getinteractivetemplatewithoutparams")]
-        public async Task<IActionResult> GetInteractiveTemplateWithoutParamsAsync(int clientId, int senderId, string language = "", string searchStr = "")
+        public async Task<IActionResult> GetInteractiveTemplateWithoutParamsAsync(int senderId, string language = "", string searchStr = "")
         {
             _logger.LogInformation("Calling api GetInteractiveTemplateWithoutParamsAsync with clientId={clientId}, senderId={senderId}, language={language}, searchStr={searchStr}", clientId, senderId, language, searchStr);
 
             var templates = await _interactiveTemplateService.GetInteractiveTemplateWithoutParamsAsync(clientId, senderId, language, searchStr);
             if (templates == null || !templates.Any())
-            {
-                return Ok(new ApiResult
-                {
-                    Success = false,
-                    Result = null,
-                    Message = "No records found"
-                });
-            }
+                return Ok(new ApiResult { Message = "No records found" });
 
             return Ok(new ApiResult
             {

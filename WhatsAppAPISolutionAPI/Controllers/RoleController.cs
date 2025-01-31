@@ -16,25 +16,32 @@ namespace WhatsAppAPISolutionAPI.Controllers
     [ApiController]
     public class RoleController : ControllerBase
     {
+        private readonly int clientId;
         private readonly IRoleService _rolesService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<RoleController> _logger;
+        private readonly IUserService _userService;
 
         public RoleController(IRoleService rolesService,
             WhatsAppSolutionContext dbContext,
-            ILogger<RoleController> logger)
+            ILogger<RoleController> logger,
+            IUserService userService)
         {
             _rolesService = rolesService;
             _dbContext = dbContext;
             _logger = logger;
+            _userService = userService;
+
+
+            clientId = _userService.GetClientIdFromAccessToken();
         }
 
         [HttpGet("getRolelist")]
-        public async Task<ActionResult> GetRoleListAsync(int ClientId)
+        public async Task<ActionResult> GetRoleListAsync()
         {
-            _logger.LogInformation("Calling api GetRoleListAsync with clientId={clientId}", ClientId);
+            _logger.LogInformation("Calling api GetRoleListAsync with clientId={clientId}", clientId);
 
-            var res = await _rolesService.GetRoleListAsync(ClientId);
+            var res = await _rolesService.GetRoleListAsync(clientId);
             return Ok(new ApiResult
             {
                 Success = true,
@@ -44,9 +51,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getRolebyid")]
-        public async Task<ActionResult> GetRoleByIdAsync(int clientId, int id)
+        public async Task<ActionResult> GetRoleByIdAsync(int id)
         {
             _logger.LogInformation("Calling api GetRoleByIdAsync with clientId={clientId}, id={id}", clientId, id);
+
+            if (clientId <= 0)
+                return Ok(new ApiResult { Message = "Please enter client id" });
 
             if (id <= 0)
                 return NotFound("not found");
@@ -56,12 +66,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Received api GetRoleByIdAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null)
-            {
-                return Ok(new ApiResult
-                {
-                    Message = "No record found with this id"
-                });
-            }
+                return Ok(new ApiResult { Message = "No record found with this id" });
 
             return Ok(new ApiResult
             {
@@ -77,22 +82,22 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Calling api AddRoleAsync with request={requst}", JsonConvert.SerializeObject(role));
 
             if (role == null)
-            {
                 return BadRequest();
-            }
+
+            role.ClientId = clientId;
+            if (role.ClientId <= 0)
+                return Ok(new ApiResult { Message = "Please enter client id" });
+
+            if (String.IsNullOrWhiteSpace(role.RoleName))
+                return Ok(new ApiResult { Message = "Please enter role name" });
 
             var response = await _rolesService.AddRoleAsync(role);
 
             _logger.LogInformation("Received api AddRoleAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
+                return Ok(new ApiResult { Message = response?.Message });
+
             return Ok(new ApiResult
             {
                 Success = true,
@@ -107,22 +112,19 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Calling api UpdateRoleAsync with request={requst}", JsonConvert.SerializeObject(role));
 
             if (role == null && !ModelState.IsValid)
-            {
                 return BadRequest();
-            }
+
+            role.ClientId = clientId;
+            if (role.ClientId <= 0)
+                return Ok(new ApiResult { Message = "Please enter client id" });
 
             var response = await _rolesService.UpdateRoleAsync(role);
 
             _logger.LogInformation("Received api UpdateRoleAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
+                return Ok(new ApiResult { Message = response?.Message });
+
             return Ok(new ApiResult
             {
                 Success = true,
@@ -137,22 +139,15 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Calling api DeleteRoleAsync with RoleId={RoleId}", RoleId);
 
             if (RoleId <= 0)
-            {
                 return NotFound("not found");
-            }
 
             var response = await _rolesService.DeleteRoleAsync(RoleId);
 
             _logger.LogInformation("Received api DeleteRoleAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
+                return Ok(new ApiResult { Message = response?.Message });
+
             return Ok(new ApiResult
             {
                 Success = true,
@@ -162,20 +157,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getroles")]
-        public async Task<IActionResult> GetRolesAsync(int clientId, string searchStr = "")
+        public async Task<IActionResult> GetRolesAsync(string searchStr = "")
         {
             _logger.LogInformation("Calling api GetRolesAsync with clientId={clientId}, searchStr={searchStr}", clientId, searchStr);
 
             var models = await _rolesService.GetRolesAsync(clientId, searchStr);
             if (models == null || !models.Any())
-            {
-                return Ok(new ApiResult
-                {
-                    Success = false,
-                    Result = null,
-                    Message = "No records found"
-                });
-            }
+                return Ok(new ApiResult { Message = "No records found" });
 
             return Ok(new ApiResult
             {

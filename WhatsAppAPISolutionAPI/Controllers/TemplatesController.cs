@@ -10,6 +10,7 @@ using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
+using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.Template;
 
 namespace WhatsAppAPISolutionAPI.Controllers
@@ -19,18 +20,21 @@ namespace WhatsAppAPISolutionAPI.Controllers
     [Authorize]
     public class TemplatesController : ControllerBase
     {
+        private readonly int clientId;
         private readonly ITemplateService _templateService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<TemplatesController> _logger;
         private readonly IOptions<BridgeConfigurationSettings> _bridgeConfigurationSettings;
         private readonly HttpClient _httpClient;
         private readonly string baseUrl = String.Empty;
+        private readonly IUserService _userService;
 
         public TemplatesController(ITemplateService templateService,
             WhatsAppSolutionContext dbContext,
             ILogger<TemplatesController> logger,
             IOptions<BridgeConfigurationSettings> bridgeConfigurationSettings,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            IUserService userService)
         {
             _templateService = templateService;
             _dbContext = dbContext;
@@ -38,10 +42,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _bridgeConfigurationSettings = bridgeConfigurationSettings;
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             baseUrl = _httpClient.BaseAddress.AbsoluteUri;
+            _userService = userService;
+
+
+            clientId = _userService.GetClientIdFromAccessToken();
         }
 
         [HttpGet("gettemplateslist")]
-        public async Task<ActionResult> GetTemplatesListAsync(int clientId, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        public async Task<ActionResult> GetTemplatesListAsync(string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
             _logger.LogInformation("Calling api GetAgentsListAsync with clientId={clientId}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, searchStr, sortBy, pageNo, pageSize);
 
@@ -62,6 +70,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (model == null)
                 return BadRequest();
 
+            model.ClientId = clientId;
             if (String.IsNullOrEmpty(model.Name))
                 return Ok(new ApiResult { Message = "Please insert template name" });
 
@@ -122,13 +131,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Received api AddTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
+                return Ok(new ApiResult { Message = response?.Message });
 
             return Ok(new ApiResult
             {
@@ -144,23 +147,15 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Calling api DeleteTemplateAsync with id={Id}", Id);
 
             if (Id <= 0)
-            {
                 return NotFound("not found");
-            }
 
             var response = await _templateService.DeleteTemplateAsync(Id);
 
             _logger.LogInformation("Received api DeleteTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
+                return Ok(new ApiResult { Message = response?.Message });
 
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
             return Ok(new ApiResult
             {
                 Success = true,
@@ -178,19 +173,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
             try
             {
                 if (Id <= 0)
-                {
                     return NotFound("not found");
-                }
 
                 var template = _dbContext.Templates.Where(x => x.Id == Id).FirstOrDefault();
                 if (template == null)
-                {
-                    return Ok(new ApiResult
-                    {
-
-                        Message = "Incorrect template id"
-                    });
-                }
+                    return Ok(new ApiResult { Message = "Incorrect template id" });
 
                 _logger.LogInformation($"Input json: {JsonConvert.SerializeObject(template.TemplateId)}");
 
@@ -203,27 +190,15 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 if (result != null)
                 {
                     if (result.success)
-                    {
                         return Ok(new ApiResult
                         {
                             Success = true,
                             Message = "Template sync successfully"
                         });
-                    }
                     else
-                    {
-                        return Ok(new ApiResult
-                        {
-
-                            Message = "Error in syncing template"
-                        });
-                    }
+                        return Ok(new ApiResult { Message = "Error in syncing template" });
                 }
-                return Ok(new ApiResult
-                {
-
-                    Message = "Template not found"
-                });
+                return Ok(new ApiResult { Message = "Template not found" });
             }
             catch (Exception ex)
             {
@@ -232,11 +207,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("gettemplatedetails")]
-        public async Task<ActionResult> GetTemplateDetailsAsync(int ClientId, int Id = 0)
+        public async Task<ActionResult> GetTemplateDetailsAsync(int Id = 0)
         {
-            _logger.LogInformation("Calling api GetTemplateDetailsAsync with ClientId={ClientId} and Id={Id}", ClientId, Id);
+            _logger.LogInformation("Calling api GetTemplateDetailsAsync with ClientId={ClientId} and Id={Id}", clientId, Id);
 
-            var response = await _templateService.GetTemplateDetailAsync(ClientId, Id);
+            var response = await _templateService.GetTemplateDetailAsync(clientId, Id);
 
             _logger.LogInformation("Received api GetTemplateDetailsAsync response with data={data}", JsonConvert.SerializeObject(response));
 
@@ -255,14 +230,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var templates = await _templateService.GetTemplatesAsync(clientId, senderId, searchStr);
             if (templates == null || !templates.Any())
-            {
-                return Ok(new ApiResult
-                {
-                    Success = false,
-                    Result = null,
-                    Message = "No records found"
-                });
-            }
+                return Ok(new ApiResult { Message = "No records found" });
 
             return Ok(new ApiResult
             {
@@ -279,14 +247,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var models = await _templateService.GetTemplateCategoriesAsync(searchStr);
             if (models == null || !models.Any())
-            {
-                return Ok(new ApiResult
-                {
-                    Success = false,
-                    Result = null,
-                    Message = "No records found"
-                });
-            }
+                return Ok(new ApiResult { Message = "No records found" });
 
             return Ok(new ApiResult
             {
@@ -303,14 +264,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var models = await _templateService.GetLanguagesAsync(searchStr);
             if (models == null || !models.Any())
-            {
-                return Ok(new ApiResult
-                {
-                    Success = false,
-                    Result = null,
-                    Message = "No records found"
-                });
-            }
+                return Ok(new ApiResult { Message = "No records found" });
 
             return Ok(new ApiResult
             {

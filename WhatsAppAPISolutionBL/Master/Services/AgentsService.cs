@@ -12,14 +12,24 @@ namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class AgentsService : IAgentsService
     {
+        private readonly int userId;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
+        private readonly IImportManager _importManager;
+        private readonly IUserService _userService;
 
         public AgentsService(WhatsAppSolutionContext dbContext,
-            WhatsAppSolutionContext2 dbContext2)
+            WhatsAppSolutionContext2 dbContext2,
+            IImportManager importManager,
+            IUserService userService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
+            _importManager = importManager;
+            _userService = userService;
+
+
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
         public async Task<List<UAgent>> GetAgentListAsync(int clientId, string searchStr = "", int status = 0, int senderId = 0, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
@@ -29,12 +39,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<UResponse> AddAgentAsync(AgentDto agent)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={agent.ClientId},@UserName={agent.UserName}, @Password={agent.Password},@AgentFName={agent.AgentFName}, @AgentLName={agent.AgentLName}, @PreferredLanguage={agent.PreferredLanguage},@SenderIds={agent.SenderIds}, @ActionBy={agent.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={agent.ClientId},@UserName={agent.UserName}, @Password={agent.Password},@AgentFName={agent.AgentFName}, @AgentLName={agent.AgentLName}, @PreferredLanguage={agent.PreferredLanguage},@SenderIds={agent.SenderIds}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
         public async Task<UResponse> UpdateAgentAsync(AgentDto agent)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.Update}, @Id={agent.Id}, @ClientId={agent.ClientId}, @AgentFName={agent.AgentFName}, @AgentLName={agent.AgentLName}, @PreferredLanguage={agent.PreferredLanguage},@SenderIds={agent.SenderIds}, @ActionBy={agent.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.Update}, @Id={agent.Id}, @ClientId={agent.ClientId}, @AgentFName={agent.AgentFName}, @AgentLName={agent.AgentLName}, @PreferredLanguage={agent.PreferredLanguage},@SenderIds={agent.SenderIds}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
         public async Task<UResponse> DeleteAgentAsync(int AgentId)
@@ -58,7 +68,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponse> AddAgentTimingsAsync(AgentTimingDto model)
         {
             var timings = JsonConvert.SerializeObject(model.Timings);
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec Usp_AgentTimings_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={model.ClientId}, @AgentId={model.AgentId}, @JsonData={timings}, @ActionBy={model.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec Usp_AgentTimings_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={model.ClientId}, @AgentId={model.AgentId}, @JsonData={timings}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
         public async Task<List<UAgentTiming>> GetAgentTimingListAsync(int clientId, int agentId)
@@ -101,6 +111,23 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 return response[0];
 
             return null;
+        }
+
+        public async Task<UResponse> ImportBulkAgentTimings(ImportBulkAgentTimingDto model)
+        {
+            var bulkTimings = _importManager.ImportBulkAgentTimingsFromXlsx(model.File.OpenReadStream());
+            if (bulkTimings == null || !bulkTimings.Any())
+            {
+                return new UResponse
+                {
+                    Status = 0,
+                    Message = "Cannot import bulk timings, No timings found"
+                };
+            }
+
+            var bulkTimingsJson = System.Text.Json.JsonSerializer.Serialize(bulkTimings);
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_AgentTimings_BulkUpload @BulkAgentTimings={bulkTimingsJson}, @ClientId={model.ClientId}, @ActionBy={userId}").ToListAsync();
+            return response[0];
         }
     }
 }

@@ -11,13 +11,22 @@ namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class ClientService : IClientService
     {
+        private readonly int userId;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
+        private readonly IUserService _userService;
 
-        public ClientService(WhatsAppSolutionContext dbContext, WhatsAppSolutionContext2 dbContext2)
+        public ClientService(
+            WhatsAppSolutionContext dbContext,
+            WhatsAppSolutionContext2 dbContext2,
+            IUserService userService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
+            _userService = userService;
+
+
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
         public async Task<List<UClient>> GetClientListAsync(string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
@@ -28,13 +37,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> AddClientAsync(ClientDto client)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Clients_Ops @ActionId={(int)CrudEnum.Add}, @ClientName={client.ClientName}, @ClientLanguage={client.ClientLanguage}, @ClientAddress={client.ClientAddress}, @Balance={client.Balance}, @ContactPerson={client.ContactPerson}, @ContactPersonEmail={client.ContactPersonEmail}, @ContactPersonPhone={client.ContactPersonPhone}, @BalanceAlertLimit={client.BalanceAlertLimit}, @AccessToken={client.AccessToken}, @ActionBy={client.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Clients_Ops @ActionId={(int)CrudEnum.Add}, @ClientName={client.ClientName}, @ClientLanguage={client.ClientLanguage}, @ClientAddress={client.ClientAddress}, @Balance={client.Balance}, @ContactPerson={client.ContactPerson}, @ContactPersonEmail={client.ContactPersonEmail}, @ContactPersonPhone={client.ContactPersonPhone}, @BalanceAlertLimit={client.BalanceAlertLimit}, @AccessToken={client.AccessToken}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
 
         public async Task<UResponse> UpdateClientAsync(ClientDto client)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Clients_Ops @ActionId={(int)CrudEnum.Update}, @ClientId={client.ClientId}, @ClientName={client.ClientName}, @ClientLanguage={client.ClientLanguage}, @ClientAddress={client.ClientAddress}, @Balance={client.Balance}, @ContactPerson={client.ContactPerson}, @ContactPersonEmail={client.ContactPersonEmail}, @ContactPersonPhone={client.ContactPersonPhone}, @BalanceAlertLimit={client.BalanceAlertLimit}, @AccessToken={client.AccessToken}, @ActionBy={client.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Clients_Ops @ActionId={(int)CrudEnum.Update}, @ClientId={client.ClientId}, @ClientName={client.ClientName}, @ClientLanguage={client.ClientLanguage}, @ClientAddress={client.ClientAddress}, @Balance={client.Balance}, @ContactPerson={client.ContactPerson}, @ContactPersonEmail={client.ContactPersonEmail}, @ContactPersonPhone={client.ContactPersonPhone}, @BalanceAlertLimit={client.BalanceAlertLimit}, @AccessToken={client.AccessToken}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
 

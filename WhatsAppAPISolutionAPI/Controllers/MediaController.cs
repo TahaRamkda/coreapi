@@ -13,14 +13,21 @@ namespace WhatsAppAPISolutionAPI.Controllers
     [Authorize]
     public class MediaController : ControllerBase
     {
+        private readonly int clientId;
         private readonly IMediaService _mediaService;
         private readonly ILogger<MediaController> _logger;
+        private readonly IUserService _userService;
 
         public MediaController(IMediaService mediaService,
-            ILogger<MediaController> logger)
+            ILogger<MediaController> logger,
+            IUserService userService)
         {
             _mediaService = mediaService;
             _logger = logger;
+            _userService = userService;
+
+
+            clientId = _userService.GetClientIdFromAccessToken();
         }
 
         [HttpPost("uploadmedia")]
@@ -31,23 +38,15 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (model == null)
                 return BadRequest();
 
+            model.ClientId = clientId;
             if (model.File == null && model.File.Length == 0)
-                return Ok(new ApiResult
-                {
-                    Message = "Please upload file"
-                });
+                return Ok(new ApiResult { Message = "Please upload file" });
 
             if (model.ClientId == 0)
-                return Ok(new ApiResult
-                {
-                    Message = "Client does not exist"
-                });
+                return Ok(new ApiResult { Message = "Client does not exist" });
 
             if (model.SenderNameId == 0)
-                return Ok(new ApiResult
-                {
-                    Message = "Sender name does not exist"
-                });
+                return Ok(new ApiResult { Message = "Sender name does not exist" });
 
             //Restrict other media types
             var extension = Path.GetExtension(model.File.FileName);
@@ -65,13 +64,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Received api UploadMediaAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
+                return Ok(new ApiResult { Message = response?.Message });
 
             return Ok(new ApiResult
             {
@@ -82,7 +75,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getmedialist")]
-        public async Task<ActionResult> GetMediaListAsync(int clientId, int senderId = 0, string contentTypeStr = "", int PageNo = 0, int PageSize = int.MaxValue, int MediaTypeId = 0)
+        public async Task<ActionResult> GetMediaListAsync(int senderId = 0, string contentTypeStr = "", int PageNo = 0, int PageSize = int.MaxValue, int MediaTypeId = 0)
         {
             _logger.LogInformation("Calling api GetMediaListAsync with clientId={clientId}, senderId={senderId}, contentTypeStr={contentTypeStr}, pageNo={pageNo}, pageSize={pageSize}, @MediaTypeId={@MediaTypeId}", clientId, senderId, contentTypeStr, PageNo, PageSize, MediaTypeId);
 
@@ -101,22 +94,15 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Calling api DeleteMediaAsync with id={id}", id);
 
             if (id <= 0)
-            {
                 return NotFound("not found");
-            }
 
             var response = await _mediaService.DeleteMediaAsync(id);
 
             _logger.LogInformation("Received api DeleteMediaAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
+                return Ok(new ApiResult { Message = response?.Message });
+
             return Ok(new ApiResult
             {
                 Success = true,
