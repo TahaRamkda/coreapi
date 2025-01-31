@@ -1,5 +1,6 @@
 ﻿using OfficeOpenXml;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionDL.Dto.Agent;
 using WhatsAppAPISolutionDL.Dto.Contact;
 
 namespace WhatsAppAPISolutionBL.Master.Services
@@ -37,6 +38,46 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
 
             return contacts;
+        }
+
+        /// <summary>
+        /// Import Bulk Agent from XLSX file
+        /// </summary>
+        /// <param name="stream">Stream</param>
+        public virtual List<AgentTimingInfo> ImportBulkAgentTimingsFromXlsx(Stream stream)
+        {
+            var agentTimings = new List<AgentTimingInfo>();
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (var package = new ExcelPackage(stream))
+            {
+                var worksheet = package.Workbook.Worksheets[0]; // Assume data is in the first worksheet
+                for (int row = 2; row <= worksheet.Dimension.End.Row; row++) // Assuming first row is the header
+                {
+                    var agentTiming = new AgentTimingInfo
+                    {
+                        AgentId = worksheet.Cells[row, 1].Value?.ToString() ?? "",
+                        AgentName = worksheet.Cells[row, 2].Value?.ToString() ?? "",
+                        Shift = worksheet.Cells[row, 3].Value?.ToString() ?? "",
+                        StartTime = DateTime.TryParse(worksheet.Cells[row, 4].Value?.ToString(), out DateTime startTime) ? startTime.TimeOfDay : TimeSpan.Zero,
+                        EndTime = DateTime.TryParse(worksheet.Cells[row, 5].Value?.ToString(), out DateTime endTime) ? endTime.TimeOfDay : TimeSpan.Zero,
+                        Sunday = ConvertToBoolean(worksheet.Cells[row, 6].Value?.ToString()),
+                        Monday = ConvertToBoolean(worksheet.Cells[row, 7].Value?.ToString()),
+                        Tuesday = ConvertToBoolean(worksheet.Cells[row, 8].Value?.ToString()),
+                        Wednesday = ConvertToBoolean(worksheet.Cells[row, 9].Value?.ToString()),
+                        Thursday = ConvertToBoolean(worksheet.Cells[row, 10].Value?.ToString()),
+                        Friday = ConvertToBoolean(worksheet.Cells[row, 11].Value?.ToString()),
+                        Saturday = ConvertToBoolean(worksheet.Cells[row, 12].Value?.ToString()),
+                    };
+
+                    agentTimings.Add(agentTiming);
+                }
+            }
+
+            return agentTimings;
+        }
+        private static bool ConvertToBoolean(string value)
+        {
+            return value == "1";
         }
     }
 }

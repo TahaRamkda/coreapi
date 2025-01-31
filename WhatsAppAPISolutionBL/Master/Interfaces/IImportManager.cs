@@ -1,4 +1,5 @@
-﻿using WhatsAppAPISolutionDL.Dto.Contact;
+﻿using WhatsAppAPISolutionDL.Dto.Agent;
+using WhatsAppAPISolutionDL.Dto.Contact;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
@@ -9,5 +10,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         /// </summary>
         /// <param name="stream">Stream</param>
         List<ContactInfo> ImportContactsFromXlsx(Stream stream);
+        List<AgentTimingInfo> ImportBulkAgentTimingsFromXlsx(Stream stream);
     }
 }
