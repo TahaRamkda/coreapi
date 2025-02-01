@@ -15,5 +15,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Agent
         public string PreferredLanguage { get; set; }
         public string LastOnline { get; set; }
         public string SenderIds { get; set; }
+        public string AgentFNameAR { get; set; }
+        public string AgentLNameAR { get; set; }
     }
 }

@@ -11,5 +11,7 @@
         public string PreferredLanguage { get; set; }
         public string SenderIds { get; set; }
         public int? ActionBy { get; set; }
+        public string AgentFNameAR { get; set; }
+        public string AgentLNameAR { get; set; }
     }
 }
