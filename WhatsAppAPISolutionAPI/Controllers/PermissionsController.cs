@@ -15,25 +15,32 @@ namespace WhatsAppAPISolutionAPI.Controllers
     [Authorize]
     public class PermissionsController : ControllerBase
     {
+        private readonly int clientId;
         private readonly IPermissionService _permissionService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<PermissionsController> _logger;
+        private readonly IUserService _userService;
 
         public PermissionsController(IPermissionService permissionService,
             WhatsAppSolutionContext dbContext,
-            ILogger<PermissionsController> logger)
+            ILogger<PermissionsController> logger,
+            IUserService userService)
         {
             _permissionService = permissionService;
             _dbContext = dbContext;
             _logger = logger;
+            _userService = userService;
+
+
+            clientId = _userService.GetClientIdFromAccessToken();
         }
 
         [HttpGet("getpermissionlist")]
-        public async Task<ActionResult> GetPermissionListAsync(int ClientId, int RoleId = 0)
+        public async Task<ActionResult> GetPermissionListAsync(int RoleId = 0)
         {
-            _logger.LogInformation("Calling api GetPermissionListAsync with clientId={clientId}, RoleId={RoleId}", ClientId, RoleId);
+            _logger.LogInformation("Calling api GetPermissionListAsync with clientId={clientId}, RoleId={RoleId}", clientId, RoleId);
 
-            var res = await _permissionService.GetPermissionListAsync(ClientId, RoleId);
+            var res = await _permissionService.GetPermissionListAsync(clientId, RoleId);
             return Ok(new ApiResult
             {
                 Success = true,
@@ -48,22 +55,18 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Calling api AddPermissionAsync with request={requst}", JsonConvert.SerializeObject(permission));
 
             if (permission == null)
-            {
                 return BadRequest();
-            }
+
+            permission.ClientId = clientId;
+            if (permission.ClientId <= 0)
+                return Ok(new { Message = "Please enter client id" });
 
             var response = await _permissionService.AddPermissionAsync(permission);
 
             _logger.LogInformation("Received api AddPermissionAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                { 
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
+                return Ok(new ApiResult{ Message = response?.Message});
 
             return Ok(new ApiResult
             {

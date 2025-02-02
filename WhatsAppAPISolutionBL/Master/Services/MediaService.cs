@@ -22,6 +22,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
     {
         #region Fields
 
+        private readonly int userId;
         private readonly string _uploadPath;
         private readonly string _staticFolderPath;
         private readonly WhatsAppSolutionContext _dbContext;
@@ -30,6 +31,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly ILogger<MediaService> _logger;
         private readonly IOptions<BridgeConfigurationSettings> _bridgeConfigurationSettings;
         private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
+        private readonly IUserService _userService;
         private readonly List<string> _allowedImageExtensions = new List<string> { ".jpg", ".jpeg", ".png" };
         private readonly List<string> _allowedVideoExtensions = new List<string> { ".webp", ".3gp", ".mp4" };
         private readonly List<string> _allowedDocumentExtensions = new List<string> { ".txt", ".xls", ".xlsx", ".doc", ".docx", ".ppt", ".pptx", ".pdf" };
@@ -45,7 +47,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             ILogger<MediaService> logger,
             IOptions<BridgeConfigurationSettings> bridgeConfigurationSettings,
             IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings,
-            IWebHostEnvironment webHostEnvironment)
+            IWebHostEnvironment webHostEnvironment,
+            IUserService userService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -53,19 +56,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _logger = logger;
             _bridgeConfigurationSettings = bridgeConfigurationSettings;
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
+            _userService = userService;
 
             _staticFolderPath = _apiSolutionConfigurationSettings.Value.StaticFolderPath;
-            ////_uploadPath = Path.Combine(Directory.GetCurrentDirectory(), _apiSolutionConfigurationSettings.Value.StaticFolderPath);
-            //_uploadPath = Directory.GetCurrentDirectory();
-            //if (!Directory.Exists(Path.Combine(_uploadPath, _staticFolderPath)))
-            //    Directory.CreateDirectory(Path.Combine(_uploadPath, _staticFolderPath));
-
-            //_uploadPath = Path.Combine(Directory.GetCurrentDirectory(), _apiSolutionConfigurationSettings.Value.StaticFolderPath);
-            //var a = Directory.GetCurrentDirectory();
-            _uploadPath = webHostEnvironment.ContentRootPath.TrimEnd('\\'); // Directory.GetCurrentDirectory();
+            _uploadPath = webHostEnvironment.ContentRootPath.TrimEnd('\\');
 
             if (!Directory.Exists(Path.Combine(_uploadPath, _staticFolderPath)))
                 Directory.CreateDirectory(Path.Combine(_uploadPath, _staticFolderPath));
+
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
         #endregion
@@ -158,7 +157,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponseWithID> AddMediaAsync(MediaUploadDto media)
         {
-            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={media.ClientId}, @WhatsAppBusinessAccountId={media.WhatsAppBusinessAccountId}, @SenderNameId={media.SenderNameId}, @MediaPath={media.MediaPath}, @ContentType={media.ContentType}, @FileSize={media.FileSize}, @FileName={media.FileName}, @FileExtension={media.FileExtension}, @MediaSourceId={media.MediaSourceId}, @ActionBy={media.ActionBy}, @MediaId={media.MediaId}, @MediaTypeId={media.MediaTypeId}").ToListAsync();
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={media.ClientId}, @WhatsAppBusinessAccountId={media.WhatsAppBusinessAccountId}, @SenderNameId={media.SenderNameId}, @MediaPath={media.MediaPath}, @ContentType={media.ContentType}, @FileSize={media.FileSize}, @FileName={media.FileName}, @FileExtension={media.FileExtension}, @MediaSourceId={media.MediaSourceId}, @ActionBy={userId}, @MediaId={media.MediaId}, @MediaTypeId={media.MediaTypeId}").ToListAsync();
             return response[0];
         }
 
@@ -259,7 +258,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     ContentType = model.File.ContentType,
                     MediaPath = String.Concat("\\", mediaPath),
                     MediaSourceId = model.MediaSourceId,
-                    ActionBy = model.ActionBy,
+                    ActionBy = userId,
                     MediaTypeId = mediaTypeId
                 };
 
@@ -286,7 +285,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponseWithID> UpdateMediaAsync(MediaUploadDto media)
         {
-            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Update}, @Id={media.Id}, @MediaId={media.MediaId}, @ActionBy={media.ActionBy}").ToListAsync();
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Update}, @Id={media.Id}, @MediaId={media.MediaId}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
 

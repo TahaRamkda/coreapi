@@ -16,13 +16,22 @@ namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class SenderNameService : ISenderNameService
     {
+        private readonly int userId;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
+        private readonly IUserService _userService;
 
-        public SenderNameService(WhatsAppSolutionContext dbContext, WhatsAppSolutionContext2 dbContext2)
+        public SenderNameService(
+            WhatsAppSolutionContext dbContext,
+            WhatsAppSolutionContext2 dbContext2,
+            IUserService userService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
+            _userService = userService;
+
+
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
         public async Task<List<USenderName>> GetSenderNameListAsync(int ClientId)
@@ -33,13 +42,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> AddSenderNameAsync(SenderNameDto senderName)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={senderName.ClientId}, @SenderName={senderName.SenderName}, @PhoneNumber={senderName.PhoneNumber}, @PhoneId={senderName.PhoneId}, @AppId={senderName.AppId}, @Limit={senderName.Limit}, @Quality={senderName.Quality}, @MediaId={senderName.MediaId}, @Verified={senderName.Verified}, @ActionBy={senderName.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={senderName.ClientId}, @SenderName={senderName.SenderName}, @PhoneNumber={senderName.PhoneNumber}, @PhoneId={senderName.PhoneId}, @AppId={senderName.AppId}, @Limit={senderName.Limit}, @Quality={senderName.Quality}, @MediaId={senderName.MediaId}, @Verified={senderName.Verified}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
 
         public async Task<UResponse> UpdateSenderNameAsync(SenderNameDto senderName)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.Update}, @SenderId={senderName.SenderId}, @ClientId={senderName.ClientId}, @SenderName={senderName.SenderName}, @PhoneNumber={senderName.PhoneNumber}, @PhoneId={senderName.PhoneId}, @AppId={senderName.AppId}, @Limit={senderName.Limit}, @Quality={senderName.Quality}, @MediaId={senderName.MediaId},@Verified={senderName.Verified}, @ActionBy={senderName.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.Update}, @SenderId={senderName.SenderId}, @ClientId={senderName.ClientId}, @SenderName={senderName.SenderName}, @PhoneNumber={senderName.PhoneNumber}, @PhoneId={senderName.PhoneId}, @AppId={senderName.AppId}, @Limit={senderName.Limit}, @Quality={senderName.Quality}, @MediaId={senderName.MediaId},@Verified={senderName.Verified}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
 

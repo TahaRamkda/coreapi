@@ -64,13 +64,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> AddUserAsync(UserDto user)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={user.ClientId}, @UserName={user.UserName}, @Password={user.Password}, @IsActive={user.IsActive}, @FullName={user.FullName}, @ActionBy={user.ActionBy}, @UserRoles={user.UserRoles}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={user.ClientId}, @UserName={user.UserName}, @Password={user.Password}, @IsActive={user.IsActive}, @FullName={user.FullName}, @ActionBy={GetUserIdFromAccessToken()}, @UserRoles={user.UserRoles}").ToListAsync();
             return response[0];
         }
 
         public async Task<UResponse> UpdateUserAsync(UserDto user)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.Update}, @ClientId={user.ClientId}, @UserId={user.UserId}, @UserName={user.UserName}, @IsActive={user.IsActive}, @FullName={user.FullName}, @ActionBy={user.ActionBy}, @UserRoles={user.UserRoles}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.Update}, @ClientId={user.ClientId}, @UserId={user.UserId}, @UserName={user.UserName}, @IsActive={user.IsActive}, @FullName={user.FullName}, @ActionBy={GetUserIdFromAccessToken()}, @UserRoles={user.UserRoles}").ToListAsync();
             return response[0];
         }
 

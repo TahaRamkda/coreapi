@@ -18,13 +18,22 @@ namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class SystemActionsService : ISystemActionsService
     {
+        private readonly int userId;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
+        private readonly IUserService _userService;
 
-        public SystemActionsService(WhatsAppSolutionContext dbContext, WhatsAppSolutionContext2 dbContext2)
+        public SystemActionsService(
+            WhatsAppSolutionContext dbContext, 
+            WhatsAppSolutionContext2 dbContext2,
+            IUserService userService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
+            _userService = userService;
+
+
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
         public async Task<List<USystemActions>> GetSystemActionsListAsync(int ClientId, int SystemActionId = 0, int PageNo = 0, int PageSize = int.MaxValue)
@@ -35,13 +44,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> AddSystemActionsAsync(SystemActionsDto systemActions)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SystemActions_Ops @action_Id={(int)CrudEnum.Add}, @ClientId={systemActions.ClientId}, @SenderId={systemActions.SenderId}, @ActionId={systemActions.ActionId}, @ActionName={systemActions.ActionName}, @ThirdPartyURL={systemActions.ThirdPartyURL}, @ActionType={systemActions.ActionType}, @ActionBy={systemActions.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SystemActions_Ops @action_Id={(int)CrudEnum.Add}, @ClientId={systemActions.ClientId}, @SenderId={systemActions.SenderId}, @ActionId={systemActions.ActionId}, @ActionName={systemActions.ActionName}, @ThirdPartyURL={systemActions.ThirdPartyURL}, @ActionType={systemActions.ActionType}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
 
         public async Task<UResponse> UpdateSystemActionsAsync(SystemActionsDto systemActions)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SystemActions_Ops @action_Id={(int)CrudEnum.Update}, @SystemActionId={systemActions.SystemActionId}, @ClientId={systemActions.ClientId}, @SenderId={systemActions.SenderId}, @ActionId={systemActions.ActionId}, @ActionName={systemActions.ActionName}, @ThirdPartyURL={systemActions.ThirdPartyURL}, @ActionType={systemActions.ActionType}, @ActionBy={systemActions.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SystemActions_Ops @action_Id={(int)CrudEnum.Update}, @SystemActionId={systemActions.SystemActionId}, @ClientId={systemActions.ClientId}, @SenderId={systemActions.SenderId}, @ActionId={systemActions.ActionId}, @ActionName={systemActions.ActionName}, @ThirdPartyURL={systemActions.ThirdPartyURL}, @ActionType={systemActions.ActionType}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
 

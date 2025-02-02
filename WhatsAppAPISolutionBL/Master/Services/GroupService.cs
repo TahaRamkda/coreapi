@@ -11,13 +11,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class GroupService : IGroupService
     {
+        private readonly int userId;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
+        private readonly IUserService _userService;
 
-        public GroupService(WhatsAppSolutionContext dbContext, WhatsAppSolutionContext2 dbContext2)
+        public GroupService(WhatsAppSolutionContext dbContext,
+            WhatsAppSolutionContext2 dbContext2,
+            IUserService userService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
+            _userService = userService;
+
+
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
         public async Task<List<UGroup>> GetGroupListAsync(int ClientId, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
@@ -28,14 +36,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> AddGroupAsync(GroupDto group)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Groups_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={group.ClientId}, @GroupName={group.GroupName}, @ActionBy={group.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Groups_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={group.ClientId}, @GroupName={group.GroupName}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
 
 
         public async Task<UResponse> UpdateGroupAsync(GroupDto group)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Groups_Ops @ActionId={(int)CrudEnum.Update}, @ClientId={group.ClientId}, @GroupId={group.GroupId}, @GroupName={group.GroupName}, @ActionBy={group.ActionBy}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Groups_Ops @ActionId={(int)CrudEnum.Update}, @ClientId={group.ClientId}, @GroupId={group.GroupId}, @GroupName={group.GroupName}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
 
