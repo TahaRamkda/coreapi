@@ -8,6 +8,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Conversation
         public int? ClientId { get; set; }
         public int? Id { get; set; }
         public int? AgentId { get; set; }
+        public string AgentName { get; set; }
         public int? SenderId { get; set; }
         public int? ConversationId { get; set; }
         public int? TypeId { get; set; }
