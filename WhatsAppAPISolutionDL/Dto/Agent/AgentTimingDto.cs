@@ -7,9 +7,9 @@
             Timings = new List<AgentTiming>();
         }
 
-        public int ClientId { get; set; }
+        //public int ClientId { get; set; }
         public int AgentId { get; set; }
-        public int ActionBy { get; set; }
+        //public int ActionBy { get; set; }
 
         public List<AgentTiming> Timings { get; set; }
 

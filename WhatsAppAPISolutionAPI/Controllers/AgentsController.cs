@@ -17,6 +17,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class AgentsController : ControllerBase
     {
         private readonly int clientId;
+        private readonly int userId;
         private readonly IAgentsService _agentsService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<AgentsController> _logger;
@@ -35,6 +36,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
 
             clientId = _userService.GetClientIdFromAccessToken();
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
         [HttpGet("getagentlist")]
@@ -86,8 +88,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (agent == null)
                 return BadRequest();
 
-            agent.ClientId = clientId;
-            if (agent.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
 
             if (String.IsNullOrWhiteSpace(agent.AgentFName))
@@ -108,7 +109,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (String.IsNullOrWhiteSpace(agent.Password))
                 return Ok(new ApiResult { Message = "Please enter password" });
 
-            var response = await _agentsService.AddAgentAsync(agent);
+            var response = await _agentsService.AddAgentAsync(clientId, userId, agent);
 
             _logger.LogInformation("Received api AddAgentAsync response with data={data}", JsonConvert.SerializeObject(response));
 
@@ -131,8 +132,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (agent == null)
                 return BadRequest();
 
-            agent.ClientId = clientId;
-            if (agent.ClientId <= 0)
+            //agent.ClientId = clientId;
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
 
             if (String.IsNullOrWhiteSpace(agent.AgentFName))
@@ -141,7 +142,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (String.IsNullOrWhiteSpace(agent.AgentLName))
                 return Ok(new ApiResult { Message = "Please enter agent last name" });
 
-            var response = await _agentsService.UpdateAgentAsync(agent);
+            var response = await _agentsService.UpdateAgentAsync(clientId, userId, agent);
 
             _logger.LogInformation("Received api UpdateAgentAsync response with data={data}", JsonConvert.SerializeObject(response));
 
@@ -236,8 +237,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         public async Task<IActionResult> AddAgentTimingsAsync(AgentTimingDto model)
         {
             _logger.LogInformation("Calling api AddAgentTimingsAsync with request={request}", JsonConvert.SerializeObject(model));
-            model.ClientId = clientId;
-            if (model.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please select client" });
 
             if (model.AgentId <= 0)
@@ -246,7 +246,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (model.Timings == null || model.Timings.Count == 0)
                 return Ok(new ApiResult { Message = "Please enter timings" });
 
-            var response = await _agentsService.AddAgentTimingsAsync(model);
+            var response = await _agentsService.AddAgentTimingsAsync(clientId, userId, model);
 
             _logger.LogInformation("Received api AddAgentTimingsAsync response with data={data}", JsonConvert.SerializeObject(response));
 
@@ -327,6 +327,21 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
+        [HttpGet("getagentdetailsupervisorreport")]
+        public async Task<ActionResult> GetAgentDetailSupervisorDetailReportListAsync(string searchStr = "", int status = 0, int senderId = 0, DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        {
+            _logger.LogInformation("Calling api GetAgentDetailSupervisorReportListAsync with clientId={clientId}, searchStr={searchStr}, status={status}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, searchStr, status, senderId, fromDate, toDate, sortBy, pageNo, pageSize);
+
+            var res = await _agentsService.GetAgentDetailSupervisorReportListAsync(clientId, searchStr, status, senderId, fromDate, toDate, sortBy, pageNo, pageSize);
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = res,
+                Message = "Data fetch successfully"
+            });
+        }
+
         [HttpGet("getagentstats")]
         public async Task<ActionResult> GetAgentStatsAsync(int agentId, int senderId = 0)
         {
@@ -351,14 +366,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             _logger.LogInformation("Calling api ImportBulkAgentTimingsAsync with request={requst}", JsonConvert.SerializeObject(model));
 
-            model.ClientId = clientId;
-            if (model.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
 
             if (model.File == null || model.File.Length <= 0)
                 return Ok(new ApiResult { Message = "No file found" });
 
-            var response = await _agentsService.ImportBulkAgentTimings(model);
+            var response = await _agentsService.ImportBulkAgentTimings(clientId, userId, model);
 
             _logger.LogInformation("Received api ImportBulkAgentTimingsAsync response with data={data}", JsonConvert.SerializeObject(response));
 

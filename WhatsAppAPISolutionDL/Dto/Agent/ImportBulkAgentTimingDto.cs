@@ -10,7 +10,7 @@ namespace WhatsAppAPISolutionDL.Dto.Agent
 
     public partial class ImportBulkAgentTimingDto
     {
-        public int ClientId { get; set; }
+        //public int ClientId { get; set; }
         public IFormFile File { get; set; }
     }
 

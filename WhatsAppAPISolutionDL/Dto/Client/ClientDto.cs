@@ -18,6 +18,6 @@ namespace WhatsAppAPISolutionDL.Dto.Client
         public string ContactPersonPhone { get; set; }
         public decimal? BalanceAlertLimit { get; set; }
         public string AccessToken { get; set; }
-        public int? ActionBy { get; set; }
+        //public int? ActionBy { get; set; }
     }
 }

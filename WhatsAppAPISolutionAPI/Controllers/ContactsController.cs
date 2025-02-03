@@ -21,6 +21,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class ContactsController : ControllerBase
     {
         private readonly int clientId;
+        private readonly int userId;
         private readonly IContactService _contactService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<ContactsController> _logger;
@@ -38,6 +39,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
 
             clientId = _userService.GetClientIdFromAccessToken();
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
         [HttpGet("getcontactslist")]
@@ -88,11 +90,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (contact == null)
                 return BadRequest();
 
-            contact.ClientId = clientId;
-            if (contact.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
 
-            var response = await _contactService.AddContactAsync(contact);
+            var response = await _contactService.AddContactAsync(clientId, userId, contact);
 
             _logger.LogInformation("Received api AddContactAsync response with data={data}", JsonConvert.SerializeObject(response));
 
@@ -115,11 +116,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (contact == null)
                 return BadRequest();
 
-            contact.ClientId = clientId;
-            if (contact.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
 
-            var response = await _contactService.UpdateContactAsync(contact);
+            var response = await _contactService.UpdateContactAsync(clientId, contact);
 
             _logger.LogInformation("Received api UpdateContactAsync response with data={data}", JsonConvert.SerializeObject(response));
 
@@ -162,14 +162,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             _logger.LogInformation("Calling api ImportContactsAsync with request={requst}", JsonConvert.SerializeObject(model));
 
-            model.ClientId = clientId;
-            if (model.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
 
             if (model.File == null || model.File.Length <= 0)
                 return Ok(new ApiResult { Message = "No file found" });
 
-            var response = await _contactService.ImportBulkContacts(model);
+            var response = await _contactService.ImportBulkContacts(clientId, userId, model);
 
             _logger.LogInformation("Received api ImportContactsAsync response with data={data}", JsonConvert.SerializeObject(response));
 

@@ -20,17 +20,24 @@ namespace WhatsAppAPISolutionAPI.Controllers
     [Authorize]
     public class ClientsController : ControllerBase
     {
+        private readonly int userId;
         private readonly IClientService _clientService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<ClientsController> _logger;
+        private readonly IUserService _userService;
 
         public ClientsController(IClientService clientService,
             WhatsAppSolutionContext dbContext,
-            ILogger<ClientsController> logger)
+            ILogger<ClientsController> logger,
+            IUserService userService)
         {
             _clientService = clientService;
             _dbContext = dbContext;
             _logger = logger;
+            _userService = userService;
+
+
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
         [HttpGet("getclientslist")]
@@ -88,7 +95,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 return BadRequest();
             }
 
-            var response = await _clientService.AddClientAsync(client);
+            var response = await _clientService.AddClientAsync(userId, client);
 
             _logger.LogInformation("Received api AddClientAsync response with data={data}", JsonConvert.SerializeObject(response));
 
@@ -118,7 +125,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 return BadRequest();
             }
 
-            var response = await _clientService.UpdateClientAsync(client);
+            var response = await _clientService.UpdateClientAsync(userId, client);
 
             _logger.LogInformation("Received api UpdateClientAsync response with data={data}", JsonConvert.SerializeObject(response));
 

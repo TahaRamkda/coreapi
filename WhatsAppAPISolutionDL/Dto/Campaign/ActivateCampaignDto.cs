@@ -9,8 +9,8 @@ namespace WhatsAppAPISolutionDL.Dto.Campaign
     public partial class ActivateCampaignDto
     {
         public int CampaignId { get; set; }
-        public int ClientId { get; set; }
+        //public int ClientId { get; set; }
         public DateTime? ScheduleDate { get; set; }
-        public int? ActionBy { get; set; }
+        //public int? ActionBy { get; set; }
     }
 }

@@ -17,31 +17,24 @@ namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class CampaignService : ICampaignService
     {
-        private readonly int userId;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly ICommunicationService _communicationService;
         private readonly IMediaService _mediaService;
         private readonly ITemplateService _templateService;
-        private readonly IUserService _userService;
 
         public CampaignService(
             WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
             ICommunicationService communicationService,
             IMediaService mediaService,
-            ITemplateService templateService,
-            IUserService userService)
+            ITemplateService templateService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _communicationService = communicationService;
             _mediaService = mediaService;
             _templateService = templateService;
-            _userService = userService;
-
-
-            userId = _userService.GetUserIdFromAccessToken();
         }
 
         public async Task<List<UCampaign>> GetCampaignListAsync(int ClientId, int CampaignId = 0, DateTime? FromDate = null, DateTime? ToDate = null, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue, int SenderId = 0)
@@ -50,9 +43,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response;
         }
 
-        public async Task<UResponse> AddCampaignAsync(CampaignDto model)
+        public async Task<UResponse> AddCampaignAsync(int clientId, int userId, CampaignDto model)
         {
-            var template = await _templateService.GetTemplateDetailAsync(model.ClientId, model.TemplateId);
+            var template = await _templateService.GetTemplateDetailAsync(clientId, model.TemplateId);
             if (template == null)
                 return new UResponse { Message = "No template selected" };
 
@@ -148,20 +141,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var campaignParamJson = JsonConvert.SerializeObject(model.CampaignParameters);
             var campaignContactJson = JsonConvert.SerializeObject(model.CampaignContacts);
 
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.Add}, @CampaignName={model.CampaignName}, @ClientId={model.ClientId}, @SenderId={model.SenderId}, @TemplateId={model.TemplateId}, @ScheduleDate={model.ScheduleDate}, @CampaignType={model.CampaignType}, @CampaignParamsJSON={campaignParamJson}, @CampaignContactsJSON={campaignContactJson}, @GroupIds={model.GroupIds},@MediaId={model.MediaId}, @ActionBy={userId}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.Add}, @CampaignName={model.CampaignName}, @ClientId={clientId}, @SenderId={model.SenderId}, @TemplateId={model.TemplateId}, @ScheduleDate={model.ScheduleDate}, @CampaignType={model.CampaignType}, @CampaignParamsJSON={campaignParamJson}, @CampaignContactsJSON={campaignContactJson}, @GroupIds={model.GroupIds},@MediaId={model.MediaId}, @ActionBy={userId}").ToListAsync();
 
             return response[0];
         }
 
-        public async Task<UResponse> ActivateCampaignAsync(ActivateCampaignDto campaign)
+        public async Task<UResponse> ActivateCampaignAsync(int clientId, int userId, ActivateCampaignDto campaign)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.ActivateCampaign}, @CampaignId={campaign.CampaignId}, @ClientId={campaign.ClientId}, @ScheduleDate={campaign.ScheduleDate}, @ActionBy={userId}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.ActivateCampaign}, @CampaignId={campaign.CampaignId}, @ClientId={clientId}, @ScheduleDate={campaign.ScheduleDate}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
 
-        public async Task<UResponse> UpdateCampaignAsync(CampaignDto model)
+        public async Task<UResponse> UpdateCampaignAsync(int clientId, int userId, CampaignDto model)
         {
-            var template = await _templateService.GetTemplateDetailAsync(model.ClientId, model.TemplateId);
+            var template = await _templateService.GetTemplateDetailAsync(clientId, model.TemplateId);
             if (template == null)
                 return new UResponse { Message = "No template selected" };
 
@@ -257,20 +250,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var campaignParamJson = JsonConvert.SerializeObject(model.CampaignParameters);
             var campaignContactJson = JsonConvert.SerializeObject(model.CampaignContacts);
 
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.UpdateCampaign}, @CampaignId={model.CampaignId}, @CampaignName={model.CampaignName}, @ClientId={model.ClientId}, @SenderId={model.SenderId}, @TemplateId={model.TemplateId}, @ScheduleDate={model.ScheduleDate}, @CampaignType={model.CampaignType}, @CampaignParamsJSON={campaignParamJson}, @CampaignContactsJSON={campaignContactJson}, @GroupIds={model.GroupIds}, @MediaId={model.MediaId}, @ActionBy={userId}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.UpdateCampaign}, @CampaignId={model.CampaignId}, @CampaignName={model.CampaignName}, @ClientId={clientId}, @SenderId={model.SenderId}, @TemplateId={model.TemplateId}, @ScheduleDate={model.ScheduleDate}, @CampaignType={model.CampaignType}, @CampaignParamsJSON={campaignParamJson}, @CampaignContactsJSON={campaignContactJson}, @GroupIds={model.GroupIds}, @MediaId={model.MediaId}, @ActionBy={userId}").ToListAsync();
 
             return response[0];
         }
 
-        public async Task<UResponse> SettleCampaignAsync(int ClientId, int CampaignId)
+        public async Task<UResponse> SettleCampaignAsync(int clientId, int campaignId)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.SettleCampaign}, @CampaignId={CampaignId}, @ClientId={ClientId}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.SettleCampaign}, @CampaignId={campaignId}, @ClientId={clientId}").ToListAsync();
             return response[0];
         }
 
-        public async Task<ApiResult> SendCampaignMessagesAsync(SendCampaignDto model)
+        public async Task<ApiResult> SendCampaignMessagesAsync(int clientId, SendCampaignDto model)
         {
-            var campaign = await GetCampaignDetailAsync(model.ClientId, model.CampaignId);
+            var campaign = await GetCampaignDetailAsync(clientId, model.CampaignId);
             if (campaign == null)
                 return new ApiResult { Message = "No campaign found with this Campaign Id" };
 
@@ -299,25 +292,25 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return await _communicationService.SendTemplateMessageAsync(tempPayload);
         }
 
-        public async Task<UCampaignContactStat> GetCampaignContactStatsAsync(int ClientId, int CampaignId)
+        public async Task<UCampaignContactStat> GetCampaignContactStatsAsync(int clientId, int campaignId)
         {
-            var response = await _dbContext2.CampaignContactStats.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.CampaignContactStats}, @ClientId={ClientId}, @CampaignId={CampaignId}").ToListAsync();
+            var response = await _dbContext2.CampaignContactStats.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.CampaignContactStats}, @ClientId={clientId}, @CampaignId={campaignId}").ToListAsync();
             if (response != null && response.Any()) return response[0];
 
             return null;
         }
 
-        public async Task<UResponse> DeleteFreqContactedContactsAsync(int ClientId, int CampaignId, int LastContactedInDays)
+        public async Task<UResponse> DeleteFreqContactedContactsAsync(int clientId, int campaignId, int lastContactedInDays)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.DeleteFreqContactedContacts}, @ClientId={ClientId}, @CampaignId={CampaignId}, @LastContactedInDays={LastContactedInDays}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.DeleteFreqContactedContacts}, @ClientId={clientId}, @CampaignId={campaignId}, @LastContactedInDays={lastContactedInDays}").ToListAsync();
             if (response != null && response.Any()) return response[0];
 
             return null;
         }
 
-        public async Task<UCampaignDetail> GetCampaignDetailAsync(int ClientId, int CampaignId)
+        public async Task<UCampaignDetail> GetCampaignDetailAsync(int clientId, int campaignId)
         {
-            var response = await _dbContext2.CampaignDetails.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.GetDetails}, @ClientId={ClientId}, @CampaignId={CampaignId}").ToListAsync();
+            var response = await _dbContext2.CampaignDetails.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.GetDetails}, @ClientId={clientId}, @CampaignId={campaignId}").ToListAsync();
             if (response != null && response.Any())
             {
                 var campaignDetail = response[0];

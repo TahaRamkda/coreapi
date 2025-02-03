@@ -23,6 +23,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class GroupsController : ControllerBase
     {
         private readonly int clientId;
+        private readonly int userId;
         private readonly IGroupService _groupService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<GroupsController> _logger;
@@ -40,6 +41,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
 
             clientId = _userService.GetClientIdFromAccessToken();
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
         [HttpGet("getgroupslist")]
@@ -90,14 +92,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (group == null)
                 return BadRequest();
 
-            group.ClientId = clientId;
-            if (group.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new { Message = "Please enter client id" });
 
             if (String.IsNullOrWhiteSpace(group.GroupName))
                 return Ok(new ApiResult { Message = "Please enter group name" });
 
-            var response = await _groupService.AddGroupAsync(group);
+            var response = await _groupService.AddGroupAsync(clientId, userId, group);
 
             _logger.LogInformation("Received api AddGroupAsync response with data={data}", JsonConvert.SerializeObject(response));
 
@@ -120,14 +121,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (group == null)
                 return BadRequest();
 
-            group.ClientId = clientId;
-            if (group.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new { Message = "Please enter client id" });
 
             if (String.IsNullOrWhiteSpace(group.GroupName))
                 return Ok(new ApiResult { Message = "Please enter group name" });
 
-            var response = await _groupService.UpdateGroupAsync(group);
+            var response = await _groupService.UpdateGroupAsync(clientId, userId, group);
 
             _logger.LogInformation("Received api UpdateGroupAsync response with data={data}", JsonConvert.SerializeObject(response));
 

@@ -8,7 +8,7 @@
             CampaignContacts = new List<CampaignContactDto>();
         }
 
-        public int ClientId { get; set; }
+        //public int ClientId { get; set; }
         public int CampaignId { get; set; }
         public string CampaignName { get; set; }
         public int SenderId { get; set; }
@@ -17,7 +17,7 @@
         public string CampaignType { get; set; }
         public string GroupIds { get; set; }
         public int MediaId { get; set; }
-        public int? ActionBy { get; set; }
+        //public int? ActionBy { get; set; }
         public List<CampaignParamDto> CampaignParameters { get; set; }
         public List<CampaignContactDto> CampaignContacts { get; set; }
     }

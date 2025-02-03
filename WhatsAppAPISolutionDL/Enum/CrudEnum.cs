@@ -69,7 +69,8 @@
 
         GetAgentSupervisorReport = 40,
 
-        GetDetails = 41, 
+        GetDetails = 41,
+        GetAgentDetailSupervisorReport = 41, 
 
 
         GetEntities = 50,

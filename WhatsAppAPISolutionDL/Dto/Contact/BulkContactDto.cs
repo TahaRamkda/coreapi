@@ -9,8 +9,8 @@ namespace WhatsAppAPISolutionDL.Dto.Contact
 {
     public partial class ImportContactDto
     {
-        public int ClientId { get; set; }
-        public int ActionBy { get; set; }
+        //public int ClientId { get; set; }
+        //public int ActionBy { get; set; }
         public IFormFile File { get; set; }
     }
 

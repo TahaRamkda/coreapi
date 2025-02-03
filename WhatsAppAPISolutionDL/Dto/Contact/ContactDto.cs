@@ -8,7 +8,7 @@ namespace WhatsAppAPISolutionDL.Dto.Contact
 {
     public partial class ContactDto
     {
-        public int ClientId { get; set; }
+        //public int ClientId { get; set; }
         public int ContactId { get; set; }
         public int? GroupId { get; set; }
         public string FirstName { get; set; }
@@ -16,6 +16,6 @@ namespace WhatsAppAPISolutionDL.Dto.Contact
         public string PhoneNumber { get; set; }
         public string EmailAddress { get; set; }
         public string AreaName { get; set; }
-        public int? ActionBy { get; set; }
+        //public int? ActionBy { get; set; }
     }
 }

@@ -15,6 +15,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class CampaignsController : ControllerBase
     {
         private readonly int clientId;
+        private readonly int userId;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<CampaignsController> _logger;
         private readonly ICampaignService _campaignService;
@@ -34,6 +35,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
 
             clientId = _userService.GetClientIdFromAccessToken();
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
         [HttpGet("getcampaignlist")]
@@ -60,8 +62,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (campaign == null)
                 return BadRequest();
 
-            campaign.ClientId = clientId;
-            if (campaign.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
 
             if (string.IsNullOrEmpty(campaign.CampaignName))
@@ -70,7 +71,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (campaign.TemplateId <= 0)
                 return Ok(new ApiResult { Message = "Please select template" });
 
-            var response = await _campaignService.AddCampaignAsync(campaign);
+            var response = await _campaignService.AddCampaignAsync(clientId, userId, campaign);
             if (response == null || response.Status <= 0)
             {
                 _logger.LogError("Received response from AddCampaignAsync with error = {error}", JsonConvert.SerializeObject(response?.Message));
@@ -100,8 +101,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (campaign == null)
                 return BadRequest();
 
-            campaign.ClientId = clientId;
-            if (campaign.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please select client" });
 
             if (campaign.CampaignId <= 0)
@@ -110,7 +110,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (!campaign.ScheduleDate.HasValue)
                 return Ok(new ApiResult { Message = "Please select schedule date" });
 
-            var response = await _campaignService.ActivateCampaignAsync(campaign);
+            var response = await _campaignService.ActivateCampaignAsync(clientId, userId, campaign);
 
             _logger.LogInformation("Received api ActivateCampaignAsync response with data={data}", JsonConvert.SerializeObject(response));
 
@@ -133,14 +133,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (campaign == null)
                 return Ok(new ApiResult { Message = "Campaign not found" });
 
-            campaign.ClientId = clientId;
-            if (campaign.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please select client" });
 
             if (campaign.CampaignId <= 0)
                 return Ok(new ApiResult { Message = "Please select campaign" });
 
-            var response = await _campaignService.UpdateCampaignAsync(campaign);
+            var response = await _campaignService.UpdateCampaignAsync(clientId, userId, campaign);
 
             _logger.LogInformation("Received api UpdateCampaignAsync response with data={data}", JsonConvert.SerializeObject(response));
 
@@ -186,14 +185,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             _logger.LogInformation("Calling api SendCampaignAsync with request={requst}", JsonConvert.SerializeObject(campaign));
 
-            campaign.ClientId = clientId;
+            if (clientId <= 0)
+                return Ok(new ApiResult { Message = "Please select client" });
+
             if (campaign.CampaignId <= 0)
                 return Ok(new ApiResult { Message = "Campaign is required" });
 
             if (campaign.PhoneNumbers == null || !campaign.PhoneNumbers.Any())
                 return Ok(new ApiResult { Message = "Please add atleast one phone number" });
 
-            var response = await _campaignService.SendCampaignMessagesAsync(campaign);
+            var response = await _campaignService.SendCampaignMessagesAsync(clientId, campaign);
 
             _logger.LogInformation("Received api SendCampaignAsync response with data={data}", JsonConvert.SerializeObject(response));
 
