@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System.Data;
 using System.Text;
 using System.Text.RegularExpressions;
+using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Template;
@@ -63,9 +64,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (templateNameExist != null)
                 return new UResponseWithID { Message = "Template with same name already exist" };
 
-            //Globals
-            //Regex regex = new Regex(@"{{\d+}}");
-            Regex regex = new Regex(@"\{\{.*?\}\}");
+            //Globals 
+            Regex regex = new Regex(CommonHelper.DynamicPattern);
             int headerType = 0;
             string headerText = String.Empty;
             int headerTextCount = 0;
@@ -78,7 +78,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             //If header exist
             if (model.Header != null)
             {
-                if (model.Header.Format <= 0)
+                if (model.Header.Format < 0)
                     return new UResponseWithID { Message = "Header format not mentioned" };
 
                 headerType = model.Header.Format;
@@ -265,7 +265,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 LanguageCode = model.Language,
             };
 
-            string pattern = @"\{\{.*?\}\}";
+            string pattern = CommonHelper.DynamicPattern;
 
             #region Header
 

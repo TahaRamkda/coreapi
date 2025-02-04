@@ -78,5 +78,7 @@ namespace WhatsAppAPISolutionBL.Helper
 
             return randomKey; // string randomKey = GenerateRandomKey(6);
         }
+
+        public static string DynamicPattern => @"\{\{.*?\}\}";
     }
 }

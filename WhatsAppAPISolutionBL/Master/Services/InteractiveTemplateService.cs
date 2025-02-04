@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
+using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.InteractiveTemplate;
 using WhatsAppAPISolutionDL.Enum;
@@ -69,8 +70,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             int bodyParamCount = 0;
             var footerText = "";
 
-            //Regex regex = new Regex(@"{{\d+}}"); 
-            Regex regex = new Regex(@"\{\{.*?\}\}");
+            Regex regex = new Regex(CommonHelper.DynamicPattern);
 
             if (model.Header != null)
             {
@@ -239,8 +239,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             int bodyParamCount = 0;
             var footerText = "";
 
-            //Regex regex = new Regex(@"{{\d+}}"); 
-            Regex regex = new Regex(@"\{\{.*?\}\}");
+            Regex regex = new Regex(CommonHelper.DynamicPattern);
 
             if (model.Header != null)
             {

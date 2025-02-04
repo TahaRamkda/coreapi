@@ -34,7 +34,7 @@ namespace WhatsAppAPISolutionDL.Dto.Template
         {
             public string Type { get; set; } = string.Empty;
             public string Value { get; set; } = string.Empty;
-            public int? Index { get; set; }
+            public int Index { get; set; }
         }
     }
 }

@@ -116,6 +116,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (!String.IsNullOrWhiteSpace(sendSms.BtnParam3))
                 paramList.Add(new ParamData { ParamType = (int)TemplateParamEnum.Button, ParamValue = sendSms.BtnParam3, Sequence = 2 });
 
+            if (!String.IsNullOrWhiteSpace(sendSms.BtnParam4))
+                paramList.Add(new ParamData { ParamType = (int)TemplateParamEnum.Button, ParamValue = sendSms.BtnParam4, Sequence = 3 });
+
             // Add each ParamData object to tempPayload.Params
             tempPayload.Params.AddRange(paramList);
 

@@ -40,15 +40,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         [HttpGet]
         [Route("refresh")]
-        public async Task<IActionResult> Refresh(string AccessTokenData, string RefreshTokenData)
+        public async Task<IActionResult> Refresh(string accessToken, string refreshToken)
         {
-            _logger.LogInformation("Calling api Refresh with AccessTokenData={AccessTokenData}, RefreshTokenData={RefreshTokenData}", AccessTokenData, RefreshTokenData);
+            _logger.LogInformation("Calling api Refresh with AccessTokenData={AccessTokenData}, RefreshTokenData={RefreshTokenData}", accessToken, refreshToken);
 
-            if (String.IsNullOrEmpty(AccessTokenData) || String.IsNullOrEmpty(RefreshTokenData))
+            if (String.IsNullOrEmpty(accessToken) || String.IsNullOrEmpty(refreshToken))
                 return BadRequest("Invalid client request");
 
-            string accessToken = AccessTokenData;
-            string refreshToken = RefreshTokenData;
             var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken);
             var username = principal.Identity.Name;
             var newAccessToken = _tokenService.GenerateAccessToken(principal.Claims);
@@ -57,12 +55,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var exist = await _context.Users.FirstOrDefaultAsync(x => x.UserName.ToLower() == username.ToLower() && x.RecordStatus != -1);
             if (exist == null)
-            {
-                return Ok(new ApiResult
-                {
-                    Message = "Invalid access"
-                });
-            }
+                return Ok(new ApiResult { Message = "Invalid access" });
+
+            if (!exist.RefreshToken.Equals(refreshToken))
+                return Ok(new ApiResult { Message = "Refresh token is invalid" });
 
             var user = new UserDto
             {

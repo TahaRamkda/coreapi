@@ -1,8 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.FileSystemGlobbing.Internal;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Security.Policy;
 using System.Text;
+using System.Text.RegularExpressions;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Agent;
@@ -14,6 +17,7 @@ using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Entity;
+using WhatsAppAPISolutionDL.UserModels.InteractiveTemplate;
 using WhatsAppAPISolutionDL.UserModels.Message;
 using WhatsAppAPISolutionDL.UserModels.Template;
 
@@ -60,6 +64,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
             List<ParamData> bodyParameters = model.Params != null ? model.Params.Where(x => x.ParamType == (int)TemplateParamEnum.Body).ToList() : new List<ParamData>();
             List<ParamData> buttonParameters = model.Params != null ? model.Params.Where(x => x.ParamType == (int)TemplateParamEnum.Button).ToList() : new List<ParamData>();
 
+            string headerText = template.HeaderText ?? "";
+            string bodyText = template.BodyText ?? "";
+            string footerText = template.FooterText ?? "";
+            string buttonJson = String.Empty;
+
             var sendMessage = new SendTemplateMessageDto
             {
                 ClientId = template.ClientId.ToString(),
@@ -69,6 +78,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 TemplateId = template.TemplateId,
                 TemplateName = template.TemplateName
             };
+
+            #region Header 
 
             var headerType = (TemplateHeaderEnum)template.HeaderType;
             if (headerType == TemplateHeaderEnum.TEXT && template.HeaderParamCount > 0)
@@ -85,8 +96,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     Type = headerType.ToString(),
                     Value = headerParameter.ParamValue,
-                    Index = headerParameter.Sequence,
+                    Index = headerParameter.Sequence ?? 0,
                 });
+
+                //Replace {{example}} in header
+                var templateHeaderParam = template.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Header).FirstOrDefault();
+                if (templateHeaderParam != null)
+                    headerText = headerText.Replace(templateHeaderParam.ParamName, headerParameter.ParamValue);
 
                 sendMessage.Components.Add(headerComponents);
             }
@@ -104,7 +120,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
                     {
                         Type = headerType.ToString(),
-                        Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath
+                        Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath 
                     });
                 }
                 else
@@ -113,12 +129,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 sendMessage.Components.Add(headerComponents);
             }
 
+            #endregion
+
+            #region Body
+
             if (template.BodyParamCount > 0)
             {
                 if (bodyParameters.Count == 0 || bodyParameters.Count < template.BodyParamCount)
                     return new ApiResult { StatusCode = 0, Message = $"error - Body paramaters passed is less than required parameters." };
 
-                var bodyComponents = new SendTemplateMessageDto.TemplateComponent()
+                var bodyComponents = new SendTemplateMessageDto.TemplateComponent
                 {
                     ComponentType = TemplateParamEnum.Body.ToString()
                 };
@@ -128,6 +148,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     var param = bodyParameters.Where(x => x.Sequence == i).FirstOrDefault();
                     if (param == null || String.IsNullOrWhiteSpace(param.ParamValue))
                         return new ApiResult { StatusCode = 0, Message = $"error - BParam {i + 1} is not passed." };
+
+                    //Replace {{example}} in body
+                    var templateBodyParam = template.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Body && x.Sequence == i).FirstOrDefault();
+                    if (templateBodyParam != null)
+                        bodyText = bodyText.Replace(templateBodyParam.ParamName, param.ParamValue);
 
                     bodyComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
                     {
@@ -139,6 +164,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 sendMessage.Components.Add(bodyComponents);
             }
+
+            #endregion
+
+            #region Button
 
             var templateButtonParams = template.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button).ToList();
             if (templateButtonParams != null && templateButtonParams.Any())
@@ -158,12 +187,60 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     {
                         Type = nameof(ButtonTypeEnum.URL),
                         Value = param.ParamValue,
-                        Index = templateButtonParams[i].Sequence
+                        Index = templateButtonParams[i].Sequence ?? 0
                     });
                 }
 
                 sendMessage.Components.Add(buttonComponents);
             }
+
+            //Add the button in button JSON
+            List<ButtonDto> buttons = new List<ButtonDto>();
+            if (template.Buttons != null && template.Buttons.Any())
+            {
+                for (int i = 0; i < template.Buttons.Count; i++)
+                {
+                    var button = template.Buttons[i];
+                    string buttonValue = button.ButtonValue ?? "";
+
+                    //Get the dynamic value
+                    var buttonParam = buttonParameters.Where(x => x.Sequence == button.Sequence).FirstOrDefault();
+
+                    //Replace {{example}} in button
+                    var templateButtonParam = template.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button && x.Sequence == button.Sequence).FirstOrDefault();
+                    if (templateButtonParam != null && buttonParam != null)
+                        buttonValue = buttonValue.Replace(templateButtonParam.ParamName, buttonParam.ParamValue);
+
+                    buttons.Add(new ButtonDto
+                    {
+                        ButtonId = button.ButtonId ?? 0,
+                        ButtonText = button.ButtonText,
+                        ButtonValue = buttonValue,
+                        ButtonType = button.ButtonType ?? 0,
+                        Sequence = button.Sequence ?? 0
+                    });
+                }
+            }
+
+            #endregion
+
+            StringBuilder messageContent = new StringBuilder();
+            if (!String.IsNullOrWhiteSpace(headerText))
+            {
+                messageContent.Append(headerText);
+                messageContent.AppendLine();
+            }
+
+            if (!String.IsNullOrWhiteSpace(bodyText))
+            {
+                messageContent.Append(bodyText);
+                messageContent.AppendLine();
+            }
+
+            if (!String.IsNullOrWhiteSpace(footerText))
+                messageContent.Append(footerText);
+
+            buttonJson = JsonConvert.SerializeObject(buttons);
 
             var request = JsonConvert.SerializeObject(sendMessage);
             var res = new StringContent(request, Encoding.UTF8, "application/json");
@@ -198,7 +275,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             ModuleId = model.ModuleId,
                             ParentId = model.ParentId,
                             MessageType = (int)MainMessageTypeEnum.TEMPLATE,
-                            MessageReferenceId = (int)template.Id
+                            MessageReferenceId = (int)template.Id,
+                            MessageContent = messageContent.ToString(),
+                            ButtonJson = buttonJson,
+                            MediaId = (model.MediaId > 0 ? model.MediaId : template.MediaId) ?? 0 //If in campaign media id is present take reference from there, else default media
                         };
 
                         if (item.errors != null && item.errors.Any())
@@ -351,6 +431,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             string headerText = interactiveTemplate.HeaderText ?? "";
             string bodyText = interactiveTemplate.BodyText ?? "";
             string footerText = interactiveTemplate.FooterText ?? "";
+            string buttonJson = String.Empty;
 
             //Replace all the dynamic values with the correct one
             if (values != null && values.Any())
@@ -407,9 +488,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
 
             if (!String.IsNullOrWhiteSpace(footerText))
-            {
                 messageContent.Append(footerText);
-            }
 
             //In interactive button is required, if not available send normal message
             if (interactiveTemplate.Buttons == null || !interactiveTemplate.Buttons.Any() && !String.IsNullOrWhiteSpace(interactiveTemplate.BodyText))
@@ -505,6 +584,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         Url = button.ButtonValue
                     });
                 }
+
+                buttonJson = JsonConvert.SerializeObject(interactiveTemplate.Buttons.Select(x => new ButtonDto
+                {
+                    ButtonId = x.ButtonId ?? 0,
+                    ButtonText = x.ButtonText,
+                    ButtonValue = x.ButtonValue,
+                    ButtonType = x.ButtonType ?? 0,
+                    Sequence = x.Sequence ?? 0
+                }).ToList());
             }
 
             var request = JsonConvert.SerializeObject(sendMessage);
@@ -521,21 +609,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     foreach (var item in tempResult)
                     {
-                        string buttonJson = String.Empty;
-
-                        if (interactiveTemplate.Buttons != null && interactiveTemplate.Buttons.Any())
-                        {
-                            buttonJson = JsonConvert.SerializeObject(interactiveTemplate.Buttons.Select(x =>
-                            new
-                            {
-                                ButtonId = x.ButtonId,
-                                ButtonText = x.ButtonText,
-                                ButtonValue = x.ButtonValue,
-                                ButtonType = x.ButtonType,
-                                Sequence = x.Sequence
-                            }).ToList());
-                        }
-
                         var message = new InsertMessageDto
                         {
                             ClientId = interactiveTemplate.ClientId ?? 0,
