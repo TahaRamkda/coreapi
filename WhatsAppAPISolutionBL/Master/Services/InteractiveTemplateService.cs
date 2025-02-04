@@ -14,27 +14,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class InteractiveTemplateService : IInteractiveTemplateService
     {
-        private readonly int userId;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly ILogger<InteractiveTemplateService> _logger;
         private readonly IMediaService _mediaService;
-        private readonly IUserService _userService;
 
         public InteractiveTemplateService(WhatsAppSolutionContext dbContext,
           WhatsAppSolutionContext2 dbContext2,
           ILogger<InteractiveTemplateService> logger,
-          IMediaService mediaService,
-          IUserService userService)
+          IMediaService mediaService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _logger = logger;
             _mediaService = mediaService;
-            _userService = userService;
-
-
-            userId = _userService.GetUserIdFromAccessToken();
         }
 
         public async Task<List<UInteractiveTemplate>> GetInteractiveTemplateListAsync(int clientId, int senderId = 0, string searchStr = "", DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
@@ -43,7 +36,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response;
         }
 
-        public async Task<UResponse> AddInteractiveTemplateAsync(InteractiveTemplateDto model)
+        public async Task<UResponse> AddInteractiveTemplateAsync(int clientId, int userId, InteractiveTemplateDto model)
         {
             _logger.LogInformation("Calling function AddInteractiveTemplateAsync with received object {object}", JsonConvert.SerializeObject(model));
             model.Name = model.Name.Replace(" ", "_").ToLower().Trim();
@@ -53,7 +46,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var templateNameExist = await _dbContext.InteractiveTemplates
                 .Where(x => x.RecordStatus == 1
                 && x.Id != model.Id
-                && x.ClientId == model.ClientId
+                && x.ClientId == clientId
                 && x.SenderId == model.SenderNameId
                 && x.TemplateName != null
                 && x.Language != null
@@ -188,7 +181,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var buttonJson = JsonConvert.SerializeObject(model.Buttons);
             var parameterJson = JsonConvert.SerializeObject(parameters);
 
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.Add},@InteractiveTemplateId={model.Id}, @ClientId={model.ClientId}, @SenderId={model.SenderNameId},@TemplateName={model.Name},@Language={model.Language}, @TransactionType={(int)TransactionTypeEnum.Interactive},@Status={model.Status}, @DefaultTypeId={model.DefaultTypeId},@UsedByAgent={model.UsedByAgent},@HeaderType={model.Header.Format}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @MediaId={model.MediaId}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @FooterText={footerText}, @ButtonsJson={buttonJson},@ParametersJson={parameterJson}, @ActionBy={userId}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.Add},@InteractiveTemplateId={model.Id}, @ClientId={clientId}, @SenderId={model.SenderNameId},@TemplateName={model.Name},@Language={model.Language}, @TransactionType={(int)TransactionTypeEnum.Interactive},@Status={model.Status}, @DefaultTypeId={model.DefaultTypeId},@UsedByAgent={model.UsedByAgent},@HeaderType={model.Header.Format}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @MediaId={model.MediaId}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @FooterText={footerText}, @ButtonsJson={buttonJson},@ParametersJson={parameterJson}, @ActionBy={userId}").ToListAsync();
             if (response == null || !response.Any())
                 return new UResponse
                 {
@@ -203,7 +196,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
         }
 
-        public async Task<UResponse> UpdateInteractiveTemplateAsync(InteractiveTemplateDto model)
+        public async Task<UResponse> UpdateInteractiveTemplateAsync(int clientId, int userId, InteractiveTemplateDto model)
         {
             _logger.LogInformation("Calling function UpdateInteractiveTemplateAsync with received object {object}", JsonConvert.SerializeObject(model));
             model.Name = model.Name.Replace(" ", "_").ToLower().Trim();
@@ -223,7 +216,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var templateNameExist = await _dbContext.InteractiveTemplates
                 .Where(x => x.RecordStatus == 1
                 && x.Id != model.Id
-                && x.ClientId == model.ClientId
+                && x.ClientId == clientId
                 && x.SenderId == model.SenderNameId
                 && x.TemplateName != null
                 && x.Language != null
@@ -358,7 +351,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var buttonJson = JsonConvert.SerializeObject(model.Buttons);
             var parameterJson = JsonConvert.SerializeObject(parameters);
 
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.Update},@InteractiveTemplateId={model.Id}, @ClientId={model.ClientId}, @SenderId={model.SenderNameId},@TemplateName={model.Name},@Language={model.Language}, @TransactionType={(int)TransactionTypeEnum.Interactive},@Status={model.Status}, @DefaultTypeId={model.DefaultTypeId},@UsedByAgent={model.UsedByAgent},@HeaderType={model.Header.Format}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @MediaId={model.MediaId}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @FooterText={footerText}, @ButtonsJson={buttonJson},@ParametersJson={parameterJson}, @ActionBy={userId}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.Update},@InteractiveTemplateId={model.Id}, @ClientId={clientId}, @SenderId={model.SenderNameId},@TemplateName={model.Name},@Language={model.Language}, @TransactionType={(int)TransactionTypeEnum.Interactive},@Status={model.Status}, @DefaultTypeId={model.DefaultTypeId},@UsedByAgent={model.UsedByAgent},@HeaderType={model.Header.Format}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @MediaId={model.MediaId}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @FooterText={footerText}, @ButtonsJson={buttonJson},@ParametersJson={parameterJson}, @ActionBy={userId}").ToListAsync();
             if (response == null || !response.Any())
                 return new UResponse
                 {

@@ -18,30 +18,25 @@ namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class TemplateService : ITemplateService
     {
-        private readonly int userId;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly HttpClient _httpClient;
         private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
         private readonly IMediaService _mediaService;
-        private readonly IUserService _userService;
 
         public TemplateService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
             IHttpClientFactory httpClientFactory,
             IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings,
-            IMediaService mediaService,
-            IUserService userService)
+            IMediaService mediaService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
             _mediaService = mediaService;
-            _userService = userService;
 
 
-            userId = _userService.GetUserIdFromAccessToken();
         }
 
         public async Task<List<UTemplate>> GetTemplateListAsync(int clientId, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
@@ -50,14 +45,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response;
         }
 
-        public async Task<UResponseWithID> AddTemplateAsync(TemplateDto model)
+        public async Task<UResponseWithID> AddTemplateAsync(int clientId, int userId, TemplateDto model)
         {
             //Replace empty space with _
             model.Name = model.Name.Replace(" ", "_").ToLower().Trim();
 
             //Check if template name already exists
             var templateNameExist = await _dbContext.Templates
-                .Where(x => x.ClientId == model.ClientId
+                .Where(x => x.ClientId == clientId
                 && x.SenderId == model.SenderNameId
                 && x.RecordStatus != -1
                 && x.TemplateName != null
@@ -243,7 +238,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var parameterJson = JsonConvert.SerializeObject(parameters);
             var buttonJson = JsonConvert.SerializeObject(buttons);
 
-            var responseList = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={model.ClientId}, @SenderId={model.SenderNameId},  @TemplateName={model.Name},@Category={model.Category}, @Language={model.Language}, @HeaderType={headerType}, @HeaderParamCount={headerTextCount}, @HeaderText={headerText},@MediaId={model.MediaId}, @BodyText={bodyText}, @BodyParamCount={bodyTextCount}, @FooterText={footerText}, @ButtonsJson={buttonJson},@ParametersJson={parameterJson}, @ActionBy={userId}").ToListAsync();
+            var responseList = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={clientId}, @SenderId={model.SenderNameId},  @TemplateName={model.Name},@Category={model.Category}, @Language={model.Language}, @HeaderType={headerType}, @HeaderParamCount={headerTextCount}, @HeaderText={headerText},@MediaId={model.MediaId}, @BodyText={bodyText}, @BodyParamCount={bodyTextCount}, @FooterText={footerText}, @ButtonsJson={buttonJson},@ParametersJson={parameterJson}, @ActionBy={userId}").ToListAsync();
             if (responseList == null || !responseList.Any())
                 return new UResponseWithID { Message = "Cannot add template" };
 
@@ -252,7 +247,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 return new UResponseWithID { Message = response.Message };
 
             //Push template to facebook
-            return await PushTemplateToFacebook(model.ClientId, response.Id);
+            return await PushTemplateToFacebook(clientId, response.Id);
         }
 
         private async Task<UResponseWithID> PushTemplateToFacebook(int clientId, int templateId)
@@ -438,7 +433,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponseWithID> UpdateTemplateStatusByIdAsync(TemplateStatusUpdateDto model)
         {
-            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.UpdateTemplateStatus}, @TemplatesId={model.Id}, @TemplateId={model.TemplateId}, @Status={model.Status}, @Category={model.Category}, @ActionBy={userId}").ToListAsync();
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.UpdateTemplateStatus}, @TemplatesId={model.Id}, @TemplateId={model.TemplateId}, @Status={model.Status}, @Category={model.Category}, @ActionBy={model.ActionBy}").ToListAsync();
             return response[0];
         }
 

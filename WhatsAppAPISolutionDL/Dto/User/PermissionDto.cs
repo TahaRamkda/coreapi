@@ -14,9 +14,9 @@ namespace WhatsAppAPISolutionDL.Dto.User
             Permissions = new List<PermissionDetails>();
         }
 
-        public int? ClientId { get; set; }
+        //public int? ClientId { get; set; }
         public int RoleId { get; set; }
-        public int? ActionBy { get; set; }
+        //public int? ActionBy { get; set; }
         public List<PermissionDetails> Permissions { get; set; }
     }
     public partial class PermissionDetails

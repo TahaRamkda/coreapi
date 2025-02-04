@@ -21,6 +21,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class TemplatesController : ControllerBase
     {
         private readonly int clientId;
+        private readonly int userId;
         private readonly ITemplateService _templateService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<TemplatesController> _logger;
@@ -46,6 +47,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
 
             clientId = _userService.GetClientIdFromAccessToken();
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
         [HttpGet("gettemplateslist")]
@@ -70,11 +72,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (model == null)
                 return BadRequest();
 
-            model.ClientId = clientId;
             if (String.IsNullOrEmpty(model.Name))
                 return Ok(new ApiResult { Message = "Please insert template name" });
 
-            if (model.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please insert client Id" });
 
             if (model.SenderNameId <= 0)
@@ -127,7 +128,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     return Ok(new ApiResult { Message = "Buttons cannot have same parameter name" });
             }
 
-            var response = await _templateService.AddTemplateAsync(model);
+            var response = await _templateService.AddTemplateAsync(clientId, userId, model);
             _logger.LogInformation("Received api AddTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)

@@ -16,6 +16,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class SystemActionsController : ControllerBase
     {
         private readonly int clientId;
+        private readonly int userId;
         private readonly ISystemActionsService _systemActionsService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<SystemActionsController> _logger;
@@ -33,6 +34,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
 
             clientId = _userService.GetClientIdFromAccessToken();
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
         [HttpGet("getsystemactionslist")]
@@ -84,11 +86,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (systemActions == null)
                 return BadRequest();
 
-            systemActions.ClientId = clientId;
-            if (systemActions.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
 
-            var response = await _systemActionsService.AddSystemActionsAsync(systemActions);
+            var response = await _systemActionsService.AddSystemActionsAsync(clientId, userId, systemActions);
 
             _logger.LogInformation("Received api AddSystemActionsAsync response with data={data}", JsonConvert.SerializeObject(response));
 
@@ -111,11 +112,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (systemActions == null)
                 return BadRequest();
 
-            systemActions.ClientId = clientId;
-            if (systemActions.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
 
-            var response = await _systemActionsService.UpdateSystemActionsAsync(systemActions);
+            var response = await _systemActionsService.UpdateSystemActionsAsync(clientId, userId, systemActions);
 
             _logger.LogInformation("Received api UpdateSystemActionsAsync response with data={data}", JsonConvert.SerializeObject(response));
 

@@ -11,13 +11,13 @@ namespace WhatsAppAPISolutionDL.Dto.Template
         }
 
         public int Id { get; set; }
-        public int ClientId { get; set; }
+        //public int ClientId { get; set; }
         public int SenderNameId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
         public string Language { get; set; } = string.Empty;
         public int MediaId { get; set; }
-        public int ActionBy { get; set; }
+        //public int ActionBy { get; set; }
         public HeaderComponent Header { get; set; }
         public BodyComponent Body { get; set; }
         public FooterComponent Footer { get; set; }

@@ -16,6 +16,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class PermissionsController : ControllerBase
     {
         private readonly int clientId;
+        private readonly int userId;
         private readonly IPermissionService _permissionService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<PermissionsController> _logger;
@@ -33,6 +34,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
 
             clientId = _userService.GetClientIdFromAccessToken();
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
         [HttpGet("getpermissionlist")]
@@ -57,16 +59,15 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (permission == null)
                 return BadRequest();
 
-            permission.ClientId = clientId;
-            if (permission.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new { Message = "Please enter client id" });
 
-            var response = await _permissionService.AddPermissionAsync(permission);
+            var response = await _permissionService.AddPermissionAsync(clientId, userId, permission);
 
             _logger.LogInformation("Received api AddPermissionAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
-                return Ok(new ApiResult{ Message = response?.Message});
+                return Ok(new ApiResult { Message = response?.Message });
 
             return Ok(new ApiResult
             {

@@ -17,6 +17,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class RoleController : ControllerBase
     {
         private readonly int clientId;
+        private readonly int userId;
         private readonly IRoleService _rolesService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<RoleController> _logger;
@@ -34,6 +35,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
 
             clientId = _userService.GetClientIdFromAccessToken();
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
         [HttpGet("getRolelist")]
@@ -84,14 +86,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (role == null)
                 return BadRequest();
 
-            role.ClientId = clientId;
-            if (role.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
 
             if (String.IsNullOrWhiteSpace(role.RoleName))
                 return Ok(new ApiResult { Message = "Please enter role name" });
 
-            var response = await _rolesService.AddRoleAsync(role);
+            var response = await _rolesService.AddRoleAsync(clientId, userId, role);
 
             _logger.LogInformation("Received api AddRoleAsync response with data={data}", JsonConvert.SerializeObject(response));
 
@@ -114,11 +115,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (role == null && !ModelState.IsValid)
                 return BadRequest();
 
-            role.ClientId = clientId;
-            if (role.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
 
-            var response = await _rolesService.UpdateRoleAsync(role);
+            var response = await _rolesService.UpdateRoleAsync(clientId, userId, role);
 
             _logger.LogInformation("Received api UpdateRoleAsync response with data={data}", JsonConvert.SerializeObject(response));
 

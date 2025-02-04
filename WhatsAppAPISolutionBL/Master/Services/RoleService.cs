@@ -11,22 +11,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class RoleService : IRoleService
     {
-        private readonly int userId;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
-        private readonly IUserService _userService;
 
         public RoleService(
             WhatsAppSolutionContext dbContext,
-            WhatsAppSolutionContext2 dbContext2,
-            IUserService userService)
+            WhatsAppSolutionContext2 dbContext2)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
-            _userService = userService;
-
-
-            userId = _userService.GetUserIdFromAccessToken();
         }
 
         public async Task<List<URole>> GetRoleListAsync(int ClientId)
@@ -35,15 +28,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response;
         }
 
-        public async Task<UResponse> AddRoleAsync(RoleDto role)
+        public async Task<UResponse> AddRoleAsync(int clientId, int userId, RoleDto role)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Roles_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={role.ClientId}, @RoleName={role.RoleName}, @ActionBy={userId}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Roles_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={clientId}, @RoleName={role.RoleName}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
 
-        public async Task<UResponse> UpdateRoleAsync(RoleDto role)
+        public async Task<UResponse> UpdateRoleAsync(int clientId, int userId, RoleDto role)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Roles_Ops @ActionId={(int)CrudEnum.Update}, @ClientId={role.ClientId}, @RoleId={role.RoleId}, @RoleName={role.RoleName}, @ActionBy={userId}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Roles_Ops @ActionId={(int)CrudEnum.Update}, @ClientId={clientId}, @RoleId={role.RoleId}, @RoleName={role.RoleName}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
 

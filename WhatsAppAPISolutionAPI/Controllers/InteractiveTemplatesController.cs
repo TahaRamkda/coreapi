@@ -16,6 +16,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class InteractiveTemplatesController : ControllerBase
     {
         private readonly int clientId;
+        private readonly int userId;
         private readonly ILogger<InteractiveTemplatesController> _logger;
         private readonly IInteractiveTemplateService _interactiveTemplateService;
         private readonly IUserService _userService;
@@ -30,6 +31,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
 
             clientId = _userService.GetClientIdFromAccessToken();
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
 
@@ -55,11 +57,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (model == null)
                 return Ok(new ApiResult { Message = "Bad request" });
 
-            model.ClientId = clientId;
             if (string.IsNullOrEmpty(model.Name))
                 return Ok(new ApiResult { Message = "Please insert template name" });
 
-            if (model.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please insert client Id" });
 
             if (model.SenderNameId <= 0)
@@ -110,7 +111,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     return Ok(new ApiResult { Message = "Invalid url provided in buttons" });
             }
 
-            var response = await _interactiveTemplateService.AddInteractiveTemplateAsync(model);
+            var response = await _interactiveTemplateService.AddInteractiveTemplateAsync(clientId, userId, model);
 
             _logger.LogInformation("Received api AddInteractiveTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
 
@@ -133,14 +134,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (model == null)
                 return Ok(new ApiResult { Message = "Bad request" });
 
-            model.ClientId = clientId;
             if (model.Id <= 0)
                 return Ok(new ApiResult { Message = "Please select template" });
 
             if (string.IsNullOrEmpty(model.Name))
                 return Ok(new ApiResult { Message = "Please insert template name" });
 
-            if (model.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please insert client Id" });
 
             if (model.SenderNameId <= 0)
@@ -185,7 +185,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     return Ok(new ApiResult { Message = "Invalid url provided in buttons" });
             }
 
-            var response = await _interactiveTemplateService.UpdateInteractiveTemplateAsync(model);
+            var response = await _interactiveTemplateService.UpdateInteractiveTemplateAsync(clientId, userId, model);
 
             _logger.LogInformation("Received api UpdateInteractiveTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
 

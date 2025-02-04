@@ -13,6 +13,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
     public interface IPermissionService
     {
         public Task<List<UPermissionList>> GetPermissionListAsync(int ClientId, int RoleId = 0);
-        public Task<UResponse> AddPermissionAsync(PermissionDto permission);
+        public Task<UResponse> AddPermissionAsync(int clientId, int userId, PermissionDto permission);
     }
 }

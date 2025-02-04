@@ -8,13 +8,13 @@ namespace WhatsAppAPISolutionDL.Dto.SystemActions
 {
     public partial class SystemActionsDto
     {
-        public int ClientId { get; set; }
+        //public int ClientId { get; set; }
         public int? SystemActionId { get; set; }
         public int? SenderId { get; set; }
         public int? ActionId { get; set; }
         public string ActionName { get; set; }
         public string ThirdPartyURL { get; set; }
         public int? ActionType { get; set; }
-        public int? ActionBy { get; set; }
+        //public int? ActionBy { get; set; }
     }
 }

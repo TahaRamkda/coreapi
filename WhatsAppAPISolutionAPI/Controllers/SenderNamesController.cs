@@ -20,6 +20,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class SenderNamesController : ControllerBase
     {
         private readonly int clientId;
+        private readonly int userId;
         private readonly ISenderNameService _senderNameService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<SenderNamesController> _logger;
@@ -40,6 +41,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
 
             clientId = _userService.GetClientIdFromAccessToken();
+            userId = _userService.GetUserIdFromAccessToken();
         }
 
         [HttpGet("getsenderNameslist")]
@@ -92,8 +94,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (model == null)
                 return BadRequest();
 
-            model.ClientId = clientId;
-            if (model.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
 
             if (model.File != null && model.File.Length > 0)
@@ -109,8 +110,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
                 var mediaUpload = await _mediaService.UploadMediaAsync(new MediaFileDto
                 {
-                    ActionBy = model.ActionBy,
-                    ClientId = model.ClientId,
+                    ActionBy = userId,
+                    ClientId = clientId,
                     UploadToFacebook = false,
                     File = model.File,
                     MediaSourceId = (int)MediaSourceEnum.Admin
@@ -122,7 +123,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 model.MediaId = mediaUpload.Id;
             }
 
-            var response = await _senderNameService.AddSenderNameAsync(model);
+            var response = await _senderNameService.AddSenderNameAsync(clientId, userId, model);
 
             _logger.LogInformation("Received api AddSenderNameAsync response with data={data}", JsonConvert.SerializeObject(response));
 
@@ -145,8 +146,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (model == null)
                 return BadRequest();
 
-            model.ClientId = clientId;
-            if (model.ClientId <= 0)
+            if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
 
             if (model.File != null && model.File.Length > 0)
@@ -157,8 +157,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
                 var mediaUpload = await _mediaService.UploadMediaAsync(new MediaFileDto
                 {
-                    ActionBy = model.ActionBy,
-                    ClientId = model.ClientId,
+                    ActionBy = userId,
+                    ClientId = clientId,
                     UploadToFacebook = false,
                     File = model.File,
                     MediaSourceId = (int)MediaSourceEnum.Admin
@@ -170,7 +170,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 model.MediaId = mediaUpload.Id;
             }
 
-            var response = await _senderNameService.UpdateSenderNameAsync(model);
+            var response = await _senderNameService.UpdateSenderNameAsync(clientId, userId, model);
 
             _logger.LogInformation("Received api UpdateSenderNameAsync response with data={data}", JsonConvert.SerializeObject(response));
 

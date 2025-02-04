@@ -5,7 +5,7 @@ namespace WhatsAppAPISolutionDL.Dto.SenderName
     public partial class SenderNameDto
     {
         public int SenderId { get; set; }
-        public int ClientId { get; set; }
+        //public int ClientId { get; set; }
         public string SenderName { get; set; }
         public string PhoneNumber { get; set; }
         public string PhoneId { get; set; }
@@ -14,7 +14,7 @@ namespace WhatsAppAPISolutionDL.Dto.SenderName
         public bool Verified { get; set; }
         public string Quality { get; set; }
         public int MediaId { get; set; }
-        public int ActionBy { get; set; }
+        //public int ActionBy { get; set; }
         public IFormFile File { get; set; }
     }
 }
