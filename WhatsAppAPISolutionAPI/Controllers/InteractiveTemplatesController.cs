@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Text;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
@@ -69,8 +70,30 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (String.IsNullOrWhiteSpace(model.Language))
                 return Ok(new ApiResult { Message = "Please select language" });
 
+            if (model.Header != null && model.Header.Format == (int)TemplateHeaderEnum.TEXT && String.IsNullOrEmpty(model.Header.Text))
+                return Ok(new ApiResult { Message = "Header text is required" });
+
             if (model.Body == null || String.IsNullOrEmpty(model.Body.Text))
                 return Ok(new ApiResult { Message = "Body text required" });
+
+            StringBuilder messageContent = new StringBuilder();
+            if (model.Header != null && model.Header.Format == (int)TemplateHeaderEnum.TEXT)
+            {
+                messageContent.Append(model.Header.Text);
+                messageContent.AppendLine();
+            }
+
+            if (!String.IsNullOrWhiteSpace(model.Body.Text))
+            {
+                messageContent.Append(model.Body.Text);
+                messageContent.AppendLine();
+            }
+
+            if (model.Footer != null && !String.IsNullOrWhiteSpace(model.Footer.Text))
+                messageContent.Append(model.Footer.Text);
+
+            if (messageContent.ToString().Length > 900)
+                return Ok(new ApiResult { Message = "Message content should not exceed 900 characters" });
 
             if (model.Buttons != null && model.Buttons.Any())
             {
@@ -92,6 +115,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
                 if (model.Buttons.Any(x => String.IsNullOrWhiteSpace(x.ButtonText)))
                     return Ok(new ApiResult { Message = "Please insert button text for all buttons" });
+
+                if (model.Buttons.Any(x => (x.ButtonText.Length > 20)))
+                    return Ok(new ApiResult { Message = "Button text should not exceed 20 characters" });
 
                 if (model.Buttons.Any(x => (x.ButtonType == (int)ButtonTypeEnum.URL || x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER) && String.IsNullOrWhiteSpace(x.ButtonValue)))
                     return Ok(new ApiResult { Message = "Please insert button values for all URL and Phone number buttons" });
@@ -149,18 +175,40 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (String.IsNullOrWhiteSpace(model.Language))
                 return Ok(new ApiResult { Message = "Please select language" });
 
+            if (model.Header != null && model.Header.Format == (int)TemplateHeaderEnum.TEXT && String.IsNullOrEmpty(model.Header.Text))
+                return Ok(new ApiResult { Message = "Header text is required" });
+
             if (model.Body == null || String.IsNullOrEmpty(model.Body.Text))
                 return Ok(new ApiResult { Message = "Body text required" });
 
+            StringBuilder messageContent = new StringBuilder();
+            if (model.Header != null && model.Header.Format == (int)TemplateHeaderEnum.TEXT)
+            {
+                messageContent.Append(model.Header.Text);
+                messageContent.AppendLine();
+            }
+
+            if (!String.IsNullOrWhiteSpace(model.Body.Text))
+            {
+                messageContent.Append(model.Body.Text);
+                messageContent.AppendLine();
+            }
+
+            if (model.Footer != null && !String.IsNullOrWhiteSpace(model.Footer.Text))
+                messageContent.Append(model.Footer.Text);
+
+            if (messageContent.ToString().Length > 900)
+                return Ok(new ApiResult { Message = "Message content should not exceed 900 characters" });
+
             if (model.Buttons != null && model.Buttons.Any())
             {
-                if (model.Buttons.Count() > 10)
+                if (model.Buttons.Count > 10)
                     return Ok(new ApiResult { Message = "Cannot add more than 10 buttons." });
 
                 var urlButtonExists = model.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.URL || x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER);
                 if (urlButtonExists > 0)
                 {
-                    if (model.Buttons.Count() > 1)
+                    if (model.Buttons.Count > 1)
                         return Ok(new ApiResult { Message = "Cannot add more than 1 buttons if either URL or Phone Number button exists." });
                 }
 
@@ -169,6 +217,15 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
                 if (model.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.URL) > 1)
                     return Ok(new ApiResult { Message = "Cannot add more than 1 URL buttons." });
+
+                if (model.Buttons.Any(x => String.IsNullOrWhiteSpace(x.ButtonText)))
+                    return Ok(new ApiResult { Message = "Please insert button text for all buttons" });
+
+                if (model.Buttons.Any(x => (x.ButtonText.Length > 20)))
+                    return Ok(new ApiResult { Message = "Button text should not exceed 20 characters" });
+
+                if (model.Buttons.Any(x => (x.ButtonType == (int)ButtonTypeEnum.URL || x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER) && String.IsNullOrWhiteSpace(x.ButtonValue)))
+                    return Ok(new ApiResult { Message = "Please insert button values for all URL and Phone number buttons" });
 
                 // Validate no duplicate button names
                 var duplicateNames = model.Buttons.GroupBy(item => item.ButtonText?.Trim()).Where(group => group.Count() > 1).Select(group => group.Key).ToList();
