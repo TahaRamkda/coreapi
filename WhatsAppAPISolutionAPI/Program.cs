@@ -51,9 +51,9 @@ builder.Services.AddControllers();
 // Configure SignalR options
 builder.Services.AddSignalR(options =>
 {
-    options.KeepAliveInterval = TimeSpan.FromSeconds(Convert.ToInt32(configuration["SignalRConfiguration:KeepAliveInterval"])); // Default: 15 seconds
-    options.ClientTimeoutInterval = TimeSpan.FromSeconds(Convert.ToInt32(configuration["SignalRConfiguration:ClientTimeoutInterval"])); // Default: 30 seconds
-    options.HandshakeTimeout = TimeSpan.FromSeconds(Convert.ToInt32(configuration["SignalRConfiguration:HandshakeTimeout"]));
+    options.KeepAliveInterval = TimeSpan.FromSeconds(Convert.ToInt32(configuration["SignalRConfiguration:KeepAliveInterval"]));  //
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(Convert.ToInt32(configuration["SignalRConfiguration:ClientTimeoutInterval"]));  //
+    options.HandshakeTimeout = TimeSpan.FromSeconds(Convert.ToInt32(configuration["SignalRConfiguration:HandshakeTimeout"])); //
     options.EnableDetailedErrors = true;
 });
 
