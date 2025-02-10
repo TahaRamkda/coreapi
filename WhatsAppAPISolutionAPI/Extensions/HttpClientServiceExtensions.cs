@@ -18,5 +18,16 @@ namespace WhatsAppAPISolutionAPI.Extensions
 
             return services;
         }
+        public static IServiceCollection AddOneSignalServices(this IServiceCollection services, IConfiguration config)
+        {
+            services.AddHttpClient(HttpClientType.one_signal_api, (serviceProvider, httpClient) =>
+            {
+                var oneSignalConfiguration = serviceProvider.GetRequiredService<IOptions<OneSignalConfigurationSettings>>().Value;
+
+                httpClient.BaseAddress = new Uri(oneSignalConfiguration.BaseURL);
+            });
+
+            return services;
+        }
     }
 }

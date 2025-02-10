@@ -8,6 +8,7 @@ namespace WhatsAppAPISolutionDL.Enum
 {
     public enum CommonEnum
     {
-        FoulLanguageWords = 1
+        FoulLanguageWords = 1,
+        IsOneSignalEnabled = 2
     }
 }

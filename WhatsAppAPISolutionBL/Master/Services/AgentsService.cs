@@ -128,5 +128,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_AgentTimings_BulkUpload @BulkAgentTimings={bulkTimingsJson}, @ClientId={clientId}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
+
+        public async Task<bool> IsAgentOneSignalEnabled(int? clientId, int? senderId = 0)
+        {
+            string keyNames = CommonEnum.IsOneSignalEnabled.ToString();
+            var response = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_Appsettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @KeyName={keyNames}, @ClientId={clientId}, @SenderId={senderId}").ToListAsync();
+            if (!response.Any()) return false;
+            else return response[0].Val == "0" ? false : true;
+        }
     }
 }

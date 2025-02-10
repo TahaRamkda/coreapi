@@ -9,6 +9,7 @@ namespace WhatsAppAPISolutionAPI.Extensions
         {
             services.Configure<BridgeConfigurationSettings>(config.GetSection(BridgeConfigurationSettings.ConfigKey));
             services.Configure<APISolutionConfigurationSettings>(config.GetSection(APISolutionConfigurationSettings.ConfigKey));
+            services.Configure<OneSignalConfigurationSettings>(config.GetSection(OneSignalConfigurationSettings.ConfigKey));
 
             return services;
         }

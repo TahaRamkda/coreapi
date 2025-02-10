@@ -24,6 +24,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IConversationService _conversationService;
         private readonly ILogger<MessageService> _logger;
         private readonly IHubContext<ConversationHub> _conversationHubContext;
+        private readonly IOneSignalService _oneSignalService;
+        private readonly IAgentsService _agentsService;
 
         public MessageService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
@@ -31,7 +33,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             ICommunicationService communicationService,
             ILogger<MessageService> logger,
             IHubContext<ConversationHub> conversationHubContext,
-            IConversationService conversationService)
+            IConversationService conversationService,
+            IOneSignalService oneSignalService,
+            IAgentsService agentsService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -40,6 +44,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _logger = logger;
             _conversationHubContext = conversationHubContext;
             _conversationService = conversationService;
+            _oneSignalService = oneSignalService;
+            _agentsService = agentsService;
         }
 
         #region Utilities
@@ -216,6 +222,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             if (ConversationHub.connections.TryGetValue(conversation.AgentId ?? 0, out connectionId))
                             {
                                 await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.MessageReceived.ToString(), conversation);
+                                if (await _agentsService.IsAgentOneSignalEnabled(conversation.ClientId, conversation.SenderId))
+                                    await _oneSignalService.SendMessageReceivedNotification(conversation);
                                 _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.MessageReceived.ToString(), conversation.AgentId ?? 0, conversation.Id ?? 0, i);
                                 break;
                             }

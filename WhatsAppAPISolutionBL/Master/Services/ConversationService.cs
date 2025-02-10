@@ -11,6 +11,7 @@ using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Message;
+using static WhatsAppAPISolutionDL.Dto.Message.WhatsAppMessageStatusUpdateDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -21,18 +22,24 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly ILogger<ConversationService> _logger;
         private readonly IHubContext<ConversationHub> _conversationHubContext;
         private readonly ICommunicationService _communicationService;
+        private readonly IOneSignalService _oneSignalService;
+        private readonly IAgentsService _agentsService;
 
         public ConversationService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
             ILogger<ConversationService> logger,
             IHubContext<ConversationHub> conversationHubContext,
-            ICommunicationService communicationService)
+            ICommunicationService communicationService,
+            IOneSignalService oneSignalService,
+            IAgentsService agentsService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _logger = logger;
             _conversationHubContext = conversationHubContext;
             _communicationService = communicationService;
+            _oneSignalService = oneSignalService;
+            _agentsService = agentsService;
         }
 
         public async Task<List<UConversation>> GetConversationListAsync(int clientId = 0, int senderId = 0, int id = 0, string conversationId = "",
@@ -79,6 +86,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         {
                             var conversation = conversations[0];
                             await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationAssigned.ToString(), conversation);
+                            if (await _agentsService.IsAgentOneSignalEnabled(conversation.ClientId, conversation.SenderId))
+                                await _oneSignalService.SendConversationAssignedNotification(conversation);
                             _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), agentId, id, i);
                             break;
                         }
@@ -96,6 +105,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     if (ConversationHub.connections.TryGetValue(oldAgentId, out unassignedConnectionId))
                     {
                         await _conversationHubContext.Clients.Client(unassignedConnectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), id);
+                        if (await _agentsService.IsAgentOneSignalEnabled(clientId))
+                            await _oneSignalService.SendConversationUnAssignedNotification(oldAgentId);
                         _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationUnAssigned.ToString(), agentId, id, i);
                     }
                 }
@@ -152,6 +163,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         {
                             var conversation = conversations[0];
                             await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationAssigned.ToString(), conversation);
+                            if (await _agentsService.IsAgentOneSignalEnabled(conversation.ClientId, conversation.SenderId))
+                                await _oneSignalService.SendConversationAssignedNotification(conversation);
                             _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), item.AgentId, item.ParentId, i);
                             break;
                         }
@@ -244,6 +257,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         if (item.ParentId > 0) //Send the conversation id for removal from chats through SignalR
                         {
                             await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), item.ParentId);
+                            if (await _agentsService.IsAgentOneSignalEnabled(item.ClientId,item.SenderId))
+                                await _oneSignalService.SendConversationUnAssignedNotification(item.AgentId);
                             _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationUnAssigned.ToString(), item.AgentId, item.ParentId, i);
                             break;
                         }
