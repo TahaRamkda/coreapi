@@ -21,6 +21,7 @@ builder.Services.AddApplicationServices(configuration);
 builder.Services.AddDatabaseServices(configuration);
 builder.Services.AddSettingServices(configuration);
 builder.Services.AddHttpClientServices(configuration);
+builder.Services.AddOneSignalServices(configuration);
 
 // Adding Authentication
 builder.Services.AddAuthentication(options =>
@@ -51,8 +52,10 @@ builder.Services.AddControllers();
 // Configure SignalR options
 builder.Services.AddSignalR(options =>
 {
-    options.KeepAliveInterval = TimeSpan.FromSeconds(30); // Default: 15 seconds
-    options.ClientTimeoutInterval = TimeSpan.FromSeconds(1000); // Default: 30 seconds
+    options.KeepAliveInterval = TimeSpan.FromSeconds(Convert.ToInt32(configuration["SignalRConfiguration:KeepAliveInterval"])); // Default: 15 seconds
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(Convert.ToInt32(configuration["SignalRConfiguration:ClientTimeoutInterval"])); // Default: 30 seconds
+    options.HandshakeTimeout = TimeSpan.FromSeconds(Convert.ToInt32(configuration["SignalRConfiguration:HandshakeTimeout"]));
+    options.EnableDetailedErrors = true;
 });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
