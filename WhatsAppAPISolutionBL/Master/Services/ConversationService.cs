@@ -88,7 +88,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationAssigned.ToString(), conversation);
                             if (await _agentsService.IsAgentOneSignalEnabled(conversation.ClientId, conversation.SenderId))
                                 await _oneSignalService.SendConversationAssignedNotification(conversation);
-                            _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), agentId, id, i);
+                            _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try} and payload {payload}", SignalREnum.ConversationAssigned.ToString(), agentId, id, i, conversation);
                             break;
                         }
                         else
@@ -165,7 +165,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationAssigned.ToString(), conversation);
                             if (await _agentsService.IsAgentOneSignalEnabled(conversation.ClientId, conversation.SenderId))
                                 await _oneSignalService.SendConversationAssignedNotification(conversation);
-                            _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), item.AgentId, item.ParentId, i);
+                            _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try} and payload {payload}", SignalREnum.ConversationAssigned.ToString(), item.AgentId, item.ParentId, i, conversation);
                             break;
                         }
                         else

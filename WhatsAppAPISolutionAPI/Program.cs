@@ -21,6 +21,7 @@ builder.Services.AddApplicationServices(configuration);
 builder.Services.AddDatabaseServices(configuration);
 builder.Services.AddSettingServices(configuration);
 builder.Services.AddHttpClientServices(configuration);
+builder.Services.AddOneSignalServices(configuration);
 
 // Adding Authentication
 builder.Services.AddAuthentication(options =>
