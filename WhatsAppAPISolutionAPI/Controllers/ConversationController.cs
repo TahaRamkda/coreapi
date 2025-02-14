@@ -1,9 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Drawing.Printing;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Conversation;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using WhatsAppAPISolutionDL.Models;
+using Microsoft.Extensions.Logging;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -14,12 +19,15 @@ namespace WhatsAppAPISolutionAPI.Controllers
     {
         private readonly ILogger<ConversationController> _logger;
         private readonly IConversationService _conversationService;
+        private readonly IExportManager _exportManager;
 
         public ConversationController(ILogger<ConversationController> logger,
-            IConversationService conversationService)
+            IConversationService conversationService,
+            IExportManager exportManager)
         {
             _logger = logger;
             _conversationService = conversationService;
+            _exportManager = exportManager;
         }
 
         [HttpGet("getconversationlist")]
@@ -177,6 +185,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
+        [HttpGet("exportconversationreportlist")]
+        public async Task<ActionResult> ExportConversationReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, string status = "", string searchStr = "")
+        {
+            _logger.LogInformation("Calling api ExportConversationReportListAsync with clientId={clientId}, senderId={senderId}, id={id}, agentId={agentId}, status={status}, searchStr={searchStr}", clientId, senderId, id, agentId, status, searchStr);
+
+            var res = await _conversationService.GetConversationReportListAsync(clientId, senderId, id, agentId, 0, int.MaxValue, status, searchStr);
+            var bytes = _exportManager.ExportConversationReportToXlsx(res);
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ConversationReport.xlsx");
+        }
+
         [HttpGet("getconversationdetailreportlist")]
         public async Task<ActionResult> GetConversationDetailReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", DateTime? fromDate = null, DateTime? toDate = null, string searchStr = "")
         {
@@ -190,6 +208,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Result = res,
                 Message = "Data fetch successfully"
             });
+        }
+
+        [HttpGet("getexportconversationdetailreportlist")]
+        public async Task<ActionResult> ExportConversationDetailReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, string status = "", DateTime? fromDate = null, DateTime? toDate = null, string searchStr = "")
+        {
+            _logger.LogInformation("Calling api ExportConversationDetailReportListAsync with clientId={clientId}, senderId={senderId}, id={id}, agentId={agentId}, status={status}, fromDate={fromDate}, toDate={toDate}, searchStr={searchStr}", clientId, senderId, id, agentId, status, fromDate, toDate, searchStr);
+
+            var res = await _conversationService.GetConversationDetailReportListAsync(clientId, senderId, id, agentId, 0, int.MaxValue, status, fromDate, toDate, searchStr);
+            var bytes = _exportManager.ExportConversationDetailReportToXlsx(res);
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ConversationDetailReport.xlsx");
         }
 
         [HttpPost("expiredconversationnotify")]
@@ -223,6 +251,61 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Success = true,
                 Result = response,
                 Message = "Data updated successfully"
+            });
+        }
+
+        [HttpPost("closechatbysupervisor")]
+        public async Task<ActionResult> CloseChatBySupervisorAsync(int id)
+        {
+            _logger.LogInformation("Calling api CloseChatBySupervisorAsync with id={Id}", id);
+
+            if (id <= 0)
+                return Ok(new ApiResult { Message = "Please select chat id" });
+
+            var response = await _conversationService.CloseChatBySupervisor(id);
+
+            _logger.LogInformation("Received api CloseChatBySupervisorAsync response with data={data}", JsonConvert.SerializeObject(response));
+
+            if (response == null || response.Status <= 0)
+                return Ok(new ApiResult { Message = response?.Message });
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = response,
+                Message = "Data deleted successfully"
+            });
+        }
+
+        [HttpGet("getconversationlogslist")]
+        public async Task<ActionResult> GetConversationLogsListAsync(int clientId = 0, int conversationId = 0)
+        {
+            _logger.LogInformation("Calling api GetConversationLogsListAsync with clientId={clientId}, conversationId={conversationId}", clientId, conversationId);
+
+            var res = await _conversationService.GetConversationLogsListAsync(clientId, conversationId);
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = res,
+                Message = "Data fetch successfully"
+            });
+        }
+
+        [HttpGet("getconversationstatistics")]
+        public async Task<ActionResult> GetConversationStatisticsAsync(int clientId = 0)
+        {
+            _logger.LogInformation("Calling api GetConversationStatisticsAsync with clientId={clientId}", clientId);
+
+            var res = await _conversationService.GetConversationStatisticsAsync(clientId);
+
+            _logger.LogInformation("Received api GetConversationStatisticsAsync response with data={data}", JsonConvert.SerializeObject(res));
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = res,
+                Message = "Data fetch successfully"
             });
         }
     }

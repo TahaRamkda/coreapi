@@ -1,4 +1,6 @@
-﻿using WhatsAppAPISolutionDL.Dto.Conversation;
+﻿using System.Collections.Generic;
+using WhatsAppAPISolutionDL.Dto.Conversation;
+using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
 using WhatsAppAPISolutionDL.UserModels.Entity;
@@ -22,5 +24,8 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<List<UConversationReportList>> GetConversationReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", string searchStr = "");
         Task<List<UConversationReportList>> GetConversationDetailReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", DateTime? fromDate = null, DateTime? toDate = null, string searchStr = "");
         Task<UResponse> ExpiredConversationNotifyToAgentAsync(List<ExpiredConversationDto> models);
+        Task<UResponse> CloseChatBySupervisor(int id);
+        Task<List<UConversationLogsList>> GetConversationLogsListAsync(int clientId = 0, int conversationId = 0);
+        Task<UConversationStatistics> GetConversationStatisticsAsync(int clientId = 0);
     }
 }

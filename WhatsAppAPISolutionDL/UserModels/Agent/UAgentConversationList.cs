@@ -20,5 +20,6 @@ namespace WhatsAppAPISolutionDL.UserModels.Agent
         public string StatusName { get; set; }
         public string Logo { get; set; }
         public int? UnreadCount { get; set; }
+        public string Language { get; set; }
     }
 }

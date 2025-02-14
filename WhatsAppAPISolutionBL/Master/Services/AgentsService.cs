@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Agent;
@@ -15,14 +16,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly IImportManager _importManager;
+        private readonly ILogger<AgentsService> _logger;
 
         public AgentsService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
-            IImportManager importManager)
+            IImportManager importManager,
+            ILogger<AgentsService> logger)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _importManager = importManager;
+            _logger = logger;
         }
 
         public async Task<List<UAgent>> GetAgentListAsync(int clientId, string searchStr = "", int status = 0, int senderId = 0, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
@@ -131,8 +135,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<bool> IsAgentOneSignalEnabled(int? clientId, int? senderId = 0)
         {
+            _logger.LogInformation("Calling api IsAgentOneSignalEnabled with clientId={clientId}, senderId={senderId}", clientId, senderId);
             string keyNames = CommonEnum.IsOneSignalEnabled.ToString();
             var response = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_Appsettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @KeyName={keyNames}, @ClientId={clientId}, @SenderId={senderId}").ToListAsync();
+            _logger.LogInformation("Recieved api IsAgentOneSignalEnabled response with response={response}", response);
             if (!response.Any()) return false;
             else return response[0].Val == "0" ? false : true;
         }

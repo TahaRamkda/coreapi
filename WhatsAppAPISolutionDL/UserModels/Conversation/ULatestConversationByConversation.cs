@@ -23,5 +23,6 @@
         public int? ParentMediaId { get; set; }
         public string ButtonJson { get; set; }
         public string CreatedDate { get; set; }
+        public string Language { get; set; }
     }
 }

@@ -65,12 +65,16 @@
         GetLatestConversationByConversationId = 10,
 
         GetConversationByMessageId = 15,
+        CloseChatBySupervisor = 15,
 
+        GetConversationLogs = 17,
+
+        GetConversationStatistics = 180,
 
         GetAgentSupervisorReport = 40,
 
         GetDetails = 41,
-        GetAgentDetailSupervisorReport = 41, 
+        GetAgentDetailSupervisorReport = 41,
 
 
         GetEntities = 50,

@@ -2,6 +2,8 @@
 using OfficeOpenXml.Style;
 using WhatsAppAPISolutionBL.Helper; 
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionDL.UserModels.Agent;
+using WhatsAppAPISolutionDL.UserModels.Conversation;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -37,5 +39,118 @@ namespace WhatsAppAPISolutionBL.Master.Services
             style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(184, 204, 228));
             style.Font.Bold = true;
         }
+
+
+        public virtual byte[] ExportConversationDetailReportToXlsx(IEnumerable<UConversationReportList> report)
+        {
+            //property array
+            var properties = new[]
+            {
+                new PropertyByName<UConversationReportList>("SenderName", p => p.SenderName),
+                new PropertyByName<UConversationReportList>("TotalMessages", p => p.TotalMessages),
+                new PropertyByName<UConversationReportList>("FullName", p => p.FullName),
+                new PropertyByName<UConversationReportList>("PhoneNumber", p => p.PhoneNumber),
+                new PropertyByName<UConversationReportList>("MessageText", p => p.LastMessageText),
+                new PropertyByName<UConversationReportList>("AgentName", p => p.AgentName),
+                new PropertyByName<UConversationReportList>("StatusName", p => p.StatusName),
+                new PropertyByName<UConversationReportList>("UnreadCount", p => p.UnreadCount),
+                new PropertyByName<UConversationReportList>("CreatedDate", p => p.CreatedDate),
+                new PropertyByName<UConversationReportList>("UpdatedDate", p => p.UpdatedDate),
+                new PropertyByName<UConversationReportList>("ExpiryDate", p => p.ExpiryDate)
+            };
+
+            return ExportToXlsx(properties, report);
+        }
+
+        public virtual byte[] ExportAgentDetailSupervisorReportToXlsx(IEnumerable<UAgentSupervisorReport> report)
+        {
+            //property array
+            var properties = new[]
+            {
+                new PropertyByName<UAgentSupervisorReport>("AgentName", p => p.AgentName),
+                new PropertyByName<UAgentSupervisorReport>("ActiveChat", p => p.ActiveChat),
+                new PropertyByName<UAgentSupervisorReport>("AssignedChat", p => p.AssignedChat),
+                new PropertyByName<UAgentSupervisorReport>("UnAssignedChat", p => p.UnAssignedChat),
+                new PropertyByName<UAgentSupervisorReport>("AbandonChat", p => p.AbandonChat),
+                new PropertyByName<UAgentSupervisorReport>("ExpiredChat", p => p.ExpiredChat),
+                new PropertyByName<UAgentSupervisorReport>("ForceClosedChat", p => p.ForceClosedChat),
+                new PropertyByName<UAgentSupervisorReport>("ClosedChat", p => p.ClosedChat),
+                new PropertyByName<UAgentSupervisorReport>("Rating", p => p.Rating),
+                new PropertyByName<UAgentSupervisorReport>("AvgResponseTime", p => p.AvgResponseTime),
+                new PropertyByName<UAgentSupervisorReport>("AvgChatTime", p => p.AvgChatTime),
+                new PropertyByName<UAgentSupervisorReport>("IsDisabled", p => p.IsDisabled),
+                new PropertyByName<UAgentSupervisorReport>("StatusName", p => p.StatusName)
+            };
+
+            return ExportToXlsx(properties, report);
+        }
+
+        public virtual byte[] ExportConversationReportToXlsx(IEnumerable<UAgentSupervisorReport> report)
+        {
+            //property array
+            var properties = new[]
+            {
+                new PropertyByName<UAgentSupervisorReport>("AgentName", p => p.AgentName),
+                new PropertyByName<UAgentSupervisorReport>("ActiveChat", p => p.ActiveChat),
+                new PropertyByName<UAgentSupervisorReport>("AssignedChat", p => p.AssignedChat),
+                new PropertyByName<UAgentSupervisorReport>("UnAssignedChat", p => p.UnAssignedChat),
+                new PropertyByName<UAgentSupervisorReport>("AbandonChat", p => p.AbandonChat),
+                new PropertyByName<UAgentSupervisorReport>("ExpiredChat", p => p.ExpiredChat),
+                new PropertyByName<UAgentSupervisorReport>("ForceClosedChat", p => p.ForceClosedChat),
+                new PropertyByName<UAgentSupervisorReport>("ClosedChat", p => p.ClosedChat),
+                new PropertyByName<UAgentSupervisorReport>("Rating", p => p.Rating),
+                new PropertyByName<UAgentSupervisorReport>("AvgResponseTime", p => p.AvgResponseTime),
+                new PropertyByName<UAgentSupervisorReport>("AvgChatTime", p => p.AvgChatTime),
+                new PropertyByName<UAgentSupervisorReport>("IsDisabled", p => p.IsDisabled),
+                new PropertyByName<UAgentSupervisorReport>("StatusName", p => p.StatusName)
+            };
+
+            return ExportToXlsx(properties, report);
+        }
+
+        public virtual byte[] ExportConversationReportToXlsx(IEnumerable<UConversationReportList> report)
+        {
+            //property array
+            var properties = new[]
+            {
+                new PropertyByName<UConversationReportList>("SenderName", p => p.SenderName),
+                new PropertyByName<UConversationReportList>("TotalMessages", p => p.TotalMessages),
+                new PropertyByName<UConversationReportList>("FullName", p => p.FullName),
+                new PropertyByName<UConversationReportList>("PhoneNumber", p => p.PhoneNumber),
+                new PropertyByName<UConversationReportList>("MessageText", p => p.LastMessageText),
+                new PropertyByName<UConversationReportList>("AgentName", p => p.AgentName),
+                new PropertyByName<UConversationReportList>("StatusName", p => p.StatusName),
+                new PropertyByName<UConversationReportList>("UnreadCount", p => p.UnreadCount),
+                new PropertyByName<UConversationReportList>("CreatedDate", p => p.CreatedDate),
+                new PropertyByName<UConversationReportList>("UpdatedDate", p => p.UpdatedDate),
+                new PropertyByName<UConversationReportList>("ExpiryDate", p => p.ExpiryDate)
+            };
+
+            return ExportToXlsx(properties, report);
+        }
+
+        public virtual byte[] ExportAgentSupervisorReportToXlsx(IEnumerable<UAgentSupervisorReport> report)
+        {
+            //property array
+            var properties = new[]
+            {
+                new PropertyByName<UAgentSupervisorReport>("AgentName", p => p.AgentName),
+                new PropertyByName<UAgentSupervisorReport>("ActiveChat", p => p.ActiveChat),
+                new PropertyByName<UAgentSupervisorReport>("AssignedChat", p => p.AssignedChat),
+                new PropertyByName<UAgentSupervisorReport>("UnAssignedChat", p => p.UnAssignedChat),
+                new PropertyByName<UAgentSupervisorReport>("AbandonChat", p => p.AbandonChat),
+                new PropertyByName<UAgentSupervisorReport>("ExpiredChat", p => p.ExpiredChat),
+                new PropertyByName<UAgentSupervisorReport>("ForceClosedChat", p => p.ForceClosedChat),
+                new PropertyByName<UAgentSupervisorReport>("ClosedChat", p => p.ClosedChat),
+                new PropertyByName<UAgentSupervisorReport>("Rating", p => p.Rating),
+                new PropertyByName<UAgentSupervisorReport>("AvgResponseTime", p => p.AvgResponseTime),
+                new PropertyByName<UAgentSupervisorReport>("AvgChatTime", p => p.AvgChatTime),
+                new PropertyByName<UAgentSupervisorReport>("IsDisabled", p => p.IsDisabled),
+                new PropertyByName<UAgentSupervisorReport>("StatusName", p => p.StatusName)
+            };
+
+            return ExportToXlsx(properties, report);
+        }
+
     }
 }

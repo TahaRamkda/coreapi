@@ -257,7 +257,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         if (item.ParentId > 0) //Send the conversation id for removal from chats through SignalR
                         {
                             await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), item.ParentId);
-                            if (await _agentsService.IsAgentOneSignalEnabled(item.ClientId,item.SenderId))
+                            if (await _agentsService.IsAgentOneSignalEnabled(item.ClientId, item.SenderId))
                                 await _oneSignalService.SendConversationUnAssignedNotification(item.AgentId);
                             _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationUnAssigned.ToString(), item.AgentId, item.ParentId, i);
                             break;
@@ -284,6 +284,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 Status = 1,
                 Message = "Data updated successfully"
             };
+        }
+        public async Task<UResponse> CloseChatBySupervisor(int id)
+        {
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.CloseChatBySupervisor}, @Id={id}").ToListAsync();
+            return response[0];
+        }
+        public async Task<List<UConversationLogsList>> GetConversationLogsListAsync(int clientId = 0, int conversationId = 0)
+        {
+            var response = await _dbContext2.ConversationLogsList.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetConversationLogs},@ClientId={clientId}, @Id={conversationId}").ToListAsync();
+            return response;
+        }
+        public async Task<UConversationStatistics> GetConversationStatisticsAsync(int clientId = 0)
+        {
+            var response = await _dbContext2.ConversationStatistics.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetConversationStatistics},@ClientId={clientId}").ToListAsync();
+            return response[0];
         }
     }
 }

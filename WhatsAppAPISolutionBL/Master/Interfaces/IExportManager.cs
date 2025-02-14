@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WhatsAppAPISolutionDL.UserModels.Conversation;
+using WhatsAppAPISolutionDL.UserModels.Agent;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
@@ -11,5 +13,9 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
     {
         //byte[] ExportBankAccountsToXlsx(IEnumerable<UBankAccount> bankAccount);
         //byte[] ExportAssetsToXlsx(IEnumerable<UAssets> assets);
+        byte[] ExportConversationDetailReportToXlsx(IEnumerable<UConversationReportList> report);
+        byte[] ExportAgentDetailSupervisorReportToXlsx(IEnumerable<UAgentSupervisorReport> report);
+        byte[] ExportConversationReportToXlsx(IEnumerable<UConversationReportList> report);
+        byte[] ExportAgentSupervisorReportToXlsx(IEnumerable<UAgentSupervisorReport> report);
     }
 }

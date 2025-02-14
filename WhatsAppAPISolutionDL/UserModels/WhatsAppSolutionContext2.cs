@@ -79,6 +79,8 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<USystemActions> SystemActions { get; set; } = null!;
         public virtual DbSet<USystemActionsDetail> SystemActionsDetail { get; set; } = null!;
         public virtual DbSet<UAppSetting> AppSetting { get; set; } = null!;
+        public virtual DbSet<UConversationLogsList> ConversationLogsList { get; set; } = null!;
+        public virtual DbSet<UConversationStatistics> ConversationStatistics { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -131,6 +133,8 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<USystemActions>().HasNoKey();
             modelBuilder.Entity<USystemActionsDetail>().HasNoKey();
             modelBuilder.Entity<UAppSetting>().HasNoKey();
+            modelBuilder.Entity<UConversationLogsList>().HasNoKey();
+            modelBuilder.Entity<UConversationStatistics>().HasNoKey();
         }
     }
 }

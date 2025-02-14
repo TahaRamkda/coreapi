@@ -22,24 +22,24 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<AgentsController> _logger;
         private readonly IUserService _userService;
+        private readonly IExportManager _exportManager;
 
         //test github
         public AgentsController(IAgentsService agentsService,
             WhatsAppSolutionContext dbContext,
             ILogger<AgentsController> logger,
-            IUserService userService)
+            IUserService userService,
+            IExportManager exportManager)
         {
             _agentsService = agentsService;
             _dbContext = dbContext;
             _logger = logger;
             _userService = userService;
+            _exportManager = exportManager;
 
 
             clientId = _userService.GetClientIdFromAccessToken();
             userId = _userService.GetUserIdFromAccessToken();
-
-            //Huzeifa dev to prod git changes test
-            //Test 2
         }
 
         [HttpGet("getagentlist")]
@@ -330,6 +330,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
+        [HttpGet("exportagentsupervisorreport")]
+        public async Task<ActionResult> ExportAgentSupervisorReportListAsync(string searchStr = "", int status = 0, int senderId = 0, DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0)
+        {
+            _logger.LogInformation("Calling api ExportAgentSupervisorReportListAsync with clientId={clientId}, searchStr={searchStr}, status={status}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, sortBy={sortBy}", clientId, searchStr, status, senderId, fromDate, toDate, sortBy);
+
+            var res = await _agentsService.GetAgentSupervisorReportListAsync(clientId, searchStr, status, senderId, fromDate, toDate, sortBy);
+            var bytes = _exportManager.ExportAgentSupervisorReportToXlsx(res);
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "AgentSupervisorReport.xlsx");
+        }
+
         [HttpGet("getagentdetailsupervisorreport")]
         public async Task<ActionResult> GetAgentDetailSupervisorDetailReportListAsync(string searchStr = "", int status = 0, int senderId = 0, DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
@@ -343,6 +353,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Result = res,
                 Message = "Data fetch successfully"
             });
+        }
+
+        [HttpGet("getexportagentdetailsupervisorreport")]
+        public async Task<ActionResult> ExportAgentDetailSupervisorDetailReportListAsync(string searchStr = "", int status = 0, int senderId = 0, DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0)
+        {
+            _logger.LogInformation("Calling api ExportAgentDetailSupervisorReportListAsync with clientId={clientId}, searchStr={searchStr}, status={status}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, sortBy={sortBy}", clientId, searchStr, status, senderId, fromDate, toDate, sortBy);
+
+            var res = await _agentsService.GetAgentDetailSupervisorReportListAsync(clientId, searchStr, status, senderId, fromDate, toDate, sortBy);
+            var bytes = _exportManager.ExportAgentDetailSupervisorReportToXlsx(res);
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "AgentDetailSupervisorReport.xlsx");
         }
 
         [HttpGet("getagentstats")]
