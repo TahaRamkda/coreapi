@@ -21,5 +21,8 @@ namespace WhatsAppAPISolutionDL.UserModels.Agent
         public string Logo { get; set; }
         public int? UnreadCount { get; set; }
         public string Language { get; set; }
+        public int? ExpireType { get; set; }
+        public int? ExpireTryCount { get; set; }
+        public DateTime? ExpireTime { get; set; }
     }
 }
