@@ -7,12 +7,11 @@ using WhatsAppAPISolutionDL.UserModels.Entity;
 
 namespace WhatsAppAPISolutionDL.UserModels.Conversation
 {
-    public class UConversationLogsList : UListEntity
+    public class UConversationLogsList
     {
         public string Name { get; set; }
         public string CreatedDate { get; set; }
         public int? AgentId { get; set; }
         public string AgentFullName { get; set; }
-        public string UpdatedDate { get; set; }
     }
 }

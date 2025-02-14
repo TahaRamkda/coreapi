@@ -171,11 +171,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getconversationreportlist")]
-        public async Task<ActionResult> GetConversationReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", string searchStr = "")
+        public async Task<ActionResult> GetConversationReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", string searchStr = "", string fChatInitiated = "")
         {
-            _logger.LogInformation("Calling api GetConversationReportListAsync with clientId={clientId}, senderId={senderId}, id={id}, agentId={agentId}, pageNo={pageNo}, pageSize={pageSize}, status={status}, searchStr={searchStr}", clientId, senderId, id, agentId, pageNo, pageSize, status, searchStr);
+            _logger.LogInformation("Calling api GetConversationReportListAsync with clientId={clientId}, senderId={senderId}, id={id}, agentId={agentId}, pageNo={pageNo}, pageSize={pageSize}, status={status}, searchStr={searchStr}, fChatInitiated={fChatInitiated}", clientId, senderId, id, agentId, pageNo, pageSize, status, searchStr, fChatInitiated);
 
-            var res = await _conversationService.GetConversationReportListAsync(clientId, senderId, id, agentId, pageNo, pageSize, status, searchStr);
+            var res = await _conversationService.GetConversationReportListAsync(clientId, senderId, id, agentId, pageNo, pageSize, status, searchStr, fChatInitiated);
 
             return Ok(new ApiResult
             {
@@ -186,21 +186,21 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("exportconversationreportlist")]
-        public async Task<ActionResult> ExportConversationReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, string status = "", string searchStr = "")
+        public async Task<ActionResult> ExportConversationReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, string status = "", string searchStr = "", string fChatInitiated = "")
         {
-            _logger.LogInformation("Calling api ExportConversationReportListAsync with clientId={clientId}, senderId={senderId}, id={id}, agentId={agentId}, status={status}, searchStr={searchStr}", clientId, senderId, id, agentId, status, searchStr);
+            _logger.LogInformation("Calling api ExportConversationReportListAsync with clientId={clientId}, senderId={senderId}, id={id}, agentId={agentId}, status={status}, searchStr={searchStr}, fChatInitiated={fChatInitiated}", clientId, senderId, id, agentId, status, searchStr, fChatInitiated);
 
-            var res = await _conversationService.GetConversationReportListAsync(clientId, senderId, id, agentId, 0, int.MaxValue, status, searchStr);
+            var res = await _conversationService.GetConversationReportListAsync(clientId, senderId, id, agentId, 0, int.MaxValue, status, searchStr, fChatInitiated);
             var bytes = _exportManager.ExportConversationReportToXlsx(res);
             return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ConversationReport.xlsx");
         }
 
         [HttpGet("getconversationdetailreportlist")]
-        public async Task<ActionResult> GetConversationDetailReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", DateTime? fromDate = null, DateTime? toDate = null, string searchStr = "")
+        public async Task<ActionResult> GetConversationDetailReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", DateTime? fromDate = null, DateTime? toDate = null, string searchStr = "", string fChatInitiated = "")
         {
-            _logger.LogInformation("Calling api GetConversationDetailReportListAsync with clientId={clientId}, senderId={senderId}, id={id}, agentId={agentId}, pageNo={pageNo}, pageSize={pageSize}, status={status}, fromDate={fromDate}, toDate={toDate}, searchStr={searchStr}", clientId, senderId, id, agentId, pageNo, pageSize, status, fromDate, toDate, searchStr);
+            _logger.LogInformation("Calling api GetConversationDetailReportListAsync with clientId={clientId}, senderId={senderId}, id={id}, agentId={agentId}, pageNo={pageNo}, pageSize={pageSize}, status={status}, fromDate={fromDate}, toDate={toDate}, searchStr={searchStr}, fChatInitiated={fChatInitiated}", clientId, senderId, id, agentId, pageNo, pageSize, status, fromDate, toDate, searchStr, fChatInitiated);
 
-            var res = await _conversationService.GetConversationDetailReportListAsync(clientId, senderId, id, agentId, pageNo, pageSize, status, fromDate, toDate, searchStr);
+            var res = await _conversationService.GetConversationDetailReportListAsync(clientId, senderId, id, agentId, pageNo, pageSize, status, fromDate, toDate, searchStr, fChatInitiated);
 
             return Ok(new ApiResult
             {
@@ -211,11 +211,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getexportconversationdetailreportlist")]
-        public async Task<ActionResult> ExportConversationDetailReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, string status = "", DateTime? fromDate = null, DateTime? toDate = null, string searchStr = "")
+        public async Task<ActionResult> ExportConversationDetailReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, string status = "", DateTime? fromDate = null, DateTime? toDate = null, string searchStr = "", string fChatInitiated = "")
         {
-            _logger.LogInformation("Calling api ExportConversationDetailReportListAsync with clientId={clientId}, senderId={senderId}, id={id}, agentId={agentId}, status={status}, fromDate={fromDate}, toDate={toDate}, searchStr={searchStr}", clientId, senderId, id, agentId, status, fromDate, toDate, searchStr);
+            _logger.LogInformation("Calling api ExportConversationDetailReportListAsync with clientId={clientId}, senderId={senderId}, id={id}, agentId={agentId}, status={status}, fromDate={fromDate}, toDate={toDate}, searchStr={searchStr}, fChatInitiated={fChatInitiated}", clientId, senderId, id, agentId, status, fromDate, toDate, searchStr, fChatInitiated);
 
-            var res = await _conversationService.GetConversationDetailReportListAsync(clientId, senderId, id, agentId, 0, int.MaxValue, status, fromDate, toDate, searchStr);
+            var res = await _conversationService.GetConversationDetailReportListAsync(clientId, senderId, id, agentId, 0, int.MaxValue, status, fromDate, toDate, searchStr, fChatInitiated);
             var bytes = _exportManager.ExportConversationDetailReportToXlsx(res);
             return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ConversationDetailReport.xlsx");
         }
@@ -293,11 +293,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getconversationstatistics")]
-        public async Task<ActionResult> GetConversationStatisticsAsync(int clientId = 0)
+        public async Task<ActionResult> GetConversationStatisticsAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", DateTime? fromDate = null, DateTime? toDate = null, string searchStr = "", string fChatInitiated = "")
         {
-            _logger.LogInformation("Calling api GetConversationStatisticsAsync with clientId={clientId}", clientId);
+            _logger.LogInformation("Calling api GetConversationStatisticsAsync with clientId={clientId}, senderId={senderId}, id={id}, agentId={agentId}, pageNo={pageNo}, pageSize={pageSize}, status={status}, fromDate={fromDate}, toDate={toDate}, searchStr={searchStr}, fChatInitiated={fChatInitiated}", clientId, senderId, id, agentId, pageNo, pageSize, status, fromDate, toDate, searchStr, fChatInitiated);
 
-            var res = await _conversationService.GetConversationStatisticsAsync(clientId);
+            var res = await _conversationService.GetConversationStatisticsAsync(clientId, senderId, id, agentId, pageNo, pageSize, status, fromDate, toDate, searchStr, fChatInitiated);
 
             _logger.LogInformation("Received api GetConversationStatisticsAsync response with data={data}", JsonConvert.SerializeObject(res));
 

@@ -212,14 +212,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return null;
         }
 
-        public async Task<List<UConversationReportList>> GetConversationReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", string searchStr = "")
+        public async Task<List<UConversationReportList>> GetConversationReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", string searchStr = "", string fChatInitiated = "")
         {
-            var response = await _dbContext2.ConversationReports.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.ConversationReportList},@ClientId={clientId},@Id={id},@SenderId={senderId}, @AgentId={agentId}, @FStatus={status}, @PageNo={pageNo}, @PageSize={pageSize}, @SearchStr={searchStr}").ToListAsync();
+            var response = await _dbContext2.ConversationReports.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.ConversationReportList},@ClientId={clientId},@Id={id},@SenderId={senderId}, @AgentId={agentId}, @FStatus={status}, @PageNo={pageNo}, @PageSize={pageSize}, @SearchStr={searchStr}, @FChatInitiated={fChatInitiated}").ToListAsync();
             return response;
         }
-        public async Task<List<UConversationReportList>> GetConversationDetailReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", DateTime? fromDate = null, DateTime? toDate = null, string searchStr = "")
+        public async Task<List<UConversationReportList>> GetConversationDetailReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", DateTime? fromDate = null, DateTime? toDate = null, string searchStr = "", string fChatInitiated = "")
         {
-            var response = await _dbContext2.ConversationReports.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.ConversationDetailReportList},@ClientId={clientId},@Id={id},@SenderId={senderId}, @AgentId={agentId}, @FStatus={status}, @PageNo={pageNo}, @PageSize={pageSize}, @FromDate={fromDate}, @ToDate={toDate}, @SearchStr={searchStr}").ToListAsync();
+            var response = await _dbContext2.ConversationReports.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.ConversationDetailReportList},@ClientId={clientId},@Id={id},@SenderId={senderId}, @AgentId={agentId}, @FStatus={status}, @PageNo={pageNo}, @PageSize={pageSize}, @FromDate={fromDate}, @ToDate={toDate}, @SearchStr={searchStr}, @FChatInitiated={fChatInitiated}").ToListAsync();
             return response;
         }
 
@@ -295,9 +295,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var response = await _dbContext2.ConversationLogsList.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetConversationLogs},@ClientId={clientId}, @Id={conversationId}").ToListAsync();
             return response;
         }
-        public async Task<UConversationStatistics> GetConversationStatisticsAsync(int clientId = 0)
+        public async Task<UConversationStatistics> GetConversationStatisticsAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", DateTime? fromDate = null, DateTime? toDate = null, string searchStr = "", string fChatInitiated = "")
         {
-            var response = await _dbContext2.ConversationStatistics.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetConversationStatistics},@ClientId={clientId}").ToListAsync();
+            var response = await _dbContext2.ConversationStatistics.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetConversationStatistics},@ClientId={clientId},@Id={id},@SenderId={senderId}, @AgentId={agentId}, @FStatus={status}, @PageNo={pageNo}, @PageSize={pageSize}, @FromDate={fromDate}, @ToDate={toDate}, @SearchStr={searchStr}, @FChatInitiated={fChatInitiated}").ToListAsync();
             return response[0];
         }
     }

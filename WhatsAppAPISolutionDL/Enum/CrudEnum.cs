@@ -69,8 +69,6 @@
 
         GetConversationLogs = 17,
 
-        GetConversationStatistics = 180,
-
         GetAgentSupervisorReport = 40,
 
         GetDetails = 41,
@@ -90,7 +88,7 @@
         ConversationDetailReportList = 52,
 
         GetDefaultTemplates = 53,
-
+        GetConversationStatistics = 53,
 
         UpdateBankAccountAmount = 60,
         GetProductModuleType = 60,
