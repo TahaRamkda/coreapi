@@ -65,8 +65,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 app_id = _oneSignalConfigurationSettings.Value.AppId,
                 include_external_user_ids = new List<string> { agentId },
-                contents = new Dictionary<string, string> { { language, bodyContent } },
-                headings = new Dictionary<string, string> { { language, headerContent } }
+                contents = new Dictionary<string, string> { { language.ToLower(), bodyContent } },
+                headings = new Dictionary<string, string> { { language.ToLower(), headerContent } }
             };
             var request = JsonConvert.SerializeObject(oneSignal);
             var res = new StringContent(request, Encoding.UTF8, "application/json");
