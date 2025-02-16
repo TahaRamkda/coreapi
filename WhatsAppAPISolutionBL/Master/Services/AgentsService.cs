@@ -138,7 +138,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _logger.LogInformation("Calling api IsAgentOneSignalEnabled with clientId={clientId}, senderId={senderId}", clientId, senderId);
             string keyNames = CommonEnum.IsOneSignalEnabled.ToString();
             var response = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_Appsettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @KeyName={keyNames}, @ClientId={clientId}, @SenderId={senderId}").ToListAsync();
-            _logger.LogInformation("Recieved api IsAgentOneSignalEnabled response with response={response}", response);
+            _logger.LogInformation("Recieved api IsAgentOneSignalEnabled response with response={response}", JsonConvert.SerializeObject(response));
             if (!response.Any()) return false;
             else return response[0].Val == "0" ? false : true;
         }

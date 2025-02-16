@@ -73,7 +73,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _httpClient.DefaultRequestHeaders.Add("Authorization", _oneSignalConfigurationSettings.Value.Token);
             var response = await _httpClient.PostAsync($"/api/v1/notifications", res);
             var content = await response.Content.ReadAsStringAsync();
-            _logger.LogInformation("Recieved api SendNotification response with response={response}", content);
+            _logger.LogInformation("Recieved api SendNotification response with response={response}", JsonConvert.SerializeObject(content));
         }
     }
 }
