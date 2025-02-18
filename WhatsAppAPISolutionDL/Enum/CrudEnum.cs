@@ -65,7 +65,7 @@
         GetLatestConversationByConversationId = 10,
 
         GetConversationByMessageId = 15,
-        CloseChatBySupervisor = 15,
+        CloseChatBySupervisor = 16,
 
         GetConversationLogs = 17,
 

@@ -273,7 +273,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 Success = true,
                 Result = response,
-                Message = "Data deleted successfully"
+                Message = "Data added successfully"
             });
         }
 
