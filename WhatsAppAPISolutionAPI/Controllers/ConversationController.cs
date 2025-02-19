@@ -254,7 +254,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
-        [HttpPost("closechatbysupervisor")]
+        [HttpGet("closechatbysupervisor")]
         public async Task<ActionResult> CloseChatBySupervisorAsync(int id)
         {
             _logger.LogInformation("Calling api CloseChatBySupervisorAsync with id={Id}", id);
