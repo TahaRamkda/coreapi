@@ -13,5 +13,6 @@
         //public int? ActionBy { get; set; }
         public string AgentFNameAR { get; set; }
         public string AgentLNameAR { get; set; }
+        public string ChatReasonIds { get; set; }
     }
 }

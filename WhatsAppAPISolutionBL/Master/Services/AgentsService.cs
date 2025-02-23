@@ -36,12 +36,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<UResponse> AddAgentAsync(int clientId, int userId, AgentDto agent)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={clientId},@UserName={agent.UserName}, @Password={agent.Password},@AgentFName={agent.AgentFName}, @AgentLName={agent.AgentLName}, @PreferredLanguage={agent.PreferredLanguage},@SenderIds={agent.SenderIds}, @ActionBy={userId}, @AgentFNameAR={agent.AgentFNameAR}, @AgentLNameAR={agent.AgentLNameAR}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={clientId},@UserName={agent.UserName}, @Password={agent.Password},@AgentFName={agent.AgentFName}, @AgentLName={agent.AgentLName}, @PreferredLanguage={agent.PreferredLanguage},@SenderIds={agent.SenderIds}, @ActionBy={userId}, @AgentFNameAR={agent.AgentFNameAR}, @AgentLNameAR={agent.AgentLNameAR}, @ChatReasonIds={agent.ChatReasonIds}").ToListAsync();
             return response[0];
         }
         public async Task<UResponse> UpdateAgentAsync(int clientId, int userId, AgentDto agent)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.Update}, @Id={agent.Id}, @ClientId={clientId}, @AgentFName={agent.AgentFName}, @AgentLName={agent.AgentLName}, @PreferredLanguage={agent.PreferredLanguage},@SenderIds={agent.SenderIds}, @ActionBy={userId}, @AgentFNameAR={agent.AgentFNameAR}, @AgentLNameAR={agent.AgentLNameAR}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.Update}, @Id={agent.Id}, @ClientId={clientId}, @AgentFName={agent.AgentFName}, @AgentLName={agent.AgentLName}, @PreferredLanguage={agent.PreferredLanguage},@SenderIds={agent.SenderIds}, @ActionBy={userId}, @AgentFNameAR={agent.AgentFNameAR}, @AgentLNameAR={agent.AgentLNameAR}, @ChatReasonIds={agent.ChatReasonIds}").ToListAsync();
             return response[0];
         }
         public async Task<UResponse> DeleteAgentAsync(int AgentId)

@@ -41,7 +41,7 @@ namespace WhatsAppAPISolutionDL.Hubs
                 await Clients.Client(connectionId).SendAsync(SignalREnum.Connected.ToString(), $"Agent connected with agent id - {agentId} and connection id - {connectionId}");
 
                 //Make agent active
-                await _agentsService.SetAgentStatusAsync(Convert.ToInt32(parsedAgentId), (int)AgentStatusEnum.Active);
+                //await _agentsService.SetAgentStatusAsync(Convert.ToInt32(parsedAgentId), (int)AgentStatusEnum.Active);
             }
 
             await base.OnConnectedAsync();
@@ -70,7 +70,7 @@ namespace WhatsAppAPISolutionDL.Hubs
                 _logger.LogError("Exception occurred, Agent {agentId} disconnected on ConversationHub with connectionId {connectionId} and with exception {ex}", agentId, connectionId, exception);
 
             //Make agent inactive
-            await _agentsService.SetAgentStatusAsync(Convert.ToInt32(agentId), (int)AgentStatusEnum.Inactive);
+            //await _agentsService.SetAgentStatusAsync(Convert.ToInt32(agentId), (int)AgentStatusEnum.Inactive);
             await base.OnDisconnectedAsync(exception);
         }
 
