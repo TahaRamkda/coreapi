@@ -18,5 +18,7 @@ namespace WhatsAppAPISolutionDL.Models
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
+        public string AgentFnameAr { get; set; }
+        public string AgentLnameAr { get; set; }
     }
 }

@@ -20,5 +20,7 @@ namespace WhatsAppAPISolutionDL.Models
         public int? RecordStatus { get; set; }
         public int? LogoMediaId { get; set; }
         public bool? Verified { get; set; }
+        public string PublicCertificate { get; set; }
+        public string PrivateCertificate { get; set; }
     }
 }

@@ -10,6 +10,9 @@ namespace WhatsAppAPISolutionDL.Models
         public int? ConversationId { get; set; }
         public int? ActionType { get; set; }
         public int? AgentId { get; set; }
+        public decimal? Cost { get; set; }
+        public decimal? Commission { get; set; }
+        public string WaId { get; set; }
         public int? ActionBy { get; set; }
         public string Comment { get; set; }
         public DateTime? CreatedDate { get; set; }

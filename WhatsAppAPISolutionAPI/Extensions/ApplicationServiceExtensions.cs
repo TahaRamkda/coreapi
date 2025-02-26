@@ -34,6 +34,7 @@ namespace WhatsAppAPISolutionAPI.Extensions
             services.AddScoped<ISystemActionsService, SystemActionsService>();
             services.AddScoped<IOneSignalService, OneSignalService>();
             services.AddScoped<IMasterDataService, MasterDataService>();
+            services.AddScoped<IFlowsService, FlowsService>();
 
             return services;
 

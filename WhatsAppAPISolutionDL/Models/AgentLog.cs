@@ -14,5 +14,6 @@ namespace WhatsAppAPISolutionDL.Models
         public string Comment { get; set; }
         public DateTime? CreatedDate { get; set; }
         public int? CreatedBy { get; set; }
+        public int? Status { get; set; }
     }
 }

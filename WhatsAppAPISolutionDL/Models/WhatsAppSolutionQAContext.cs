@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace WhatsAppAPISolutionDL.Models
 {
-    public partial class WhatsAppSolutionContext : DbContext
+    public partial class WhatsAppSolutionQAContext : DbContext
     {
-        public WhatsAppSolutionContext()
+        public WhatsAppSolutionQAContext()
         {
         }
 
-        public WhatsAppSolutionContext(DbContextOptions<WhatsAppSolutionQAContext> options)
+        public WhatsAppSolutionQAContext(DbContextOptions<WhatsAppSolutionQAContext> options)
             : base(options)
         {
         }
