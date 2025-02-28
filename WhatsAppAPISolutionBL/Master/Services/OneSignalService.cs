@@ -55,7 +55,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task SendConversationUnAssignedNotification(int agentId)
         {
             _logger.LogInformation("Calling api SendConversationUnAssignedNotification with agentId={agentId}", agentId);
-            await SendNotification("Conversation UnAssigned", "Conversation UnAssigned", agentId.ToString());
+            await SendNotification("Conversation Unassigned", "Conversation Unassigned", agentId.ToString());
         }
 
         private async Task SendNotification(string headerContent, string bodyContent, string agentId, string language = "en")
