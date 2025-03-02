@@ -11,7 +11,7 @@ namespace WhatsAppAPISolutionDL.Models
         {
         }
 
-        public WhatsAppSolutionContext(DbContextOptions<WhatsAppSolutionQAContext> options)
+        public WhatsAppSolutionContext(DbContextOptions<WhatsAppSolutionContext> options)
             : base(options)
         {
         }
