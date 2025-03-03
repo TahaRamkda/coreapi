@@ -1,2 +1,3 @@
 ﻿Scaffold-DbContext "Name=ConnectionStrings:WhatsAppAPISolutionDataBase" Microsoft.EntityFrameworkCore.SqlServer -Context WhatsAppSolutionContext -o Models -force
 
+ 

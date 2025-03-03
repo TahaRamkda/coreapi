@@ -1,16 +1,12 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Media;
 using WhatsAppAPISolutionDL.Dto.SenderName;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
-using WhatsAppAPISolutionDL.UserModels.Agent;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -232,7 +228,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
                                 BusinessAccountId = a.BusinessAccountId,
                                 AccessToken = b.AccessToken,
                                 AppId = b.AppId,
-                                BusinessId = b.BusinessId
+                                BusinessId = b.BusinessId,
+                                PublicCertificate = a.PublicCertificate,
+                                PrivateCertificate = a.PrivateCertificate
                             }).FirstOrDefault();
 
             _logger.LogInformation("Received api GetSenderNameInformationAsync response with data={data}", JsonConvert.SerializeObject(response));

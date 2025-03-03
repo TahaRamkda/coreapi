@@ -70,6 +70,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
             var request = JsonConvert.SerializeObject(oneSignal);
             var res = new StringContent(request, Encoding.UTF8, "application/json");
+            _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Add("Authorization", _oneSignalConfigurationSettings.Value.Token);
             var response = await _httpClient.PostAsync($"/api/v1/notifications", res);
             var content = await response.Content.ReadAsStringAsync();

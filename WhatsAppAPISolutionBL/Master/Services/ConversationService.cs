@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Conversation;
 using WhatsAppAPISolutionDL.Enum;
@@ -88,14 +89,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationAssigned.ToString(), conversation);
                             if (await _agentsService.IsAgentOneSignalEnabled(conversation.ClientId, conversation.SenderId))
                                 await _oneSignalService.SendConversationAssignedNotification(conversation);
-                            _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try} and payload {payload}", SignalREnum.ConversationAssigned.ToString(), agentId, id, i, conversation);
+                            _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", SignalREnum.ConversationAssigned.ToString(), agentId, connectionId, id, i, JsonConvert.SerializeObject(conversation));
                             break;
                         }
                         else
-                            _logger.LogError("SignalR, cannot find conversation with clientId {clienId}, agentId {agentId} and conversationId {conversationId} on try {try}", clientId, agentId, id, i);
+                            _logger.LogError("SignalR, cannot find conversation with clientId {clientId}, AgentId:{AgentId} and ConnectionId:{ConnectionId} and conversationId {conversationId} on try {try}", clientId, agentId, connectionId, id, i);
                     }
                     else
-                        _logger.LogError("SignalR, No connection found for event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), agentId, id, i);
+                        _logger.LogError("SignalR, No connection found for event {event} for AgentId:{AgentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), agentId, id, i);
                 }
 
                 //Send conversation unassigned
@@ -107,7 +108,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         await _conversationHubContext.Clients.Client(unassignedConnectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), id);
                         if (await _agentsService.IsAgentOneSignalEnabled(clientId))
                             await _oneSignalService.SendConversationUnAssignedNotification(oldAgentId);
-                        _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationUnAssigned.ToString(), agentId, id, i);
+                        _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} with object {object} on try {try}", SignalREnum.ConversationUnAssigned.ToString(), agentId, id, i);
                     }
                 }
 
@@ -165,14 +166,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationAssigned.ToString(), conversation);
                             if (await _agentsService.IsAgentOneSignalEnabled(conversation.ClientId, conversation.SenderId))
                                 await _oneSignalService.SendConversationAssignedNotification(conversation);
-                            _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try} and payload {payload}", SignalREnum.ConversationAssigned.ToString(), item.AgentId, item.ParentId, i, conversation);
+                            _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", SignalREnum.ConversationAssigned.ToString(), item.AgentId, connectionId, item.ParentId, i, JsonConvert.SerializeObject(conversation));
                             break;
                         }
                         else
-                            _logger.LogError("SignalR, cannot find conversation with clientId {clienId}, agentId {agentId} and conversationId {conversationId} on try {try}", item.ClientId, item.AgentId, item.ParentId, i);
+                            _logger.LogError("SignalR, cannot find conversation with clientId {clienId}, AgentId:{AgentId} and ConnectionId:{ConnectionId} and conversationId {conversationId} on try {try}", item.ClientId, item.AgentId, connectionId, item.ParentId, i);
                     }
                     else
-                        _logger.LogError("SignalR, No connection found for event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), item.AgentId, item.ParentId, i);
+                        _logger.LogError("SignalR, No connection found for event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), item.AgentId, connectionId, item.ParentId, i);
                 }
 
                 //if (i >= 5) // If max retry exceeded, unassign the conversation again
@@ -259,14 +260,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), item.ParentId);
                             if (await _agentsService.IsAgentOneSignalEnabled(item.ClientId, item.SenderId))
                                 await _oneSignalService.SendConversationUnAssignedNotification(item.AgentId);
-                            _logger.LogInformation("SignalR, triggered event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationUnAssigned.ToString(), item.AgentId, item.ParentId, i);
+                            _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try}", SignalREnum.ConversationUnAssigned.ToString(), item.AgentId, connectionId, item.ParentId, i);
                             break;
                         }
                         else
-                            _logger.LogError("SignalR, cannot find conversation with clientId {clienId}, agentId {agentId} and conversationId {conversationId} on try {try}", item.ClientId, item.AgentId, item.ParentId, i);
+                            _logger.LogError("SignalR, cannot find conversation with clientId {clienId}, AgentId:{AgentId} and ConnectionId:{ConnectionId} and conversationId {conversationId} on try {try}", item.ClientId, item.AgentId, connectionId, item.ParentId, i);
                     }
                     else
-                        _logger.LogError("SignalR, No connection found for event {event} for agent id {agentId} with object {object} on try {try}", SignalREnum.ConversationUnAssigned.ToString(), item.AgentId, item.ParentId, i);
+                        _logger.LogError("SignalR, No connection found for event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try}", SignalREnum.ConversationUnAssigned.ToString(), item.AgentId, connectionId, item.ParentId, i);
                 }
 
                 //if (i >= 5) // If max retry exceeded, unassign the conversation again

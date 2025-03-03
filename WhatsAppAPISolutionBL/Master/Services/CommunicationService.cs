@@ -120,7 +120,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
                     {
                         Type = headerType.ToString(),
-                        Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath 
+                        Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath
                     });
                 }
                 else
@@ -366,7 +366,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 if (tempResult != null)
                 {
                     foreach (var item in tempResult)
-                    {
+                    { 
                         var message = new InsertMessageDto
                         {
                             ClientId = model.ClientId,
@@ -391,6 +391,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         }
 
                         await _messageSentLogsService.AddMessageSentLogAsync(message);
+
+                        if (!item.success)
+                            return new UResponse
+                            {
+                                Status = 0,
+                                Message = item.errors != null && item.errors.Count() > 0 ? String.Join(',', item.errors) : "Something went wrong"
+                            };
                     }
                 }
             }
@@ -608,7 +615,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 if (tempResult != null)
                 {
                     foreach (var item in tempResult)
-                    {
+                    { 
                         var message = new InsertMessageDto
                         {
                             ClientId = interactiveTemplate.ClientId ?? 0,
@@ -634,6 +641,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         }
 
                         await _messageSentLogsService.AddMessageSentLogAsync(message);
+
+                        if (!item.success)
+                            return new UResponse
+                            {
+                                Status = 0,
+                                Message = item.errors != null && item.errors.Count() > 0 ? String.Join(',', item.errors) : "Something went wrong"
+                            };
                     }
                 }
             }
