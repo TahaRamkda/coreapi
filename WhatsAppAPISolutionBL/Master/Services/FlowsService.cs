@@ -621,13 +621,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return flowDto;
         }
 
-        public async Task<List<UEntityDto>> GetFlowsAsync(int clientId, string searchStr = "")
+        public async Task<List<UEntityDto>> GetFlowsAsync(int clientId, int senderId = 0, string searchStr = "")
         {
             var query = _dbContext.Flows.Where(f => f.ClientId == clientId && f.RecordStatus != -1); // Assuming 1 is active
 
             if (!string.IsNullOrEmpty(searchStr))
             {
                 query = query.Where(f => f.FlowName.Contains(searchStr));
+            }
+            if (senderId > 0)
+            {
+                query = query.Where(f => f.SenderId == senderId);
             }
 
             return await query.Select(f => new UEntityDto

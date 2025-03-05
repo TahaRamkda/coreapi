@@ -222,7 +222,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (flow == null)
                 return Ok(new ApiResult { Message = "Flow not found" });
 
-            if(string.IsNullOrEmpty(flow.MetaFlowId))
+            if (string.IsNullOrEmpty(flow.MetaFlowId))
                 return Ok(new ApiResult { Message = "MetaFlowId not found for publish" });
 
             var response = await _flowsService.PublishFlowAsync(clientId, flowId);
@@ -288,11 +288,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getflows")]
-        public async Task<IActionResult> GetFlowAsync(string searchStr = "")
+        public async Task<IActionResult> GetFlowAsync(int senderId = 0, string searchStr = "")
         {
-            _logger.LogInformation("Calling api GetFlowAsync with ClientId={ClientId}, searchStr={searchStr}", clientId, searchStr);
+            _logger.LogInformation("Calling api GetFlowAsync with ClientId={ClientId}, senderId={senderId}, searchStr={searchStr}", clientId, senderId, searchStr);
 
-            var models = await _flowsService.GetFlowsAsync(clientId, searchStr);
+            var models = await _flowsService.GetFlowsAsync(clientId, senderId, searchStr);
             if (models == null || !models.Any())
                 return Ok(new ApiResult { Message = "No records found" });
 

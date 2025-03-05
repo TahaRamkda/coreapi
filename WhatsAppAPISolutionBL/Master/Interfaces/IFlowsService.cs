@@ -12,6 +12,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> PublishFlowAsync(int clientId, int flowId);
         Task<UResponse> DeleteFlowAsync(int flowId);
         Task<FlowDTO> GetFlowDetailsByIdAsync(int flowId);
-        Task<List<UEntityDto>> GetFlowsAsync(int clientId, string searchStr = "");
+        Task<List<UEntityDto>> GetFlowsAsync(int clientId, int senderId = 0, string searchStr = "");
     }
 }
