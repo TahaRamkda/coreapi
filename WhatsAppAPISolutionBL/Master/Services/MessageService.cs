@@ -7,6 +7,7 @@ using WhatsAppAPISolutionDL.Dto.Agent;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.Enum;
+using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Hubs;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
@@ -205,10 +206,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var action = response[0];
                 if (action.ActionType > 0 && action.ActionId > 0)
                 {
-                    var flowToken = "C:"+ client.ClientId+"|S:"+ senderName.SenderId+"|M:"+ response[0].ModuleId + "|P:" + response[0].ParentId;
-
+                    //var flowToken = "C:"+ client.ClientId+"|S:"+ senderName.SenderId+"|M:"+ response[0].ModuleId + "|P:" + response[0].ParentId;
+                    var flowToken = $"{FlowIdentifier.ClientId}:{client.ClientId}|" + $"{FlowIdentifier.SenderId}:{senderName.SenderId}" + $"{FlowIdentifier.ModuleId}:{action.ModuleId}" + $"{FlowIdentifier.ParentId}:{action.ParentId}";
                     if (action.ActionType == (int)ActionTypeEnum.TEMPLATE) //Send template or interactive message or normal message 
-                        await _communicationService.SendInteractiveMessageAsync(action, client.ClientId, senderName.SenderId, messageReceive.from);
+                        await _communicationService.SendInteractiveMessageAsync(action, client.ClientId, senderName.SenderId, messageReceive.from, flowToken: flowToken);
                 }
 
                 if (action.ModuleId == (int)ModuleEnum.Chat && action.ConversationMessageId > 0 && action.IsFoul == 0) //If conversation is going on and no foul word received
