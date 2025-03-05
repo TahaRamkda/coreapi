@@ -7,6 +7,7 @@ using WhatsAppAPISolutionDL.UserModels.Contact;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
 using WhatsAppAPISolutionDL.UserModels.Dashboard;
 using WhatsAppAPISolutionDL.UserModels.Entity;
+using WhatsAppAPISolutionDL.UserModels.Flow;
 using WhatsAppAPISolutionDL.UserModels.Group;
 using WhatsAppAPISolutionDL.UserModels.InteractiveTemplate;
 using WhatsAppAPISolutionDL.UserModels.MasterData;
@@ -83,6 +84,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UConversationLogsList> ConversationLogsList { get; set; } = null!;
         public virtual DbSet<UConversationStatistics> ConversationStatistics { get; set; } = null!;
         public virtual DbSet<UMasterData> MasterData { get; set; } = null!;
+        public virtual DbSet<UFlow> Flow { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -138,6 +140,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UConversationLogsList>().HasNoKey();
             modelBuilder.Entity<UConversationStatistics>().HasNoKey();
             modelBuilder.Entity<UMasterData>().HasNoKey();
+            modelBuilder.Entity<UFlow>().HasNoKey();
         }
     }
 }

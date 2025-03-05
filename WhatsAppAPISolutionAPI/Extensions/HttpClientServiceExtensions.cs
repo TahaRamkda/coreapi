@@ -29,5 +29,16 @@ namespace WhatsAppAPISolutionAPI.Extensions
 
             return services;
         }
+        public static IServiceCollection AddFlowEndpointServices(this IServiceCollection services, IConfiguration config)
+        {
+            services.AddHttpClient(HttpClientType.flow_endpoint, (serviceProvider, httpClient) =>
+            {
+                var flowEndpoint = serviceProvider.GetRequiredService<IOptions<FlowEndpointSettings>>().Value;
+
+                httpClient.BaseAddress = new Uri(flowEndpoint.BaseURL);
+            });
+
+            return services;
+        }
     }
 }

@@ -22,6 +22,7 @@ builder.Services.AddDatabaseServices(configuration);
 builder.Services.AddSettingServices(configuration);
 builder.Services.AddHttpClientServices(configuration);
 builder.Services.AddOneSignalServices(configuration);
+builder.Services.AddFlowEndpointServices(configuration);
 
 // Adding Authentication
 builder.Services.AddAuthentication(options =>

@@ -1,12 +1,26 @@
 ﻿using Azure;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using System.Linq;
+using System.Net.Http;
 using System.Security.Claims;
+using System.Text;
+using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.Flow;
+using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.DTO.Survey;
+using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.UserModels.AppSetting;
 using WhatsAppAPISolutionDL.UserModels.Entity;
+using WhatsAppAPISolutionDL.UserModels.Flow;
+using WhatsAppAPISolutionDL.UserModels.Template;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -14,23 +28,114 @@ namespace WhatsAppAPISolutionBL.Master.Services
     {
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly WhatsAppSolutionContext _dbContext;
+        private readonly IOptions<FlowEndpointSettings> _flowEndpointSettings;
+        private readonly HttpClient _httpClient;
+        private readonly FlowOpsService _flowOpsService;
 
         public FlowsService(WhatsAppSolutionContext2 dbContext2,
-            WhatsAppSolutionContext dbContext)
+            WhatsAppSolutionContext dbContext,
+            IOptions<FlowEndpointSettings> flowEndpointSettings,
+            IHttpClientFactory httpClientFactory,
+            FlowOpsService flowOpsService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
+            _flowEndpointSettings = flowEndpointSettings;
+            _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
+            _flowOpsService = flowOpsService;
         }
 
 
-        public async Task<UResponse> CreateFlows(int clientId, int userId, FlowDTO obj)
+        public async Task<List<UFlow>> GetFlowListAsync(int clientId, string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue)
+        {
+            if (pageNo < 1) pageNo = 1;
+
+            var query = _dbContext.Flows
+                .Where(f => f.ClientId == clientId && f.RecordStatus != -1)
+                .Join(_dbContext.Clients,
+                      flow => flow.ClientId,
+                      client => client.ClientId,
+                      (flow, client) => new
+                      {
+                          Flow = flow,
+                          ClientName = client.ClientName,
+                          TimeZoneOffset = client.Timezone
+                      })
+                .Join(_dbContext.SenderNames,
+                      flowClient => flowClient.Flow.SenderId,
+                      sender => sender.SenderId,
+                      (flowClient, sender) => new
+                      {
+                          Flow = flowClient.Flow,
+                          ClientName = flowClient.ClientName,
+                          TimeZoneOffset = flowClient.TimeZoneOffset,
+                          SenderName = sender.SenderName1
+                      });
+
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(searchStr))
+                query = query.Where(f => f.Flow.FlowName.Contains(searchStr));
+
+            // Fetch total records count (for pagination)
+            int totalRecords = await query.CountAsync();
+
+            // Apply pagination
+            var flows = await query
+                .Skip((pageNo - 1) * pageSize)
+                .Take(pageSize)
+                .Select(f => new UFlow
+                {
+                    FlowId = f.Flow.FlowId,
+                    MetaFlowId = f.Flow.MetaFlowId,
+                    MetaFlowName = f.Flow.MetaFlowName,
+                    ClientId = f.Flow.ClientId,
+                    SenderId = f.Flow.SenderId,
+                    ModuleId = f.Flow.ModuleId,
+                    ParentId = f.Flow.ParentId,
+                    FlowName = f.Flow.FlowName,
+                    FlowLanguage = f.Flow.FlowLanguage,
+                    Status = f.Flow.Status,
+                    CreatedBy = f.Flow.CreatedBy,
+                    CreatedDate = CommonHelper.ConvertUtcToUserTimeZone(f.Flow.CreatedDate, f.TimeZoneOffset),
+                    UpdatedBy = f.Flow.UpdatedBy,
+                    UpdatedDate = CommonHelper.ConvertUtcToUserTimeZone(f.Flow.UpdatedDate, f.TimeZoneOffset),
+                    ClientName = f.ClientName,  // Added Client Name
+                    SenderName = f.SenderName,  // Added Sender Name
+                    TotalRecords = totalRecords
+                }).ToListAsync();
+
+            return flows;
+        }
+
+        public async Task<UResponse> AddFlowAsync(int clientId, int userId, FlowDTO obj)
         {
             try
             {
-                int? surveyId = null;
+                //Replace empty space with _
+                obj.FlowName = obj.FlowName.Replace(" ", "_").ToLower().Trim();
 
-                // If ParentId = 4, insert into Survey table first
-                if (obj.ParentId == 4)
+                //Check if template name already exists
+                var flowNameExist = await _dbContext.Flows
+                    .Where(x => x.ClientId == clientId
+                    && x.SenderId == obj.SenderId
+                    && x.RecordStatus != -1
+                    && x.FlowName != null
+                    && x.FlowLanguage != null
+                    && x.FlowName.ToLower() == obj.FlowName.ToLower()
+                    && x.FlowLanguage.ToLower() == obj.FlowLanguage.ToLower()).FirstOrDefaultAsync();
+
+                if (flowNameExist != null)
+                    return new UResponse { Message = "Flow with same name already exist" };
+
+                string keyNames = string.Join(",", new[] { "FlowDataApiVersion", "FlowVersion", "FlowLayout" });
+                var appSettings = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_Appsettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @KeyName={keyNames}, @ClientId={clientId}, @SenderId={obj.SenderId}").ToListAsync();
+
+                if (appSettings == null && !appSettings.Any())
+                    return new UResponse { Status = 0, Message = "Please enter DataApiVersion/Version or Layout" };
+
+                int? surveyId = null;
+                // If ModuleId = 4, insert into Survey table first
+                if (obj.ModuleId == 4)
                 {
                     var survey = new Survey()
                     {
@@ -48,7 +153,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
 
                 // Insert into Flows table
-                var flow = new Flow()
+                var flow = new Flow
                 {
                     ClientId = clientId,
                     SenderId = obj.SenderId,
@@ -56,7 +161,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     ParentId = surveyId ?? obj.ParentId, // Use SurveyId if ParentId was 4
                     FlowName = obj.FlowName,
                     FlowLanguage = obj.FlowLanguage,
-                    Status = obj.Status,
+                    //Status = obj.Status,
+                    DataApiVersion = appSettings.Any() ? appSettings[0].Val : "0",
+                    Version = appSettings.Any() ? appSettings[1].Val : "0",
+                    EndpointUrl = _flowEndpointSettings.Value.BaseURL.Replace("{ClientId}", clientId.ToString()).Replace("{SenderId}", obj.SenderId.ToString()),
                     CreatedBy = userId,
                     CreatedDate = DateTime.UtcNow,
                     UpdatedBy = userId,
@@ -77,16 +185,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     }
                 }
 
-                // Bulk insert FlowScreens
-                var screens = obj.FlowScreens.Select(screenDto => new FlowScreen()
+                // Number suffix mapping
+                string[] suffixes = { "_one", "_two", "_three", "_four", "_five", "_six", "_seven", "_eight", "_nine", "_ten" };
+
+                // Insert FlowScreens with modified names
+                var screens = obj.FlowScreens.Select((screenDto, index) => new FlowScreen()
                 {
                     FlowId = flow.FlowId,
-                    Name = screenDto.Name,
+                    Name = $"{screenDto.Name}{(index < suffixes.Length ? suffixes[index] : $"_{index + 1}")}", // Add suffix
                     Title = screenDto.Title,
-                    Type = screenDto.Type,
+                    Type = appSettings.Any() ? appSettings[2].Val : string.Empty,
                     ScreenButtonText = screenDto.ScreenButtonText,
-                    RedirectionScreen = screenDto.RedirectionScreen,
-                    RedirectionType = screenDto.RedirectionType,
+                    RedirectionScreen = index < obj.FlowScreens.Count - 1 ? // If not last screen, set next screen's name
+                                        $"{obj.FlowScreens[index + 1].Name}{(index + 1 < suffixes.Length ? suffixes[index + 1] : $"_{index + 2}")}"
+                                        : string.Empty, // Last screen, no redirection screen
+                    RedirectionType = index == obj.FlowScreens.Count - 1 ? (int)FlowRedirectionType.Complete : (int)FlowRedirectionType.Next, // Last screen => 2, else => 1
                     CreatedBy = userId,
                     CreatedDate = DateTime.UtcNow,
                     UpdatedBy = userId,
@@ -96,12 +209,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 await _dbContext.FlowScreens.AddRangeAsync(screens);
                 await _dbContext.SaveChangesAsync(); // Save to get FlowScreenIds
 
-                // Bulk insert FlowChildren
+                // Insert FlowChildren with modified ControlNames
                 var children = obj.FlowScreens
-                    .SelectMany(screenDto => screenDto.FlowChildren.Select(childDto => new FlowChildren()
+                    .SelectMany((screenDto, screenIndex) => screenDto.FlowChildren.Select((childDto, childIndex) => new FlowChildren()
                     {
-                        FlowScreenId = screens.First(s => s.Name == screenDto.Name).FlowScreenId, // Match screen
-                        ControlName = childDto.Name,
+                        FlowScreenId = screens[screenIndex].FlowScreenId, // Match screen
+                        ControlName = $"{screens[screenIndex].Name}_C{childIndex + 1}", // ScreenA_One_C1, ScreenA_One_C2...
                         ControlText = childDto.Text,
                         ControlType = childDto.Type,
                         Required = childDto.Required,
@@ -114,13 +227,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 await _dbContext.FlowChildrens.AddRangeAsync(children);
                 await _dbContext.SaveChangesAsync(); // Save to get FlowChildrenIds
 
-                // Bulk insert FlowOptions
+                // Insert FlowOptions
                 var options = obj.FlowScreens
-                    .SelectMany(screenDto => screenDto.FlowChildren
-                        .SelectMany(childDto => childDto.FlowOptions.Select(optionDto => new FlowOption()
+                    .SelectMany((screenDto, screenIndex) => screenDto.FlowChildren
+                        .SelectMany((childDto, childIndex) => childDto.FlowOptions.Select(optionDto => new FlowOption()
                         {
-                            ScreenChildrenId = children.First(c => c.ControlName == childDto.Name).FlowChildrenId, // Match child
-                            OptionId = optionDto.OptionText,
+                            ScreenChildrenId = children.First(c => c.ControlName == $"{screens[screenIndex].Name}_C{childIndex + 1}").FlowChildrenId, // Match child
+                            OptionId = optionDto.OptionId ?? optionDto.OptionText,
                             OptionText = optionDto.OptionText,
                             CreatedBy = userId,
                             CreatedDate = DateTime.UtcNow,
@@ -132,11 +245,52 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 await _dbContext.FlowOptions.AddRangeAsync(options);
                 await _dbContext.SaveChangesAsync(); // Save all options in bulk
 
-                return new UResponse
+                var flowJson = await _flowOpsService.PrepareFlowJson(flow.FlowId);
+
+                // Update FlowJson field in Flows table
+                flow.FlowJson = flowJson;
+                _dbContext.Flows.Update(flow);
+                await _dbContext.SaveChangesAsync();
+
+                var flowRequest = new FlowRequestDto
                 {
-                    Status = 1,
-                    Message = "Data added successfully"
+                    ClientId = clientId.ToString(),
+                    SenderNameId = obj.SenderId.ToString(),
+                    Name = obj.FlowName,
+                    Category = "other",
+                    EndpointUrl = flow.EndpointUrl,
+                    FlowJson = flowJson
                 };
+
+                var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(flowRequest), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"/api/Flow/FlowOps", res);
+                var content = await response.Content.ReadAsStringAsync();
+
+                var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
+                if (result != null && result.success)
+                {
+                    var data = JsonConvert.SerializeObject(result.result);
+                    var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<FlowResultDto>(data);
+                    if (tempResult != null)
+                    {
+                        if (!string.IsNullOrEmpty(tempResult.id) && !string.IsNullOrEmpty(tempResult.status))
+                        {
+                            flow.MetaFlowId = tempResult.id;
+                            flow.Status = tempResult.status;
+                            _dbContext.Flows.Update(flow);
+                            await _dbContext.SaveChangesAsync();
+
+                            if (obj.PublishToFB)
+                                await PublishFlowAsync(clientId, flow.FlowId);
+                        }
+                        else
+                            return new UResponse { Status = 1, Message = "Flow created in system but not on facebook because unable to get meta flow id from meta" };
+                    }
+                }
+                else if (result != null && !result.success)
+                    return new UResponse { Status = 201, Message = "Flow created in system but not created on facebook because: \n" + result.message };
+
+                return new UResponse { Status = 1, Message = "Data added successfully" };
             }
             catch (Exception ex)
             {
@@ -148,5 +302,339 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
         }
 
+        public async Task<UResponse> UpdateFlowAsync(int clientId, int userId, FlowDTO obj)
+        {
+            try
+            {
+                // Fetch the existing flow
+                var existingFlow = await _dbContext.Flows
+                    .FirstOrDefaultAsync(x => x.FlowId == obj.FlowId && x.ClientId == clientId && x.RecordStatus != -1);
+                if (existingFlow == null)
+                    return new UResponse { Status = 0, Message = "Flow not found" };
+
+                // Replace spaces in FlowName and check for duplicates
+                obj.FlowName = obj.FlowName.Replace(" ", "_").ToLower().Trim();
+                var flowNameExist = await _dbContext.Flows
+                    .AnyAsync(x => x.ClientId == clientId && x.SenderId == obj.SenderId && x.FlowId != obj.FlowId && x.FlowName == obj.FlowName && x.FlowLanguage == obj.FlowLanguage);
+                if (flowNameExist)
+                    return new UResponse { Message = "Flow with same name already exists" };
+
+                string keyNames = "FlowLayout";
+                var appSettings = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_Appsettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @KeyName={keyNames}, @ClientId={clientId}, @SenderId={obj.SenderId}").ToListAsync();
+
+                if (appSettings == null && !appSettings.Any())
+                    return new UResponse { Status = 0, Message = "Please enter DataApiVersion/Version or Layout" };
+
+                int? surveyId = null;
+                if (obj.ModuleId == 4)
+                {
+                    // Check if a survey already exists for this flow
+                    var existingSurvey = await _dbContext.Surveys.FirstOrDefaultAsync(s => s.FlowId == obj.FlowId);
+                    if (existingSurvey == null)
+                    {
+                        // Insert new survey if it doesn't exist
+                        var survey = new Survey()
+                        {
+                            FlowId = obj.FlowId, // Set FlowId to the current FlowId
+                            CreatedBy = userId,
+                            CreatedDate = DateTime.UtcNow,
+                            UpdatedBy = userId,
+                            UpdatedDate = DateTime.UtcNow
+                        };
+                        _dbContext.Surveys.Add(survey);
+                        await _dbContext.SaveChangesAsync();
+                        surveyId = survey.SurveyId; // Capture the generated SurveyId
+                    }
+                    else
+                    {
+                        // Use the existing SurveyId
+                        surveyId = existingSurvey.SurveyId;
+                    }
+                }
+
+                // Update existing flow properties
+                existingFlow.SenderId = obj.SenderId;
+                existingFlow.ParentId = surveyId ?? obj.ParentId; // Use SurveyId if ModuleId is 4, otherwise use the provided ParentId
+                existingFlow.ModuleId = obj.ModuleId;
+                existingFlow.FlowName = obj.FlowName;
+                existingFlow.FlowLanguage = obj.FlowLanguage;
+                existingFlow.UpdatedBy = userId;
+                existingFlow.UpdatedDate = DateTime.UtcNow;
+
+                // Update Flow
+                _dbContext.Flows.Update(existingFlow);
+                await _dbContext.SaveChangesAsync();
+
+                // Remove existing screens and related children/options
+                var existingScreens = await _dbContext.FlowScreens.Where(s => s.FlowId == obj.FlowId).ToListAsync();
+                _dbContext.FlowScreens.RemoveRange(existingScreens);
+                await _dbContext.SaveChangesAsync();
+
+                // Add new screens with updated logic for Name, RedirectionScreen, and Type
+                string[] suffixes = { "_one", "_two", "_three", "_four", "_five", "_six", "_seven", "_eight", "_nine", "_ten" };
+                var screens = obj.FlowScreens.Select((screenDto, index) => new FlowScreen()
+                {
+                    FlowId = obj.FlowId,
+                    Name = $"{screenDto.Name}{(index < suffixes.Length ? suffixes[index] : $"_{index + 1}")}", // Add suffix
+                    Title = screenDto.Title,
+                    Type = appSettings.Any() ? appSettings[0].Val : string.Empty, // Use appSettings logic
+                    ScreenButtonText = screenDto.ScreenButtonText,
+                    RedirectionScreen = index < obj.FlowScreens.Count - 1 ? // If not last screen, set next screen's name
+                                        $"{obj.FlowScreens[index + 1].Name}{(index + 1 < suffixes.Length ? suffixes[index + 1] : $"_{index + 2}")}"
+                                        : string.Empty, // Last screen, no redirection screen
+                    RedirectionType = index == obj.FlowScreens.Count - 1 ? (int)FlowRedirectionType.Complete : (int)FlowRedirectionType.Next, // Last screen => 2, else => 1
+                    CreatedBy = userId,
+                    CreatedDate = DateTime.UtcNow,
+                    UpdatedBy = userId,
+                    UpdatedDate = DateTime.UtcNow
+                }).ToList();
+
+                await _dbContext.FlowScreens.AddRangeAsync(screens);
+                await _dbContext.SaveChangesAsync();
+
+                // Remove existing children
+                var existingChildren = await _dbContext.FlowChildrens
+                    .Where(c => existingScreens.Select(s => s.FlowScreenId).Contains(c.FlowScreenId))
+                    .ToListAsync();
+                _dbContext.FlowChildrens.RemoveRange(existingChildren);
+                await _dbContext.SaveChangesAsync();
+
+                // Add new children
+                var children = obj.FlowScreens
+                    .SelectMany((screenDto, screenIndex) => screenDto.FlowChildren.Select((childDto, childIndex) => new FlowChildren()
+                    {
+                        FlowScreenId = screens[screenIndex].FlowScreenId,
+                        ControlName = $"{screens[screenIndex].Name}_C{childIndex + 1}", // ScreenA_One_C1, ScreenA_One_C2...
+                        ControlText = childDto.Text,
+                        ControlType = childDto.Type,
+                        Required = childDto.Required,
+                        CreatedBy = userId,
+                        CreatedDate = DateTime.UtcNow,
+                        UpdatedBy = userId,
+                        UpdatedDate = DateTime.UtcNow
+                    })).ToList();
+
+                await _dbContext.FlowChildrens.AddRangeAsync(children);
+                await _dbContext.SaveChangesAsync();
+
+                // Remove existing options
+                var existingOptions = await _dbContext.FlowOptions
+                    .Where(o => existingChildren.Select(c => c.FlowChildrenId).Contains(o.ScreenChildrenId))
+                    .ToListAsync();
+                _dbContext.FlowOptions.RemoveRange(existingOptions);
+                await _dbContext.SaveChangesAsync();
+
+                // Add new options
+                var options = obj.FlowScreens
+                    .SelectMany((screenDto, screenIndex) => screenDto.FlowChildren
+                        .SelectMany((childDto, childIndex) => childDto.FlowOptions.Select(optionDto => new FlowOption()
+                        {
+                            ScreenChildrenId = children.First(c => c.ControlName == $"{screens[screenIndex].Name}_C{childIndex + 1}").FlowChildrenId,
+                            OptionId = optionDto.OptionId ?? optionDto.OptionText,
+                            OptionText = optionDto.OptionText,
+                            CreatedBy = userId,
+                            CreatedDate = DateTime.UtcNow,
+                            UpdatedBy = userId,
+                            UpdatedDate = DateTime.UtcNow
+                        })))
+                    .ToList();
+
+                await _dbContext.FlowOptions.AddRangeAsync(options);
+                await _dbContext.SaveChangesAsync();
+
+                // Prepare and update FlowJson
+                var flowJson = await _flowOpsService.PrepareFlowJson(obj.FlowId);
+                existingFlow.FlowJson = flowJson;
+                _dbContext.Flows.Update(existingFlow);
+                await _dbContext.SaveChangesAsync();
+
+                // Sync with external system (e.g., Facebook)
+                var flowRequest = new FlowRequestDto
+                {
+                    ClientId = clientId.ToString(),
+                    SenderNameId = obj.SenderId.ToString(),
+                    FlowId = existingFlow.MetaFlowId,
+                    Name = obj.FlowName,
+                    Category = "other",
+                    EndpointUrl = existingFlow.EndpointUrl,
+                    FlowJson = flowJson
+                };
+
+                var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(flowRequest), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"/api/Flow/FlowOps", res);
+                var content = await response.Content.ReadAsStringAsync();
+
+                var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
+                if (result != null && result.success)
+                {
+                    var data = JsonConvert.SerializeObject(result.result);
+                    var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<FlowResultDto>(data);
+                    if (tempResult != null)
+                    {
+                        if (!string.IsNullOrEmpty(tempResult.id) && !string.IsNullOrEmpty(tempResult.status))
+                        {
+                            existingFlow.MetaFlowId = tempResult.id;
+                            existingFlow.Status = tempResult.status;
+                            _dbContext.Flows.Update(existingFlow);
+                            await _dbContext.SaveChangesAsync();
+
+                            if (obj.PublishToFB)
+                                await PublishFlowAsync(clientId, existingFlow.FlowId);
+                        }
+                        else
+                            return new UResponse { Status = 1, Message = "Flow updated in system but not on Facebook because unable to get meta flow ID from Meta" };
+                    }
+                }
+                else if (result != null && !result.success)
+                    return new UResponse { Status = 201, Message = "Flow updated in system but not on Facebook because: \n" + result.message };
+
+                return new UResponse { Status = 1, Message = "Flow updated successfully" };
+            }
+            catch (Exception ex)
+            {
+                return new UResponse { Status = 0, Message = ex.Message };
+            }
+        }
+
+        public async Task<UResponse> DeleteFlowAsync(int flowId)
+        {
+            var flow = await _dbContext.Flows.FirstOrDefaultAsync(f => f.FlowId == flowId);
+            if (flow == null)
+                return new UResponse { Message = "Flow not found" };
+
+            // Set RecordStatus to -1
+            flow.RecordStatus = -1;
+            flow.UpdatedDate = DateTime.UtcNow;
+            flow.UpdatedBy = flow.UpdatedBy;
+
+            await _dbContext.SaveChangesAsync();
+
+            return new UResponse { Status = 1, Message = "Flow deleted successfully" };
+        }
+
+        public async Task<UResponse> PublishFlowAsync(int clientId, int flowId)
+        {
+            try
+            {
+                var flow = await _dbContext.Flows.FirstOrDefaultAsync(f => f.FlowId == flowId && f.ClientId == clientId);
+
+                var flowRequest = new PublishFlowRequestDto
+                {
+                    ClientId = clientId.ToString(),
+                    SenderNameId = flow.SenderId.ToString(),
+                    FlowId = flow.MetaFlowId
+                };
+
+                var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(flowRequest), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"/api/Flow/PublishFlow", res);
+                var content = await response.Content.ReadAsStringAsync();
+
+                var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
+                if (result != null && result.success)
+                {
+                    var data = JsonConvert.SerializeObject(result.result);
+                    var tempResult = Newtonsoft.Json.JsonConvert.DeserializeObject<FlowResultDto>(data);
+                    if (tempResult != null)
+                    {
+                        if (!string.IsNullOrEmpty(tempResult.id) && !string.IsNullOrEmpty(tempResult.status))
+                        {
+                            flow.MetaFlowId = tempResult.id;
+                            flow.Status = tempResult.status;
+                            _dbContext.Flows.Update(flow);
+                            await _dbContext.SaveChangesAsync();
+                        }
+                        else
+                            return new UResponse { Status = 1, Message = "Flow created in system but not on facebook because unable to get meta flow id from meta" };
+                    }
+                }
+                else if (result != null && !result.success)
+                    return new UResponse { Status = 201, Message = "Unable to publish flow on facebook because: \n" + result.message };
+
+                return new UResponse { Status = 1, Message = "Data added successfully" };
+            }
+            catch (Exception ex)
+            {
+                return new UResponse
+                {
+                    Status = 0,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        public async Task<FlowDTO> GetFlowDetailsByIdAsync(int flowId)
+        {
+            // Fetch the Flow record
+            var flow = await _dbContext.Flows
+                .FirstOrDefaultAsync(f => f.FlowId == flowId && f.RecordStatus != -1);
+
+            if (flow == null)
+                throw new Exception("Flow not found");
+
+            // Fetch related FlowScreens
+            var flowScreens = await _dbContext.FlowScreens
+                .Where(fs => fs.FlowId == flowId)
+                .ToListAsync();
+
+            // Fetch related FlowChildren and FlowOptions
+            var flowChildren = await _dbContext.FlowChildrens
+                .Where(fc => flowScreens.Select(fs => fs.FlowScreenId).Contains(fc.FlowScreenId))
+                .ToListAsync();
+
+            var flowOptions = await _dbContext.FlowOptions
+                .Where(fo => flowChildren.Select(fc => fc.FlowChildrenId).Contains(fo.ScreenChildrenId))
+                .ToListAsync();
+
+            // Map Flow to FlowDTO
+            var flowDto = new FlowDTO
+            {
+                SenderId = flow.SenderId ?? 0,
+                ModuleId = flow.ModuleId ?? 0,
+                ParentId = flow.ParentId ?? 0,
+                FlowName = flow.FlowName,
+                FlowLanguage = flow.FlowLanguage,
+                //PublishToFB = false, // Set this based on your logic
+                FlowId = flow.FlowId,
+                FlowScreens = flowScreens.Select(fs => new FlowScreenDTO
+                {
+                    Name = fs.Name,
+                    Title = fs.Title,
+                    ScreenButtonText = fs.ScreenButtonText,
+                    FlowChildren = flowChildren
+                        .Where(fc => fc.FlowScreenId == fs.FlowScreenId)
+                        .Select(fc => new FlowChildrenDTO
+                        {
+                            Text = fc.ControlText,
+                            Type = fc.ControlType ?? 0,
+                            Required = fc.Required ?? false,
+                            FlowOptions = flowOptions
+                                .Where(fo => fo.ScreenChildrenId == fc.FlowChildrenId)
+                                .Select(fo => new FlowOptionDTO
+                                {
+                                    OptionId = fo.OptionId,
+                                    OptionText = fo.OptionText
+                                }).ToList()
+                        }).ToList()
+                }).ToList()
+            };
+
+            return flowDto;
+        }
+
+        public async Task<List<UEntityDto>> GetFlowsAsync(int clientId, string searchStr = "")
+        {
+            var query = _dbContext.Flows.Where(f => f.ClientId == clientId && f.RecordStatus != -1); // Assuming 1 is active
+
+            if (!string.IsNullOrEmpty(searchStr))
+            {
+                query = query.Where(f => f.FlowName.Contains(searchStr));
+            }
+
+            return await query.Select(f => new UEntityDto
+            {
+                Id = f.FlowId,
+                Name = f.FlowName
+            }).ToListAsync();
+        }
     }
 }

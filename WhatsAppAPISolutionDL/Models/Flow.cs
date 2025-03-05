@@ -15,7 +15,7 @@ namespace WhatsAppAPISolutionDL.Models
         public string FlowName { get; set; }
         public string FlowLanguage { get; set; }
         public string FlowJson { get; set; }
-        public int? Status { get; set; }
+        public string Status { get; set; }
         public string DataApiVersion { get; set; }
         public string Version { get; set; }
         public string EndpointUrl { get; set; }
@@ -24,5 +24,7 @@ namespace WhatsAppAPISolutionDL.Models
         public int? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
         public int? RecordStatus { get; set; }
+        public int? ActionId { get; set; }
+        public int? ActionType { get; set; }
     }
 }

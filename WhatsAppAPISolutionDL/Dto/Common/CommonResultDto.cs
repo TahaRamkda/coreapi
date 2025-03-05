@@ -41,4 +41,12 @@ namespace WhatsAppAPISolutionDL.Dto.Common
         public string messageId { get; set; }
         public List<string> errors { get; set; }
     }
+    public class FlowResultDto
+    {
+        public string id { get; set; }
+        public string name { get; set; }
+        public string status { get; set; }
+        public List<string> categories { get; set; }
+        public object validationErrors { get; set; }
+    }
 }

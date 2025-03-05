@@ -5,6 +5,7 @@ namespace WhatsAppAPISolutionDL.Models
 {
     public partial class ConversationsAgentSummary
     {
+        public int Id { get; set; }
         public int? ClientId { get; set; }
         public int? AgentId { get; set; }
         public string AgentName { get; set; }

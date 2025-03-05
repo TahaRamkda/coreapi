@@ -1,13 +1,17 @@
-﻿using WhatsAppAPISolutionDL.Dto.User;
-using WhatsAppAPISolutionDL.DTO.Survey;
-using WhatsAppAPISolutionDL.Models;
+﻿using WhatsAppAPISolutionDL.DTO.Survey;
 using WhatsAppAPISolutionDL.UserModels.Entity;
-using WhatsAppAPISolutionDL.UserModels.User;
+using WhatsAppAPISolutionDL.UserModels.Flow;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface IFlowsService
     {
-        Task<UResponse> CreateFlows(int clientId, int userId, FlowDTO obj);       
+        Task<List<UFlow>> GetFlowListAsync(int clientId, string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue);
+        Task<UResponse> AddFlowAsync(int clientId, int userId, FlowDTO obj);
+        Task<UResponse> UpdateFlowAsync(int clientId, int userId, FlowDTO obj);
+        Task<UResponse> PublishFlowAsync(int clientId, int flowId);
+        Task<UResponse> DeleteFlowAsync(int flowId);
+        Task<FlowDTO> GetFlowDetailsByIdAsync(int flowId);
+        Task<List<UEntityDto>> GetFlowsAsync(int clientId, string searchStr = "");
     }
 }

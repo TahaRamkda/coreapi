@@ -14,8 +14,8 @@ namespace WhatsAppAPISolutionDL.DTO.Survey
         public int ParentId { get; set; }
         public string FlowName { get; set; }
         public string FlowLanguage { get; set; }
-        public int Status { get; set; }
-
+        public bool PublishToFB { get; set; }
+        public int FlowId { get; set; }
         public List<FlowScreenDTO> FlowScreens { get; set; } = new();
     }
 
@@ -24,17 +24,12 @@ namespace WhatsAppAPISolutionDL.DTO.Survey
 
         public string Name { get; set; }
         public string Title { get; set; }
-        public string Type { get; set; }
         public string ScreenButtonText { get; set; }
-        public int RedirectionType { get; set; }
-        public string RedirectionScreen { get; set; }
         public List<FlowChildrenDTO> FlowChildren { get; set; } = new();
     }
 
     public class FlowChildrenDTO
     {
-
-        public string Name { get; set; }
         public string Text { get; set; }
         public int Type { get; set; }
         public bool Required { get; set; }
@@ -44,6 +39,7 @@ namespace WhatsAppAPISolutionDL.DTO.Survey
 
     public class FlowOptionDTO
     {
+        public string OptionId { get; set; }
         public string OptionText { get; set; }
     }
 }

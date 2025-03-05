@@ -80,5 +80,26 @@ namespace WhatsAppAPISolutionBL.Helper
         }
 
         public static string DynamicPattern => @"\{\{.*?\}\}";
+
+        public static string ConvertUtcToUserTimeZone(DateTime? utcDateTime, string timeZoneOffset)
+        {
+            if (utcDateTime == null || string.IsNullOrEmpty(timeZoneOffset))
+                return null;
+
+            // Extract sign, hours, and minutes from offset
+            char sign = timeZoneOffset[0];
+            int hours = int.Parse(timeZoneOffset.Substring(1, 2));
+            int minutes = int.Parse(timeZoneOffset.Substring(4, 2));
+            int totalMinutes = hours * 60 + minutes;
+
+            if (sign == '-')
+                totalMinutes = -totalMinutes;
+
+            // Convert UTC to Local Time
+            DateTime localDateTime = utcDateTime.Value.AddMinutes(totalMinutes);
+
+            // Format the date as "03-Mar-2025 06:09:11 AM"
+            return localDateTime.ToString("dd-MMM-yyyy hh:mm:ss tt");
+        }
     }
 }

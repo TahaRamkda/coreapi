@@ -404,8 +404,6 @@ namespace WhatsAppAPISolutionDL.Models
 
             modelBuilder.Entity<ConversationsAgentSummary>(entity =>
             {
-                entity.HasNoKey();
-
                 entity.ToTable("ConversationsAgentSummary");
 
                 entity.Property(e => e.AgentName).HasMaxLength(500);
@@ -505,6 +503,8 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.MetaFlowId).HasMaxLength(50);
 
                 entity.Property(e => e.MetaFlowName).HasMaxLength(50);
+
+                entity.Property(e => e.Status).HasMaxLength(50);
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
