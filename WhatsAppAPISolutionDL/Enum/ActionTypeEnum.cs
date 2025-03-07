@@ -8,6 +8,8 @@
         UNSUBSCRIBE = 3,
         BLOCK = 4,
         CHAT = 5,
-        ORDER = 6
+        ORDER = 6,
+        CLOSECHAT = 7,
+        FLOW = 8
     }
 }

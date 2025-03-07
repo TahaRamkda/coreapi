@@ -21,6 +21,7 @@ namespace WhatsAppAPISolutionDL.Dto.Message
         public BodyDto Body { get; set; }
         public FooterDto Footer { get; set; }
         public List<ButtonDto> Buttons { get; set; }
+        public FlowActionDto FlowAction { get; set; }
 
         public class HeaderDto
         {
@@ -51,6 +52,17 @@ namespace WhatsAppAPISolutionDL.Dto.Message
             public string Type { get; set; }
             public string Text { get; set; }
             public string Url { get; set; }
+        }
+
+        public class FlowActionDto
+        {
+            public FlowActionDto() { }
+
+            public string FlowId { get; set; }
+            public string Version { get; set; }
+            public string ButtonText { get; set; }
+            public string Token { get; set; }
+
         }
     }
 }

@@ -27,5 +27,10 @@ namespace WhatsAppAPISolutionDL.Extensions
         /// Module Id
         /// </summary>
         public static string ModuleId => "M";
+
+        /// <summary>
+        /// Flow Id
+        /// </summary>
+        public static string FlowId => "F";
     }
 }

@@ -207,7 +207,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 if (action.ActionType > 0 && action.ActionId > 0)
                 {
                     //var flowToken = "C:"+ client.ClientId+"|S:"+ senderName.SenderId+"|M:"+ response[0].ModuleId + "|P:" + response[0].ParentId;
-                    var flowToken = $"{FlowIdentifier.ClientId}:{client.ClientId}|" + $"{FlowIdentifier.SenderId}:{senderName.SenderId}" + $"{FlowIdentifier.ModuleId}:{action.ModuleId}" + $"{FlowIdentifier.ParentId}:{action.ParentId}";
+                    var flowToken = $"{FlowIdentifier.ClientId}:{client.ClientId}|" + $"{FlowIdentifier.SenderId}:{senderName.SenderId}|" + $"{FlowIdentifier.ModuleId}:{action.ModuleId}|" + $"{FlowIdentifier.ParentId}:{action.ParentId}";
                     if (action.ActionType == (int)ActionTypeEnum.TEMPLATE) //Send template or interactive message or normal message 
                         await _communicationService.SendInteractiveMessageAsync(action, client.ClientId, senderName.SenderId, messageReceive.from, flowToken: flowToken);
                 }

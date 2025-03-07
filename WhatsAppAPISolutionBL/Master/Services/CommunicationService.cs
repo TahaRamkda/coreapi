@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.FileSystemGlobbing.Internal;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System;
 using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -13,12 +14,15 @@ using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Enum;
+using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.UserModels.Client;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.InteractiveTemplate;
 using WhatsAppAPISolutionDL.UserModels.Message;
+using WhatsAppAPISolutionDL.UserModels.SenderName;
 using WhatsAppAPISolutionDL.UserModels.Template;
 
 namespace WhatsAppAPISolutionBL.Master.Services
@@ -366,7 +370,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 if (tempResult != null)
                 {
                     foreach (var item in tempResult)
-                    { 
+                    {
                         var message = new InsertMessageDto
                         {
                             ClientId = model.ClientId,
@@ -416,7 +420,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
         }
 
-        public async Task<UResponse> SendInteractiveMessageAsync(UMessageReceived model, int clientId, int senderId, string phoneNumber, int mediaId = 0, List<ParamValue> values = null, string flowToken="")
+        public async Task<UResponse> SendInteractiveMessageAsync(UMessageReceived model, int clientId, int senderId, string phoneNumber, int mediaId = 0, List<ParamValue> values = null, string flowToken = "")
         {
             var interactiveTemplate = await _interactiveTemplateService.GetInteractiveTemplateDetailsAsync(clientId, senderId, model.ActionId ?? 0);
             if (interactiveTemplate == null)
@@ -566,32 +570,57 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (interactiveTemplate.Buttons != null && interactiveTemplate.Buttons.Any())
             {
                 sendMessage.Buttons = new List<SendInteractiveMessageRequestDto.ButtonDto>();
-                for (int i = 0; i < interactiveTemplate.Buttons.Count; i++)
+                if (interactiveTemplate.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW))
                 {
-                    var button = interactiveTemplate.Buttons[i];
-                    var buttonType = ((ButtonTypeEnum)button.ButtonType);
+                    var button = interactiveTemplate.Buttons.FirstOrDefault(x => x.ActionType == (int)ActionTypeEnum.FLOW);
+                    var flow = await _dbContext.Flows.FindAsync(button.ActionId);
+                    if (flow == null)
+                        return new UResponse { Status = 0, Message = $"Flow not found with id - {button.ActionId}" };
 
-                    if (buttonType != ButtonTypeEnum.QUICK_REPLY
-                        && buttonType != ButtonTypeEnum.URL
-                        && buttonType != ButtonTypeEnum.PHONE_NUMBER)
-                        continue;
+                    if (String.IsNullOrWhiteSpace(flow.MetaFlowId))
+                        return new UResponse { Status = 0, Message = $"Flow with id - {button.ActionId} does not have meta id yet" };
 
-                    //In interactive, phone number is not available, so we are making as URL
-                    if (buttonType == ButtonTypeEnum.PHONE_NUMBER)
+                    if ((flow.Status ?? "").ToLower() != FlowStatusEnum.PUBLISHED.ToString().ToLower())
+                        return new UResponse { Status = 0, Message = $"Flow is not published with id - {button.ActionId}" };
+
+                    sendMessage.FlowAction = new SendInteractiveMessageRequestDto.FlowActionDto
                     {
-                        buttonType = ButtonTypeEnum.URL;
-                        button.ButtonValue = String.Concat("tel:", button.ButtonValue ?? "").Replace("-", "").Trim(); //Replace +965-99310864
+                        FlowId = flow.MetaFlowId,
+                        Version = flow.DataApiVersion,
+                        ButtonText = button.ButtonText,
+                        Token = (flowToken ?? "") + $"|{FlowIdentifier.FlowId}:{flow.FlowId}" //Append flow id for identification
+                    };
+                }
+                else
+                {
+                    for (int i = 0; i < interactiveTemplate.Buttons.Count; i++)
+                    {
+                        var button = interactiveTemplate.Buttons[i];
+                        var buttonType = ((ButtonTypeEnum)button.ButtonType);
+
+                        if (buttonType != ButtonTypeEnum.QUICK_REPLY
+                            && buttonType != ButtonTypeEnum.URL
+                            && buttonType != ButtonTypeEnum.PHONE_NUMBER)
+                            continue;
+
+                        //In interactive, phone number is not available, so we are making as URL
+                        if (buttonType == ButtonTypeEnum.PHONE_NUMBER)
+                        {
+                            buttonType = ButtonTypeEnum.URL;
+                            button.ButtonValue = String.Concat("tel:", button.ButtonValue ?? "").Replace("-", "").Trim(); //Replace +965-99310864
+                        }
+
+                        sendMessage.Buttons.Add(new SendInteractiveMessageRequestDto.ButtonDto
+                        {
+                            Id = Convert.ToString(button.ButtonId),
+                            Text = button.ButtonText,
+                            Type = buttonType.ToString(),
+                            Url = button.ButtonValue
+                        });
                     }
-
-                    sendMessage.Buttons.Add(new SendInteractiveMessageRequestDto.ButtonDto
-                    {
-                        Id = Convert.ToString(button.ButtonId),
-                        Text = button.ButtonText,
-                        Type = buttonType.ToString(),
-                        Url = button.ButtonValue
-                    });
                 }
 
+                //Create button json
                 buttonJson = JsonConvert.SerializeObject(interactiveTemplate.Buttons.Select(x => new ButtonDto
                 {
                     ButtonId = x.ButtonId ?? 0,
@@ -615,7 +644,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 if (tempResult != null)
                 {
                     foreach (var item in tempResult)
-                    { 
+                    {
                         var message = new InsertMessageDto
                         {
                             ClientId = interactiveTemplate.ClientId ?? 0,
@@ -820,7 +849,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 ActionType = 1
             };
 
-            var result = await SendInteractiveMessageAsync(messageReceived, model.ClientId, model.SenderId, conversation.PhoneNumber, model.MediaId, model.Values);
+            var flowToken = $"{FlowIdentifier.ClientId}:{model.ClientId}|" + $"{FlowIdentifier.SenderId}:{model.SenderId}|" + $"{FlowIdentifier.ModuleId}:{(int)ModuleEnum.Chat}|" + $"{FlowIdentifier.ParentId}:{model.ConversationId}";
+            var result = await SendInteractiveMessageAsync(messageReceived, model.ClientId, model.SenderId, conversation.PhoneNumber, model.MediaId, model.Values, flowToken: flowToken);
             if (result == null)
                 return new ApiResult { Message = "Cannot send message, please try again!" };
 
