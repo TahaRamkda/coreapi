@@ -586,7 +586,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     sendMessage.FlowAction = new SendInteractiveMessageRequestDto.FlowActionDto
                     {
                         FlowId = flow.MetaFlowId,
-                        Version = flow.DataApiVersion,
+                        Version = "3", //flow.DataApiVersion, //must be 3 //https://developers.facebook.com/docs/whatsapp/flows/guides/sendingaflow/
                         ButtonText = button.ButtonText,
                         Token = (flowToken ?? "") + $"|{FlowIdentifier.FlowId}:{flow.FlowId}" //Append flow id for identification
                     };
