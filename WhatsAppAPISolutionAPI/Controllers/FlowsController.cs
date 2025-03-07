@@ -243,12 +243,17 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getflowjsonbyid")]
         public async Task<IActionResult> GetFlowJsonByIdAsync(int flowId)
         {
+            _logger.LogInformation("Calling api GetFlowJsonByIdAsync with clientId={clientId} and flowId={flowId}", clientId, flowId);
+
             // Fetch the flow by ID and ClientId
             var flow = await _dbContext.Flows.FirstOrDefaultAsync(f => f.FlowId == flowId && f.ClientId == clientId);
             if (flow == null)
                 return NotFound(new { Message = "Flow not found" });
 
             var flowJson = await _flowOpsService.PrepareFlowJson(flowId);
+
+            _logger.LogInformation("Received api GetFlowJsonByIdAsync with data={data}", flowJson);
+
             return Ok(flowJson); // Returning JSON response
         }
 
@@ -278,12 +283,17 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getflowdetailsbyid")]
         public async Task<IActionResult> GetFlowDetailsByIdAsync(int flowId)
         {
+            _logger.LogInformation("Calling api GetFlowDetailsByIdAsync with id={Id}", flowId);
+
             // Fetch the flow by ID and ClientId
             var flow = await _dbContext.Flows.FirstOrDefaultAsync(f => f.FlowId == flowId && f.ClientId == clientId);
             if (flow == null)
                 return NotFound(new { Message = "Flow not found" });
 
             var flowJson = await _flowsService.GetFlowDetailsByIdAsync(flowId);
+
+            _logger.LogInformation("Received api GetFlowDetailsByIdAsync response with data={data}", JsonConvert.SerializeObject(flowJson));
+
             return Ok(flowJson); // Returning JSON response
         }
 

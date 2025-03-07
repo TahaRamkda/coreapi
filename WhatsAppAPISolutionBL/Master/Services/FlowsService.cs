@@ -1,6 +1,7 @@
 ﻿using Azure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Linq;
@@ -21,6 +22,7 @@ using WhatsAppAPISolutionDL.UserModels.AppSetting;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Flow;
 using WhatsAppAPISolutionDL.UserModels.Template;
+using static WhatsAppAPISolutionDL.Dto.Message.WhatsAppMessageStatusUpdateDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -31,18 +33,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IOptions<FlowEndpointSettings> _flowEndpointSettings;
         private readonly HttpClient _httpClient;
         private readonly FlowOpsService _flowOpsService;
+        private readonly ILogger<FlowsService> _logger;
 
         public FlowsService(WhatsAppSolutionContext2 dbContext2,
             WhatsAppSolutionContext dbContext,
             IOptions<FlowEndpointSettings> flowEndpointSettings,
             IHttpClientFactory httpClientFactory,
-            FlowOpsService flowOpsService)
+            FlowOpsService flowOpsService,
+            ILogger<FlowsService> logger)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _flowEndpointSettings = flowEndpointSettings;
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             _flowOpsService = flowOpsService;
+            _logger = logger;
         }
 
 
@@ -150,6 +155,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     await _dbContext.SaveChangesAsync(); // Save to get SurveyId
 
                     surveyId = survey.SurveyId; // Capture the generated SurveyId
+
+                    _logger.LogInformation("AddFlowAsync - inserting record in survey table when module id = 4");
                 }
 
                 // Insert into Flows table
@@ -174,6 +181,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 _dbContext.Flows.Add(flow);
                 await _dbContext.SaveChangesAsync(); // Save to get FlowId
 
+                _logger.LogInformation("AddFlowAsync - inserting record in Flow table with flow id = {id} and data = {data}", flow.FlowId, JsonConvert.SerializeObject(flow));
+
                 // If ParentId was 4, update the Survey record with the correct FlowId
                 if (surveyId.HasValue)
                 {
@@ -182,11 +191,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     {
                         existingSurvey.FlowId = flow.FlowId;
                         await _dbContext.SaveChangesAsync();
+
+                        _logger.LogInformation("AddFlowAsync - update flow id in survey table with flow id = {id}", flow.FlowId);
                     }
                 }
 
                 // Number suffix mapping
-                string[] suffixes = { "_one", "_two", "_three", "_four", "_five", "_six", "_seven", "_eight", "_nine", "_ten" };
+                string[] suffixes = { "_One", "_Two", "_Three", "_Four", "_Five", "_Six", "_Seven", "_Eight", "_Nine", "_Ten" };
 
                 // Insert FlowScreens with modified names
                 var screens = obj.FlowScreens.Select((screenDto, index) => new FlowScreen()
@@ -209,6 +220,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 await _dbContext.FlowScreens.AddRangeAsync(screens);
                 await _dbContext.SaveChangesAsync(); // Save to get FlowScreenIds
 
+                _logger.LogInformation("AddFlowAsync - inserting record in flow FlowScreen with flow id = {id} and data = {data}", flow.FlowId, JsonConvert.SerializeObject(screens));
+
                 // Insert FlowChildren with modified ControlNames
                 var children = obj.FlowScreens
                     .SelectMany((screenDto, screenIndex) => screenDto.FlowChildren.Select((childDto, childIndex) => new FlowChildren()
@@ -226,6 +239,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 await _dbContext.FlowChildrens.AddRangeAsync(children);
                 await _dbContext.SaveChangesAsync(); // Save to get FlowChildrenIds
+
+                _logger.LogInformation("AddFlowAsync - inserting record in flow FlowChildrens with flow id = {id} and data = {data}", flow.FlowId, JsonConvert.SerializeObject(children));
 
                 // Insert FlowOptions
                 var options = obj.FlowScreens
@@ -245,12 +260,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 await _dbContext.FlowOptions.AddRangeAsync(options);
                 await _dbContext.SaveChangesAsync(); // Save all options in bulk
 
+                _logger.LogInformation("AddFlowAsync - inserting record in flow FlowOptions with flow id = {id} and data = {data}", flow.FlowId, JsonConvert.SerializeObject(options));
+
                 var flowJson = await _flowOpsService.PrepareFlowJson(flow.FlowId);
+
+                _logger.LogInformation("AddFlowAsync - PrepareFlowJson with flow id = {id} and FlowJson = {json}", flow.FlowId, JsonConvert.SerializeObject(flowJson));
 
                 // Update FlowJson field in Flows table
                 flow.FlowJson = flowJson;
                 _dbContext.Flows.Update(flow);
                 await _dbContext.SaveChangesAsync();
+
+                _logger.LogInformation("AddFlowAsync - update FlowJson in Flow table with flow id = {id} and FlowJson = {json}", flow.FlowId, JsonConvert.SerializeObject(flowJson));
 
                 var flowRequest = new FlowRequestDto
                 {
@@ -266,6 +287,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var response = await _httpClient.PostAsync($"/api/Flow/FlowOps", res);
                 var content = await response.Content.ReadAsStringAsync();
 
+                _logger.LogInformation("AddFlowAsync - calling bridge FlowOps Api with flow id = {id} and request = {request}", flow.FlowId, JsonConvert.SerializeObject(res));
+
                 var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
                 if (result != null && result.success)
                 {
@@ -280,6 +303,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             _dbContext.Flows.Update(flow);
                             await _dbContext.SaveChangesAsync();
 
+                            _logger.LogInformation("AddFlowAsync - recieved response from bridge FlowOps Api with flow id = {id} and response = {response} and update flow table with MetaFlowId = {MetaFlowId} and Status = {Status}", flow.FlowId, JsonConvert.SerializeObject(res), tempResult.id, tempResult.status);
+
                             if (obj.PublishToFB)
                                 await PublishFlowAsync(clientId, flow.FlowId);
                         }
@@ -288,7 +313,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     }
                 }
                 else if (result != null && !result.success)
+                {
+                    _logger.LogError("AddFlowAsync - recieved response from bridge FlowOps Api with flow id = {id} and error = {error}", flow.FlowId, JsonConvert.SerializeObject(result.message));
                     return new UResponse { Status = 201, Message = "Flow created in system but not created on facebook because: \n" + result.message };
+                }
 
                 return new UResponse { Status = 1, Message = "Data added successfully" };
             }
@@ -350,6 +378,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         // Use the existing SurveyId
                         surveyId = existingSurvey.SurveyId;
                     }
+                    _logger.LogInformation("UpdateFlowAsync - updating record in survey table when module id = 4");
                 }
 
                 // Update existing flow properties
@@ -365,13 +394,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 _dbContext.Flows.Update(existingFlow);
                 await _dbContext.SaveChangesAsync();
 
+                _logger.LogInformation("UpdateFlowAsync - updating record in Flow table with flow id = {id} and data = {data}", existingFlow.FlowId, JsonConvert.SerializeObject(existingFlow));
+
                 // Remove existing screens and related children/options
                 var existingScreens = await _dbContext.FlowScreens.Where(s => s.FlowId == obj.FlowId).ToListAsync();
                 _dbContext.FlowScreens.RemoveRange(existingScreens);
                 await _dbContext.SaveChangesAsync();
 
                 // Add new screens with updated logic for Name, RedirectionScreen, and Type
-                string[] suffixes = { "_one", "_two", "_three", "_four", "_five", "_six", "_seven", "_eight", "_nine", "_ten" };
+                string[] suffixes = { "_One", "_Two", "_Three", "_Four", "_Five", "_Six", "_Seven", "_Eight", "_Nine", "_Ten" };
                 var screens = obj.FlowScreens.Select((screenDto, index) => new FlowScreen()
                 {
                     FlowId = obj.FlowId,
@@ -391,6 +422,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 await _dbContext.FlowScreens.AddRangeAsync(screens);
                 await _dbContext.SaveChangesAsync();
+
+                _logger.LogInformation("UpdateFlowAsync - updating record in flow FlowScreen with flow id = {id} and data = {data}", existingFlow.FlowId, JsonConvert.SerializeObject(screens));
 
                 // Remove existing children
                 var existingChildren = await _dbContext.FlowChildrens
@@ -417,6 +450,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 await _dbContext.FlowChildrens.AddRangeAsync(children);
                 await _dbContext.SaveChangesAsync();
 
+                _logger.LogInformation("UpdateFlowAsync - updating record in flow FlowChildrens with flow id = {id} and data = {data}", existingFlow.FlowId, JsonConvert.SerializeObject(children));
+
                 // Remove existing options
                 var existingOptions = await _dbContext.FlowOptions
                     .Where(o => existingChildren.Select(c => c.FlowChildrenId).Contains(o.ScreenChildrenId))
@@ -442,11 +477,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 await _dbContext.FlowOptions.AddRangeAsync(options);
                 await _dbContext.SaveChangesAsync();
 
+                _logger.LogInformation("UpdateFlowAsync - updating record in flow FlowOptions with flow id = {id} and data = {data}", existingFlow.FlowId, JsonConvert.SerializeObject(options));
+
                 // Prepare and update FlowJson
                 var flowJson = await _flowOpsService.PrepareFlowJson(obj.FlowId);
+
+                _logger.LogInformation("UpdateFlowAsync - updating record in flow FlowOptions with flow id = {id} and data = {data}", existingFlow.FlowId, JsonConvert.SerializeObject(options));
+
                 existingFlow.FlowJson = flowJson;
                 _dbContext.Flows.Update(existingFlow);
                 await _dbContext.SaveChangesAsync();
+
+                _logger.LogInformation("UpdateFlowAsync - update FlowJson in Flow table with flow id = {id} and FlowJson = {json}", existingFlow.FlowId, JsonConvert.SerializeObject(flowJson));
 
                 // Sync with external system (e.g., Facebook)
                 var flowRequest = new FlowRequestDto
@@ -464,6 +506,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var response = await _httpClient.PostAsync($"/api/Flow/FlowOps", res);
                 var content = await response.Content.ReadAsStringAsync();
 
+                _logger.LogInformation("UpdateFlowAsync - calling bridge FlowOps Api with flow id = {id} and request = {request}", existingFlow.FlowId, JsonConvert.SerializeObject(res));
+
                 var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
                 if (result != null && result.success)
                 {
@@ -478,6 +522,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             _dbContext.Flows.Update(existingFlow);
                             await _dbContext.SaveChangesAsync();
 
+                            _logger.LogInformation("UpdateFlowAsync - recieved response from bridge FlowOps Api with flow id = {id} and response = {response} and update flow table with MetaFlowId = {MetaFlowId} and Status = {Status}", existingFlow.FlowId, JsonConvert.SerializeObject(res), tempResult.id, tempResult.status);
+
                             if (obj.PublishToFB)
                                 await PublishFlowAsync(clientId, existingFlow.FlowId);
                         }
@@ -486,7 +532,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     }
                 }
                 else if (result != null && !result.success)
+                {
+                    _logger.LogError("UpdateFlowAsync - recieved response from bridge FlowOps Api with flow id = {id} and error = {error}", existingFlow.FlowId, JsonConvert.SerializeObject(result.message));
                     return new UResponse { Status = 201, Message = "Flow updated in system but not on Facebook because: \n" + result.message };
+                }
 
                 return new UResponse { Status = 1, Message = "Flow updated successfully" };
             }
@@ -529,6 +578,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var response = await _httpClient.PostAsync($"/api/Flow/PublishFlow", res);
                 var content = await response.Content.ReadAsStringAsync();
 
+                _logger.LogInformation("PublishFlowAsync - calling bridge PublishFlow Api with flow id = {id} and request = {request}", flowId, JsonConvert.SerializeObject(res));
+
                 var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
                 if (result != null && result.success)
                 {
@@ -542,13 +593,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             flow.Status = tempResult.status;
                             _dbContext.Flows.Update(flow);
                             await _dbContext.SaveChangesAsync();
+
+                            _logger.LogInformation("PublishFlowAsync - recieved response from bridge FlowOps Api with flow id = {id} and response = {response} and update flow table with MetaFlowId = {MetaFlowId} and Status = {Status}", flowId, JsonConvert.SerializeObject(res), tempResult.id, tempResult.status);
+
                         }
                         else
                             return new UResponse { Status = 1, Message = "Flow created in system but not on facebook because unable to get meta flow id from meta" };
                     }
                 }
                 else if (result != null && !result.success)
+                {
+                    _logger.LogError("UpdateFlowAsync - recieved response from bridge FlowOps Api with flow id = {id} and error = {error}", flowId, JsonConvert.SerializeObject(result.message));
                     return new UResponse { Status = 201, Message = "Unable to publish flow on facebook because: \n" + result.message };
+                }
 
                 return new UResponse { Status = 1, Message = "Data added successfully" };
             }
