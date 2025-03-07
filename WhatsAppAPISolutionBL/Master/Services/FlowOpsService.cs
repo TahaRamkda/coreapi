@@ -28,7 +28,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var flow = await _dbContext.Flows.FindAsync(flowId);
             var flowScreens = await _dbContext.FlowScreens.Where(x => x.FlowId == flowId).AsNoTracking().ToListAsync();
-             
+
             var routingDict = new Dictionary<string, List<string>>();
             for (int i = 0; i < flowScreens.Count; i++)
             {
@@ -49,6 +49,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var overallPayload = new Dictionary<string, string>();
             for (int i = 0; i < flowScreens.Count; i++)
             {
+                var previousScreenPayloads = new Dictionary<string, string>();
                 var screenPayload = new Dictionary<string, string>();
                 var flowScreen = flowScreens[i];
                 var screen = new FlowJson.Screen
@@ -96,13 +97,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         screenPayload.Add(flowChildren.ControlName, $"${{form.{flowChildren.ControlName}}}");
                         overallPayload.Add(String.Concat(flowChildren.ControlName, "_Q"), flowChildren.ControlText);
                     }
-                         
+
                     //Add into overall payload dictionary
                     if (flowScreen.RedirectionType == (int)FlowRedirectionType.Next && flowControlType != FlowControlType.TextHeading)
                     {
                         overallPayload.Add(flowChildren.ControlName, $"${{data.{flowChildren.ControlName}}}");
                     }
-                         
+
                     var flowOptions = await _dbContext.FlowOptions.Where(x => x.ScreenChildrenId == flowChildren.FlowChildrenId).ToListAsync();
                     if (flowOptions != null && flowOptions.Count > 0)
                     {
@@ -118,6 +119,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     }
 
                     layoutChildren.children.Add(children);
+                }
+
+                //Get previous screens payload
+                var previousScreens = await _dbContext.FlowScreens.Where(x => x.FlowId == flow.FlowId && x.FlowScreenId < flowScreen.FlowScreenId).ToListAsync();
+                if (previousScreens.Any())
+                {
+                    var screenIds = previousScreens.Select(x => x.FlowScreenId).ToList();
+                    var previousChildrens = await _dbContext.FlowChildrens.Where(x => screenIds.Contains(x.FlowScreenId)).Select(x => x.ControlName).ToListAsync();
+                    foreach (var previousChildren in previousChildrens)
+                    {
+                        previousScreenPayloads.Add(previousChildren, $"${{data.{previousChildren}}}");
+                    }
                 }
 
                 var footerChildren = new FlowJson.Children
@@ -139,7 +152,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         name = flowScreen.RedirectionScreen
                     };
 
-                    footerChildren.onClickAction.payload = screenPayload;
+                    foreach (KeyValuePair<string, string> entry in previousScreenPayloads)
+                    {
+                        footerChildren.onClickAction.payload.Add(entry.Key, entry.Value);
+                    }
+
+                    foreach (KeyValuePair<string, string> entry in screenPayload)
+                    {
+                        footerChildren.onClickAction.payload.Add(entry.Key, entry.Value);
+                    }
                 }
 
                 //If redirection type complete, add the overall payload
