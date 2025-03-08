@@ -629,13 +629,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 throw new Exception("Flow not found");
 
             // Fetch related FlowScreens
-            var flowScreens = await _dbContext.FlowScreens
-                .Where(fs => fs.FlowId == flowId)
+            var flowScreens = await _dbContext.FlowScreens.Where(fs => fs.FlowId == flowId).ToListAsync();
+
+            var screenIds = flowScreens.Select(fs => fs.FlowScreenId).ToList();
+
+            // Fetch related FlowChildren
+            var flowChildren = await _dbContext.FlowChildrens
+                .Where(fc => fc.FlowScreenId.HasValue && screenIds.Contains(fc.FlowScreenId.Value))
                 .ToListAsync();
 
-            // Fetch related FlowChildren and FlowOptions
-            var flowChildren = await _dbContext.FlowChildrens.Where(fc => fc.FlowScreenId.HasValue && flowScreens.Any(fs => fs.FlowScreenId == fc.FlowScreenId.Value)).ToListAsync();
             var flowChildrenIds = flowChildren.Select(fc => fc.FlowChildrenId).ToList();
+
+            // Fetch related FlowOptions
             var flowOptions = await _dbContext.FlowOptions
                 .Where(fo => fo.ScreenChildrenId.HasValue && flowChildrenIds.Contains(fo.ScreenChildrenId.Value))
                 .ToListAsync();
