@@ -126,7 +126,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 if (previousScreens.Any())
                 {
                     var screenIds = previousScreens.Select(x => x.FlowScreenId).ToList();
-                    var previousChildrens = await _dbContext.FlowChildrens.Where(x => screenIds.Contains(x.FlowScreenId)).Select(x => x.ControlName).ToListAsync();
+                    var previousChildrens = await _dbContext.FlowChildrens.Where(x => x.FlowScreenId.HasValue && screenIds.Contains(x.FlowScreenId.Value))
+                        .Select(x => x.ControlName).ToListAsync();
                     foreach (var previousChildren in previousChildrens)
                     {
                         previousScreenPayloads.Add(previousChildren, $"${{data.{previousChildren}}}");

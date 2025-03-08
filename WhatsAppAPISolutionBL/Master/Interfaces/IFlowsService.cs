@@ -1,4 +1,4 @@
-﻿using WhatsAppAPISolutionDL.DTO.Survey;
+﻿using WhatsAppAPISolutionDL.Dto.Flow;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Flow;
 
@@ -13,5 +13,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> DeleteFlowAsync(int flowId);
         Task<FlowDTO> GetFlowDetailsByIdAsync(int flowId);
         Task<List<UEntityDto>> GetFlowsAsync(int clientId, int senderId = 0, string searchStr = "");
+        Task<UResponse> FlowResponseAsync(FlowResponseDto flowResponse);
     }
 }

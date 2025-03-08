@@ -101,5 +101,37 @@ namespace WhatsAppAPISolutionBL.Helper
             // Format the date as "03-Mar-2025 06:09:11 AM"
             return localDateTime.ToString("dd-MMM-yyyy hh:mm:ss tt");
         }
+        public static (bool isValidPath, T path) ParseIdPath<T>(this string id)
+        {
+            var identifier = Activator.CreateInstance<T>();
+
+            try
+            { 
+                var splitter = "";
+                if (!id.Contains("|") && id.Contains(";"))
+                    splitter = ";";
+                else
+                    splitter = "|";
+                 
+                if (!id.Contains(":")) return (isValidPath: false, path: identifier);
+
+                var identifierProps = identifier.GetType().GetProperties();
+                foreach (var info in id.Split(splitter))
+                {
+                    var infoValuesList = info.Split(":");
+                    var key = infoValuesList[0];
+                    var value = infoValuesList[1];
+                     
+                    identifierProps.FirstOrDefault(p => p.GetValue(identifier, null).ToString() == key).SetValue(identifier, value, null);
+                }
+                 
+                return (isValidPath: true, path: identifier); 
+            }
+            catch (Exception e)
+            {
+                throw new InvalidOperationException($"an error has been occured while parseing path string with the follwing details: {e.ToString()}");
+                //return (isValidPath: false, path: null);
+            }
+        }
     }
 }

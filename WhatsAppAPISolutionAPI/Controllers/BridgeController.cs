@@ -3,11 +3,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text.Json;
+using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.Flow;
 using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.Dto.Template;
+using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.UserModels.Message;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -20,20 +24,23 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly ITemplateService _templateService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<BridgeController> _logger;
+        private readonly IFlowsService _flowService;
 
         public BridgeController(IMessageService messageService,
             ITemplateService templateService,
             WhatsAppSolutionContext dbContext,
-            ILogger<BridgeController> logger)
+            ILogger<BridgeController> logger,
+            IFlowsService flowService)
         {
             _templateService = templateService;
             _messageService = messageService;
             _dbContext = dbContext;
             _logger = logger;
+            _flowService = flowService;
         }
 
         #region Template
-         
+
         [HttpPost("templatesync")]
         public async Task<IActionResult> TemplateSync(object templateData)
         {
@@ -43,7 +50,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 _logger.LogInformation("Received Template Sync response from bridge with template data={data}", JsonConvert.SerializeObject(templateData));
 
                 var data = System.Text.Json.JsonSerializer.Serialize(templateData);
-                
+
                 var options = new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use this if your JSON is in camelCase
@@ -51,26 +58,26 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 };
 
                 var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(data, options);
-                
+
                 if (result != null && result.success)
                 {
                     var data1 = System.Text.Json.JsonSerializer.Serialize(result.result);
                     TemplateWithParametersDto tempParam = System.Text.Json.JsonSerializer.Deserialize<TemplateWithParametersDto>(data1, options);
-                    
+
                     if (tempParam != null)
                     {
                         var template = await _dbContext.Templates.Where(x => x.TemplateId == tempParam.Id).FirstOrDefaultAsync();
-                        
+
                         if (template == null)
                         {
                             _logger.LogInformation("Received Template Sync response from bridge but template not exist in our database with id={id}", tempParam.Id);
                             return Ok(new ApiResult
-                            { 
+                            {
                                 Message = "Template id not exist"
                             });
                         }
-                        
-                        var tempDto = new TemplateStatusUpdateDto 
+
+                        var tempDto = new TemplateStatusUpdateDto
                         {
                             Id = template.Id,
                             TemplateId = tempParam.Id,
@@ -84,7 +91,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                         {
                             _logger.LogError("Received Template Sync response from bridge but unable to update template status in our database with id={id} and error = {error}", tempParam.Id, JsonConvert.SerializeObject(response?.Message));
                             return Ok(new ApiResult
-                            { 
+                            {
                                 Result = response,
                                 Message = response?.Message
                             });
@@ -100,7 +107,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 }
                 _logger.LogError("Received Template Sync response from bridge with errors = {error}", JsonConvert.SerializeObject(templateData));
                 return Ok(new ApiResult
-                { 
+                {
                     Message = "error in fetching template"
                 });
             }
@@ -114,7 +121,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         #endregion
 
         #region Message
-         
+
         [HttpPost("whatsappmessagestatusupdate")]
         public async Task<IActionResult> WhatsAppMessageStatusUpdate([FromBody] WhatsAppMessageStatusUpdateDto messageStatus)
         {
@@ -132,7 +139,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (response == null || response.Status <= 0)
             {
                 return Ok(new ApiResult
-                { 
+                {
                     Result = response,
                     Message = response?.Message
                 });
@@ -144,7 +151,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data added successfully"
             });
         }
-         
+
         [HttpPost("whatsappmessagereceive")]
         public async Task<IActionResult> WhatsAppMessageReceive([FromBody] WhatsAppMessageReceiveDto messageReceive)
         {
@@ -157,6 +164,38 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             _logger.LogInformation("Received api WhatsAppMessageReceive response with data={data}", JsonConvert.SerializeObject(response));
 
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = response,
+                Message = "Data added successfully"
+            });
+        }
+
+        #endregion
+
+        #region flow response
+
+        [HttpPost("flowresponse")]
+        public async Task<IActionResult> FlowResponseAsync([FromBody] FlowResponseDto flowResponse)
+        {
+            _logger.LogInformation("Calling AddFlowResponseAsync api with data={messageStatus}", JsonConvert.SerializeObject(flowResponse));
+
+            if (flowResponse == null)
+                return BadRequest();
+
+            var response = await _flowService.FlowResponseAsync(flowResponse);
+
+            _logger.LogInformation("Received api AddFlowResponseAsync response with data={data}", JsonConvert.SerializeObject(response));
+
+            if (response == null || response.Status <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Result = response,
+                    Message = response?.Message
+                });
+            }
             return Ok(new ApiResult
             {
                 Success = true,

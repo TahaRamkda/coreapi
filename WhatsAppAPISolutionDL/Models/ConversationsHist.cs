@@ -16,10 +16,12 @@ namespace WhatsAppAPISolutionDL.Models
         public string ConversationMode { get; set; }
         public string FullName { get; set; }
         public string PhoneNumber { get; set; }
+        public string Language { get; set; }
         public decimal? Cost { get; set; }
         public decimal? Commission { get; set; }
         public int? AgentId { get; set; }
         public int? Status { get; set; }
+        public int? TotalMessages { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
         public DateTime? ExpiryDate { get; set; }
@@ -29,5 +31,6 @@ namespace WhatsAppAPISolutionDL.Models
         public int? LastMessageMediaId { get; set; }
         public int? UnreadCount { get; set; }
         public DateTime? ForceClosedDate { get; set; }
+        public int? ReasonId { get; set; }
     }
 }

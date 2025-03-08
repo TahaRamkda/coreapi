@@ -13,8 +13,8 @@ using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Flow;
 using WhatsAppAPISolutionDL.Dto.Template;
-using WhatsAppAPISolutionDL.DTO.Survey;
 using WhatsAppAPISolutionDL.Enum;
+using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
@@ -22,6 +22,7 @@ using WhatsAppAPISolutionDL.UserModels.AppSetting;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Flow;
 using WhatsAppAPISolutionDL.UserModels.Template;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static WhatsAppAPISolutionDL.Dto.Message.WhatsAppMessageStatusUpdateDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
@@ -427,8 +428,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 // Remove existing children
                 var existingChildren = await _dbContext.FlowChildrens
-                    .Where(c => existingScreens.Select(s => s.FlowScreenId).Contains(c.FlowScreenId))
-                    .ToListAsync();
+                    .Where(c => c.FlowScreenId.HasValue && existingScreens.Any(s => s.FlowScreenId == c.FlowScreenId.Value)).ToListAsync();
+
                 _dbContext.FlowChildrens.RemoveRange(existingChildren);
                 await _dbContext.SaveChangesAsync();
 
@@ -453,9 +454,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 _logger.LogInformation("UpdateFlowAsync - updating record in flow FlowChildrens with flow id = {id} and data = {data}", existingFlow.FlowId, JsonConvert.SerializeObject(children));
 
                 // Remove existing options
-                var existingOptions = await _dbContext.FlowOptions
-                    .Where(o => existingChildren.Select(c => c.FlowChildrenId).Contains(o.ScreenChildrenId))
-                    .ToListAsync();
+                var existingOptions = await _dbContext.FlowOptions.Where(o => o.ScreenChildrenId != null &&
+                existingChildren.Select(c => c.FlowChildrenId).Contains(o.ScreenChildrenId.Value)).ToListAsync();
                 _dbContext.FlowOptions.RemoveRange(existingOptions);
                 await _dbContext.SaveChangesAsync();
 
@@ -634,12 +634,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 .ToListAsync();
 
             // Fetch related FlowChildren and FlowOptions
-            var flowChildren = await _dbContext.FlowChildrens
-                .Where(fc => flowScreens.Select(fs => fs.FlowScreenId).Contains(fc.FlowScreenId))
-                .ToListAsync();
-
+            var flowChildren = await _dbContext.FlowChildrens.Where(fc => fc.FlowScreenId.HasValue && flowScreens.Any(fs => fs.FlowScreenId == fc.FlowScreenId.Value)).ToListAsync();
+            var flowChildrenIds = flowChildren.Select(fc => fc.FlowChildrenId).ToList();
             var flowOptions = await _dbContext.FlowOptions
-                .Where(fo => flowChildren.Select(fc => fc.FlowChildrenId).Contains(fo.ScreenChildrenId))
+                .Where(fo => fo.ScreenChildrenId.HasValue && flowChildrenIds.Contains(fo.ScreenChildrenId.Value))
                 .ToListAsync();
 
             // Map Flow to FlowDTO
@@ -696,6 +694,80 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 Id = f.FlowId,
                 Name = f.FlowName
             }).ToListAsync();
+        }
+
+        public async Task<UResponse> FlowResponseAsync(FlowResponseDto flowResponse)
+        {
+            try
+            {
+                if (flowResponse == null || string.IsNullOrEmpty(flowResponse.from))
+                    return new UResponse { Status = 0, Message = "Invalid request data" };
+
+                if (flowResponse.flowResponse == null)
+                    return new UResponse { Status = 0, Message = "Flow response is required" };
+
+                if (string.IsNullOrEmpty(flowResponse.flowResponse.flowToken))
+                    return new UResponse { Status = 0, Message = "Flow token is required" };
+
+                var flowId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.FlowId);
+                if (flowId == null || flowId == 0)
+                    return new UResponse { Status = 0, Message = "Invalid FlowId" };
+
+                // Fetch Flow using MetaFlowId (Ensure correct field is used)
+                var flow = await _dbContext.Flows.FirstOrDefaultAsync(x => x.FlowId == flowId);
+                if (flow == null)
+                    return new UResponse { Status = 0, Message = "No flow found with this MetaFlowId" };
+
+                var surveyResponse = new SurveyResponse
+                {
+                    SurveyId = flow.ParentId,
+                    FlowId = flow.FlowId,
+                    MetaFlowId = flow.MetaFlowId,
+                    PhoneNumber = flowResponse.from,
+                    Name = flow.FlowName ?? "Unknown",
+                    FlowToken = flowResponse.flowResponse.flowToken,
+                    SenderId = flow.SenderId ?? 0,
+                    ClientId = flow.ClientId ?? 0,
+                    CreatedDate = DateTime.UtcNow
+                };
+
+                _dbContext.SurveyResponses.Add(surveyResponse);
+                await _dbContext.SaveChangesAsync();
+
+                // Prepare SurveyResponseDetails in a batch insert
+                var surveyResponseDetails = flowResponse.flowResponse.responses
+                    ?.SelectMany(response => response.multiSelect.Any()
+                        ? response.multiSelect.Select(option => new SurveyResponseDetail
+                        {
+                            SurveyResponseId = surveyResponse.SurveyResponseId,
+                            OptionText = option.Trim(),
+                            QuestionText = response.question ?? "Unknown Question",
+                            SurveyQuestionId = null
+                        })
+                        : new List<SurveyResponseDetail>
+                        {
+                    new SurveyResponseDetail
+                    {
+                        SurveyResponseId = surveyResponse.SurveyResponseId,
+                        OptionText = response.text?.Trim(),
+                        QuestionText = response.question ?? "Unknown Question",
+                        SurveyQuestionId = null
+                    }
+                        }
+                    ).ToList() ?? new List<SurveyResponseDetail>();
+
+                if (surveyResponseDetails.Any())
+                {
+                    _dbContext.SurveyResponseDetails.AddRange(surveyResponseDetails);
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                return new UResponse { Status = 1, Message = "Survey response recorded successfully" };
+            }
+            catch (Exception ex)
+            {
+                return new UResponse { Status = 0, Message = $"Error: {ex.Message}" };
+            }
         }
     }
 }

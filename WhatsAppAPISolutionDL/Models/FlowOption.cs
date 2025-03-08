@@ -6,7 +6,7 @@ namespace WhatsAppAPISolutionDL.Models
     public partial class FlowOption
     {
         public int Id { get; set; }
-        public int ScreenChildrenId { get; set; }
+        public int? ScreenChildrenId { get; set; }
         public string OptionId { get; set; }
         public string OptionText { get; set; }
         public DateTime? CreatedDate { get; set; }

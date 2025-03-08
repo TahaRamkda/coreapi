@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WhatsAppAPISolutionDL.DTO.Survey
+namespace WhatsAppAPISolutionDL.Dto.Flow
 {
 
     public class FlowDTO

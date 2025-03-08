@@ -26,5 +26,7 @@ namespace WhatsAppAPISolutionDL.Models
         public int? ParentMessageId { get; set; }
         public string ButtonJson { get; set; }
         public int? IsFoul { get; set; }
+        public int? AgentId { get; set; }
+        public int? RespondTime { get; set; }
     }
 }

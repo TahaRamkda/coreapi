@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WhatsAppAPISolutionDL.Extensions
 {
-    public static class FlowIdentifier
+    public static  class FlowIdentifier
     {
         /// <summary>
         /// Client Id
