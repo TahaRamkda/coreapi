@@ -427,8 +427,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 _logger.LogInformation("UpdateFlowAsync - updating record in flow FlowScreen with flow id = {id} and data = {data}", existingFlow.FlowId, JsonConvert.SerializeObject(screens));
 
                 // Remove existing children
+                var screenIds = existingScreens.Select(s => s.FlowScreenId).ToList();
                 var existingChildren = await _dbContext.FlowChildrens
-                    .Where(c => c.FlowScreenId.HasValue && existingScreens.Any(s => s.FlowScreenId == c.FlowScreenId.Value)).ToListAsync();
+                    .Where(c => c.FlowScreenId.HasValue && screenIds.Contains(c.FlowScreenId.Value))
+                    .ToListAsync();
 
                 _dbContext.FlowChildrens.RemoveRange(existingChildren);
                 await _dbContext.SaveChangesAsync();
