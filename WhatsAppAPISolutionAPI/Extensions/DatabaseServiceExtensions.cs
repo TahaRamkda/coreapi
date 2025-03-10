@@ -8,8 +8,11 @@ namespace WhatsAppAPISolutionAPI.Extensions
     {
         public static IServiceCollection AddDatabaseServices(this IServiceCollection services, IConfiguration config)
         {
-            services.AddDbContext<WhatsAppSolutionContext>(options => options.UseSqlServer(config.GetConnectionString("WhatsAppAPISolutionDataBase")));
-            services.AddDbContext<WhatsAppSolutionContext2>(options => options.UseSqlServer(config.GetConnectionString("WhatsAppAPISolutionDataBase")));
+            int commandTimeout = 0;
+            int.TryParse(config["CommandTimeout"], out commandTimeout);
+
+            services.AddDbContext<WhatsAppSolutionContext>(options => options.UseSqlServer(config.GetConnectionString("WhatsAppAPISolutionDataBase"), sqlOptions => sqlOptions.CommandTimeout(commandTimeout)));
+            services.AddDbContext<WhatsAppSolutionContext2>(options => options.UseSqlServer(config.GetConnectionString("WhatsAppAPISolutionDataBase"), sqlOptions => sqlOptions.CommandTimeout(commandTimeout)));
 
             return services;
         }
