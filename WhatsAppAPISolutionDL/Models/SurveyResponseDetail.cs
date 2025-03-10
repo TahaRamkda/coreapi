@@ -5,11 +5,12 @@ namespace WhatsAppAPISolutionDL.Models
 {
     public partial class SurveyResponseDetail
     {
-        public long SurveyResponseDetailId { get; set; }
-        public long? SurveyResponseId { get; set; }
-        public string OptionId { get; set; }
+        public int SurveyResponseDetailId { get; set; }
+        public int? SurveyResponseId { get; set; }
         public string OptionText { get; set; }
         public string QuestionText { get; set; }
-        public int? SurveyQuestionId { get; set; }
+        public string Type { get; set; }
+        public string QuestionKey { get; set; }
+        public string AnswerKey { get; set; }
     }
 }

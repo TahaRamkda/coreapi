@@ -14,6 +14,8 @@ namespace WhatsAppAPISolutionDL.Models
         public string FlowToken { get; set; }
         public int? SenderId { get; set; }
         public int? ClientId { get; set; }
+        public int? ModuleId { get; set; }
+        public int? ParentId { get; set; }
         public DateTime? CreatedDate { get; set; }
     }
 }

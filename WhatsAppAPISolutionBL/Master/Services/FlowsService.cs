@@ -18,6 +18,7 @@ using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.AppSetting;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Flow;
@@ -717,6 +718,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     return new UResponse { Status = 0, Message = "Flow token is required" };
 
                 var flowId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.FlowId);
+                var parentId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.ParentId);
+                var moduleId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.ModuleId);
                 if (flowId == null || flowId == 0)
                     return new UResponse { Status = 0, Message = "Invalid FlowId" };
 
@@ -735,6 +738,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     FlowToken = flowResponse.flowResponse.flowToken,
                     SenderId = flow.SenderId ?? 0,
                     ClientId = flow.ClientId ?? 0,
+                    ParentId = parentId,
+                    ModuleId = moduleId,
                     CreatedDate = DateTime.UtcNow
                 };
 
@@ -748,18 +753,22 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         {
                             SurveyResponseId = surveyResponse.SurveyResponseId,
                             OptionText = option.Trim(),
-                            QuestionText = response.question ?? "Unknown Question",
-                            SurveyQuestionId = null
+                            QuestionText = response.question ?? string.Empty,
+                            Type = response.type,
+                            QuestionKey = response.questionKey,
+                            AnswerKey = response.answerKey
                         })
                         : new List<SurveyResponseDetail>
                         {
-                    new SurveyResponseDetail
-                    {
-                        SurveyResponseId = surveyResponse.SurveyResponseId,
-                        OptionText = response.text?.Trim(),
-                        QuestionText = response.question ?? "Unknown Question",
-                        SurveyQuestionId = null
-                    }
+                            new SurveyResponseDetail
+                            {
+                                SurveyResponseId = surveyResponse.SurveyResponseId,
+                                OptionText = response.text?.Trim(),
+                                QuestionText = response.question ?? string.Empty,
+                                Type = response.type,
+                                QuestionKey = response.questionKey,
+                                AnswerKey = response.answerKey
+                            }
                         }
                     ).ToList() ?? new List<SurveyResponseDetail>();
 
@@ -775,6 +784,78 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 return new UResponse { Status = 0, Message = $"Error: {ex.Message}" };
             }
+        }
+
+        public async Task<List<USurveyResponse>> ExportSurveyResponseListAsync(
+        int clientId,
+        string searchStr = "",
+        int senderId = 0,
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        int flowId = 0,
+        int surveyId = 0)
+        {
+            var query = _dbContext.SurveyResponses
+                .Where(sr => sr.ClientId == clientId)
+                .AsQueryable();
+
+            // Apply filters
+            if (!string.IsNullOrEmpty(searchStr))
+            {
+                query = query.Where(sr => sr.Name.Contains(searchStr) || sr.PhoneNumber.Contains(searchStr));
+            }
+            if (senderId > 0)
+            {
+                query = query.Where(sr => sr.SenderId == senderId);
+            }
+            if (flowId > 0)
+            {
+                query = query.Where(sr => sr.FlowId == flowId);
+            }
+            if (surveyId > 0)
+            {
+                query = query.Where(sr => sr.SurveyId == surveyId);
+            }
+            if (fromDate.HasValue)
+            {
+                query = query.Where(sr => sr.CreatedDate >= fromDate.Value);
+            }
+            if (toDate.HasValue)
+            {
+                query = query.Where(sr => sr.CreatedDate <= toDate.Value);
+            }
+
+            var result = await query
+                .Select(sr => new USurveyResponse
+                {
+                    SurveyResponseId = sr.SurveyResponseId,
+                    SurveyId = sr.SurveyId,
+                    FlowId = sr.FlowId,
+                    MetaFlowId = sr.MetaFlowId,
+                    PhoneNumber = sr.PhoneNumber,
+                    Name = sr.Name,
+                    //FlowToken = sr.FlowToken,
+                    SenderId = sr.SenderId,
+                    ClientId = sr.ClientId,
+                    ModuleId = sr.ModuleId,
+                    ParentId = sr.ParentId,
+                    CreatedDate = sr.CreatedDate,
+                    SurveyResponseDetails = _dbContext.SurveyResponseDetails
+                        .Where(srd => srd.SurveyResponseId == sr.SurveyResponseId)
+                        .Select(srd => new USurveyResponseDetail
+                        {
+                            SurveyResponseDetailId = srd.SurveyResponseDetailId,
+                            SurveyResponseId = srd.SurveyResponseId,
+                            OptionText = srd.OptionText,
+                            QuestionText = srd.QuestionText,
+                            Type = srd.Type,
+                            QuestionKey = srd.QuestionKey,
+                            AnswerKey = srd.AnswerKey
+                        }).ToList()
+                })
+                .ToListAsync();
+
+            return result;
         }
     }
 }

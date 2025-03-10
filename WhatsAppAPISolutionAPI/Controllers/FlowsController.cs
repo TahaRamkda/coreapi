@@ -23,12 +23,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly IFlowsService _flowsService;
         private readonly IUserService _userService;
         private readonly FlowOpsService _flowOpsService;
+        private readonly IExportManager _exportManager;
 
         public FlowsController(IFlowsService flowsService,
             WhatsAppSolutionContext dbContext,
             ILogger<FlowsController> logger,
             IUserService userService,
-            FlowOpsService flowOpsService)
+            FlowOpsService flowOpsService,
+            IExportManager exportManager)
         {
             _flowsService = flowsService;
             _dbContext = dbContext;
@@ -39,6 +41,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             clientId = _userService.GetClientIdFromAccessToken();
             userId = _userService.GetUserIdFromAccessToken();
+            _exportManager = exportManager;
         }
 
         [HttpGet("getflowslist")]
@@ -308,6 +311,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Result = models,
                 Message = String.Empty
             });
+        }
+
+        [HttpGet("exportsurveyresponse")]
+        public async Task<ActionResult> ExportSurveyResponseListAsync(string searchStr = "", int senderId = 0, DateTime? fromDate = null, DateTime? toDate = null, int flowId = 0, int surveyId = 0)
+        {
+            _logger.LogInformation("Calling api ExportSurveyResponseListAsync with clientId={clientId}, searchStr={searchStr}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, flowId={flowId}, surveyId={surveyId}", clientId, searchStr, senderId, fromDate, toDate, flowId, surveyId);
+
+            var res = await _flowsService.ExportSurveyResponseListAsync(clientId, searchStr, senderId, fromDate, toDate, flowId, surveyId);
+            var bytes = _exportManager.ExportSurveyResponseToXlsx(res);
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "SurveyResponse.xlsx");
         }
     }
 }

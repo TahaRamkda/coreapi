@@ -945,7 +945,11 @@ namespace WhatsAppAPISolutionDL.Models
 
             modelBuilder.Entity<SurveyResponseDetail>(entity =>
             {
-                entity.Property(e => e.OptionId).HasMaxLength(250);
+                entity.Property(e => e.AnswerKey).HasMaxLength(500);
+
+                entity.Property(e => e.QuestionKey).HasMaxLength(500);
+
+                entity.Property(e => e.Type).HasMaxLength(50);
             });
 
             modelBuilder.Entity<SystemAction>(entity =>
