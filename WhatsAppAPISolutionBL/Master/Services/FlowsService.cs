@@ -391,6 +391,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 existingFlow.FlowLanguage = obj.FlowLanguage;
                 existingFlow.UpdatedBy = userId;
                 existingFlow.UpdatedDate = DateTime.UtcNow;
+                existingFlow.IsPublished = false;
 
                 // Update Flow
                 _dbContext.Flows.Update(existingFlow);
@@ -594,6 +595,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         {
                             flow.MetaFlowId = tempResult.id;
                             flow.Status = tempResult.status;
+                            flow.IsPublished = true;
                             _dbContext.Flows.Update(flow);
                             await _dbContext.SaveChangesAsync();
 
@@ -686,7 +688,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UEntityDto>> GetFlowsAsync(int clientId, int senderId = 0, string searchStr = "")
         {
-            var query = _dbContext.Flows.Where(f => f.ClientId == clientId && f.RecordStatus != -1); // Assuming 1 is active
+            var query = _dbContext.Flows.Where(f => f.ClientId == clientId && (f.IsPublished == true) && f.RecordStatus != -1); // Assuming 1 is active
 
             if (!string.IsNullOrEmpty(searchStr))
             {

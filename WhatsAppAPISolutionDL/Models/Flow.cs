@@ -16,6 +16,7 @@ namespace WhatsAppAPISolutionDL.Models
         public string FlowLanguage { get; set; }
         public string FlowJson { get; set; }
         public string Status { get; set; }
+        public bool? IsPublished { get; set; }
         public string DataApiVersion { get; set; }
         public string Version { get; set; }
         public string EndpointUrl { get; set; }
