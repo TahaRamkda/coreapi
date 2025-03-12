@@ -102,6 +102,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     FlowName = f.Flow.FlowName,
                     FlowLanguage = f.Flow.FlowLanguage,
                     Status = f.Flow.Status,
+                    IsPublished = f.Flow.IsPublished,
                     CreatedBy = f.Flow.CreatedBy,
                     CreatedDate = CommonHelper.ConvertUtcToUserTimeZone(f.Flow.CreatedDate, f.TimeZoneOffset),
                     UpdatedBy = f.Flow.UpdatedBy,
@@ -317,7 +318,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 else if (result != null && !result.success)
                 {
                     _logger.LogError("AddFlowAsync - recieved response from bridge FlowOps Api with flow id = {id} and error = {error}", flow.FlowId, JsonConvert.SerializeObject(result.message));
-                    return new UResponse { Status = 201, Message = "Flow created in system but not created on facebook because: \n" + result.message };
+                    return new UResponse { Status = 0, Message = "Flow created in system but not created on facebook because: \n" + result.message };
                 }
 
                 return new UResponse { Status = 1, Message = "Data added successfully" };
@@ -538,7 +539,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 else if (result != null && !result.success)
                 {
                     _logger.LogError("UpdateFlowAsync - recieved response from bridge FlowOps Api with flow id = {id} and error = {error}", existingFlow.FlowId, JsonConvert.SerializeObject(result.message));
-                    return new UResponse { Status = 201, Message = "Flow updated in system but not on Facebook because: \n" + result.message };
+                    return new UResponse { Status = 0, Message = "Flow updated in system but not on Facebook because: \n" + result.message };
                 }
 
                 return new UResponse { Status = 1, Message = "Flow updated successfully" };
@@ -609,10 +610,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 else if (result != null && !result.success)
                 {
                     _logger.LogError("UpdateFlowAsync - recieved response from bridge FlowOps Api with flow id = {id} and error = {error}", flowId, JsonConvert.SerializeObject(result.message));
-                    return new UResponse { Status = 201, Message = "Unable to publish flow on facebook because: \n" + result.message };
+                    return new UResponse { Status = 0, Message = "Unable to publish flow on facebook because: \n" + result.message };
                 }
 
-                return new UResponse { Status = 1, Message = "Data added successfully" };
+                return new UResponse { Status = 1, Message = "Data published successfully" };
             }
             catch (Exception ex)
             {
