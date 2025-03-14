@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WhatsAppAPISolutionDL.Models;
 using static WhatsAppAPISolutionDL.Dto.Template.TemplateWithParametersDto;
 
 namespace WhatsAppAPISolutionDL.Dto.Template
@@ -21,6 +22,8 @@ namespace WhatsAppAPISolutionDL.Dto.Template
         public string TemplateId { get; set; }
         public string TemplateName { get; set; }
         public List<TemplateComponent> Components { get; set; }
+        public FlowActionDto FlowAction { get; set; }
+        
         public partial class TemplateComponent
         {
             public TemplateComponent()
@@ -35,6 +38,14 @@ namespace WhatsAppAPISolutionDL.Dto.Template
             public string Type { get; set; } = string.Empty;
             public string Value { get; set; } = string.Empty;
             public int Index { get; set; }
+        }
+
+        public class FlowActionDto
+        {
+            public FlowActionDto() { }
+
+            public int Index { get; set; }
+            public string Token { get; set; }
         }
     }
 }

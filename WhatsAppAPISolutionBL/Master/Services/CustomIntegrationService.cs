@@ -7,6 +7,7 @@ using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Enum;
+using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
@@ -142,6 +143,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 tempPayload.ParentId = response.Id;
             }
 
+            var flowToken = $"{FlowIdentifier.ClientId}:{tempPayload.ClientId}|" + $"{FlowIdentifier.SenderId}:{senderId}|" + $"{FlowIdentifier.ModuleId}:{tempPayload.ModuleId}|" + $"{FlowIdentifier.ParentId}:{tempPayload.ParentId}";
+            tempPayload.FlowToken = flowToken;
+             
             //Send in communication service 
             return await _communicationService.SendTemplateMessageAsync(tempPayload);
         }

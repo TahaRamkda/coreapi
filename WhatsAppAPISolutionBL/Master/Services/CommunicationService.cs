@@ -173,29 +173,52 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             #region Button
 
-            var templateButtonParams = template.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button).ToList();
-            if (templateButtonParams != null && templateButtonParams.Any())
+            //If FLOW type action is present, skip buttons
+            if (template.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW))
             {
-                var buttonComponents = new SendTemplateMessageDto.TemplateComponent()
+                var button = template.Buttons.FirstOrDefault(x => x.ActionType == (int)ActionTypeEnum.FLOW);
+                var flow = await _dbContext.Flows.FindAsync(button.ActionId);
+                if (flow == null)
+                    return new ApiResult { StatusCode = 0, Message = $"Flow not found with id - {button.ActionId}" };
+
+                if (String.IsNullOrWhiteSpace(flow.MetaFlowId))
+                    return new ApiResult { StatusCode = 0, Message = $"Flow with id - {button.ActionId} does not have meta id yet" };
+
+                if ((flow.Status ?? "").ToLower() != FlowStatusEnum.PUBLISHED.ToString().ToLower())
+                    return new ApiResult { StatusCode = 0, Message = $"Flow is not published with id - {button.ActionId}" };
+
+                sendMessage.FlowAction = new SendTemplateMessageDto.FlowActionDto
                 {
-                    ComponentType = TemplateParamEnum.Button.ToString()
+                    Token = (model.FlowToken ?? "") + $"|{FlowIdentifier.FlowId}:{flow.FlowId}", //Append flow id for identification
+                    Index = 0
                 };
-
-                for (var i = 0; i < templateButtonParams.Count; i++)
+            }
+            else
+            {
+                var templateButtonParams = template.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button).ToList();
+                if (templateButtonParams != null && templateButtonParams.Any())
                 {
-                    var param = buttonParameters.Where(x => x.Sequence == templateButtonParams[i].Sequence).FirstOrDefault();
-                    if (param == null || String.IsNullOrWhiteSpace(param.ParamValue))
-                        return new ApiResult { StatusCode = 0, Message = $"error - BtnParam {templateButtonParams[i].Sequence + 1} is not passed." };
-
-                    buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                    var buttonComponents = new SendTemplateMessageDto.TemplateComponent()
                     {
-                        Type = nameof(ButtonTypeEnum.URL),
-                        Value = param.ParamValue,
-                        Index = templateButtonParams[i].Sequence ?? 0
-                    });
-                }
+                        ComponentType = TemplateParamEnum.Button.ToString()
+                    };
 
-                sendMessage.Components.Add(buttonComponents);
+                    for (var i = 0; i < templateButtonParams.Count; i++)
+                    {
+                        var param = buttonParameters.Where(x => x.Sequence == templateButtonParams[i].Sequence).FirstOrDefault();
+                        if (param == null || String.IsNullOrWhiteSpace(param.ParamValue))
+                            return new ApiResult { StatusCode = 0, Message = $"error - BtnParam {templateButtonParams[i].Sequence + 1} is not passed." };
+
+                        buttonComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                        {
+                            Type = nameof(ButtonTypeEnum.URL),
+                            Value = param.ParamValue,
+                            Index = templateButtonParams[i].Sequence ?? 0
+                        });
+                    }
+
+                    sendMessage.Components.Add(buttonComponents);
+                }
             }
 
             //Add the button in button JSON
@@ -570,6 +593,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (interactiveTemplate.Buttons != null && interactiveTemplate.Buttons.Any())
             {
                 sendMessage.Buttons = new List<SendInteractiveMessageRequestDto.ButtonDto>();
+
+                //If FLOW type action is present, skip buttons
                 if (interactiveTemplate.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW))
                 {
                     var button = interactiveTemplate.Buttons.FirstOrDefault(x => x.ActionType == (int)ActionTypeEnum.FLOW);

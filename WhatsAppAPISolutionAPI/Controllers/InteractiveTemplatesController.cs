@@ -122,6 +122,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 if (model.Buttons.Any(x => (x.ButtonType == (int)ButtonTypeEnum.URL || x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER) && String.IsNullOrWhiteSpace(x.ButtonValue)))
                     return Ok(new ApiResult { Message = "Please insert button values for all URL and Phone number buttons" });
 
+                if (model.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW) && model.Buttons.Count > 1)
+                    return Ok(new ApiResult { Message = "Cannot add more than 1 button in case of flows" });
+
                 // Validate no duplicate button names
                 var duplicateNames = model.Buttons.GroupBy(item => item.ButtonText?.Trim()).Where(group => group.Count() > 1).Select(group => group.Key).ToList();
 
@@ -227,6 +230,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 if (model.Buttons.Any(x => (x.ButtonType == (int)ButtonTypeEnum.URL || x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER) && String.IsNullOrWhiteSpace(x.ButtonValue)))
                     return Ok(new ApiResult { Message = "Please insert button values for all URL and Phone number buttons" });
 
+                if (model.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW) && model.Buttons.Count > 1)
+                    return Ok(new ApiResult { Message = "Cannot add more than 1 button in case of flows" });
+                 
                 // Validate no duplicate button names
                 var duplicateNames = model.Buttons.GroupBy(item => item.ButtonText?.Trim()).Where(group => group.Count() > 1).Select(group => group.Key).ToList();
 

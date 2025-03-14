@@ -1,17 +1,10 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Drawing.Printing;
-using System.Globalization;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto.Client;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Models;
-using WhatsAppAPISolutionDL.UserModels.Agent;
-using WhatsAppAPISolutionDL.UserModels.Entity;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {

@@ -1,26 +1,12 @@
-﻿using Azure.Core;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
-using System.Threading.Tasks;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.OneSignal;
-using WhatsAppAPISolutionDL.Enum;
-using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
-using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using static WhatsAppAPISolutionDL.Dto.Message.WhatsAppMessageStatusUpdateDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {

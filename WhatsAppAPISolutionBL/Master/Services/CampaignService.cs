@@ -7,6 +7,7 @@ using WhatsAppAPISolutionDL.Dto.Campaign;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Enum;
+using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Campaign;
@@ -136,6 +137,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     return new UResponse { Message = "Template buttons parameters does not match with campaign buttons parameters" };
             }
 
+            //If FLOW type action is present, check if it is published
+            if (template.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW))
+            {
+                var button = template.Buttons.FirstOrDefault(x => x.ActionType == (int)ActionTypeEnum.FLOW);
+                var flow = await _dbContext.Flows.FindAsync(button.ActionId);
+                if (flow == null)
+                    return new UResponse { Status = 0, Message = $"Flow not found with id - {button.ActionId}" };
+
+                if (String.IsNullOrWhiteSpace(flow.MetaFlowId))
+                    return new UResponse { Status = 0, Message = $"Flow with id - {button.ActionId} does not have meta id yet" };
+
+                if ((flow.Status ?? "").ToLower() != FlowStatusEnum.PUBLISHED.ToString().ToLower())
+                    return new UResponse { Status = 0, Message = $"Flow is not published with id - {button.ActionId}" };
+            }
+
             #endregion
 
             var campaignParamJson = JsonConvert.SerializeObject(model.CampaignParameters);
@@ -146,9 +162,32 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response[0];
         }
 
-        public async Task<UResponse> ActivateCampaignAsync(int clientId, int userId, ActivateCampaignDto campaign)
+        public async Task<UResponse> ActivateCampaignAsync(int clientId, int userId, ActivateCampaignDto model)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.ActivateCampaign}, @CampaignId={campaign.CampaignId}, @ClientId={clientId}, @ScheduleDate={campaign.ScheduleDate}, @ActionBy={userId}").ToListAsync();
+            var campaign = _dbContext.Campaigns.Find(model.CampaignId);
+            if (campaign == null)
+                return new UResponse { Status = 0, Message = "Campaign does not exist" };
+
+            var template = await _templateService.GetTemplateDetailAsync(clientId, campaign.TemplateId);
+            if (template == null)
+                return new UResponse { Message = "No template found" };
+
+            //If FLOW type action is present, check if it is published
+            if (template.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW))
+            {
+                var button = template.Buttons.FirstOrDefault(x => x.ActionType == (int)ActionTypeEnum.FLOW);
+                var flow = await _dbContext.Flows.FindAsync(button.ActionId);
+                if (flow == null)
+                    return new UResponse { Status = 0, Message = $"Flow not found with id - {button.ActionId}" };
+
+                if (String.IsNullOrWhiteSpace(flow.MetaFlowId))
+                    return new UResponse { Status = 0, Message = $"Flow with id - {button.ActionId} does not have meta id yet" };
+
+                if ((flow.Status ?? "").ToLower() != FlowStatusEnum.PUBLISHED.ToString().ToLower())
+                    return new UResponse { Status = 0, Message = $"Flow is not published with id - {button.ActionId}" };
+            }
+
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.ActivateCampaign}, @CampaignId={model.CampaignId}, @ClientId={clientId}, @ScheduleDate={model.ScheduleDate}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
 
@@ -288,6 +327,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             tempPayload.Params = campaign.Parameters
                 .Select(x => new ParamData { ParamType = x.ParamType, ParamValue = x.ParamValue, Sequence = x.Sequence })
                 .OrderBy(x => x.ParamType).ThenBy(x => x.Sequence).ToList();
+
+            var flowToken = $"{FlowIdentifier.ClientId}:{tempPayload.ClientId}|" + $"{FlowIdentifier.SenderId}:{campaign.SenderId}|" + $"{FlowIdentifier.ModuleId}:{tempPayload.ModuleId}|" + $"{FlowIdentifier.ParentId}:{tempPayload.ParentId}";
 
             return await _communicationService.SendTemplateMessageAsync(tempPayload);
         }

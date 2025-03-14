@@ -5,10 +5,12 @@ using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Conversation;
 using WhatsAppAPISolutionDL.Enum;
+using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Hubs;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Agent;
+using WhatsAppAPISolutionDL.UserModels.Campaign;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Message;
@@ -139,12 +141,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     if (item.ActionType == (int)ActionTypeEnum.TEMPLATE)
                     {
+                        var flowToken = $"{FlowIdentifier.ClientId}:{item.ClientId}|" + $"{FlowIdentifier.SenderId}:{item.SenderId}|" + $"{FlowIdentifier.ModuleId}:{item.ModuleId}|" + $"{FlowIdentifier.ParentId}:{item.ParentId}";
                         await _communicationService.SendInteractiveMessageAsync(new UMessageReceived
                         {
                             ActionId = item.ActionId,
                             ModuleId = item.ModuleId,
                             ParentId = item.ParentId
-                        }, item.ClientId, item.SenderId, item.PhoneNumber, values: item.Values);
+                        }, item.ClientId, item.SenderId, item.PhoneNumber, values: item.Values, flowToken: flowToken);
                     }
                 }
 
@@ -233,12 +236,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     if (item.ActionType == (int)ActionTypeEnum.TEMPLATE)
                     {
+                        var flowToken = $"{FlowIdentifier.ClientId}:{item.ClientId}|" + $"{FlowIdentifier.SenderId}:{item.SenderId}|" + $"{FlowIdentifier.ModuleId}:{item.ModuleId}|" + $"{FlowIdentifier.ParentId}:{item.ParentId}";
                         await _communicationService.SendInteractiveMessageAsync(new UMessageReceived
                         {
                             ActionId = item.ActionId,
                             ModuleId = item.ModuleId,
                             ParentId = item.ParentId
-                        }, item.ClientId, item.SenderId, item.PhoneNumber, values: item.Values);
+                        }, item.ClientId, item.SenderId, item.PhoneNumber, values: item.Values, flowToken: flowToken);
                     }
                 }
 

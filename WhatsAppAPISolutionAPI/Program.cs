@@ -3,6 +3,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using Serilog.Events;
 using System.Text;
 using WhatsAppAPISolutionAPI.Extensions;
 using WhatsAppAPISolutionAPI.Helper;
@@ -13,7 +14,19 @@ var builder = WebApplication.CreateBuilder(args);
 ConfigurationManager configuration = builder.Configuration;
 
 //Add support to logging with SERILOG
-builder.Host.UseSerilog((context, configuration) => configuration.ReadFrom.Configuration(context.Configuration).Enrich.FromLogContext());
+//builder.Host.UseSerilog((context, configuration) => configuration.ReadFrom.Configuration(context.Configuration).Enrich.FromLogContext());
+var logger = new LoggerConfiguration()
+             .MinimumLevel.Information()
+             .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)  // Suppress low-level framework logs
+             .MinimumLevel.Override("System", LogEventLevel.Error)  // Only show Errors for System logs
+             .WriteTo.Http(
+                 requestUri: builder.Configuration["Axiom:LogURL"],
+                 queueLimitBytes: null,
+                 httpClient: new CustomHttpClient(),
+                 configuration: builder.Configuration)
+             .CreateLogger();
+ 
+builder.Host.UseSerilog(logger);
 
 // Add services to the container.
 builder.Services.AddHttpContextAccessor();

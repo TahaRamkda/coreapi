@@ -2,17 +2,21 @@
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Data;
+using System.Diagnostics.Eventing.Reader;
 using System.Text;
 using System.Text.RegularExpressions;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Enum;
+using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Entity;
+using WhatsAppAPISolutionDL.UserModels.InteractiveTemplate;
 using WhatsAppAPISolutionDL.UserModels.Template;
 
 namespace WhatsAppAPISolutionBL.Master.Services
@@ -187,51 +191,73 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (model.Buttons != null && model.Buttons.Count > 0)
             {
-                for (int i = 0; i < model.Buttons.Count; i++)
+                if (model.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW))
                 {
-                    var button = model.Buttons[i];
-                    if (button.ActionType == (int)ActionTypeEnum.TEMPLATE && button.ActionId <= 0)
-                        return new UResponseWithID { Message = $"Template id required in action id when action type is {(int)ActionTypeEnum.TEMPLATE}" };
+                    var button = model.Buttons.FirstOrDefault(x => x.ActionType == (int)ActionTypeEnum.FLOW);
+                    var flow = await _dbContext.Flows.FindAsync(button.ActionId);
+                    if (flow == null)
+                        return new UResponseWithID { Status = 0, Message = $"Flow not found with id - {button.ActionId}" };
 
-                    button.ButtonValue = (button.ButtonValue ?? "").Trim();
+                    if (String.IsNullOrWhiteSpace(flow.MetaFlowId))
+                        return new UResponseWithID { Status = 0, Message = $"Flow with id - {button.ActionId} does not have meta id yet" };
 
-                    if (!String.IsNullOrWhiteSpace(button.ButtonValue))
+                    if ((flow.Status ?? "").ToLower() != FlowStatusEnum.PUBLISHED.ToString().ToLower())
+                        return new UResponseWithID { Status = 0, Message = $"Flow is not published with id - {button.ActionId}" };
+
+                    model.Flow = new TemplateDto.FlowComponent
                     {
-                        MatchCollection matches = regex.Matches(button.ButtonValue);
-                        if (matches.Count > 0)
+                        FlowId = flow.MetaFlowId,
+                        ButtonText = button.ButtonText
+                    };
+                }
+                else
+                {
+                    for (int i = 0; i < model.Buttons.Count; i++)
+                    {
+                        var button = model.Buttons[i];
+                        if (button.ActionType == (int)ActionTypeEnum.TEMPLATE && button.ActionId <= 0)
+                            return new UResponseWithID { Message = $"Template id required in action id when action type is {(int)ActionTypeEnum.TEMPLATE}" };
+
+                        button.ButtonValue = (button.ButtonValue ?? "").Trim();
+
+                        if (!String.IsNullOrWhiteSpace(button.ButtonValue))
                         {
-                            if (button.ButtonType != (int)ButtonTypeEnum.URL)
-                                return new UResponseWithID { Message = $"Dynamic parameter not allowed in button type {(ButtonTypeEnum)button.ButtonType}" };
-
-                            if (button.DynamicValue == null || String.IsNullOrWhiteSpace(button.DynamicValue.ParamName) || String.IsNullOrWhiteSpace(button.DynamicValue.ParamValue))
-                                return new UResponseWithID { Message = "Button default parameter is required" };
-
-                            if (matches.Count > 1)
-                                return new UResponseWithID { Message = "Only one button parameter is allowed" };
-
-                            if (matches[0].Value != button.DynamicValue.ParamName)
-                                return new UResponseWithID { Message = $"Button - {button.ButtonText} parameter passed does not match with button value" };
-
-                            parameters.Add(new TemplateDto.TemplateParameter
+                            MatchCollection matches = regex.Matches(button.ButtonValue);
+                            if (matches.Count > 0)
                             {
-                                ParamType = (int)TemplateParamEnum.Button,
-                                ParamName = button.DynamicValue.ParamName,
-                                ParamDefaultValue = button.DynamicValue.ParamValue,
-                                Sequence = button.Sequence //Assigning button sequence
-                            });
-                        }
-                    }
+                                if (button.ButtonType != (int)ButtonTypeEnum.URL)
+                                    return new UResponseWithID { Message = $"Dynamic parameter not allowed in button type {(ButtonTypeEnum)button.ButtonType}" };
 
-                    buttons.Add(new TemplateDto.TemplateButton
-                    {
-                        ButtonType = button.ButtonType,
-                        ButtonText = button.ButtonText,
-                        ButtonValue = button.ButtonValue,
-                        ActionId = button.ActionId,
-                        ActionType = button.ActionType,
-                        Sequence = button.Sequence,
-                        SytemActionId = button.SytemActionId
-                    });
+                                if (button.DynamicValue == null || String.IsNullOrWhiteSpace(button.DynamicValue.ParamName) || String.IsNullOrWhiteSpace(button.DynamicValue.ParamValue))
+                                    return new UResponseWithID { Message = "Button default parameter is required" };
+
+                                if (matches.Count > 1)
+                                    return new UResponseWithID { Message = "Only one button parameter is allowed" };
+
+                                if (matches[0].Value != button.DynamicValue.ParamName)
+                                    return new UResponseWithID { Message = $"Button - {button.ButtonText} parameter passed does not match with button value" };
+
+                                parameters.Add(new TemplateDto.TemplateParameter
+                                {
+                                    ParamType = (int)TemplateParamEnum.Button,
+                                    ParamName = button.DynamicValue.ParamName,
+                                    ParamDefaultValue = button.DynamicValue.ParamValue,
+                                    Sequence = button.Sequence //Assigning button sequence
+                                });
+                            }
+                        }
+
+                        buttons.Add(new TemplateDto.TemplateButton
+                        {
+                            ButtonType = button.ButtonType,
+                            ButtonText = button.ButtonText,
+                            ButtonValue = button.ButtonValue,
+                            ActionId = button.ActionId,
+                            ActionType = button.ActionType,
+                            Sequence = button.Sequence,
+                            SytemActionId = button.SytemActionId
+                        });
+                    }
                 }
             }
 
