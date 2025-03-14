@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WhatsAppAPISolutionDL.Dto.Template
+﻿namespace WhatsAppAPISolutionDL.Dto.Template
 {
     public class TemplateRequestDto
     {
@@ -23,6 +17,7 @@ namespace WhatsAppAPISolutionDL.Dto.Template
         public BodyDto Body { get; set; }
         public FooterDto Footer { get; set; }
         public List<ButtonDto> Buttons { get; set; }
+        public FlowComponent Flow { get; set; }
 
         public class HeaderDto
         {
@@ -55,6 +50,12 @@ namespace WhatsAppAPISolutionDL.Dto.Template
             public string PhoneNumber { get; set; }
             public string Url { get; set; }
             public string Example { get; set; }
+        }
+
+        public class FlowComponent
+        {
+            public string FlowId { get; set; }
+            public string ButtonText { get; set; }
         }
     }
 }

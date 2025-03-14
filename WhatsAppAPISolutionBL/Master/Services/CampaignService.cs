@@ -329,7 +329,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 .OrderBy(x => x.ParamType).ThenBy(x => x.Sequence).ToList();
 
             var flowToken = $"{FlowIdentifier.ClientId}:{tempPayload.ClientId}|" + $"{FlowIdentifier.SenderId}:{campaign.SenderId}|" + $"{FlowIdentifier.ModuleId}:{tempPayload.ModuleId}|" + $"{FlowIdentifier.ParentId}:{tempPayload.ParentId}";
-
+            tempPayload.FlowToken = flowToken;
             return await _communicationService.SendTemplateMessageAsync(tempPayload);
         }
 

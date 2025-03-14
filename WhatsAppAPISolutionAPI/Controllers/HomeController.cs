@@ -17,9 +17,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         [HttpGet("index")]
         public IActionResult Index()
-        {
-            _logger.LogInformation("Testing {logger} and name is {myname}", "axiom", "huzeifa");
-
+        { 
             return Ok("Alive");
         }
     }

@@ -20,8 +20,7 @@ namespace WhatsAppAPISolutionDL.Dto.Template
         public HeaderComponent Header { get; set; }
         public BodyComponent Body { get; set; }
         public FooterComponent Footer { get; set; }
-        public List<ButtonComponent> Buttons { get; set; }
-        public FlowComponent Flow { get; set; }
+        public List<ButtonComponent> Buttons { get; set; } 
 
         public partial class HeaderComponent
         {
@@ -92,12 +91,6 @@ namespace WhatsAppAPISolutionDL.Dto.Template
             public int SytemActionId { get; set; }
             public int ActionId { get; set; }
             public int ActionType { get; set; }
-        }
-
-        public class FlowComponent
-        {
-            public string FlowId { get; set; }
-            public string ButtonText { get; set; }
-        }
+        } 
     }
 }

@@ -1,22 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Data;
-using System.Diagnostics.Eventing.Reader;
 using System.Text;
 using System.Text.RegularExpressions;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
-using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Enum;
-using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Entity;
-using WhatsAppAPISolutionDL.UserModels.InteractiveTemplate;
 using WhatsAppAPISolutionDL.UserModels.Template;
 
 namespace WhatsAppAPISolutionBL.Master.Services
@@ -28,20 +25,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly HttpClient _httpClient;
         private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
         private readonly IMediaService _mediaService;
+        private readonly ILogger<TemplateService> _logger;
 
         public TemplateService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
             IHttpClientFactory httpClientFactory,
             IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings,
-            IMediaService mediaService)
+            IMediaService mediaService,
+            ILogger<TemplateService> logger)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
             _mediaService = mediaService;
-
-
+            _logger = logger;
         }
 
         public async Task<List<UTemplate>> GetTemplateListAsync(int clientId, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
@@ -191,73 +189,51 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (model.Buttons != null && model.Buttons.Count > 0)
             {
-                if (model.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW))
+                for (int i = 0; i < model.Buttons.Count; i++)
                 {
-                    var button = model.Buttons.FirstOrDefault(x => x.ActionType == (int)ActionTypeEnum.FLOW);
-                    var flow = await _dbContext.Flows.FindAsync(button.ActionId);
-                    if (flow == null)
-                        return new UResponseWithID { Status = 0, Message = $"Flow not found with id - {button.ActionId}" };
+                    var button = model.Buttons[i];
+                    if (button.ActionType == (int)ActionTypeEnum.TEMPLATE && button.ActionId <= 0)
+                        return new UResponseWithID { Message = $"Template id required in action id when action type is {(int)ActionTypeEnum.TEMPLATE}" };
 
-                    if (String.IsNullOrWhiteSpace(flow.MetaFlowId))
-                        return new UResponseWithID { Status = 0, Message = $"Flow with id - {button.ActionId} does not have meta id yet" };
+                    button.ButtonValue = (button.ButtonValue ?? "").Trim();
 
-                    if ((flow.Status ?? "").ToLower() != FlowStatusEnum.PUBLISHED.ToString().ToLower())
-                        return new UResponseWithID { Status = 0, Message = $"Flow is not published with id - {button.ActionId}" };
-
-                    model.Flow = new TemplateDto.FlowComponent
+                    if (!String.IsNullOrWhiteSpace(button.ButtonValue))
                     {
-                        FlowId = flow.MetaFlowId,
-                        ButtonText = button.ButtonText
-                    };
-                }
-                else
-                {
-                    for (int i = 0; i < model.Buttons.Count; i++)
-                    {
-                        var button = model.Buttons[i];
-                        if (button.ActionType == (int)ActionTypeEnum.TEMPLATE && button.ActionId <= 0)
-                            return new UResponseWithID { Message = $"Template id required in action id when action type is {(int)ActionTypeEnum.TEMPLATE}" };
-
-                        button.ButtonValue = (button.ButtonValue ?? "").Trim();
-
-                        if (!String.IsNullOrWhiteSpace(button.ButtonValue))
+                        MatchCollection matches = regex.Matches(button.ButtonValue);
+                        if (matches.Count > 0)
                         {
-                            MatchCollection matches = regex.Matches(button.ButtonValue);
-                            if (matches.Count > 0)
+                            if (button.ButtonType != (int)ButtonTypeEnum.URL)
+                                return new UResponseWithID { Message = $"Dynamic parameter not allowed in button type {(ButtonTypeEnum)button.ButtonType}" };
+
+                            if (button.DynamicValue == null || String.IsNullOrWhiteSpace(button.DynamicValue.ParamName) || String.IsNullOrWhiteSpace(button.DynamicValue.ParamValue))
+                                return new UResponseWithID { Message = "Button default parameter is required" };
+
+                            if (matches.Count > 1)
+                                return new UResponseWithID { Message = "Only one button parameter is allowed" };
+
+                            if (matches[0].Value != button.DynamicValue.ParamName)
+                                return new UResponseWithID { Message = $"Button - {button.ButtonText} parameter passed does not match with button value" };
+
+                            parameters.Add(new TemplateDto.TemplateParameter
                             {
-                                if (button.ButtonType != (int)ButtonTypeEnum.URL)
-                                    return new UResponseWithID { Message = $"Dynamic parameter not allowed in button type {(ButtonTypeEnum)button.ButtonType}" };
-
-                                if (button.DynamicValue == null || String.IsNullOrWhiteSpace(button.DynamicValue.ParamName) || String.IsNullOrWhiteSpace(button.DynamicValue.ParamValue))
-                                    return new UResponseWithID { Message = "Button default parameter is required" };
-
-                                if (matches.Count > 1)
-                                    return new UResponseWithID { Message = "Only one button parameter is allowed" };
-
-                                if (matches[0].Value != button.DynamicValue.ParamName)
-                                    return new UResponseWithID { Message = $"Button - {button.ButtonText} parameter passed does not match with button value" };
-
-                                parameters.Add(new TemplateDto.TemplateParameter
-                                {
-                                    ParamType = (int)TemplateParamEnum.Button,
-                                    ParamName = button.DynamicValue.ParamName,
-                                    ParamDefaultValue = button.DynamicValue.ParamValue,
-                                    Sequence = button.Sequence //Assigning button sequence
-                                });
-                            }
+                                ParamType = (int)TemplateParamEnum.Button,
+                                ParamName = button.DynamicValue.ParamName,
+                                ParamDefaultValue = button.DynamicValue.ParamValue,
+                                Sequence = button.Sequence //Assigning button sequence
+                            });
                         }
-
-                        buttons.Add(new TemplateDto.TemplateButton
-                        {
-                            ButtonType = button.ButtonType,
-                            ButtonText = button.ButtonText,
-                            ButtonValue = button.ButtonValue,
-                            ActionId = button.ActionId,
-                            ActionType = button.ActionType,
-                            Sequence = button.Sequence,
-                            SytemActionId = button.SytemActionId
-                        });
                     }
+
+                    buttons.Add(new TemplateDto.TemplateButton
+                    {
+                        ButtonType = button.ButtonType,
+                        ButtonText = button.ButtonText,
+                        ButtonValue = button.ButtonValue,
+                        ActionId = button.ActionId,
+                        ActionType = button.ActionType,
+                        Sequence = button.Sequence,
+                        SytemActionId = button.SytemActionId
+                    });
                 }
             }
 
@@ -282,7 +258,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (model == null)
                 return new UResponseWithID { Message = "Cannot fetch template details" };
 
-            var tempateResponse = new TemplateRequestDto
+            var templateRequest = new TemplateRequestDto
             {
                 ClientId = model.ClientId.ToString(),
                 SenderNameId = model.SenderId.ToString(),
@@ -310,7 +286,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
 
             var headerParam = model.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Header).Select(x => new { x.ParamName, x.ParamDefaultValue }).FirstOrDefault();
-            tempateResponse.Header = new TemplateRequestDto.HeaderDto
+            templateRequest.Header = new TemplateRequestDto.HeaderDto
             {
                 Format = ((TemplateHeaderEnum)model.HeaderType).ToString(),
                 MediaUrl = headerMediaUrl,
@@ -342,7 +318,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         bodyDefaultValues.Add(bodyParams[paramName]); // Add the corresponding default value
                 }
 
-                tempateResponse.Body = new TemplateRequestDto.BodyDto
+                templateRequest.Body = new TemplateRequestDto.BodyDto
                 {
                     Text = bodyText,
                     Examples = bodyDefaultValues
@@ -355,7 +331,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (!String.IsNullOrWhiteSpace(model.FooterText))
             {
-                tempateResponse.Footer = new TemplateRequestDto.FooterDto
+                templateRequest.Footer = new TemplateRequestDto.FooterDto
                 {
                     Text = model.FooterText
                 };
@@ -365,40 +341,68 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             #region Button
 
-            foreach (var item in model.Buttons)
+            if (model.Buttons != null && model.Buttons.Count > 0)
             {
-                var buttonType = ((ButtonTypeEnum)item.ButtonType);
-                string buttonValue = item.ButtonValue ?? "";
-
-                UTemplateDetail.Parameter buttonParam = null;
-                if (buttonType == ButtonTypeEnum.URL)
+                if (model.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW))
                 {
-                    //Replace the {{example}} with {{1}} and so on...
-                    int placeholderCount = 0;
-                    buttonValue = Regex.Replace(item.ButtonValue, pattern, match => { placeholderCount++; return $"{{{{{placeholderCount}}}}}"; });
+                    var button = model.Buttons.FirstOrDefault(x => x.ActionType == (int)ActionTypeEnum.FLOW);
+                    var flow = await _dbContext.Flows.FindAsync(button.ActionId);
+                    if (flow == null)
+                        return new UResponseWithID { Status = 0, Message = $"Flow not found with id - {button.ActionId}" };
 
-                    MatchCollection matches = Regex.Matches(item.ButtonValue, pattern);
-                    if (matches != null && matches.Count > 0)
-                        buttonParam = model.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button && x.ParamName == matches[0].Value).FirstOrDefault();
+                    if (String.IsNullOrWhiteSpace(flow.MetaFlowId))
+                        return new UResponseWithID { Status = 0, Message = $"Flow with id - {button.ActionId} does not have meta id yet" };
+
+                    if ((flow.Status ?? "").ToLower() != FlowStatusEnum.PUBLISHED.ToString().ToLower())
+                        return new UResponseWithID { Status = 0, Message = $"Flow is not published with id - {button.ActionId}" };
+
+                    templateRequest.Flow = new TemplateRequestDto.FlowComponent
+                    {
+                        FlowId = flow.MetaFlowId,
+                        ButtonText = button.ButtonText
+                    };
                 }
-
-                //Replace country code seperation, +965-99310864 -> +96599310864
-                if (buttonType == ButtonTypeEnum.PHONE_NUMBER)
-                    buttonValue = buttonValue.Replace("-", "");
-
-                tempateResponse.Buttons.Add(new TemplateRequestDto.ButtonDto
+                else
                 {
-                    Type = buttonType.ToString(),
-                    Text = item.ButtonText,
-                    PhoneNumber = buttonType == ButtonTypeEnum.PHONE_NUMBER ? buttonValue : String.Empty,
-                    Url = buttonType == ButtonTypeEnum.URL ? buttonValue : String.Empty,
-                    Example = buttonParam != null ? buttonParam.ParamDefaultValue : String.Empty
-                });
+                    foreach (var item in model.Buttons)
+                    {
+                        var buttonType = ((ButtonTypeEnum)item.ButtonType);
+                        string buttonValue = item.ButtonValue ?? "";
+
+                        UTemplateDetail.Parameter buttonParam = null;
+                        if (buttonType == ButtonTypeEnum.URL)
+                        {
+                            //Replace the {{example}} with {{1}} and so on...
+                            int placeholderCount = 0;
+                            buttonValue = Regex.Replace(item.ButtonValue, pattern, match => { placeholderCount++; return $"{{{{{placeholderCount}}}}}"; });
+
+                            MatchCollection matches = Regex.Matches(item.ButtonValue, pattern);
+                            if (matches != null && matches.Count > 0)
+                                buttonParam = model.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button && x.ParamName == matches[0].Value).FirstOrDefault();
+                        }
+
+                        //Replace country code seperation, +965-99310864 -> +96599310864
+                        if (buttonType == ButtonTypeEnum.PHONE_NUMBER)
+                            buttonValue = buttonValue.Replace("-", "");
+
+                        templateRequest.Buttons.Add(new TemplateRequestDto.ButtonDto
+                        {
+                            Type = buttonType.ToString(),
+                            Text = item.ButtonText,
+                            PhoneNumber = buttonType == ButtonTypeEnum.PHONE_NUMBER ? buttonValue : String.Empty,
+                            Url = buttonType == ButtonTypeEnum.URL ? buttonValue : String.Empty,
+                            Example = buttonParam != null ? buttonParam.ParamDefaultValue : String.Empty
+                        });
+                    }
+                }
             }
 
             #endregion
 
-            var res = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(tempateResponse), Encoding.UTF8, "application/json");
+            var request = Newtonsoft.Json.JsonConvert.SerializeObject(templateRequest);
+            _logger.LogInformation("Calling bridge API Template TemplateMessageOps with request {request}", request);
+
+            var res = new StringContent(request, Encoding.UTF8, "application/json");
             var response1 = await _httpClient.PostAsync($"/api/Template/TemplateMessageOps", res);
             var content = await response1.Content.ReadAsStringAsync();
 
