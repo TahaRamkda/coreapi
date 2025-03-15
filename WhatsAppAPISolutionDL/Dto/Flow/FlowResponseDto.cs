@@ -16,7 +16,7 @@ namespace WhatsAppAPISolutionDL.Dto.Flow
         public PhoneNumber phone_number_Id { get; set; }
         public Contact contact { get; set; }
         public Context context { get; set; }
-        public FlowResponseObjDto flowResponse { get; set; }
+        public FlowResponse flowResponse { get; set; }
         public class PhoneNumber
         {
             public string display_phone_number { get; set; }
@@ -33,13 +33,14 @@ namespace WhatsAppAPISolutionDL.Dto.Flow
             public string from { get; set; }
             public string wam_Id { get; set; }
         }
-        public class FlowResponseObjDto
+        public class FlowResponse
         {
             public string flowToken { get; set; }
-            public List<UserResponseDTO> responses { get; set; } = new();
+            public List<UserResponse> responses { get; set; } = new();
         }
     }
-    public class UserResponseDTO
+
+    public class UserResponse
     {
 
         public string questionKey { get; set; }

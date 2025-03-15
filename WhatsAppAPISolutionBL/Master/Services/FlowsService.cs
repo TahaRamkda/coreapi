@@ -41,7 +41,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _logger = logger;
         }
 
-
         public async Task<List<UFlow>> GetFlowListAsync(int clientId, string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue)
         {
             if (pageNo < 1) pageNo = 1;
@@ -712,46 +711,49 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var flowId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.FlowId);
                 var parentId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.ParentId);
                 var moduleId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.ModuleId);
-                if (flowId == null || flowId == 0)
+                if (flowId == 0)
                     return new UResponse { Status = 0, Message = "Invalid FlowId" };
 
                 // Fetch Flow using MetaFlowId (Ensure correct field is used)
                 var flow = await _dbContext.Flows.FirstOrDefaultAsync(x => x.FlowId == flowId);
                 if (flow == null)
                     return new UResponse { Status = 0, Message = "No flow found with this MetaFlowId" };
-
-                var surveyResponse = new SurveyResponse
+                 
+                //If survey, add into survey table
+                if (flow.ModuleId == (int)ModuleEnum.Survey)
                 {
-                    SurveyId = flow.ParentId,
-                    FlowId = flow.FlowId,
-                    MetaFlowId = flow.MetaFlowId,
-                    PhoneNumber = flowResponse.from,
-                    Name = flow.FlowName ?? "Unknown",
-                    FlowToken = flowResponse.flowResponse.flowToken,
-                    SenderId = flow.SenderId ?? 0,
-                    ClientId = flow.ClientId ?? 0,
-                    ParentId = parentId,
-                    ModuleId = moduleId,
-                    CreatedDate = DateTime.UtcNow
-                };
+                    var surveyResponse = new SurveyResponse
+                    {
+                        SurveyId = flow.ParentId,
+                        FlowId = flow.FlowId,
+                        MetaFlowId = flow.MetaFlowId,
+                        PhoneNumber = flowResponse.from,
+                        Name = flow.FlowName ?? "Unknown",
+                        FlowToken = flowResponse.flowResponse.flowToken,
+                        SenderId = flow.SenderId ?? 0,
+                        ClientId = flow.ClientId ?? 0,
+                        ParentId = parentId,
+                        ModuleId = moduleId,
+                        CreatedDate = DateTime.UtcNow
+                    };
 
-                _dbContext.SurveyResponses.Add(surveyResponse);
-                await _dbContext.SaveChangesAsync();
+                    _dbContext.SurveyResponses.Add(surveyResponse);
+                    await _dbContext.SaveChangesAsync();
 
-                // Prepare SurveyResponseDetails in a batch insert
-                var surveyResponseDetails = flowResponse.flowResponse.responses
-                    ?.SelectMany(response => response.multiSelect.Any()
-                        ? response.multiSelect.Select(option => new SurveyResponseDetail
-                        {
-                            SurveyResponseId = surveyResponse.SurveyResponseId,
-                            OptionText = option.Trim(),
-                            QuestionText = response.question ?? string.Empty,
-                            Type = response.type,
-                            QuestionKey = response.questionKey,
-                            AnswerKey = response.answerKey
-                        })
-                        : new List<SurveyResponseDetail>
-                        {
+                    // Prepare SurveyResponseDetails in a batch insert
+                    var surveyResponseDetails = flowResponse.flowResponse.responses
+                        ?.SelectMany(response => response.multiSelect.Any()
+                            ? response.multiSelect.Select(option => new SurveyResponseDetail
+                            {
+                                SurveyResponseId = surveyResponse.SurveyResponseId,
+                                OptionText = option.Trim(),
+                                QuestionText = response.question ?? string.Empty,
+                                Type = response.type,
+                                QuestionKey = response.questionKey,
+                                AnswerKey = response.answerKey
+                            })
+                            : new List<SurveyResponseDetail>
+                            {
                             new SurveyResponseDetail
                             {
                                 SurveyResponseId = surveyResponse.SurveyResponseId,
@@ -761,14 +763,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 QuestionKey = response.questionKey,
                                 AnswerKey = response.answerKey
                             }
-                        }
-                    ).ToList() ?? new List<SurveyResponseDetail>();
+                            }
+                        ).ToList() ?? new List<SurveyResponseDetail>();
 
-                if (surveyResponseDetails.Any())
-                {
-                    _dbContext.SurveyResponseDetails.AddRange(surveyResponseDetails);
-                    await _dbContext.SaveChangesAsync();
+                    if (surveyResponseDetails.Any())
+                    {
+                        _dbContext.SurveyResponseDetails.AddRange(surveyResponseDetails);
+                        await _dbContext.SaveChangesAsync();
+                    }
                 }
+                 
+                //Message received log entry, Hussain will provide procedure and Burhan has to share json
 
                 return new UResponse { Status = 1, Message = "Survey response recorded successfully" };
             }
