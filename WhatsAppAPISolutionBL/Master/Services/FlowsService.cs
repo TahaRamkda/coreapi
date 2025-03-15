@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System.Drawing.Printing;
 using System.Text;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
@@ -43,64 +44,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UFlow>> GetFlowListAsync(int clientId, string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue)
         {
-            if (pageNo < 1) pageNo = 1;
-
-            var query = _dbContext.Flows
-                .Where(f => f.ClientId == clientId && f.RecordStatus != -1)
-                .Join(_dbContext.Clients,
-                      flow => flow.ClientId,
-                      client => client.ClientId,
-                      (flow, client) => new
-                      {
-                          Flow = flow,
-                          ClientName = client.ClientName,
-                          TimeZoneOffset = client.Timezone
-                      })
-                .Join(_dbContext.SenderNames,
-                      flowClient => flowClient.Flow.SenderId,
-                      sender => sender.SenderId,
-                      (flowClient, sender) => new
-                      {
-                          Flow = flowClient.Flow,
-                          ClientName = flowClient.ClientName,
-                          TimeZoneOffset = flowClient.TimeZoneOffset,
-                          SenderName = sender.SenderName1
-                      });
-
-            // Apply search filter
-            if (!string.IsNullOrWhiteSpace(searchStr))
-                query = query.Where(f => f.Flow.FlowName.Contains(searchStr));
-
-            // Fetch total records count (for pagination)
-            int totalRecords = await query.CountAsync();
-
-            // Apply pagination
-            var flows = await query
-                .Skip((pageNo - 1) * pageSize)
-                .Take(pageSize)
-                .Select(f => new UFlow
-                {
-                    FlowId = f.Flow.FlowId,
-                    MetaFlowId = f.Flow.MetaFlowId,
-                    MetaFlowName = f.Flow.MetaFlowName,
-                    ClientId = f.Flow.ClientId,
-                    SenderId = f.Flow.SenderId,
-                    ModuleId = f.Flow.ModuleId,
-                    ParentId = f.Flow.ParentId,
-                    FlowName = f.Flow.FlowName,
-                    FlowLanguage = f.Flow.FlowLanguage,
-                    Status = f.Flow.Status,
-                    IsPublished = f.Flow.IsPublished,
-                    CreatedBy = f.Flow.CreatedBy,
-                    CreatedDate = CommonHelper.ConvertUtcToUserTimeZone(f.Flow.CreatedDate, f.TimeZoneOffset),
-                    UpdatedBy = f.Flow.UpdatedBy,
-                    UpdatedDate = CommonHelper.ConvertUtcToUserTimeZone(f.Flow.UpdatedDate, f.TimeZoneOffset),
-                    ClientName = f.ClientName,  // Added Client Name
-                    SenderName = f.SenderName,  // Added Sender Name
-                    TotalRecords = totalRecords
-                }).ToListAsync();
-
-            return flows;
+            var response = await _dbContext2.Flow.FromSqlInterpolated($"exec usp_GetFlowList @ClientId={clientId}, @SearchStr={searchStr ?? ""}, @PageNo={pageNo}, @PageSize={pageSize}").ToListAsync();
+            return response;
         }
 
         public async Task<UResponse> AddFlowAsync(int clientId, int userId, FlowDTO obj)
@@ -718,7 +663,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var flow = await _dbContext.Flows.FirstOrDefaultAsync(x => x.FlowId == flowId);
                 if (flow == null)
                     return new UResponse { Status = 0, Message = "No flow found with this MetaFlowId" };
-                 
+
                 //If survey, add into survey table
                 if (flow.ModuleId == (int)ModuleEnum.Survey)
                 {
@@ -772,7 +717,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         await _dbContext.SaveChangesAsync();
                     }
                 }
-                 
+
                 //Message received log entry, Hussain will provide procedure and Burhan has to share json
 
                 return new UResponse { Status = 1, Message = "Survey response recorded successfully" };
@@ -783,76 +728,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
         }
 
-        public async Task<List<USurveyResponse>> ExportSurveyResponseListAsync(
-        int clientId,
-        string searchStr = "",
-        int senderId = 0,
-        DateTime? fromDate = null,
-        DateTime? toDate = null,
-        int flowId = 0,
-        int surveyId = 0)
+        public async Task<List<USurveyResponse>> ExportSurveyResponseListAsync(int clientId, string searchStr = "", int senderId = 0,
+            DateTime? fromDate = null, DateTime? toDate = null, int flowId = 0, int surveyId = 0)
         {
-            var query = _dbContext.SurveyResponses
-                .Where(sr => sr.ClientId == clientId)
-                .AsQueryable();
-
-            // Apply filters
-            if (!string.IsNullOrEmpty(searchStr))
-            {
-                query = query.Where(sr => sr.Name.Contains(searchStr) || sr.PhoneNumber.Contains(searchStr));
-            }
-            if (senderId > 0)
-            {
-                query = query.Where(sr => sr.SenderId == senderId);
-            }
-            if (flowId > 0)
-            {
-                query = query.Where(sr => sr.FlowId == flowId);
-            }
-            if (surveyId > 0)
-            {
-                query = query.Where(sr => sr.SurveyId == surveyId);
-            }
-            if (fromDate.HasValue)
-            {
-                query = query.Where(sr => sr.CreatedDate >= fromDate.Value);
-            }
-            if (toDate.HasValue)
-            {
-                query = query.Where(sr => sr.CreatedDate <= toDate.Value);
-            }
-
-            var result = await query
-                .Select(sr => new USurveyResponse
-                {
-                    SurveyResponseId = sr.SurveyResponseId,
-                    SurveyId = sr.SurveyId,
-                    FlowId = sr.FlowId,
-                    MetaFlowId = sr.MetaFlowId,
-                    PhoneNumber = sr.PhoneNumber,
-                    Name = sr.Name,
-                    //FlowToken = sr.FlowToken,
-                    SenderId = sr.SenderId,
-                    ClientId = sr.ClientId,
-                    ModuleId = sr.ModuleId,
-                    ParentId = sr.ParentId,
-                    CreatedDate = sr.CreatedDate,
-                    SurveyResponseDetails = _dbContext.SurveyResponseDetails
-                        .Where(srd => srd.SurveyResponseId == sr.SurveyResponseId)
-                        .Select(srd => new USurveyResponseDetail
-                        {
-                            SurveyResponseDetailId = srd.SurveyResponseDetailId,
-                            SurveyResponseId = srd.SurveyResponseId,
-                            OptionText = srd.OptionText,
-                            QuestionText = srd.QuestionText,
-                            Type = srd.Type,
-                            QuestionKey = srd.QuestionKey,
-                            AnswerKey = srd.AnswerKey
-                        }).ToList()
-                })
-                .ToListAsync();
-
-            return result;
+            var response = await _dbContext2.SurveyResponse.FromSqlInterpolated($"exec usp_GetSurveyResponses @ClientId={clientId}, @SearchStr={searchStr ?? ""}, @SenderId={senderId}, @FlowId={flowId}, @SurveyId={surveyId}, @FromDate={fromDate}, @ToDate={toDate}").ToListAsync();
+            return response;
         }
     }
 }

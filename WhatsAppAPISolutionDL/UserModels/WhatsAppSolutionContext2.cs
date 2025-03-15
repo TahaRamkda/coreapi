@@ -85,6 +85,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UConversationStatistics> ConversationStatistics { get; set; } = null!;
         public virtual DbSet<UMasterData> MasterData { get; set; } = null!;
         public virtual DbSet<UFlow> Flow { get; set; } = null!;
+        public virtual DbSet<USurveyResponse> SurveyResponse { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -141,6 +142,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UConversationStatistics>().HasNoKey();
             modelBuilder.Entity<UMasterData>().HasNoKey();
             modelBuilder.Entity<UFlow>().HasNoKey();
+            modelBuilder.Entity<USurveyResponse>().HasNoKey();
         }
     }
 }

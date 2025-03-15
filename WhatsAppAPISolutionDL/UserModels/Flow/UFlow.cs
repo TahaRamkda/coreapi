@@ -7,7 +7,7 @@ using WhatsAppAPISolutionDL.UserModels.Entity;
 
 namespace WhatsAppAPISolutionDL.UserModels.Flow
 {
-    public partial class UFlow : UListWithBaseEntity
+    public partial class UFlow : UEntity
     {
         public int FlowId { get; set; }
         public string MetaFlowId { get; set; }
