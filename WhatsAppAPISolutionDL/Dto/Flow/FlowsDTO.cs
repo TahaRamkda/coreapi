@@ -16,6 +16,8 @@ namespace WhatsAppAPISolutionDL.Dto.Flow
         public string FlowLanguage { get; set; }
         public bool PublishToFB { get; set; }
         public int FlowId { get; set; }
+        public int ActionId { get; set; }
+        public int ActionType { get; set; }
         public List<FlowScreenDTO> FlowScreens { get; set; } = new();
     }
 

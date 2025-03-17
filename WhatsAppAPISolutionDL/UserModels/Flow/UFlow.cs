@@ -22,5 +22,8 @@ namespace WhatsAppAPISolutionDL.UserModels.Flow
         public string FlowLanguage { get; set; }
         public string Status { get; set; }
         public bool? IsPublished { get; set; }
+        public int? TotalRecords { get; set; }
+        public int? ActionId { get; set; }
+        public int? ActionType { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System;
 using System.Drawing.Printing;
 using System.Text;
 using WhatsAppAPISolutionBL.Helper;
@@ -111,7 +112,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     CreatedBy = userId,
                     CreatedDate = DateTime.UtcNow,
                     UpdatedBy = userId,
-                    UpdatedDate = DateTime.UtcNow
+                    UpdatedDate = DateTime.UtcNow,
+                    ActionId = obj.ActionId,
+                    ActionType = obj.ActionType
                 };
 
                 _dbContext.Flows.Add(flow);
@@ -326,6 +329,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 existingFlow.UpdatedBy = userId;
                 existingFlow.UpdatedDate = DateTime.UtcNow;
                 existingFlow.IsPublished = false;
+                existingFlow.ActionId = obj.ActionId;
+                existingFlow.ActionType = obj.ActionType;
 
                 // Update Flow
                 _dbContext.Flows.Update(existingFlow);
@@ -638,94 +643,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 Id = f.FlowId,
                 Name = f.FlowName
             }).ToListAsync();
-        }
-
-        public async Task<UResponse> FlowResponseAsync(FlowResponseDto flowResponse)
-        {
-            try
-            {
-                if (flowResponse == null || string.IsNullOrEmpty(flowResponse.from))
-                    return new UResponse { Status = 0, Message = "Invalid request data" };
-
-                if (flowResponse.flowResponse == null)
-                    return new UResponse { Status = 0, Message = "Flow response is required" };
-
-                if (string.IsNullOrEmpty(flowResponse.flowResponse.flowToken))
-                    return new UResponse { Status = 0, Message = "Flow token is required" };
-
-                var flowId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.FlowId);
-                var parentId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.ParentId);
-                var moduleId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.ModuleId);
-                if (flowId == 0)
-                    return new UResponse { Status = 0, Message = "Invalid FlowId" };
-
-                // Fetch Flow using MetaFlowId (Ensure correct field is used)
-                var flow = await _dbContext.Flows.FirstOrDefaultAsync(x => x.FlowId == flowId);
-                if (flow == null)
-                    return new UResponse { Status = 0, Message = "No flow found with this MetaFlowId" };
-
-                //If survey, add into survey table
-                if (flow.ModuleId == (int)ModuleEnum.Survey)
-                {
-                    var surveyResponse = new SurveyResponse
-                    {
-                        SurveyId = flow.ParentId,
-                        FlowId = flow.FlowId,
-                        MetaFlowId = flow.MetaFlowId,
-                        PhoneNumber = flowResponse.from,
-                        Name = flow.FlowName ?? "Unknown",
-                        FlowToken = flowResponse.flowResponse.flowToken,
-                        SenderId = flow.SenderId ?? 0,
-                        ClientId = flow.ClientId ?? 0,
-                        ParentId = parentId,
-                        ModuleId = moduleId,
-                        CreatedDate = DateTime.UtcNow
-                    };
-
-                    _dbContext.SurveyResponses.Add(surveyResponse);
-                    await _dbContext.SaveChangesAsync();
-
-                    // Prepare SurveyResponseDetails in a batch insert
-                    var surveyResponseDetails = flowResponse.flowResponse.responses
-                        ?.SelectMany(response => response.multiSelect.Any()
-                            ? response.multiSelect.Select(option => new SurveyResponseDetail
-                            {
-                                SurveyResponseId = surveyResponse.SurveyResponseId,
-                                OptionText = option.Trim(),
-                                QuestionText = response.question ?? string.Empty,
-                                Type = response.type,
-                                QuestionKey = response.questionKey,
-                                AnswerKey = response.answerKey
-                            })
-                            : new List<SurveyResponseDetail>
-                            {
-                            new SurveyResponseDetail
-                            {
-                                SurveyResponseId = surveyResponse.SurveyResponseId,
-                                OptionText = response.text?.Trim(),
-                                QuestionText = response.question ?? string.Empty,
-                                Type = response.type,
-                                QuestionKey = response.questionKey,
-                                AnswerKey = response.answerKey
-                            }
-                            }
-                        ).ToList() ?? new List<SurveyResponseDetail>();
-
-                    if (surveyResponseDetails.Any())
-                    {
-                        _dbContext.SurveyResponseDetails.AddRange(surveyResponseDetails);
-                        await _dbContext.SaveChangesAsync();
-                    }
-                }
-
-                //Message received log entry, Hussain will provide procedure and Burhan has to share json
-
-                return new UResponse { Status = 1, Message = "Survey response recorded successfully" };
-            }
-            catch (Exception ex)
-            {
-                return new UResponse { Status = 0, Message = $"Error: {ex.Message}" };
-            }
         }
 
         public async Task<List<USurveyResponse>> ExportSurveyResponseListAsync(int clientId, string searchStr = "", int senderId = 0,

@@ -13,7 +13,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> DeleteFlowAsync(int flowId);
         Task<FlowDTO> GetFlowDetailsByIdAsync(int flowId);
         Task<List<UEntityDto>> GetFlowsAsync(int clientId, int senderId = 0, string searchStr = "");
-        Task<UResponse> FlowResponseAsync(FlowResponseDto flowResponse);
         Task<List<USurveyResponse>> ExportSurveyResponseListAsync(int clientId, string searchStr = "", int senderId = 0, DateTime? fromDate = null, DateTime? toDate = null, int flowId = 0, int surveyId = 0);
     }
 }
