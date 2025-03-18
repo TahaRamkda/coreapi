@@ -597,6 +597,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 ParentId = flow.ParentId ?? 0,
                 FlowName = flow.FlowName,
                 FlowLanguage = flow.FlowLanguage,
+                ActionId = flow.ActionId ?? 0,
+                ActionType = flow.ActionType ?? 0,
                 //PublishToFB = false, // Set this based on your logic
                 FlowId = flow.FlowId,
                 FlowScreens = flowScreens.Select(fs => new FlowScreenDTO

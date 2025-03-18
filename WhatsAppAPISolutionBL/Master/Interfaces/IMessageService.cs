@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WhatsAppAPISolutionDL.Dto.Agent;
 using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.Flow;
 using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Message;
@@ -25,5 +26,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<ApiResult> SendAgentMessageAsync(SendAgentMessageRequestDto model);
 
         Task<ApiResult> SendAgentInteractiveMessageAsync(SendAgentInteractiveMessageRequestDto model);
+
+        Task<UResponse> FlowResponseAsync(FlowResponseDto flowResponse);
     }
 }

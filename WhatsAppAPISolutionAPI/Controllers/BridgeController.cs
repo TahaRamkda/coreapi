@@ -184,7 +184,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (flowResponse == null)
                 return BadRequest();
 
-            var response = await _flowService.FlowResponseAsync(flowResponse);
+            var response = await _messageService.FlowResponseAsync(flowResponse);
 
             _logger.LogInformation("Received api AddFlowResponseAsync response with data={data}", JsonConvert.SerializeObject(response));
 
