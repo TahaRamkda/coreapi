@@ -24,5 +24,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Conversation
         public int? UnreadCount { get; set; }
         public string CreatedDate { get; set; }
         public string ExpiryDate { get; set; }
+        public string ReasonName { get; set; }
+        public int? ReasonId { get; set; }
     }
 }

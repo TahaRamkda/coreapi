@@ -57,7 +57,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 new PropertyByName<UConversationReportList>("UnreadCount", p => p.UnreadCount),
                 new PropertyByName<UConversationReportList>("CreatedDate", p => p.CreatedDate),
                 new PropertyByName<UConversationReportList>("UpdatedDate", p => p.UpdatedDate),
-                new PropertyByName<UConversationReportList>("ExpiryDate", p => p.ExpiryDate)
+                new PropertyByName<UConversationReportList>("ExpiryDate", p => p.ExpiryDate),
+                new PropertyByName<UConversationReportList>("ReasonName", p => p.ReasonName)
             };
 
             return ExportToXlsx(properties, report);
@@ -124,7 +125,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 new PropertyByName<UConversationReportList>("UnreadCount", p => p.UnreadCount),
                 new PropertyByName<UConversationReportList>("CreatedDate", p => p.CreatedDate),
                 new PropertyByName<UConversationReportList>("UpdatedDate", p => p.UpdatedDate),
-                new PropertyByName<UConversationReportList>("ExpiryDate", p => p.ExpiryDate)
+                new PropertyByName<UConversationReportList>("ExpiryDate", p => p.ExpiryDate),
+                new PropertyByName<UConversationReportList>("ReasonName", p => p.ReasonName)
             };
 
             return ExportToXlsx(properties, report);
