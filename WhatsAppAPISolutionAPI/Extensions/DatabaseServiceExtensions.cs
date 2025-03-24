@@ -11,7 +11,15 @@ namespace WhatsAppAPISolutionAPI.Extensions
             int commandTimeout = 0;
             int.TryParse(config["CommandTimeout"], out commandTimeout);
 
-            services.AddDbContext<WhatsAppSolutionContext>(options => options.UseSqlServer(config.GetConnectionString("WhatsAppAPISolutionDataBase"), sqlOptions => sqlOptions.CommandTimeout(commandTimeout)));
+            services.AddDbContext<WhatsAppSolutionContext>(options => options.UseSqlServer(config.GetConnectionString("WhatsAppAPISolutionDataBase"), sqlOptions => sqlOptions    
+            .CommandTimeout(commandTimeout)    
+            .EnableRetryOnFailure(
+                maxRetryCount: 5,          // Number of retries before failing
+                maxRetryDelay: TimeSpan.FromSeconds(10),  // Delay between retries
+                errorNumbersToAdd: null    // Retry for default transient errors
+                )
+            ));
+
             services.AddDbContext<WhatsAppSolutionContext2>(options => options.UseSqlServer(config.GetConnectionString("WhatsAppAPISolutionDataBase"), sqlOptions => sqlOptions.CommandTimeout(commandTimeout)));
 
             return services;
