@@ -400,11 +400,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
             #endregion
 
             var request = Newtonsoft.Json.JsonConvert.SerializeObject(templateRequest);
-            _logger.LogInformation("Calling bridge API Template TemplateMessageOps with request {request}", request);
 
+            var apiCallStart = DateTime.UtcNow;
+
+            string apiEndpoint = $"/api/Template/TemplateMessageOps";
             var res = new StringContent(request, Encoding.UTF8, "application/json");
-            var response1 = await _httpClient.PostAsync($"/api/Template/TemplateMessageOps", res);
+            var response1 = await _httpClient.PostAsync(apiEndpoint, res);
             var content = await response1.Content.ReadAsStringAsync();
+
+            _logger.LogInformation("Calling bridge API apiEndpoint={apiEndpoint} Template TemplateMessageOps with request={request} and response={response} with apiResponseTime={apiResponseTime}", apiEndpoint, request, content, DateTime.UtcNow.Subtract(apiCallStart).TotalMilliseconds);
 
             var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
             if (result != null && result.success)

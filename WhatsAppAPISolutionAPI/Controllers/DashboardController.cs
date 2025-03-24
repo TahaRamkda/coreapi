@@ -37,7 +37,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getdashboardsummary")]
         public async Task<ActionResult> GetDashboardSummaryAsync(int senderId, DateTime? fromDate = null, DateTime? toDate = null)
         {
-            _logger.LogInformation("Calling api GetDashboardSummaryAsync with clientId={clientId}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}", clientId, senderId, fromDate, toDate);
+            _logger.LogDebug("Calling api GetDashboardSummaryAsync with clientId={clientId}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}", clientId, senderId, fromDate, toDate);
 
             if (clientId <= 0)
                 return Ok(new { Message = "Please enter client id" });
@@ -60,7 +60,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("gettemplateinsight")]
         public async Task<ActionResult> GetTemplateInsightAsync(int templateId = 0, DateTime? fromDate = null, DateTime? toDate = null)
         {
-            _logger.LogInformation("Calling api GetTemplateInsightAsync with clientId={clientId}, templateId={templateId}, fromDate={fromDate}, toDate={toDate}", clientId, templateId, fromDate, toDate);
+            _logger.LogDebug("Calling api GetTemplateInsightAsync with clientId={clientId}, templateId={templateId}, fromDate={fromDate}, toDate={toDate}", clientId, templateId, fromDate, toDate);
 
             if (clientId <= 0)
                 return Ok(new { Message = "Please enter client id" });

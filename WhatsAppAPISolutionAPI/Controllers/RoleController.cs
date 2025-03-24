@@ -41,7 +41,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getRolelist")]
         public async Task<ActionResult> GetRoleListAsync()
         {
-            _logger.LogInformation("Calling api GetRoleListAsync with clientId={clientId}", clientId);
+            _logger.LogDebug("Calling api GetRoleListAsync with clientId={clientId}", clientId);
 
             var res = await _rolesService.GetRoleListAsync(clientId);
             return Ok(new ApiResult
@@ -55,7 +55,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getRolebyid")]
         public async Task<ActionResult> GetRoleByIdAsync(int id)
         {
-            _logger.LogInformation("Calling api GetRoleByIdAsync with clientId={clientId}, id={id}", clientId, id);
+            _logger.LogDebug("Calling api GetRoleByIdAsync with clientId={clientId}, id={id}", clientId, id);
 
             if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
@@ -65,7 +65,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _rolesService.GetRoleByIdAsync(clientId, id);
 
-            _logger.LogInformation("Received api GetRoleByIdAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api GetRoleByIdAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null)
                 return Ok(new ApiResult { Message = "No record found with this id" });
@@ -81,7 +81,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("addRole")]
         public async Task<IActionResult> AddRoleAsync([FromBody] RoleDto role)
         {
-            _logger.LogInformation("Calling api AddRoleAsync with request={requst}", JsonConvert.SerializeObject(role));
+            _logger.LogDebug("Calling api AddRoleAsync with request={requst}", JsonConvert.SerializeObject(role));
 
             if (role == null)
                 return BadRequest();
@@ -94,7 +94,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _rolesService.AddRoleAsync(clientId, userId, role);
 
-            _logger.LogInformation("Received api AddRoleAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api AddRoleAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -110,7 +110,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPut("updateRole")]
         public async Task<IActionResult> UpdateRoleAsync(RoleDto role)
         {
-            _logger.LogInformation("Calling api UpdateRoleAsync with request={requst}", JsonConvert.SerializeObject(role));
+            _logger.LogDebug("Calling api UpdateRoleAsync with request={requst}", JsonConvert.SerializeObject(role));
 
             if (role == null && !ModelState.IsValid)
                 return BadRequest();
@@ -120,7 +120,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _rolesService.UpdateRoleAsync(clientId, userId, role);
 
-            _logger.LogInformation("Received api UpdateRoleAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api UpdateRoleAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -136,14 +136,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpDelete("deleteRole")]
         public async Task<IActionResult> DeleteRoleAsync(int RoleId)
         {
-            _logger.LogInformation("Calling api DeleteRoleAsync with RoleId={RoleId}", RoleId);
+            _logger.LogDebug("Calling api DeleteRoleAsync with RoleId={RoleId}", RoleId);
 
             if (RoleId <= 0)
                 return NotFound("not found");
 
             var response = await _rolesService.DeleteRoleAsync(RoleId);
 
-            _logger.LogInformation("Received api DeleteRoleAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api DeleteRoleAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -159,7 +159,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getroles")]
         public async Task<IActionResult> GetRolesAsync(string searchStr = "")
         {
-            _logger.LogInformation("Calling api GetRolesAsync with clientId={clientId}, searchStr={searchStr}", clientId, searchStr);
+            _logger.LogDebug("Calling api GetRolesAsync with clientId={clientId}, searchStr={searchStr}", clientId, searchStr);
 
             var models = await _rolesService.GetRolesAsync(clientId, searchStr);
             if (models == null || !models.Any())

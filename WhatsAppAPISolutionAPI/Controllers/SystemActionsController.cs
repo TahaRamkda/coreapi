@@ -40,7 +40,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getsystemactionslist")]
         public async Task<ActionResult> GetSystemActionsListAsync(int SystemActionId = 0, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
         {
-            _logger.LogInformation("Calling api GetSystemActionsListAsync with ClientId={ClientId}, SystemActionId={SystemActionId}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, SystemActionId, SearchStr, SortBy, PageNo, PageSize);
+            _logger.LogDebug("Calling api GetSystemActionsListAsync with ClientId={ClientId}, SystemActionId={SystemActionId}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, SystemActionId, SearchStr, SortBy, PageNo, PageSize);
 
             var res = await _systemActionsService.GetSystemActionsListAsync(clientId, SystemActionId, PageNo, PageSize);
 
@@ -55,7 +55,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getsystemactionsbyid")]
         public async Task<ActionResult> GetSystemActionsByIdAsync(int id)
         {
-            _logger.LogInformation("Calling api GetSystemActionsByIdAsync with clientId={clientId}, id={id}", clientId, id);
+            _logger.LogDebug("Calling api GetSystemActionsByIdAsync with clientId={clientId}, id={id}", clientId, id);
 
             if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
@@ -65,7 +65,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var res = await _systemActionsService.GetSystemActionsByIdAsync(clientId, id);
 
-            _logger.LogInformation("Received api GetSystemActionsByIdAsync response with data={data}", JsonConvert.SerializeObject(res));
+            _logger.LogDebug("Received api GetSystemActionsByIdAsync response with data={data}", JsonConvert.SerializeObject(res));
 
             if (res == null)
                 return Ok(new ApiResult { Message = "No record found with this id" });
@@ -81,7 +81,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("addsystemactions")]
         public async Task<IActionResult> AddSystemActionsAsync([FromBody] SystemActionsDto systemActions)
         {
-            _logger.LogInformation("Calling api AddSystemActionsAsync with request={requst}", JsonConvert.SerializeObject(systemActions));
+            _logger.LogDebug("Calling api AddSystemActionsAsync with request={requst}", JsonConvert.SerializeObject(systemActions));
 
             if (systemActions == null)
                 return BadRequest();
@@ -91,7 +91,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _systemActionsService.AddSystemActionsAsync(clientId, userId, systemActions);
 
-            _logger.LogInformation("Received api AddSystemActionsAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api AddSystemActionsAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -107,7 +107,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPut("updatesystemactions")]
         public async Task<IActionResult> UpdateSystemActionsAsync(SystemActionsDto systemActions)
         {
-            _logger.LogInformation("Calling api UpdateSystemActionsAsync with request={requst}", JsonConvert.SerializeObject(systemActions));
+            _logger.LogDebug("Calling api UpdateSystemActionsAsync with request={requst}", JsonConvert.SerializeObject(systemActions));
 
             if (systemActions == null)
                 return BadRequest();
@@ -117,7 +117,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _systemActionsService.UpdateSystemActionsAsync(clientId, userId, systemActions);
 
-            _logger.LogInformation("Received api UpdateSystemActionsAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api UpdateSystemActionsAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -133,14 +133,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpDelete("deletesystemactions")]
         public async Task<IActionResult> DeleteSystemActionsAsync(int systemActionsId)
         {
-            _logger.LogInformation("Calling api DeleteSystemActionsAsync with SystemActionsId={SystemActionsId}", systemActionsId);
+            _logger.LogDebug("Calling api DeleteSystemActionsAsync with SystemActionsId={SystemActionsId}", systemActionsId);
 
             if (systemActionsId <= 0)
                 return NotFound("not found");
 
             var response = await _systemActionsService.DeleteSystemActionsAsync(systemActionsId);
 
-            _logger.LogInformation("Received api DeleteSystemActionsAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api DeleteSystemActionsAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -156,7 +156,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getsystemactions")]
         public async Task<IActionResult> GetSystemActionsAsync(string searchStr = "")
         {
-            _logger.LogInformation("Calling api GetSystemActionsAsync with clientId={ClientId}, searchStr={searchStr}", clientId, searchStr);
+            _logger.LogDebug("Calling api GetSystemActionsAsync with clientId={ClientId}, searchStr={searchStr}", clientId, searchStr);
 
             var systemActions = await _systemActionsService.GetSystemActionsAsync(clientId, searchStr);
 

@@ -33,7 +33,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("uploadmedia")]
         public async Task<ActionResult> UploadMediaAsync([FromForm] MediaFileDto model)
         {
-            _logger.LogInformation("Calling api UploadMediaAsync with request={requst}", JsonConvert.SerializeObject(model));
+            _logger.LogDebug("Calling api UploadMediaAsync with request={requst}", JsonConvert.SerializeObject(model));
 
             if (model == null)
                 return BadRequest();
@@ -61,7 +61,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             model.MediaSourceId = (int)MediaSourceEnum.Admin;
             var response = await _mediaService.UploadMediaAsync(model);
 
-            _logger.LogInformation("Received api UploadMediaAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api UploadMediaAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -77,7 +77,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getmedialist")]
         public async Task<ActionResult> GetMediaListAsync(int senderId = 0, string contentTypeStr = "", int PageNo = 0, int PageSize = int.MaxValue, int MediaTypeId = 0)
         {
-            _logger.LogInformation("Calling api GetMediaListAsync with clientId={clientId}, senderId={senderId}, contentTypeStr={contentTypeStr}, pageNo={pageNo}, pageSize={pageSize}, @MediaTypeId={@MediaTypeId}", clientId, senderId, contentTypeStr, PageNo, PageSize, MediaTypeId);
+            _logger.LogDebug("Calling api GetMediaListAsync with clientId={clientId}, senderId={senderId}, contentTypeStr={contentTypeStr}, pageNo={pageNo}, pageSize={pageSize}, @MediaTypeId={@MediaTypeId}", clientId, senderId, contentTypeStr, PageNo, PageSize, MediaTypeId);
 
             var res = await _mediaService.GetMediaListAsync(clientId, senderId, contentTypeStr, PageNo, PageSize, MediaTypeId);
             return Ok(new ApiResult
@@ -91,14 +91,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpDelete("deletemedia")]
         public async Task<IActionResult> DeleteMediaAsync(int id)
         {
-            _logger.LogInformation("Calling api DeleteMediaAsync with id={id}", id);
+            _logger.LogDebug("Calling api DeleteMediaAsync with id={id}", id);
 
             if (id <= 0)
                 return NotFound("not found");
 
             var response = await _mediaService.DeleteMediaAsync(id);
 
-            _logger.LogInformation("Received api DeleteMediaAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api DeleteMediaAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });

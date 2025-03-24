@@ -36,7 +36,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getapimessagelist")]
         public async Task<ActionResult> GetApiMessageListAsync(int APIMessageId = 0, int TemplateId = 0, int Status = 0, string WaID = "", DateTime? FromDate = null, DateTime? ToDate = null, string SearchStr = "", string TrxType = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
         {
-            _logger.LogInformation("Calling api GetApiMessageList with ClientId={ClientId}, APIMessageId={APIMessageId}, TemplateId={TemplateId}, Status={Status}, WaID={WaID}, FromDate={FromDate}, ToDate={ToDate}, SearchStr={SearchStr}, TrxType={TrxType}, SortBy={SortBy}, PageNo={PageNo}, PageSize={PageSize}",
+            _logger.LogDebug("Calling api GetApiMessageList with ClientId={ClientId}, APIMessageId={APIMessageId}, TemplateId={TemplateId}, Status={Status}, WaID={WaID}, FromDate={FromDate}, ToDate={ToDate}, SearchStr={SearchStr}, TrxType={TrxType}, SortBy={SortBy}, PageNo={PageNo}, PageSize={PageSize}",
             clientId, APIMessageId, TemplateId, Status, WaID, FromDate, ToDate, SearchStr, TrxType, SortBy, PageNo, PageSize);
 
             var res = await _aPIMessageService.GetAPIMessageListAsync(clientId, APIMessageId, TemplateId, Status, WaID, FromDate, ToDate, SearchStr, TrxType, SortBy, PageNo, PageSize);

@@ -40,7 +40,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getpermissionlist")]
         public async Task<ActionResult> GetPermissionListAsync(int RoleId = 0)
         {
-            _logger.LogInformation("Calling api GetPermissionListAsync with clientId={clientId}, RoleId={RoleId}", clientId, RoleId);
+            _logger.LogDebug("Calling api GetPermissionListAsync with clientId={clientId}, RoleId={RoleId}", clientId, RoleId);
 
             var res = await _permissionService.GetPermissionListAsync(clientId, RoleId);
             return Ok(new ApiResult
@@ -54,7 +54,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("addpermission")]
         public async Task<IActionResult> AddPermissionAsync([FromBody] PermissionDto permission)
         {
-            _logger.LogInformation("Calling api AddPermissionAsync with request={requst}", JsonConvert.SerializeObject(permission));
+            _logger.LogDebug("Calling api AddPermissionAsync with request={requst}", JsonConvert.SerializeObject(permission));
 
             if (permission == null)
                 return BadRequest();
@@ -64,7 +64,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _permissionService.AddPermissionAsync(clientId, userId, permission);
 
-            _logger.LogInformation("Received api AddPermissionAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api AddPermissionAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });

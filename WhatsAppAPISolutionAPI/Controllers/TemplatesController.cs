@@ -54,7 +54,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("gettemplateslist")]
         public async Task<ActionResult> GetTemplatesListAsync(string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
-            _logger.LogInformation("Calling api GetAgentsListAsync with clientId={clientId}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, searchStr, sortBy, pageNo, pageSize);
+            _logger.LogDebug("Calling api GetAgentsListAsync with clientId={clientId}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, searchStr, sortBy, pageNo, pageSize);
 
             var res = await _templateService.GetTemplateListAsync(clientId, searchStr, sortBy, pageNo, pageSize);
             return Ok(new ApiResult
@@ -68,7 +68,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("addTemplate")]
         public async Task<IActionResult> AddTemplateAsync([FromBody] TemplateDto model)
         {
-            _logger.LogInformation("Calling api AddTemplateAsync with request {request}", JsonConvert.SerializeObject(model));
+            _logger.LogDebug("Calling api AddTemplateAsync with request {request}", JsonConvert.SerializeObject(model));
 
             if (model == null)
                 return BadRequest();
@@ -158,7 +158,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             }
 
             var response = await _templateService.AddTemplateAsync(clientId, userId, model);
-            _logger.LogInformation("Received api AddTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api AddTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -174,14 +174,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpDelete("deletetemplate")]
         public async Task<IActionResult> DeleteTemplateAsync(int Id)
         {
-            _logger.LogInformation("Calling api DeleteTemplateAsync with id={Id}", Id);
+            _logger.LogDebug("Calling api DeleteTemplateAsync with id={Id}", Id);
 
             if (Id <= 0)
                 return NotFound("not found");
 
             var response = await _templateService.DeleteTemplateAsync(Id);
 
-            _logger.LogInformation("Received api DeleteTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api DeleteTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -198,7 +198,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("templatesyncbyid")]
         public async Task<IActionResult> TemplateSyncById(int Id)
         {
-            _logger.LogInformation("Calling api TemplateSyncById with Id={Id}", Id);
+            _logger.LogDebug("Calling api TemplateSyncById with Id={Id}", Id);
 
             try
             {
@@ -209,7 +209,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 if (template == null)
                     return Ok(new ApiResult { Message = "Incorrect template id" });
 
-                _logger.LogInformation($"Input json: {JsonConvert.SerializeObject(template.TemplateId)}");
+                _logger.LogDebug($"Input json: {JsonConvert.SerializeObject(template.TemplateId)}");
 
                 var fullUrl = String.Concat(baseUrl, $"//api/template/synctemplatebyid?messageTemplateId={template.TemplateId}");
                 var url = $"/api/template/synctemplatebyid?clientId={template.ClientId}&messageTemplateId={template.TemplateId}";
@@ -239,11 +239,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("gettemplatedetails")]
         public async Task<ActionResult> GetTemplateDetailsAsync(int Id = 0)
         {
-            _logger.LogInformation("Calling api GetTemplateDetailsAsync with ClientId={ClientId} and Id={Id}", clientId, Id);
+            _logger.LogDebug("Calling api GetTemplateDetailsAsync with ClientId={ClientId} and Id={Id}", clientId, Id);
 
             var response = await _templateService.GetTemplateDetailAsync(clientId, Id);
 
-            _logger.LogInformation("Received api GetTemplateDetailsAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api GetTemplateDetailsAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             return Ok(new ApiResult
             {
@@ -256,7 +256,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("gettemplates")]
         public async Task<IActionResult> GetTemplatesAsync(int clientId, int senderId = 0, string searchStr = "")
         {
-            _logger.LogInformation("Calling api GetTemplatesAsync with ClientId={ClientId}, senderId={senderId}, searchStr={searchStr}", clientId, senderId, searchStr);
+            _logger.LogDebug("Calling api GetTemplatesAsync with ClientId={ClientId}, senderId={senderId}, searchStr={searchStr}", clientId, senderId, searchStr);
 
             var templates = await _templateService.GetTemplatesAsync(clientId, senderId, searchStr);
             if (templates == null || !templates.Any())
@@ -273,7 +273,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("gettemplatecategories")]
         public async Task<IActionResult> GetTemplateCategoriesAsync(string searchStr = "")
         {
-            _logger.LogInformation("Calling api GetTemplateCategoriesAsync with searchStr={searchStr}", searchStr);
+            _logger.LogDebug("Calling api GetTemplateCategoriesAsync with searchStr={searchStr}", searchStr);
 
             var models = await _templateService.GetTemplateCategoriesAsync(searchStr);
             if (models == null || !models.Any())
@@ -290,7 +290,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getlanguages")]
         public async Task<IActionResult> GetLanguagesAsync(string searchStr = "")
         {
-            _logger.LogInformation("Calling api GetLanguagesAsync with searchStr={searchStr}", searchStr);
+            _logger.LogDebug("Calling api GetLanguagesAsync with searchStr={searchStr}", searchStr);
 
             var models = await _templateService.GetLanguagesAsync(searchStr);
             if (models == null || !models.Any())

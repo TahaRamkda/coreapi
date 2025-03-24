@@ -39,7 +39,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> AddInteractiveTemplateAsync(int clientId, int userId, InteractiveTemplateDto model)
         {
-            _logger.LogInformation("Calling function AddInteractiveTemplateAsync with received object {object}", JsonConvert.SerializeObject(model));
+            _logger.LogDebug("Calling function AddInteractiveTemplateAsync with received object {object}", JsonConvert.SerializeObject(model));
             model.Name = model.Name.Replace(" ", "_").ToLower().Trim();
             List<string> interactiveParameters = new List<string>();
 
@@ -198,7 +198,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> UpdateInteractiveTemplateAsync(int clientId, int userId, InteractiveTemplateDto model)
         {
-            _logger.LogInformation("Calling function UpdateInteractiveTemplateAsync with received object {object}", JsonConvert.SerializeObject(model));
+            _logger.LogDebug("Calling function UpdateInteractiveTemplateAsync with received object {object}", JsonConvert.SerializeObject(model));
             model.Name = model.Name.Replace(" ", "_").ToLower().Trim();
             List<string> interactiveParameters = new List<string>();
 

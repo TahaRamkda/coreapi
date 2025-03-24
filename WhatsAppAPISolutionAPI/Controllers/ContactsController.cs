@@ -38,7 +38,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getcontactslist")]
         public async Task<ActionResult> GetContactsListAsync(int GroupId = 0, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
         {
-            _logger.LogInformation("Calling api GetContactsListAsync with clientId={clientId}, GroupId={GroupId}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, GroupId, SearchStr, SortBy, PageNo, PageSize);
+            _logger.LogDebug("Calling api GetContactsListAsync with clientId={clientId}, GroupId={GroupId}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, GroupId, SearchStr, SortBy, PageNo, PageSize);
 
             var res = await _contactService.GetContactListAsync(clientId, GroupId, SearchStr, SortBy, PageNo, PageSize);
             return Ok(new ApiResult
@@ -52,7 +52,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getcontactbyid")]
         public async Task<ActionResult> GetContactByIdAsync(int id)
         {
-            _logger.LogInformation("Calling api GetContactByIdAsync with clientId={clientId}, id={id}", clientId, id);
+            _logger.LogDebug("Calling api GetContactByIdAsync with clientId={clientId}, id={id}", clientId, id);
 
             if (clientId <= 0)
                 return Ok(new { Message = "Please enter client id" });
@@ -62,7 +62,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var res = await _contactService.GetContactByIdAsync(clientId, id);
 
-            _logger.LogInformation("Received api GetContactByIdAsync response with data={data}", JsonConvert.SerializeObject(res));
+            _logger.LogDebug("Received api GetContactByIdAsync response with data={data}", JsonConvert.SerializeObject(res));
 
             if (res == null)
                 return Ok(new ApiResult { Message = "No record found with this id" });
@@ -78,7 +78,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("addContact")]
         public async Task<IActionResult> AddContactAsync([FromBody] ContactDto contact)
         {
-            _logger.LogInformation("Calling api AddContactAsync with request={requst}", JsonConvert.SerializeObject(contact));
+            _logger.LogDebug("Calling api AddContactAsync with request={requst}", JsonConvert.SerializeObject(contact));
 
             if (contact == null)
                 return BadRequest();
@@ -88,7 +88,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _contactService.AddContactAsync(clientId, userId, contact);
 
-            _logger.LogInformation("Received api AddContactAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api AddContactAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -104,7 +104,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPut("updatecontact")]
         public async Task<IActionResult> UpdateContactAsync(ContactDto contact)
         {
-            _logger.LogInformation("Calling api UpdateContactAsync with request={requst}", JsonConvert.SerializeObject(contact));
+            _logger.LogDebug("Calling api UpdateContactAsync with request={requst}", JsonConvert.SerializeObject(contact));
 
             if (contact == null)
                 return BadRequest();
@@ -114,7 +114,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _contactService.UpdateContactAsync(clientId, contact);
 
-            _logger.LogInformation("Received api UpdateContactAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api UpdateContactAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -130,14 +130,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpDelete("deletecontact")]
         public async Task<IActionResult> DeleteContactAsync(int ContactId)
         {
-            _logger.LogInformation("Calling api DeleteContactAsync with ContactId={ContactId}", ContactId);
+            _logger.LogDebug("Calling api DeleteContactAsync with ContactId={ContactId}", ContactId);
 
             if (ContactId <= 0)
                 return NotFound("not found");
 
             var response = await _contactService.DeleteContactAsync(ContactId);
 
-            _logger.LogInformation("Received api DeleteContactAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api DeleteContactAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -153,7 +153,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("importcontacts")]
         public async Task<IActionResult> ImportContactsAsync([FromForm] ImportContactDto model)
         {
-            _logger.LogInformation("Calling api ImportContactsAsync with request={requst}", JsonConvert.SerializeObject(model));
+            _logger.LogDebug("Calling api ImportContactsAsync with request={requst}", JsonConvert.SerializeObject(model));
 
             if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
@@ -163,7 +163,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _contactService.ImportBulkContacts(clientId, userId, model);
 
-            _logger.LogInformation("Received api ImportContactsAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api ImportContactsAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });

@@ -23,7 +23,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getmasterdatalist")]
         public async Task<ActionResult> GetMasterDataListAsync(string type)
         {
-            _logger.LogInformation("Calling api GetMasterDataListAsync with type={type}", type);
+            _logger.LogDebug("Calling api GetMasterDataListAsync with type={type}", type);
 
             var res = await _masterDataService.GetMasterDataListAsync(type);
             return Ok(new ApiResult

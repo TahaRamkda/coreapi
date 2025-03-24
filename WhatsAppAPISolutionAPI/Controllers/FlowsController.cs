@@ -47,7 +47,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getflowslist")]
         public async Task<ActionResult> GetFlowsListAsync(string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue)
         {
-            _logger.LogInformation("Calling api GetFlowsListAsync with clientId={clientId}, searchStr={searchStr}, pageNo={pageNo}, pageSize={pageSize}", clientId, searchStr, pageNo, pageSize);
+            _logger.LogDebug("Calling api GetFlowsListAsync with clientId={clientId}, searchStr={searchStr}, pageNo={pageNo}, pageSize={pageSize}", clientId, searchStr, pageNo, pageSize);
 
             var res = await _flowsService.GetFlowListAsync(clientId, searchStr, pageNo, pageSize);
             return Ok(new ApiResult
@@ -62,7 +62,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         public async Task<ActionResult> AddFlowAsync([FromBody] FlowDTO model)
         {
             // Log the API call with clientId and the serialized model data
-            _logger.LogInformation("Calling api GetGroupByIdAsync with clientId={clientId} and object={object}", clientId, JsonConvert.SerializeObject(model));
+            _logger.LogDebug("Calling api GetGroupByIdAsync with clientId={clientId} and object={object}", clientId, JsonConvert.SerializeObject(model));
 
             // Validate if the model is null
             if (model == null)
@@ -125,7 +125,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             var response = await _flowsService.AddFlowAsync(clientId, userId, model);
 
             // Log the response received from the service
-            _logger.LogInformation("Received api CreateFlows response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api CreateFlows response with data={data}", JsonConvert.SerializeObject(response));
 
             // Check if the response is null or indicates failure (Status <= 0)
             if (response == null || response.Status <= 0)
@@ -143,7 +143,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPut("updateflow")]
         public async Task<ActionResult> UpdateFlowAsync([FromBody] FlowDTO model)
         {
-            _logger.LogInformation("Calling api UpdateFlowAsync with clientId={clientId} and object={object}", clientId, JsonConvert.SerializeObject(model));
+            _logger.LogDebug("Calling api UpdateFlowAsync with clientId={clientId} and object={object}", clientId, JsonConvert.SerializeObject(model));
 
             if (model == null)
                 return BadRequest();
@@ -192,7 +192,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 return Ok(new ApiResult { Message = "FlowOption text length cannot exceed 30 characters." });
 
             var response = await _flowsService.UpdateFlowAsync(clientId, userId, model);
-            _logger.LogInformation("Received api UpdateFlow response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api UpdateFlow response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -208,7 +208,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("publishflow")]
         public async Task<ActionResult> PublishFlowAsync(int flowId)
         {
-            _logger.LogInformation("Calling api PublishFlowAsync with clientId={clientId} and flowId={flowId}", clientId, flowId);
+            _logger.LogDebug("Calling api PublishFlowAsync with clientId={clientId} and flowId={flowId}", clientId, flowId);
 
             if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
@@ -226,7 +226,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _flowsService.PublishFlowAsync(clientId, flowId);
 
-            _logger.LogInformation("Received api PublishFlowAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api PublishFlowAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -242,7 +242,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getflowjsonbyid")]
         public async Task<IActionResult> GetFlowJsonByIdAsync(int flowId)
         {
-            _logger.LogInformation("Calling api GetFlowJsonByIdAsync with clientId={clientId} and flowId={flowId}", clientId, flowId);
+            _logger.LogDebug("Calling api GetFlowJsonByIdAsync with clientId={clientId} and flowId={flowId}", clientId, flowId);
 
             // Fetch the flow by ID and ClientId
             var flow = await _dbContext.Flows.FirstOrDefaultAsync(f => f.FlowId == flowId && f.ClientId == clientId);
@@ -251,7 +251,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var flowJson = await _flowOpsService.PrepareFlowJson(flowId);
 
-            _logger.LogInformation("Received api GetFlowJsonByIdAsync with data={data}", flowJson);
+            _logger.LogDebug("Received api GetFlowJsonByIdAsync with data={data}", flowJson);
 
             return Ok(flowJson); // Returning JSON response
         }
@@ -259,14 +259,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpDelete("deleteflow")]
         public async Task<IActionResult> DeleteFlowAsync(int flowId)
         {
-            _logger.LogInformation("Calling api DeleteFlowAsync with id={Id}", flowId);
+            _logger.LogDebug("Calling api DeleteFlowAsync with id={Id}", flowId);
 
             if (flowId <= 0)
                 return Ok(new ApiResult { Message = "Please select flow" });
 
             var response = await _flowsService.DeleteFlowAsync(flowId);
 
-            _logger.LogInformation("Received api DeleteFlowAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api DeleteFlowAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -282,7 +282,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getflowdetailsbyid")]
         public async Task<IActionResult> GetFlowDetailsByIdAsync(int flowId)
         {
-            _logger.LogInformation("Calling api GetFlowDetailsByIdAsync with id={Id}", flowId);
+            _logger.LogDebug("Calling api GetFlowDetailsByIdAsync with id={Id}", flowId);
 
             // Fetch the flow by ID and ClientId
             var flow = await _dbContext.Flows.FirstOrDefaultAsync(f => f.FlowId == flowId && f.ClientId == clientId);
@@ -291,7 +291,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var flowJson = await _flowsService.GetFlowDetailsByIdAsync(flowId);
 
-            _logger.LogInformation("Received api GetFlowDetailsByIdAsync response with data={data}", JsonConvert.SerializeObject(flowJson));
+            _logger.LogDebug("Received api GetFlowDetailsByIdAsync response with data={data}", JsonConvert.SerializeObject(flowJson));
 
             return Ok(flowJson); // Returning JSON response
         }
@@ -299,7 +299,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getflows")]
         public async Task<IActionResult> GetFlowAsync(int senderId = 0, string searchStr = "")
         {
-            _logger.LogInformation("Calling api GetFlowAsync with ClientId={ClientId}, senderId={senderId}, searchStr={searchStr}", clientId, senderId, searchStr);
+            _logger.LogDebug("Calling api GetFlowAsync with ClientId={ClientId}, senderId={senderId}, searchStr={searchStr}", clientId, senderId, searchStr);
 
             var models = await _flowsService.GetFlowsAsync(clientId, senderId, searchStr);
             if (models == null || !models.Any())
@@ -316,7 +316,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("exportsurveyresponse")]
         public async Task<ActionResult> ExportSurveyResponseListAsync(string searchStr = "", int senderId = 0, DateTime? fromDate = null, DateTime? toDate = null, int flowId = 0, int surveyId = 0)
         {
-            _logger.LogInformation("Calling api ExportSurveyResponseListAsync with clientId={clientId}, searchStr={searchStr}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, flowId={flowId}, surveyId={surveyId}", clientId, searchStr, senderId, fromDate, toDate, flowId, surveyId);
+            _logger.LogDebug("Calling api ExportSurveyResponseListAsync with clientId={clientId}, searchStr={searchStr}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, flowId={flowId}, surveyId={surveyId}", clientId, searchStr, senderId, fromDate, toDate, flowId, surveyId);
 
             var res = await _flowsService.ExportSurveyResponseListAsync(clientId, searchStr, senderId, fromDate, toDate, flowId, surveyId);
             var bytes = _exportManager.ExportSurveyResponseToXlsx(res);

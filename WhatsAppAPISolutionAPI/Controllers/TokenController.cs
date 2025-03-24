@@ -42,7 +42,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [Route("refresh")]
         public async Task<IActionResult> Refresh(string accessToken, string refreshToken)
         {
-            _logger.LogInformation("Calling api Refresh with AccessTokenData={AccessTokenData}, RefreshTokenData={RefreshTokenData}", accessToken, refreshToken);
+            _logger.LogDebug("Calling api Refresh with AccessTokenData={AccessTokenData}, RefreshTokenData={RefreshTokenData}", accessToken, refreshToken);
 
             if (String.IsNullOrEmpty(accessToken) || String.IsNullOrEmpty(refreshToken))
                 return BadRequest("Invalid client request");
@@ -71,7 +71,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var users = await _userService.AddUserTokenAsync(user);
 
-            _logger.LogInformation("Received api Refresh response with data={data}", JsonConvert.SerializeObject(users));
+            _logger.LogDebug("Received api Refresh response with data={data}", JsonConvert.SerializeObject(users));
 
             return Ok(new ApiResult
             {
@@ -90,7 +90,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [Route("revoke")]
         public async Task<IActionResult> Revoke(int UserId)
         {
-            _logger.LogInformation("Calling api Revoke with UserId={UserId}", UserId);
+            _logger.LogDebug("Calling api Revoke with UserId={UserId}", UserId);
 
             var data = _dbContext.Users.Where(x => x.UserId == UserId && x.RecordStatus != -1).FirstOrDefault();
             if (data == null)
@@ -107,7 +107,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var users = await _userService.AddUserTokenAsync(user);
 
-            _logger.LogInformation("Received api Revoke response with data={data}", JsonConvert.SerializeObject(users));
+            _logger.LogDebug("Received api Revoke response with data={data}", JsonConvert.SerializeObject(users));
 
             return NoContent();
         }

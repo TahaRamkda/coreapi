@@ -45,7 +45,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getagentlist")]
         public async Task<ActionResult> GetAgentsListAsync(string searchStr = "", int status = 0, int senderId = 0, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
-            _logger.LogInformation("Calling api GetAgentsListAsync with clientId={clientId}, searchStr={searchStr}, status={status}, senderId={senderId}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, searchStr, status, senderId, sortBy, pageNo, pageSize);
+            _logger.LogDebug("Calling api GetAgentsListAsync with clientId={clientId}, searchStr={searchStr}, status={status}, senderId={senderId}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, searchStr, status, senderId, sortBy, pageNo, pageSize);
 
             var res = await _agentsService.GetAgentListAsync(clientId, searchStr, status, senderId, sortBy, pageNo, pageSize);
 
@@ -60,7 +60,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getagentbyid")]
         public async Task<ActionResult> GetAgentByIdAsync(int agentId)
         {
-            _logger.LogInformation("Calling api GetAgentByIdAsync with clientId={clientId}, agentId={agentId}", clientId, agentId);
+            _logger.LogDebug("Calling api GetAgentByIdAsync with clientId={clientId}, agentId={agentId}", clientId, agentId);
 
             if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
@@ -70,7 +70,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _agentsService.GetAgentByIdAsync(clientId, agentId);
 
-            _logger.LogInformation("Received api GetAgentByIdAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api GetAgentByIdAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null)
                 return Ok(new ApiResult { Message = "No record found with this id" });
@@ -86,7 +86,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("addagent")]
         public async Task<IActionResult> AddAgentAsync([FromBody] AgentDto agent)
         {
-            _logger.LogInformation("Calling api AddAgentAsync with request={requst}", JsonConvert.SerializeObject(agent));
+            _logger.LogDebug("Calling api AddAgentAsync with request={requst}", JsonConvert.SerializeObject(agent));
 
             if (agent == null)
                 return BadRequest();
@@ -114,7 +114,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _agentsService.AddAgentAsync(clientId, userId, agent);
 
-            _logger.LogInformation("Received api AddAgentAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api AddAgentAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -130,7 +130,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPut("updateagent")]
         public async Task<IActionResult> UpdateAgentAsync(AgentDto agent)
         {
-            _logger.LogInformation("Calling api UpdateAgentAsync with request={requst}", JsonConvert.SerializeObject(agent));
+            _logger.LogDebug("Calling api UpdateAgentAsync with request={requst}", JsonConvert.SerializeObject(agent));
 
             if (agent == null)
                 return BadRequest();
@@ -147,7 +147,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _agentsService.UpdateAgentAsync(clientId, userId, agent);
 
-            _logger.LogInformation("Received api UpdateAgentAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api UpdateAgentAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult
@@ -167,14 +167,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpDelete("deleteagent")]
         public async Task<IActionResult> DeleteAgentAsync(int Id)
         {
-            _logger.LogInformation("Calling api DeleteAgentAsync with id={Id}", Id);
+            _logger.LogDebug("Calling api DeleteAgentAsync with id={Id}", Id);
 
             if (Id <= 0)
                 return Ok(new ApiResult { Message = "Please select agent" });
 
             var response = await _agentsService.DeleteAgentAsync(Id);
 
-            _logger.LogInformation("Received api DeleteAgentAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api DeleteAgentAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -239,7 +239,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("addagenttimings")]
         public async Task<IActionResult> AddAgentTimingsAsync(AgentTimingDto model)
         {
-            _logger.LogInformation("Calling api AddAgentTimingsAsync with request={request}", JsonConvert.SerializeObject(model));
+            _logger.LogDebug("Calling api AddAgentTimingsAsync with request={request}", JsonConvert.SerializeObject(model));
             if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please select client" });
 
@@ -251,7 +251,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _agentsService.AddAgentTimingsAsync(clientId, userId, model);
 
-            _logger.LogInformation("Received api AddAgentTimingsAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api AddAgentTimingsAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -267,7 +267,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getagenttiminglist")]
         public async Task<ActionResult> GetAgentTimingListAsync(int agentId = 0)
         {
-            _logger.LogInformation("Calling api GetAgentTimingListAsync with clientId={clientId}, agentId={agentId}", clientId, agentId);
+            _logger.LogDebug("Calling api GetAgentTimingListAsync with clientId={clientId}, agentId={agentId}", clientId, agentId);
 
             var res = await _agentsService.GetAgentTimingListAsync(clientId, agentId);
 
@@ -282,7 +282,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getagents")]
         public async Task<IActionResult> GetAgentsAsync(int senderId, string searchStr = "")
         {
-            _logger.LogInformation("Calling api GetAgentsAsync with clientId={clientId}, senderId={senderId}, searchStr={searchStr}", clientId, senderId, searchStr);
+            _logger.LogDebug("Calling api GetAgentsAsync with clientId={clientId}, senderId={senderId}, searchStr={searchStr}", clientId, senderId, searchStr);
 
             var agents = await _agentsService.GetAgentsAsync(clientId, senderId, searchStr);
 
@@ -300,7 +300,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getactiveagents")]
         public async Task<IActionResult> GetActiveAgentsAsync(int senderId, string searchStr = "")
         {
-            _logger.LogInformation("Calling api GetActiveAgentsAsync with clientId={clientId}, senderId={senderId}, searchStr={searchStr}", clientId, senderId, searchStr);
+            _logger.LogDebug("Calling api GetActiveAgentsAsync with clientId={clientId}, senderId={senderId}, searchStr={searchStr}", clientId, senderId, searchStr);
 
             var agents = await _agentsService.GetActiveAgentsAsync(clientId, senderId, searchStr);
 
@@ -318,7 +318,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getagentsupervisorreport")]
         public async Task<ActionResult> GetAgentSupervisorReportListAsync(string searchStr = "", int status = 0, int senderId = 0, DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
-            _logger.LogInformation("Calling api GetAgentSupervisorReportListAsync with clientId={clientId}, searchStr={searchStr}, status={status}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, searchStr, status, senderId, fromDate, toDate, sortBy, pageNo, pageSize);
+            _logger.LogDebug("Calling api GetAgentSupervisorReportListAsync with clientId={clientId}, searchStr={searchStr}, status={status}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, searchStr, status, senderId, fromDate, toDate, sortBy, pageNo, pageSize);
 
             var res = await _agentsService.GetAgentSupervisorReportListAsync(clientId, searchStr, status, senderId, fromDate, toDate, sortBy, pageNo, pageSize);
 
@@ -333,7 +333,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("exportagentsupervisorreport")]
         public async Task<ActionResult> ExportAgentSupervisorReportListAsync(string searchStr = "", int status = 0, int senderId = 0, DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0)
         {
-            _logger.LogInformation("Calling api ExportAgentSupervisorReportListAsync with clientId={clientId}, searchStr={searchStr}, status={status}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, sortBy={sortBy}", clientId, searchStr, status, senderId, fromDate, toDate, sortBy);
+            _logger.LogDebug("Calling api ExportAgentSupervisorReportListAsync with clientId={clientId}, searchStr={searchStr}, status={status}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, sortBy={sortBy}", clientId, searchStr, status, senderId, fromDate, toDate, sortBy);
 
             var res = await _agentsService.GetAgentSupervisorReportListAsync(clientId, searchStr, status, senderId, fromDate, toDate, sortBy);
             var bytes = _exportManager.ExportAgentSupervisorReportToXlsx(res);
@@ -343,7 +343,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getagentdetailsupervisorreport")]
         public async Task<ActionResult> GetAgentDetailSupervisorDetailReportListAsync(string searchStr = "", int status = 0, int senderId = 0, DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
-            _logger.LogInformation("Calling api GetAgentDetailSupervisorReportListAsync with clientId={clientId}, searchStr={searchStr}, status={status}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, searchStr, status, senderId, fromDate, toDate, sortBy, pageNo, pageSize);
+            _logger.LogDebug("Calling api GetAgentDetailSupervisorReportListAsync with clientId={clientId}, searchStr={searchStr}, status={status}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, searchStr, status, senderId, fromDate, toDate, sortBy, pageNo, pageSize);
 
             var res = await _agentsService.GetAgentDetailSupervisorReportListAsync(clientId, searchStr, status, senderId, fromDate, toDate, sortBy, pageNo, pageSize);
 
@@ -358,7 +358,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getexportagentdetailsupervisorreport")]
         public async Task<ActionResult> ExportAgentDetailSupervisorDetailReportListAsync(string searchStr = "", int status = 0, int senderId = 0, DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0)
         {
-            _logger.LogInformation("Calling api ExportAgentDetailSupervisorReportListAsync with clientId={clientId}, searchStr={searchStr}, status={status}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, sortBy={sortBy}", clientId, searchStr, status, senderId, fromDate, toDate, sortBy);
+            _logger.LogDebug("Calling api ExportAgentDetailSupervisorReportListAsync with clientId={clientId}, searchStr={searchStr}, status={status}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, sortBy={sortBy}", clientId, searchStr, status, senderId, fromDate, toDate, sortBy);
 
             var res = await _agentsService.GetAgentDetailSupervisorReportListAsync(clientId, searchStr, status, senderId, fromDate, toDate, sortBy);
             var bytes = _exportManager.ExportAgentDetailSupervisorReportToXlsx(res);
@@ -368,7 +368,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getagentstats")]
         public async Task<ActionResult> GetAgentStatsAsync(int agentId, int senderId = 0)
         {
-            _logger.LogInformation("Calling api GetAgentStatsAsync with clientId={clientId}, agentId={agentId}, senderId={senderId}", clientId, agentId, senderId);
+            _logger.LogDebug("Calling api GetAgentStatsAsync with clientId={clientId}, agentId={agentId}, senderId={senderId}", clientId, agentId, senderId);
 
             var res = await _agentsService.GetAgentStatsAsync(clientId, agentId, senderId);
 
@@ -387,7 +387,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("importbulkagenttimings")]
         public async Task<IActionResult> ImportBulkAgentTimingsAsync([FromForm] ImportBulkAgentTimingDto model)
         {
-            _logger.LogInformation("Calling api ImportBulkAgentTimingsAsync with request={requst}", JsonConvert.SerializeObject(model));
+            _logger.LogDebug("Calling api ImportBulkAgentTimingsAsync with request={requst}", JsonConvert.SerializeObject(model));
 
             if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Please enter client id" });
@@ -397,7 +397,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _agentsService.ImportBulkAgentTimings(clientId, userId, model);
 
-            _logger.LogInformation("Received api ImportBulkAgentTimingsAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api ImportBulkAgentTimingsAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });

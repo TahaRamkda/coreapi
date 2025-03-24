@@ -31,7 +31,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getsupervisordashboard")]
         public async Task<ActionResult> GetSupervisorDashboardAsync(int senderId = 0)
         {
-            _logger.LogInformation("Calling api GetSupervisorDashboardAsync with clientId={clientId}, senderId={senderId}", clientId, senderId);
+            _logger.LogDebug("Calling api GetSupervisorDashboardAsync with clientId={clientId}, senderId={senderId}", clientId, senderId);
 
             var res = await _supervisorService.GetSupervisorDashboardAsync(clientId, senderId);
 

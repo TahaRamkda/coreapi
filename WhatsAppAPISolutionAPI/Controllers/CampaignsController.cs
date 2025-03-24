@@ -41,7 +41,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getcampaignlist")]
         public async Task<ActionResult> GetCampaignListAsync(int CampaignId = 0, DateTime? FromDate = null, DateTime? ToDate = null, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue, int SenderId = 0)
         {
-            _logger.LogInformation("Calling function GetCampaignListAsync request with ClientId={ClientId}, CampaignId={CampaignId}, FromDate={FromDate}, ToDate={ToDate}, SearchStr={SearchStr}, SortBy={SortBy}, PageNo={PageNo}, PageSize={PageSize}",
+            _logger.LogDebug("Calling function GetCampaignListAsync request with ClientId={ClientId}, CampaignId={CampaignId}, FromDate={FromDate}, ToDate={ToDate}, SearchStr={SearchStr}, SortBy={SortBy}, PageNo={PageNo}, PageSize={PageSize}",
             clientId, CampaignId, FromDate, ToDate, SearchStr, SortBy, PageNo, PageSize);
 
             var res = await _campaignService.GetCampaignListAsync(clientId, CampaignId, FromDate, ToDate, SearchStr, SortBy, PageNo, PageSize, SenderId);
@@ -57,7 +57,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("addcampaign")]
         public async Task<IActionResult> AddCampaignAsync([FromBody] CampaignDto campaign)
         {
-            _logger.LogInformation("Calling function AddCampaignAsync with request = {request}", JsonConvert.SerializeObject(campaign));
+            _logger.LogDebug("Calling function AddCampaignAsync with request = {request}", JsonConvert.SerializeObject(campaign));
 
             if (campaign == null)
                 return BadRequest();
@@ -83,7 +83,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 });
             }
 
-            _logger.LogInformation("Received response from AddCampaignAsync with response = {response}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received response from AddCampaignAsync with response = {response}", JsonConvert.SerializeObject(response));
 
             return Ok(new ApiResult
             {
@@ -128,7 +128,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPut("updatecampaign")]
         public async Task<IActionResult> UpdateCampaignAsync([FromBody] CampaignDto campaign)
         {
-            _logger.LogInformation("Calling api UpdateCampaignAsync with request={requst}", JsonConvert.SerializeObject(campaign));
+            _logger.LogDebug("Calling api UpdateCampaignAsync with request={requst}", JsonConvert.SerializeObject(campaign));
 
             if (campaign == null)
                 return Ok(new ApiResult { Message = "Campaign not found" });
@@ -141,7 +141,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _campaignService.UpdateCampaignAsync(clientId, userId, campaign);
 
-            _logger.LogInformation("Received api UpdateCampaignAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api UpdateCampaignAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
@@ -204,7 +204,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getcampaigncontactstats")]
         public async Task<ActionResult> GetCampaignContactStatsAsync(int CampaignId = 0)
         {
-            _logger.LogInformation("Calling function GetCampaignListAsync request with ClientId={ClientId}, CampaignId={CampaignId}", clientId, CampaignId);
+            _logger.LogDebug("Calling function GetCampaignListAsync request with ClientId={ClientId}, CampaignId={CampaignId}", clientId, CampaignId);
 
             if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Client is required" });
@@ -214,7 +214,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var res = await _campaignService.GetCampaignContactStatsAsync(clientId, CampaignId);
 
-            _logger.LogInformation("Received GetCampaignListAsync response with data={data}", JsonConvert.SerializeObject(res));
+            _logger.LogDebug("Received GetCampaignListAsync response with data={data}", JsonConvert.SerializeObject(res));
 
             if (res == null)
                 return Ok(new ApiResult { Message = "No data found" });
@@ -230,7 +230,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("deletefrequentlycontactedcontacts")]
         public async Task<ActionResult> DeleteFrequentlyContactedContactsAsync(int CampaignId, int LastContactedInDays)
         {
-            _logger.LogInformation("Calling function DeleteFrequentlyContactedContactsAsync request with ClientId={ClientId}, CampaignId={CampaignId},LastContactedInDays={LastContactedInDays}", clientId, CampaignId, LastContactedInDays);
+            _logger.LogDebug("Calling function DeleteFrequentlyContactedContactsAsync request with ClientId={ClientId}, CampaignId={CampaignId},LastContactedInDays={LastContactedInDays}", clientId, CampaignId, LastContactedInDays);
 
             if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Client is required" });
@@ -243,7 +243,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var res = await _campaignService.DeleteFreqContactedContactsAsync(clientId, CampaignId, LastContactedInDays);
 
-            _logger.LogInformation("Received DeleteFrequentlyContactedContactsAsync response with data={data}", JsonConvert.SerializeObject(res));
+            _logger.LogDebug("Received DeleteFrequentlyContactedContactsAsync response with data={data}", JsonConvert.SerializeObject(res));
 
             if (res == null)
                 return Ok(new ApiResult { Message = "No data found" });
@@ -259,7 +259,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getcampaigndetail")]
         public async Task<ActionResult> GetCampaignDetailAsync(int CampaignId)
         {
-            _logger.LogInformation("Calling function GetCampaignDetailAsyn request with ClientId={ClientId}, CampaignId={CampaignId}", clientId, CampaignId);
+            _logger.LogDebug("Calling function GetCampaignDetailAsyn request with ClientId={ClientId}, CampaignId={CampaignId}", clientId, CampaignId);
 
             if (clientId <= 0)
                 return Ok(new ApiResult { Message = "Client is required" });
@@ -269,7 +269,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var res = await _campaignService.GetCampaignDetailAsync(clientId, CampaignId);
 
-            _logger.LogInformation("Received GetCampaignDetailAsyn response with data={data}", JsonConvert.SerializeObject(res));
+            _logger.LogDebug("Received GetCampaignDetailAsyn response with data={data}", JsonConvert.SerializeObject(res));
 
             if (res == null)
                 return Ok(new ApiResult { Message = "No data found" });

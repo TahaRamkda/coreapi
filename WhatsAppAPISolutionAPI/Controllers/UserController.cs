@@ -40,13 +40,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("login")]
         public async Task<ActionResult> Login(string Username, string Password)
         {
-            _logger.LogInformation("Calling api Login with Username={Username}, Password={Password}", Username, Password);
+            _logger.LogDebug("Calling api Login with Username={Username}, Password={Password}", Username, Password);
 
             if (!string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password))
             { 
                 var res = await _userService.Login(Username.Trim(), Password.Trim());
 
-                _logger.LogInformation("Received api Login response with data={data}", JsonConvert.SerializeObject(res));
+                _logger.LogDebug("Received api Login response with data={data}", JsonConvert.SerializeObject(res));
 
                 if (res == null || res.Status <= 0)
                 {
@@ -82,7 +82,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
                 var response = await _userService.AddUserTokenAsync(user);
 
-                _logger.LogInformation("Received function AddUserTokenAsync response with data={data}", JsonConvert.SerializeObject(response));
+                _logger.LogDebug("Received function AddUserTokenAsync response with data={data}", JsonConvert.SerializeObject(response));
 
                 res.AccessToken = accessToken;
                 res.RefreshToken = refreshToken;
@@ -105,14 +105,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getuserbyid")]
         public async Task<ActionResult> GetUserByIdAsync(int clientId, int id)
         {
-            _logger.LogInformation("Calling api GetUserByIdAsync with clientId={clientId}, id={id}", clientId, id);
+            _logger.LogDebug("Calling api GetUserByIdAsync with clientId={clientId}, id={id}", clientId, id);
 
             if (id <= 0)
                 return Ok(new ApiResult { Message = "not found" });
 
             var user = await _userService.GetUserByIdAsync(clientId, id);
 
-            _logger.LogInformation("Received api GetUserByIdAsync response with data={data}", JsonConvert.SerializeObject(user));
+            _logger.LogDebug("Received api GetUserByIdAsync response with data={data}", JsonConvert.SerializeObject(user));
 
             if (user == null)
             {
@@ -134,7 +134,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("adduser")]
         public async Task<IActionResult> AddUserAsync([FromBody] UserDto user)
         {
-            _logger.LogInformation("Calling api AddUserAsync with request={requst}", JsonConvert.SerializeObject(user));
+            _logger.LogDebug("Calling api AddUserAsync with request={requst}", JsonConvert.SerializeObject(user));
 
             if (user == null)
             {
@@ -143,7 +143,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _userService.AddUserAsync(user);
 
-            _logger.LogInformation("Received api AddUserAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api AddUserAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
             {
@@ -165,7 +165,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPut("updateuser")]
         public async Task<IActionResult> UpdateUserAsync(UserDto user)
         {
-            _logger.LogInformation("Calling api UpdateUserAsync with request={requst}", JsonConvert.SerializeObject(user));
+            _logger.LogDebug("Calling api UpdateUserAsync with request={requst}", JsonConvert.SerializeObject(user));
 
             if (user == null)
             {
@@ -174,7 +174,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _userService.UpdateUserAsync(user);
 
-            _logger.LogInformation("Received api UpdateUserAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api UpdateUserAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
             {
@@ -196,7 +196,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpDelete("deleteuser")]
         public async Task<IActionResult> DeleteUserAsync(int UserId, int ClientId)
         {
-            _logger.LogInformation("Calling api DeleteUserAsync with UserId={UserId}, ClientId={ClientId}", UserId, ClientId);
+            _logger.LogDebug("Calling api DeleteUserAsync with UserId={UserId}, ClientId={ClientId}", UserId, ClientId);
 
             if (UserId <= 0)
             {
@@ -205,7 +205,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _userService.DeleteUserAsync(UserId, ClientId);
 
-            _logger.LogInformation("Received api DeleteUserAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api DeleteUserAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
             {
@@ -227,7 +227,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPut("changepassword")]
         public async Task<IActionResult> ChangePasswordAsync(UserDto user)
         {
-            _logger.LogInformation("Calling api ChangePasswordAsync with request={requst}", JsonConvert.SerializeObject(user));
+            _logger.LogDebug("Calling api ChangePasswordAsync with request={requst}", JsonConvert.SerializeObject(user));
 
             if (user == null)
             {
@@ -236,7 +236,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             var response = await _userService.ChangePasswordAsync(user);
 
-            _logger.LogInformation("Received api ChangePasswordAsync response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogDebug("Received api ChangePasswordAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             if (response == null || response.Status <= 0)
             {
@@ -258,7 +258,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("getuserslist")]
         public async Task<ActionResult> GetUsersListAsync(int clientId, string searchStr = "")
         {
-            _logger.LogInformation("Calling api GetUsersListAsync with clientId={clientId}, searchStr={searchStr}", clientId, searchStr);
+            _logger.LogDebug("Calling api GetUsersListAsync with clientId={clientId}, searchStr={searchStr}", clientId, searchStr);
 
             try
             {

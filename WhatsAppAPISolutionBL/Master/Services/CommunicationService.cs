@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.FileSystemGlobbing.Internal;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
@@ -37,6 +38,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IMessageSentLogsService _messageSentLogsService;
         private readonly IMediaService _mediaService;
         private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
+        private readonly ILogger<CommunicationService> _logger;
 
         public CommunicationService(
             WhatsAppSolutionContext dbContext,
@@ -46,7 +48,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IMessageSentLogsService messageSentLogsService,
             IInteractiveTemplateService interactiveTemplateService,
             IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings,
-            IMediaService mediaService)
+            IMediaService mediaService,
+            ILogger<CommunicationService> logger)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -56,6 +59,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _messageSentLogsService = messageSentLogsService;
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
             _mediaService = mediaService;
+            _logger = logger;
         }
 
         public async Task<ApiResult> SendTemplateMessageAsync(TemplateMessagePayloadDto model)
@@ -270,13 +274,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
             buttonJson = JsonConvert.SerializeObject(buttons);
 
             var request = JsonConvert.SerializeObject(sendMessage);
+
+            var apiCallStart = DateTime.UtcNow;
+            string apiEndpoint = $"/api/Template/SendBatchTemplateMessage";
+
             var res = new StringContent(request, Encoding.UTF8, "application/json");
-            var response1 = await _httpClient.PostAsync($"/api/Template/SendBatchTemplateMessage", res);
+            var response1 = await _httpClient.PostAsync(apiEndpoint, res);
             var content = await response1.Content.ReadAsStringAsync();
 
-            var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
+            _logger.LogInformation("Calling bridge API apiEndpoint={apiEndpoint} Send Template Message with request={request} and response={response} with apiResponseTime={apiResponseTime}", apiEndpoint, request, content, DateTime.UtcNow.Subtract(apiCallStart).TotalMilliseconds);
 
             List<CustomIntegrationResult> models = new List<CustomIntegrationResult>();
+            var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
             if (result != null && result.success)
             {
                 var data = System.Text.Json.JsonSerializer.Serialize(result.result);
@@ -370,7 +379,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     };
             }
 
-            var request = new SendMessageToBridgeDto
+            var req = new SendMessageToBridgeDto
             {
                 ClientId = model.ClientId.ToString(),
                 SenderNameId = model.SenderId.ToString(),
@@ -381,9 +390,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 PhoneNumbers = model.PhoneNumbers,
             };
 
-            var requestStr = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync($"/api/Message/SendBatchMessage", requestStr);
+            var request = JsonConvert.SerializeObject(req);
+
+            var apiCallStart = DateTime.UtcNow;
+            string apiEndpoint = $"/api/Message/SendBatchMessage";
+
+            var requestStr = new StringContent(request, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync(apiEndpoint, requestStr);
             var content = await response.Content.ReadAsStringAsync();
+
+            _logger.LogInformation("Calling bridge API apiEndpoint={apiEndpoint} SendBatchMessage with request={request} and response={response} with apiResponseTime={apiResponseTime}", apiEndpoint, request, content, DateTime.UtcNow.Subtract(apiCallStart).TotalMilliseconds);
 
             var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
             if (result != null && result.success)
@@ -657,9 +673,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
 
             var request = JsonConvert.SerializeObject(sendMessage);
+
+            var apiCallStart = DateTime.UtcNow;
+            string apiEndpoint = $"/api/Message/SendInteractiveMessage";
+
             var requestStr = new StringContent(request, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync($"/api/Message/SendInteractiveMessage", requestStr);
+            var response = await _httpClient.PostAsync(apiEndpoint, requestStr);
             var content = await response.Content.ReadAsStringAsync();
+
+            _logger.LogInformation("Calling bridge API apiEndpoint={apiEndpoint} SendInteractiveMessage with request={request} and response={response} with apiResponseTime={apiResponseTime}", apiEndpoint, request, content, DateTime.UtcNow.Subtract(apiCallStart).TotalMilliseconds);
 
             var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
             if (result != null && result.success)
@@ -765,8 +787,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
 
             var requestStr = JsonConvert.SerializeObject(request);
-            var response = await _httpClient.PostAsync($"/api/Message/SendBatchMessage", new StringContent(requestStr, Encoding.UTF8, "application/json"));
+
+            var apiCallStart = DateTime.UtcNow;
+            string apiEndpoint = $"/api/Message/SendBatchMessage";
+
+            var response = await _httpClient.PostAsync(apiEndpoint, new StringContent(requestStr, Encoding.UTF8, "application/json"));
             var content = await response.Content.ReadAsStringAsync();
+
+            _logger.LogInformation("Calling bridge API apiEndpoint={apiEndpoint} SendBatchMessage with request={request} and response={response} with apiResponseTime={apiResponseTime}", apiEndpoint, request, content, DateTime.UtcNow.Subtract(apiCallStart).TotalMilliseconds);
 
             var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
             if (result != null && result.success)
