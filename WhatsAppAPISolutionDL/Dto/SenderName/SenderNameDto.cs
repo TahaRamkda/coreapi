@@ -16,5 +16,7 @@ namespace WhatsAppAPISolutionDL.Dto.SenderName
         public int MediaId { get; set; }
         //public int ActionBy { get; set; }
         public IFormFile File { get; set; }
+        public string WebsiteUrl { get; set; }
     }
+    
 }

@@ -32,13 +32,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> AddSenderNameAsync(int clientId, int userId, SenderNameDto senderName)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={clientId}, @SenderName={senderName.SenderName}, @PhoneNumber={senderName.PhoneNumber}, @PhoneId={senderName.PhoneId}, @AppId={senderName.AppId}, @Limit={senderName.Limit}, @Quality={senderName.Quality}, @MediaId={senderName.MediaId}, @Verified={senderName.Verified}, @ActionBy={userId}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={clientId}, @SenderName={senderName.SenderName}, @PhoneNumber={senderName.PhoneNumber}, @PhoneId={senderName.PhoneId}, @AppId={senderName.AppId}, @Limit={senderName.Limit}, @Quality={senderName.Quality}, @MediaId={senderName.MediaId}, @Verified={senderName.Verified}, @ActionBy={userId}, @WebsiteUrl={senderName.WebsiteUrl}").ToListAsync();
             return response[0];
         }
 
         public async Task<UResponse> UpdateSenderNameAsync(int clientId, int userId, SenderNameDto senderName)
         {
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.Update}, @SenderId={senderName.SenderId}, @ClientId={clientId}, @SenderName={senderName.SenderName}, @PhoneNumber={senderName.PhoneNumber}, @PhoneId={senderName.PhoneId}, @AppId={senderName.AppId}, @Limit={senderName.Limit}, @Quality={senderName.Quality}, @MediaId={senderName.MediaId},@Verified={senderName.Verified}, @ActionBy={userId}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.Update}, @SenderId={senderName.SenderId}, @ClientId={clientId}, @SenderName={senderName.SenderName}, @PhoneNumber={senderName.PhoneNumber}, @PhoneId={senderName.PhoneId}, @AppId={senderName.AppId}, @Limit={senderName.Limit}, @Quality={senderName.Quality}, @MediaId={senderName.MediaId},@Verified={senderName.Verified}, @ActionBy={userId}, @WebsiteUrl={senderName.WebsiteUrl}").ToListAsync();
             return response[0];
         }
 

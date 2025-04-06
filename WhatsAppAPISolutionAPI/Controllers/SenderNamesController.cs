@@ -1,266 +1,266 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionDL.Dto.Common;
-using WhatsAppAPISolutionDL.Dto.Media;
-using WhatsAppAPISolutionDL.Dto.SenderName;
-using WhatsAppAPISolutionDL.Enum;
-using WhatsAppAPISolutionDL.Models;
+﻿    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using Newtonsoft.Json;
+    using WhatsAppAPISolutionBL.Master.Interfaces;
+    using WhatsAppAPISolutionDL.Dto.Common;
+    using WhatsAppAPISolutionDL.Dto.Media;
+    using WhatsAppAPISolutionDL.Dto.SenderName;
+    using WhatsAppAPISolutionDL.Enum;
+    using WhatsAppAPISolutionDL.Models;
 
-namespace WhatsAppAPISolutionAPI.Controllers
-{
-    [Route("[controller]")]
-    [ApiController]
-    [Authorize]
-    public class SenderNamesController : ControllerBase
+    namespace WhatsAppAPISolutionAPI.Controllers
     {
-        private readonly int clientId;
-        private readonly int userId;
-        private readonly ISenderNameService _senderNameService;
-        private readonly WhatsAppSolutionContext _dbContext;
-        private readonly ILogger<SenderNamesController> _logger;
-        private readonly IMediaService _mediaService;
-        private readonly IUserService _userService;
-
-        public SenderNamesController(ISenderNameService senderNameService,
-            WhatsAppSolutionContext dbContext,
-            ILogger<SenderNamesController> logger,
-            IMediaService mediaService,
-            IUserService userService)
+        [Route("[controller]")]
+        [ApiController]
+        [Authorize]
+        public class SenderNamesController : ControllerBase
         {
-            _senderNameService = senderNameService;
-            _dbContext = dbContext;
-            _logger = logger;
-            _mediaService = mediaService;
-            _userService = userService;
+            private readonly int clientId;
+            private readonly int userId;
+            private readonly ISenderNameService _senderNameService;
+            private readonly WhatsAppSolutionContext _dbContext;
+            private readonly ILogger<SenderNamesController> _logger;
+            private readonly IMediaService _mediaService;
+            private readonly IUserService _userService;
 
-
-            clientId = _userService.GetClientIdFromAccessToken();
-            userId = _userService.GetUserIdFromAccessToken();
-        }
-
-        [HttpGet("getsenderNameslist")]
-        public async Task<ActionResult> GetSenderNamesListAsync()
-        {
-            _logger.LogDebug("Calling api GetSenderNamesListAsync with clientId={clientId}", clientId);
-
-            var res = await _senderNameService.GetSenderNameListAsync(clientId);
-            return Ok(new ApiResult
+            public SenderNamesController(ISenderNameService senderNameService,
+                WhatsAppSolutionContext dbContext,
+                ILogger<SenderNamesController> logger,
+                IMediaService mediaService,
+                IUserService userService)
             {
-                Success = true,
-                Result = res,
-                Message = "Data fetch successfully"
-            });
-        }
+                _senderNameService = senderNameService;
+                _dbContext = dbContext;
+                _logger = logger;
+                _mediaService = mediaService;
+                _userService = userService;
 
-        [HttpGet("getsenderNamebyid")]
-        public async Task<ActionResult> GetSenderNameByIdAsync(int id)
-        {
-            _logger.LogDebug("Calling api GetSenderNameByIdAsync with clientId={clientId}, id={id}", clientId, id);
 
-            if (clientId <= 0)
-                return Ok(new ApiResult { Message = "Please enter client id" });
-
-            if (id <= 0)
-            {
-                return Ok(new ApiResult { Message = "not found" });
+                clientId = _userService.GetClientIdFromAccessToken();
+                userId = _userService.GetUserIdFromAccessToken();
             }
 
-            var res = await _senderNameService.GetSenderNameByIdAsync(clientId, id);
-
-            _logger.LogDebug("Received api GetSenderNameByIdAsync response with data={data}", JsonConvert.SerializeObject(res));
-
-            if (res == null)
-                return Ok(new ApiResult { Message = "No record found with this id" });
-
-            return Ok(new ApiResult
+            [HttpGet("getsenderNameslist")]
+            public async Task<ActionResult> GetSenderNamesListAsync()
             {
-                Success = true,
-                Result = res,
-                Message = "Data fetch successfully"
-            });
-        }
+                _logger.LogDebug("Calling api GetSenderNamesListAsync with clientId={clientId}", clientId);
 
-        [HttpPost("addsenderName")]
-        public async Task<ActionResult> AddSenderNameAsync([FromForm] SenderNameDto model)
-        {
-            _logger.LogDebug("Calling api AddSenderNameAsync with request={requst}", JsonConvert.SerializeObject(model));
-
-            if (model == null)
-                return BadRequest();
-
-            if (clientId <= 0)
-                return Ok(new ApiResult { Message = "Please enter client id" });
-
-            if (model.File != null && model.File.Length > 0)
-            {
-                var extension = Path.GetExtension(model.File.FileName);
-                if (!_mediaService.CheckAllowedImageType(extension))
+                var res = await _senderNameService.GetSenderNameListAsync(clientId);
+                return Ok(new ApiResult
                 {
-                    return Ok(new ApiResult
-                    {
-                        Message = $"Cannot upload media with file extension {extension}"
-                    });
+                    Success = true,
+                    Result = res,
+                    Message = "Data fetch successfully"
+                });
+            }
+
+            [HttpGet("getsenderNamebyid")]
+            public async Task<ActionResult> GetSenderNameByIdAsync(int id)
+            {
+                _logger.LogDebug("Calling api GetSenderNameByIdAsync with clientId={clientId}, id={id}", clientId, id);
+
+                if (clientId <= 0)
+                    return Ok(new ApiResult { Message = "Please enter client id" });
+
+                if (id <= 0)
+                {
+                    return Ok(new ApiResult { Message = "not found" });
                 }
 
-                var mediaUpload = await _mediaService.UploadMediaAsync(new MediaFileDto
+                var res = await _senderNameService.GetSenderNameByIdAsync(clientId, id);
+
+                _logger.LogDebug("Received api GetSenderNameByIdAsync response with data={data}", JsonConvert.SerializeObject(res));
+
+                if (res == null)
+                    return Ok(new ApiResult { Message = "No record found with this id" });
+
+                return Ok(new ApiResult
                 {
-                    ActionBy = userId,
-                    ClientId = clientId,
-                    UploadToFacebook = false,
-                    File = model.File,
-                    MediaSourceId = (int)MediaSourceEnum.Admin
+                    Success = true,
+                    Result = res,
+                    Message = "Data fetch successfully"
                 });
-
-                if (mediaUpload.Status <= 0)
-                    return Ok(new ApiResult { Message = mediaUpload.Message });
-
-                model.MediaId = mediaUpload.Id;
             }
 
-            var response = await _senderNameService.AddSenderNameAsync(clientId, userId, model);
-
-            _logger.LogDebug("Received api AddSenderNameAsync response with data={data}", JsonConvert.SerializeObject(response));
-
-            if (response == null || response.Status <= 0)
-                return Ok(new ApiResult { Message = response?.Message });
-
-            return Ok(new ApiResult
+            [HttpPost("addsenderName")]
+            public async Task<ActionResult> AddSenderNameAsync([FromForm] SenderNameDto model)
             {
-                Success = true,
-                Result = response,
-                Message = "Data added successfully"
-            });
-        }
+                _logger.LogDebug("Calling api AddSenderNameAsync with request={requst}", JsonConvert.SerializeObject(model));
 
-        [HttpPut("updatesenderName")]
-        public async Task<IActionResult> UpdateSenderNameAsync([FromForm] SenderNameDto model)
-        {
-            _logger.LogDebug("Calling api UpdateSenderNameAsync with request={requst}", JsonConvert.SerializeObject(model));
+                if (model == null)
+                    return BadRequest();
 
-            if (model == null)
-                return BadRequest();
+                if (clientId <= 0)
+                    return Ok(new ApiResult { Message = "Please enter client id" });
 
-            if (clientId <= 0)
-                return Ok(new ApiResult { Message = "Please enter client id" });
-
-            if (model.File != null && model.File.Length > 0)
-            {
-                var extension = Path.GetExtension(model.File.FileName);
-                if (!_mediaService.CheckAllowedImageType(extension))
-                    return Ok(new ApiResult { Message = $"Cannot upload media with file extension {extension}" });
-
-                var mediaUpload = await _mediaService.UploadMediaAsync(new MediaFileDto
+                if (model.File != null && model.File.Length > 0)
                 {
-                    ActionBy = userId,
-                    ClientId = clientId,
-                    UploadToFacebook = false,
-                    File = model.File,
-                    MediaSourceId = (int)MediaSourceEnum.Admin
+                    var extension = Path.GetExtension(model.File.FileName);
+                    if (!_mediaService.CheckAllowedImageType(extension))
+                    {
+                        return Ok(new ApiResult
+                        {
+                            Message = $"Cannot upload media with file extension {extension}"
+                        });
+                    }
+
+                    var mediaUpload = await _mediaService.UploadMediaAsync(new MediaFileDto
+                    {
+                        ActionBy = userId,
+                        ClientId = clientId,
+                        UploadToFacebook = false,
+                        File = model.File,
+                        MediaSourceId = (int)MediaSourceEnum.Admin
+                    });
+
+                    if (mediaUpload.Status <= 0)
+                        return Ok(new ApiResult { Message = mediaUpload.Message });
+
+                    model.MediaId = mediaUpload.Id;
+                }
+
+                var response = await _senderNameService.AddSenderNameAsync(clientId, userId, model);
+
+                _logger.LogDebug("Received api AddSenderNameAsync response with data={data}", JsonConvert.SerializeObject(response));
+
+                if (response == null || response.Status <= 0)
+                    return Ok(new ApiResult { Message = response?.Message });
+
+                return Ok(new ApiResult
+                {
+                    Success = true,
+                    Result = response,
+                    Message = "Data added successfully"
                 });
-
-                if (mediaUpload.Status <= 0)
-                    return Ok(new ApiResult { Message = mediaUpload.Message });
-
-                model.MediaId = mediaUpload.Id;
             }
 
-            var response = await _senderNameService.UpdateSenderNameAsync(clientId, userId, model);
-
-            _logger.LogDebug("Received api UpdateSenderNameAsync response with data={data}", JsonConvert.SerializeObject(response));
-
-            if (response == null || response.Status <= 0)
-                return Ok(new ApiResult { Message = response?.Message });
-
-            return Ok(new ApiResult
+            [HttpPut("updatesenderName")]
+            public async Task<IActionResult> UpdateSenderNameAsync([FromForm] SenderNameDto model)
             {
-                Success = true,
-                Result = response,
-                Message = "Data updated successfully"
-            });
-        }
+                _logger.LogDebug("Calling api UpdateSenderNameAsync with request={requst}", JsonConvert.SerializeObject(model));
 
-        [HttpDelete("deletesenderName")]
-        public async Task<IActionResult> DeleteSenderNameAsync(int SenderNameId)
-        {
-            _logger.LogDebug("Calling api DeleteSenderNameAsync with SenderNameId={SenderNameId}", SenderNameId);
+                if (model == null)
+                    return BadRequest();
 
-            if (SenderNameId <= 0)
-                return NotFound("not found");
+                if (clientId <= 0)
+                    return Ok(new ApiResult { Message = "Please enter client id" });
 
-            var response = await _senderNameService.DeleteSenderNameAsync(SenderNameId);
+                if (model.File != null && model.File.Length > 0)
+                {
+                    var extension = Path.GetExtension(model.File.FileName);
+                    if (!_mediaService.CheckAllowedImageType(extension))
+                        return Ok(new ApiResult { Message = $"Cannot upload media with file extension {extension}" });
 
-            _logger.LogDebug("Received api DeleteSenderNameAsync response with data={data}", JsonConvert.SerializeObject(response));
+                    var mediaUpload = await _mediaService.UploadMediaAsync(new MediaFileDto
+                    {
+                        ActionBy = userId,
+                        ClientId = clientId,
+                        UploadToFacebook = false,
+                        File = model.File,
+                        MediaSourceId = (int)MediaSourceEnum.Admin
+                    });
 
-            if (response == null || response.Status <= 0)
-                return Ok(new ApiResult { Message = response?.Message });
+                    if (mediaUpload.Status <= 0)
+                        return Ok(new ApiResult { Message = mediaUpload.Message });
 
-            return Ok(new ApiResult
-            {
-                Success = true,
-                Result = response,
-                Message = "Data deleted successfully"
-            });
-        }
+                    model.MediaId = mediaUpload.Id;
+                }
 
-        [AllowAnonymous]
-        [HttpGet("getsendernameinformation")]
-        public ActionResult GetSenderNameInformationAsync(int ClientId, int SenderNameId)
-        {
-            _logger.LogDebug("Calling api GetSenderNameInformationAsync with ClientId={ClientId}, SenderNameId={SenderNameId}", ClientId, SenderNameId);
+                var response = await _senderNameService.UpdateSenderNameAsync(clientId, userId, model);
 
-            if (ClientId <= 0)
-            {
-                return NotFound("not found");
+                _logger.LogDebug("Received api UpdateSenderNameAsync response with data={data}", JsonConvert.SerializeObject(response));
+
+                if (response == null || response.Status <= 0)
+                    return Ok(new ApiResult { Message = response?.Message });
+
+                return Ok(new ApiResult
+                {
+                    Success = true,
+                    Result = response,
+                    Message = "Data updated successfully"
+                });
             }
 
-            var response = (from a in _dbContext.SenderNames
-                            join b in _dbContext.Clients on a.ClientId equals b.ClientId
-                            where a.ClientId == ClientId && a.SenderId == SenderNameId && a.RecordStatus != -1 && b.RecordStatus != -1
-                            select new
-                            {
-                                ClientId = a.ClientId,
-                                SenderId = a.SenderId,
-                                SenderName = a.SenderName1,
-                                PhoneNumberId = a.PhoneNumberId,
-                                PhoneNumber = a.PhoneNumber,
-                                BusinessAccountId = a.BusinessAccountId,
-                                AccessToken = b.AccessToken,
-                                AppId = b.AppId,
-                                BusinessId = b.BusinessId,
-                                PublicCertificate = a.PublicCertificate,
-                                PrivateCertificate = a.PrivateCertificate
-                            }).FirstOrDefault();
-
-            _logger.LogDebug("Received api GetSenderNameInformationAsync response with data={data}", JsonConvert.SerializeObject(response));
-
-            if (response == null)
-                return Ok(new ApiResult { Message = "No record found with this id" });
-
-            return Ok(new ApiResult
+            [HttpDelete("deletesenderName")]
+            public async Task<IActionResult> DeleteSenderNameAsync(int SenderNameId)
             {
-                Success = true,
-                Result = response,
-                Message = "Data fetch successfully"
-            });
-        }
+                _logger.LogDebug("Calling api DeleteSenderNameAsync with SenderNameId={SenderNameId}", SenderNameId);
 
-        [HttpGet("getsendernames")]
-        public async Task<IActionResult> GetSenderNamesAsync(string searchStr = "")
-        {
-            _logger.LogDebug("Calling api GetSenderNamesAsync with ClientId={ClientId}, searchStr={searchStr}", clientId, searchStr);
+                if (SenderNameId <= 0)
+                    return NotFound("not found");
 
-            var models = await _senderNameService.GetSenderNamesAsync(clientId, searchStr);
-            if (models == null || !models.Any())
-                return Ok(new ApiResult { Message = "No records found" });
+                var response = await _senderNameService.DeleteSenderNameAsync(SenderNameId);
 
-            return Ok(new ApiResult
+                _logger.LogDebug("Received api DeleteSenderNameAsync response with data={data}", JsonConvert.SerializeObject(response));
+
+                if (response == null || response.Status <= 0)
+                    return Ok(new ApiResult { Message = response?.Message });
+
+                return Ok(new ApiResult
+                {
+                    Success = true,
+                    Result = response,
+                    Message = "Data deleted successfully"
+                });
+            }
+
+            [AllowAnonymous]
+            [HttpGet("getsendernameinformation")]
+            public ActionResult GetSenderNameInformationAsync(int ClientId, int SenderNameId)
             {
-                Success = true,
-                Result = models,
-                Message = String.Empty
-            });
+                _logger.LogDebug("Calling api GetSenderNameInformationAsync with ClientId={ClientId}, SenderNameId={SenderNameId}", ClientId, SenderNameId);
+
+                if (ClientId <= 0)
+                {
+                    return NotFound("not found");
+                }
+
+                var response = (from a in _dbContext.SenderNames
+                                join b in _dbContext.Clients on a.ClientId equals b.ClientId
+                                where a.ClientId == ClientId && a.SenderId == SenderNameId && a.RecordStatus != -1 && b.RecordStatus != -1
+                                select new
+                                {
+                                    ClientId = a.ClientId,
+                                    SenderId = a.SenderId,
+                                    SenderName = a.SenderName1,
+                                    PhoneNumberId = a.PhoneNumberId,
+                                    PhoneNumber = a.PhoneNumber,
+                                    BusinessAccountId = a.BusinessAccountId,
+                                    AccessToken = b.AccessToken,
+                                    AppId = b.AppId,
+                                    BusinessId = b.BusinessId,
+                                    PublicCertificate = a.PublicCertificate,
+                                    PrivateCertificate = a.PrivateCertificate
+                                }).FirstOrDefault();
+
+                _logger.LogDebug("Received api GetSenderNameInformationAsync response with data={data}", JsonConvert.SerializeObject(response));
+
+                if (response == null)
+                    return Ok(new ApiResult { Message = "No record found with this id" });
+
+                return Ok(new ApiResult
+                {
+                    Success = true,
+                    Result = response,
+                    Message = "Data fetch successfully"
+                });
+            }
+
+            [HttpGet("getsendernames")]
+            public async Task<IActionResult> GetSenderNamesAsync(string searchStr = "")
+            {
+                _logger.LogDebug("Calling api GetSenderNamesAsync with ClientId={ClientId}, searchStr={searchStr}", clientId, searchStr);
+
+                var models = await _senderNameService.GetSenderNamesAsync(clientId, searchStr);
+                if (models == null || !models.Any())
+                    return Ok(new ApiResult { Message = "No records found" });
+
+                return Ok(new ApiResult
+                {
+                    Success = true,
+                    Result = models,
+                    Message = String.Empty
+                });
+            }
         }
     }
-}
