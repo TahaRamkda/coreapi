@@ -20,5 +20,6 @@ namespace WhatsAppAPISolutionDL.UserModels.Client
         public decimal? BalanceAlertLimit { get; set; }
         public string Prefix { get; set; }
         public string Timezone { get; set; }
+        public int? Currency { get; set; }
     }
 }

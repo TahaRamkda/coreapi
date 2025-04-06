@@ -19,5 +19,7 @@ namespace WhatsAppAPISolutionDL.Dto.Client
         public decimal? BalanceAlertLimit { get; set; }
         public string AccessToken { get; set; }
         //public int? ActionBy { get; set; }
+
+        public int Currency { get; set; }
     }
 }
