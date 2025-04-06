@@ -35,6 +35,8 @@ namespace WhatsAppAPISolutionDL.Dto.Flow
         public string Text { get; set; }
         public int Type { get; set; }
         public bool Required { get; set; }
+        public int MinSelection { get; set; }
+        public int MaxSelection { get; set; }
 
         public List<FlowOptionDTO> FlowOptions { get; set; } = new();
     }
@@ -43,5 +45,8 @@ namespace WhatsAppAPISolutionDL.Dto.Flow
     {
         public string OptionId { get; set; }
         public string OptionText { get; set; }
+        public string Metadata { get; set; }
+        public string Description { get; set; }
+        public string Image { get; set; }
     }
 }

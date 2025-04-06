@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System.Collections;
 using System.Net.Http.Headers;
 using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
@@ -220,7 +222,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 // Ensure directories exist
                 if (!Directory.Exists(Path.Combine(_uploadPath, mediaFolder)))
-                    Directory.CreateDirectory(mediaFolder);
+                    Directory.CreateDirectory(Path.Combine(_uploadPath, mediaFolder)); 
 
                 // Construct the final file path
                 var filePath = Path.Combine(_uploadPath, mediaFolder, originalFileName);
@@ -352,13 +354,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                         // Ensure directories exist
                         if (!Directory.Exists(Path.Combine(_uploadPath, mediaFolder)))
-                            Directory.CreateDirectory(mediaFolder);
+                            Directory.CreateDirectory(Path.Combine(_uploadPath, mediaFolder));
 
                         // Construct the final file path
                         var filePath = Path.Combine(_uploadPath, mediaFolder, fileName);
-                         
+
                         var mediaPath = Path.Combine(mediaFolder, Path.GetFileName(filePath));
- 
+
                         if (File.Exists(filePath))
                             File.Delete(filePath);
 
@@ -366,7 +368,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         {
                             await mediaResponse.Content.CopyToAsync(fileStream);
                         }
-                         
+
                         var media = await AddMediaAsync(new MediaUploadDto
                         {
                             ClientId = client.ClientId,
@@ -497,6 +499,37 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             extension = extension.ToLower();
             return _allowedDocumentExtensions.Contains(extension.ToLower());
+        }
+
+        public void ExportCatalog(int clientId, int senderId, byte[] byteArray, string localization)
+        {
+            // Determine media type folder name
+            string mediaTypeFolder = String.Empty;
+
+            mediaTypeFolder = Path.Combine(Enum.GetName(MediaSourceEnum.Catalog));
+
+            // Create folder path: uploads/clientId/senderId/mediaType
+            string mediaFolder = _staticFolderPath;
+            if (clientId > 0)
+                mediaFolder = Path.Combine(mediaFolder, clientId.ToString());
+
+            if (senderId > 0)
+                mediaFolder = Path.Combine(mediaFolder, senderId.ToString());
+
+            mediaFolder = Path.Combine(mediaFolder, mediaTypeFolder);
+
+            // Ensure directories exist
+            if (!Directory.Exists(Path.Combine(_uploadPath, mediaFolder)))
+                Directory.CreateDirectory(Path.Combine(_uploadPath, mediaFolder));
+
+            // Construct the final file path
+            var filePath = Path.Combine(_uploadPath, mediaFolder, String.Concat(localization, ".xlsx"));
+
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+
+            // Write the byte array to an Excel file
+            File.WriteAllBytes(filePath, byteArray);
         }
 
         #endregion

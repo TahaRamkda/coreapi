@@ -84,6 +84,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     if (flowControlType == FlowControlType.TextHeading)
                         children.text = flowChildren.ControlText;
 
+                    if (flowControlType == FlowControlType.CheckboxGroup)
+                    {
+                        children.minselection = flowChildren.MinSelection ?? 0;
+                        children.maxselection = flowChildren.MaxSelection ?? 99;
+                    }
+
                     if (flowControlType != FlowControlType.TextHeading)
                     {
                         children.required = flowChildren.Required ?? false;
@@ -113,7 +119,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             children.datasource.Add(new FlowJson.DataSource
                             {
                                 id = flowOption.OptionId,
-                                title = flowOption.OptionText
+                                title = flowOption.OptionText,
+                                metadata = flowOption.Metadata,
+                                description = flowOption.Description
                             });
                         }
                     }

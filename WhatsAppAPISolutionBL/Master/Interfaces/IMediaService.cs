@@ -47,5 +47,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         /// <param name="extension"></param>
         /// <returns></returns>
         bool CheckAllowedTemplateHeaderType(TemplateHeaderEnum headerType, string extension);
+
+        void ExportCatalog(int clientId, int senderId, byte[] byteArray, string localization);
     }
 }

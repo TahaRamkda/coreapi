@@ -1,11 +1,6 @@
-﻿using WhatsAppAPISolutionDL.UserModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using WhatsAppAPISolutionDL.UserModels.Agent;
+using WhatsAppAPISolutionDL.UserModels.Catalog;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
-using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.Flow;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
@@ -19,5 +14,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         byte[] ExportConversationReportToXlsx(IEnumerable<UConversationReportList> report);
         byte[] ExportAgentSupervisorReportToXlsx(IEnumerable<UAgentSupervisorReport> report);
         byte[] ExportSurveyResponseToXlsx(IEnumerable<USurveyResponse> surveyResponses);
+        byte[] ExportCatalogItemsENToXlsx(IEnumerable<UCatalogExport> item);
+        byte[] ExportCatalogItemsARToXlsx(IEnumerable<UCatalogExport> item);
     }
 }

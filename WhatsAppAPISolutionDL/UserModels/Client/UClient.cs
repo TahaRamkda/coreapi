@@ -21,5 +21,6 @@ namespace WhatsAppAPISolutionDL.UserModels.Client
         public string Prefix { get; set; }
         public string Timezone { get; set; }
         public int? Currency { get; set; }
+        public string CurrencyName { get; set; }
     }
 }

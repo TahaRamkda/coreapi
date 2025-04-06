@@ -49,7 +49,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response;
         }
 
-        public async Task<UResponse> AddFlowAsync(int clientId, int userId, FlowDTO obj)
+        public async Task<UResponseWithID> AddFlowAsync(int clientId, int userId, FlowDTO obj)
         {
             try
             {
@@ -67,19 +67,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     && x.FlowLanguage.ToLower() == obj.FlowLanguage.ToLower()).FirstOrDefaultAsync();
 
                 if (flowNameExist != null)
-                    return new UResponse { Message = "Flow with same name already exist" };
+                    return new UResponseWithID { Message = "Flow with same name already exist" };
 
                 string keyNames = string.Join(",", new[] { "FlowDataApiVersion", "FlowVersion", "FlowLayout" });
                 var appSettings = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_Appsettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @KeyName={keyNames}, @ClientId={clientId}, @SenderId={obj.SenderId}").ToListAsync();
 
                 if (appSettings == null && !appSettings.Any())
-                    return new UResponse { Status = 0, Message = "Please enter DataApiVersion/Version or Layout" };
+                    return new UResponseWithID { Status = 0, Message = "Please enter DataApiVersion/Version or Layout" };
 
                 int? surveyId = null;
                 // If ModuleId = 4, insert into Survey table first
                 if (obj.ModuleId == 4)
                 {
-                    var survey = new Survey()
+                    var survey = new Survey
                     {
                         FlowId = 0, // Temporary, will update after Flow insert
                         CreatedBy = userId,
@@ -170,6 +170,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         ControlText = childDto.Text,
                         ControlType = childDto.Type,
                         Required = childDto.Required,
+                        MinSelection = childDto.MinSelection,
+                        MaxSelection = childDto.MaxSelection > 0 ? childDto.MaxSelection : 99,
                         CreatedBy = userId,
                         CreatedDate = DateTime.UtcNow,
                         UpdatedBy = userId,
@@ -184,11 +186,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 // Insert FlowOptions
                 var options = obj.FlowScreens
                     .SelectMany((screenDto, screenIndex) => screenDto.FlowChildren
-                        .SelectMany((childDto, childIndex) => childDto.FlowOptions.Select(optionDto => new FlowOption()
+                        .SelectMany((childDto, childIndex) => childDto.FlowOptions.Select(optionDto => new FlowOption
                         {
                             ScreenChildrenId = children.First(c => c.ControlName == $"{screens[screenIndex].Name}_C{childIndex + 1}").FlowChildrenId, // Match child
                             OptionId = optionDto.OptionId ?? optionDto.OptionText,
                             OptionText = optionDto.OptionText,
+                            Metadata = optionDto.Metadata,
+                            Description = optionDto.Description,
                             CreatedBy = userId,
                             CreatedDate = DateTime.UtcNow,
                             UpdatedBy = userId,
@@ -251,22 +255,24 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                             if (obj.PublishToFB)
                                 await PublishFlowAsync(clientId, flow.FlowId);
+
+                            return new UResponseWithID { Status = 1, Id = flow.FlowId, Message = "Flow added successfully" };
                         }
                         else
-                            return new UResponse { Status = 1, Message = "Flow created in system but not on facebook because unable to get meta flow id from meta" };
+                            return new UResponseWithID { Status = 1, Message = "Flow created in system but not on facebook because unable to get meta flow id from meta" };
                     }
                 }
                 else if (result != null && !result.success)
                 {
                     _logger.LogError("AddFlowAsync - recieved response from bridge FlowOps Api with flow id = {id} and error = {error}", flow.FlowId, JsonConvert.SerializeObject(result.message));
-                    return new UResponse { Status = 0, Message = "Flow created in system but not created on facebook because: \n" + result.message };
+                    return new UResponseWithID { Status = 0, Message = "Flow created in system but not created on facebook because: \n" + result.message };
                 }
 
-                return new UResponse { Status = 1, Message = "Data added successfully" };
+                return new UResponseWithID { Status = 1, Message = "Data added successfully" };
             }
             catch (Exception ex)
             {
-                return new UResponse
+                return new UResponseWithID
                 {
                     Status = 0,
                     Message = ex.Message
@@ -274,7 +280,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
         }
 
-        public async Task<UResponse> UpdateFlowAsync(int clientId, int userId, FlowDTO obj)
+        public async Task<UResponseWithID> UpdateFlowAsync(int clientId, int userId, FlowDTO obj)
         {
             try
             {
@@ -282,20 +288,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var existingFlow = await _dbContext.Flows
                     .FirstOrDefaultAsync(x => x.FlowId == obj.FlowId && x.ClientId == clientId && x.RecordStatus != -1);
                 if (existingFlow == null)
-                    return new UResponse { Status = 0, Message = "Flow not found" };
+                    return new UResponseWithID { Status = 0, Message = "Flow not found" };
 
                 // Replace spaces in FlowName and check for duplicates
                 obj.FlowName = obj.FlowName.Replace(" ", "_").ToLower().Trim();
                 var flowNameExist = await _dbContext.Flows
                     .AnyAsync(x => x.ClientId == clientId && x.SenderId == obj.SenderId && x.FlowId != obj.FlowId && x.FlowName == obj.FlowName && x.FlowLanguage == obj.FlowLanguage);
                 if (flowNameExist)
-                    return new UResponse { Message = "Flow with same name already exists" };
+                    return new UResponseWithID { Message = "Flow with same name already exists" };
 
                 string keyNames = "FlowLayout";
                 var appSettings = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_Appsettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @KeyName={keyNames}, @ClientId={clientId}, @SenderId={obj.SenderId}").ToListAsync();
 
                 if (appSettings == null && !appSettings.Any())
-                    return new UResponse { Status = 0, Message = "Please enter DataApiVersion/Version or Layout" };
+                    return new UResponseWithID { Status = 0, Message = "Please enter DataApiVersion/Version or Layout" };
 
                 int? surveyId = null;
                 if (obj.ModuleId == 4)
@@ -390,6 +396,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         ControlText = childDto.Text,
                         ControlType = childDto.Type,
                         Required = childDto.Required,
+                        MinSelection = childDto.MinSelection,
+                        MaxSelection = childDto.MaxSelection > 0 ? childDto.MaxSelection : 99,
                         CreatedBy = userId,
                         CreatedDate = DateTime.UtcNow,
                         UpdatedBy = userId,
@@ -415,6 +423,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             ScreenChildrenId = children.First(c => c.ControlName == $"{screens[screenIndex].Name}_C{childIndex + 1}").FlowChildrenId,
                             OptionId = optionDto.OptionId ?? optionDto.OptionText,
                             OptionText = optionDto.OptionText,
+                            Metadata = optionDto.Metadata,
+                            Description = optionDto.Description,
                             CreatedBy = userId,
                             CreatedDate = DateTime.UtcNow,
                             UpdatedBy = userId,
@@ -479,22 +489,24 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                             if (obj.PublishToFB)
                                 await PublishFlowAsync(clientId, existingFlow.FlowId);
+
+                            return new UResponseWithID { Status = 1, Id = existingFlow.FlowId, Message = "Flow updated successfully" };
                         }
                         else
-                            return new UResponse { Status = 1, Message = "Flow updated in system but not on Facebook because unable to get meta flow ID from Meta" };
+                            return new UResponseWithID { Status = 201, Message = "Flow updated in system but not on Facebook because unable to get meta flow ID from Meta" };
                     }
                 }
                 else if (result != null && !result.success)
                 {
                     _logger.LogError("UpdateFlowAsync - recieved response from bridge FlowOps Api with flow id = {id} and error = {error}", existingFlow.FlowId, JsonConvert.SerializeObject(result.message));
-                    return new UResponse { Status = 0, Message = "Flow updated in system but not on Facebook because: \n" + result.message };
+                    return new UResponseWithID { Status = 0, Message = "Flow updated in system but not on Facebook because: \n" + result.message };
                 }
 
-                return new UResponse { Status = 1, Message = "Flow updated successfully" };
+                return new UResponseWithID { Status = 1, Message = "Flow updated successfully" };
             }
             catch (Exception ex)
             {
-                return new UResponse { Status = 0, Message = ex.Message };
+                return new UResponseWithID { Status = 0, Message = ex.Message };
             }
         }
 

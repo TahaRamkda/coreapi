@@ -68,6 +68,12 @@ namespace WhatsAppAPISolutionDL.Dto.Flow
             public string name { get; set; }
             public bool? required { get; set; }
 
+            [JsonProperty("min-selected-items")]
+            public int? minselection { get; set; }
+
+            [JsonProperty("max-selected-items")]
+            public int? maxselection { get; set; }
+
             [JsonProperty("data-source")]
             public List<DataSource> datasource { get; set; }
 
@@ -80,6 +86,8 @@ namespace WhatsAppAPISolutionDL.Dto.Flow
         {
             public string id { get; set; }
             public string title { get; set; }
+            public string description { get; set; }
+            public string metadata { get; set; }
         }
 
         [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]

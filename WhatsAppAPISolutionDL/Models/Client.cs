@@ -26,5 +26,6 @@ namespace WhatsAppAPISolutionDL.Models
         public string DefaultMarket { get; set; }
         public string Timezone { get; set; }
         public string Prefix { get; set; }
+        public int? Currency { get; set; }
     }
 }

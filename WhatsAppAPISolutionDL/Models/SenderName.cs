@@ -22,5 +22,6 @@ namespace WhatsAppAPISolutionDL.Models
         public bool? Verified { get; set; }
         public string PublicCertificate { get; set; }
         public string PrivateCertificate { get; set; }
+        public string WebsiteUrl { get; set; }
     }
 }

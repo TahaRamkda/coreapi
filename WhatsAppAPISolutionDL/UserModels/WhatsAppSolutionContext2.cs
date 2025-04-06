@@ -2,6 +2,7 @@
 using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.AppSetting;
 using WhatsAppAPISolutionDL.UserModels.Campaign;
+using WhatsAppAPISolutionDL.UserModels.Catalog;
 using WhatsAppAPISolutionDL.UserModels.Client;
 using WhatsAppAPISolutionDL.UserModels.Contact;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
@@ -86,6 +87,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UMasterData> MasterData { get; set; } = null!;
         public virtual DbSet<UFlow> Flow { get; set; } = null!;
         public virtual DbSet<USurveyResponse> SurveyResponse { get; set; } = null!;
+        public virtual DbSet<UCatalogExport> CatalogExports { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -143,6 +145,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UMasterData>().HasNoKey();
             modelBuilder.Entity<UFlow>().HasNoKey();
             modelBuilder.Entity<USurveyResponse>().HasNoKey();
+            modelBuilder.Entity<UCatalogExport>().HasNoKey();
         }
     }
 }

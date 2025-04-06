@@ -1,8 +1,9 @@
 ﻿using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using WhatsAppAPISolutionBL.Helper; 
+using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.UserModels.Agent;
+using WhatsAppAPISolutionDL.UserModels.Catalog;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
 using WhatsAppAPISolutionDL.UserModels.Flow;
 
@@ -172,5 +173,46 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return ExportToXlsx(properties, surveyResponses);
         }
 
+        public virtual byte[] ExportCatalogItemsENToXlsx(IEnumerable<UCatalogExport> item)
+        {
+            //property array
+            var properties = new[]
+            {
+                new PropertyByName<UCatalogExport>("id", p => p.ItemId),
+                new PropertyByName<UCatalogExport>("title", p => p.ProductNameEn),
+                new PropertyByName<UCatalogExport>("description", p => p.DescriptionEn),
+                new PropertyByName<UCatalogExport>("availability", p => p.Availability),
+                new PropertyByName<UCatalogExport>("condition", p => p.Condition),
+                new PropertyByName<UCatalogExport>("price", p => p.Price),
+                new PropertyByName<UCatalogExport>("link", p => p.Link),
+                new PropertyByName<UCatalogExport>("image_link", p => p.ImageUrl),
+                new PropertyByName<UCatalogExport>("brand", p => p.Brand),
+                new PropertyByName<UCatalogExport>("collection", p => p.CategoryNameEn),
+                new PropertyByName<UCatalogExport>("collection_name", p => p.CategoryNameEn)
+            };
+
+            return ExportToXlsx(properties, item);
+        }
+
+        public virtual byte[] ExportCatalogItemsARToXlsx(IEnumerable<UCatalogExport> item)
+        {
+            //property array
+            var properties = new[]
+            {
+                new PropertyByName<UCatalogExport>("id", p => p.ItemId),
+                new PropertyByName<UCatalogExport>("title", p => p.ProductNameAr),
+                new PropertyByName<UCatalogExport>("description", p => p.DescriptionAr),
+                new PropertyByName<UCatalogExport>("availability", p => p.Availability),
+                new PropertyByName<UCatalogExport>("condition", p => p.Condition),
+                new PropertyByName<UCatalogExport>("price", p => p.Price),
+                new PropertyByName<UCatalogExport>("link", p => p.Link),
+                new PropertyByName<UCatalogExport>("image_link", p => p.ImageUrl),
+                new PropertyByName<UCatalogExport>("brand", p => p.Brand),
+                new PropertyByName<UCatalogExport>("collection", p => p.CategoryNameAr),
+                new PropertyByName<UCatalogExport>("collection_name", p => p.CategoryNameAr)
+            };
+
+            return ExportToXlsx(properties, item);
+        }
     }
 }

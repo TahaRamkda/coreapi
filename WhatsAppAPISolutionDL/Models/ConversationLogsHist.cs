@@ -14,5 +14,8 @@ namespace WhatsAppAPISolutionDL.Models
         public string Comment { get; set; }
         public DateTime? CreatedDate { get; set; }
         public int? CreatedBy { get; set; }
+        public decimal? Cost { get; set; }
+        public decimal? Commission { get; set; }
+        public string WaId { get; set; }
     }
 }

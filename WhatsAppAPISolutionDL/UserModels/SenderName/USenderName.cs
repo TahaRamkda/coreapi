@@ -16,5 +16,6 @@ namespace WhatsAppAPISolutionDL.UserModels.SenderName
         public int? LogoMediaId { get; set; }
         public bool? Verified { get; set; }
         public string MediaPath { get; set; }
+        public string WebsiteUrl { get; set; }
     }
 }

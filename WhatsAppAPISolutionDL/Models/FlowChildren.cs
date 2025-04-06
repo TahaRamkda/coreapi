@@ -15,5 +15,7 @@ namespace WhatsAppAPISolutionDL.Models
         public int? CreatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
         public int? UpdatedBy { get; set; }
+        public int? MinSelection { get; set; }
+        public int? MaxSelection { get; set; }
     }
 }
