@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System;
 using System.Text;
 using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Helper;
@@ -11,8 +12,6 @@ using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
-using WhatsAppAPISolutionDL.UserModels.Agent;
-using WhatsAppAPISolutionDL.UserModels.Template;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -30,14 +29,20 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly HttpClient _httpClient;
         private readonly string baseUrl = String.Empty;
         private readonly IUserService _userService;
+        private readonly IFlowsService _flowsService;
+        private readonly IInteractiveTemplateService _interactiveTemplateService;
 
         public TemplatesController(ITemplateService templateService,
-            WhatsAppSolutionContext dbContext,
+            IFlowsService flowsService,
+            IInteractiveTemplateService interactiveTemplateService,
+        WhatsAppSolutionContext dbContext,
             ILogger<TemplatesController> logger,
             IOptions<BridgeConfigurationSettings> bridgeConfigurationSettings,
             IHttpClientFactory httpClientFactory,
             IUserService userService)
         {
+            _flowsService = flowsService;
+            _interactiveTemplateService = interactiveTemplateService;
             _templateService = templateService;
             _dbContext = dbContext;
             _logger = logger;
@@ -45,6 +50,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             baseUrl = _httpClient.BaseAddress.AbsoluteUri;
             _userService = userService;
+
 
 
             clientId = _userService.GetClientIdFromAccessToken();
@@ -303,5 +309,109 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = String.Empty
             });
         }
+
+        #region GetTemplateVisualization
+        [HttpGet("GetTemplateVisualization")]
+        public async Task<ActionResult> GetFlowVisualization(int templateId, int templateType)
+        {
+            _logger.LogDebug("Fetching Template visualization for TemplateID={templateId}, Type={templateType}", templateId, templateType);
+
+            if (templateId <= 0)
+                return BadRequest(new { Message = "Invalid template ID" });
+
+            if (templateType != 1 && templateType != 2)
+                return BadRequest(new { Message = "Invalid template type (1=Marketing, 2=Interactive)" });
+
+            int senderId = 456; // Example sender ID
+
+            var result = await ProcessTemplatesRecursively(templateId, (TemplateVisualizationEnum)templateType, senderId);
+
+            return Ok(new { Success = true, Data = result });
+        }
+
+        private async Task<List<dynamic>> ProcessTemplatesRecursively(int templateId, TemplateVisualizationEnum templateType, int senderId)
+        {
+            _logger.LogDebug("Fetching Template visualization for TemplateID={templateId}, Type={templateType}, SenderId = {SenderID}", templateId, templateType, senderId);
+
+
+            List<dynamic> templatesList = new List<dynamic>();
+
+            dynamic templateDetails;
+
+            try
+            {
+                if (templateType == TemplateVisualizationEnum.MarketingTemplate) // Marketing Template
+                {
+                    var templateData = await _templateService.GetTemplateDetailAsync(clientId, templateId);
+                    if (templateData == null) return templatesList;
+                    templateDetails = templateData;
+                }
+                else if (templateType == TemplateVisualizationEnum.InteractiveTemplate) // Interactive Template
+                {
+                    var interactiveTemplateData = await _interactiveTemplateService.GetInteractiveTemplateDetailsAsync(clientId, senderId, templateId);
+                    if (interactiveTemplateData == null) return templatesList;
+                    templateDetails = interactiveTemplateData;
+                }
+                else if (templateType == TemplateVisualizationEnum.Flow) // Flow Template
+                {
+                    var flowDto = await _flowsService.GetFlowDetailsByIdAsync(templateId);
+                    if (flowDto == null) return templatesList;
+
+                    // Only select the required non-null fields
+                    templateDetails = new
+                    {
+                        flowId = flowDto.FlowId,
+                        flowName = flowDto.FlowName,
+                        actionId = flowDto.ActionId,
+                        actionType = flowDto.ActionType
+                    };
+                }
+                else
+                {
+                    return templatesList;
+                }
+
+                // Add current template
+                templatesList.Add(new
+                {
+                    Id = templateId,
+                    Type = templateType,
+                    Details = templateDetails
+                });
+
+                // Recursively process buttons
+                var buttons = templateDetails.Buttons as IEnumerable<dynamic>;
+
+                if (buttons != null)
+                {
+                    foreach (var button in buttons)
+                    {
+                        var actionId = (int)button.ActionId; // or string if ActionId is string
+
+                        if ((ActionTypeEnum)button.ActionType == ActionTypeEnum.TEMPLATE) // 1 → TEMPLATE
+                        {
+                            _logger.LogDebug("Processing TEMPLATE type button with  SenderId={SenderId}, ActionId = {button.ActionId}", actionId, senderId);
+
+                            var childTemplates = await ProcessTemplatesRecursively(button.ActionId, TemplateVisualizationEnum.InteractiveTemplate, senderId);
+                            templatesList.AddRange(childTemplates);
+                        }
+                        else if ((ActionTypeEnum)button.ActionType == ActionTypeEnum.FLOW) // 8 → FLOW
+                        {
+                            _logger.LogDebug("Processing FLOW type button with ActionId={ActionId}, SenderId={SenderId}", actionId, senderId);
+
+                            var flowTemplates = await ProcessTemplatesRecursively(button.ActionId, TemplateVisualizationEnum.Flow, senderId);
+                            templatesList.AddRange(flowTemplates);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing templateId={TemplateId}, Type={TemplateType}", templateId, templateType);
+            }
+
+            return templatesList;
+        }
+        #endregion
     }
 }
