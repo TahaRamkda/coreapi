@@ -33,7 +33,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UInteractiveTemplate>> GetInteractiveTemplateListAsync(int clientId, int senderId = 0, string searchStr = "", DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
+            var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.InteractiveTemplates.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId},@SenderId={senderId},@FromDate={fromDate}, @ToDate={toDate},@SearchStr={searchStr},@SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}").ToListAsync();
+            _logger.LogDebug("Calling procedure usp_InteractiveTemplate_Ops with actionId={actionId} and actionName={actionName} ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.List, CrudEnum.List, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
 
@@ -367,7 +369,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UInteractiveTemplateDetail> GetInteractiveTemplateDetailsAsync(int clientId, int senderId, int interactiveTemplateId)
         {
+            var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.InteractiveTemplateDetails.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.GetTemplateDetails}, @ClientId={clientId}, @SenderId={senderId}, @InteractiveTemplateId={interactiveTemplateId}").ToListAsync();
+            _logger.LogDebug("Calling procedure usp_InteractiveTemplate_Ops with actionId={actionId} and actionName={actionName} ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.GetTemplateDetails, CrudEnum.GetTemplateDetails, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             if (response != null && response.Any())
             {
                 var interactiveTemplate = response[0];
@@ -387,13 +391,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UEntityDto>> GetAgentInteractiveTemplatesAsync(int clientId, int senderId, string language = "", string searchStr = "")
         {
+            var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.GetAgentInteractiveTemplates}, @ClientId={clientId},  @SenderId={senderId}, @Language={language},@SearchStr={searchStr}").ToListAsync();
+            _logger.LogDebug("Calling procedure usp_InteractiveTemplate_Ops with actionId={actionId} and actionName={actionName} ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.GetAgentInteractiveTemplates, CrudEnum.GetAgentInteractiveTemplates, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
 
         public async Task<List<UEntityDto>> GetInteractiveTemplateWithoutParamsAsync(int clientId, int senderId, string language = "", string searchStr = "")
         {
+            var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.GetAgentInteractiveTemplatesWithoutParam}, @ClientId={clientId},  @SenderId={senderId}, @Language={language},@SearchStr={searchStr}").ToListAsync();
+            _logger.LogDebug("Calling procedure usp_InteractiveTemplate_Ops with actionId={actionId} and actionName={actionName} ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.GetAgentInteractiveTemplatesWithoutParam, CrudEnum.GetAgentInteractiveTemplatesWithoutParam, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
     }

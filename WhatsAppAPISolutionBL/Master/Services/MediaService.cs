@@ -152,13 +152,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UMediaUpload>> GetMediaListAsync(int clientId, int senderId = 0, string contentTypeStr = "", int PageNo = 0, int PageSize = int.MaxValue, int mediaTypeId = 0)
         {
+            var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.UMediaUploads.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SenderNameId={senderId}, @ContentTypeStr={contentTypeStr}, @PageNo={PageNo}, @PageSize={PageSize}, @MediaTypeId={mediaTypeId}").ToListAsync();
+            _logger.LogDebug("Calling procedure usp_Medias_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.List, CrudEnum.List, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
 
         public async Task<UResponseWithID> AddMediaAsync(MediaUploadDto media)
         {
+            var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={media.ClientId}, @WhatsAppBusinessAccountId={media.WhatsAppBusinessAccountId}, @SenderNameId={media.SenderNameId}, @MediaPath={media.MediaPath}, @ContentType={media.ContentType}, @FileSize={media.FileSize}, @FileName={media.FileName}, @FileExtension={media.FileExtension}, @MediaSourceId={media.MediaSourceId}, @ActionBy={userId}, @MediaId={media.MediaId}, @MediaTypeId={media.MediaTypeId}").ToListAsync();
+            _logger.LogDebug("Calling procedure usp_Medias_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.Add, CrudEnum.Add, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response[0];
         }
 
@@ -177,7 +181,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 int maxFileSize = 1; //Allow atleast 1 mb files
 
                 string keyNames = string.Join(",", new[] { MediaSizeEnum.ImageSizeInMB.ToString(), MediaSizeEnum.VideoSizeInMB.ToString(), MediaSizeEnum.DocumentSizeInMB.ToString(), MediaSizeEnum.AudioSizeInMB.ToString() });
+                var startProcTime = DateTime.UtcNow;
                 var response = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_Appsettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @KeyName={keyNames}, @ClientId={model.ClientId}, @SenderId={model.SenderNameId}").ToListAsync();
+                _logger.LogDebug("Calling procedure usp_Appsettings_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.GetAppSettings, CrudEnum.GetAppSettings, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
 
                 // Determine the key name based on the media type
                 string keyName = mediaTypeId switch
@@ -286,6 +292,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponseWithID> UpdateMediaAsync(MediaUploadDto media)
         {
+
             var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Update}, @Id={media.Id}, @MediaId={media.MediaId}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }

@@ -44,7 +44,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UTemplate>> GetTemplateListAsync(int clientId, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
+            var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.Templates.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SearchStr={searchStr},@SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}").ToListAsync();
+            _logger.LogDebug("Calling procedure usp_Templates_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.List, CrudEnum.List, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
 
@@ -473,7 +475,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UTemplateDetail> GetTemplateDetailAsync(int clientId, int templateId)
         {
+            var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.TemplateDetails.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetTemplateDetails}, @ClientId={clientId}, @TemplatesId={templateId}").ToListAsync();
+            _logger.LogDebug("Calling procedure usp_Templates_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.GetTemplateDetails, CrudEnum.GetTemplateDetails, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+
             if (response != null && response.Any())
             {
                 var template = response[0];
@@ -493,25 +498,33 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         private async Task<List<UTemplateParameter>> GetTemplateParametersAsync(int client_Id, int template_Id = 0)
         {
+            var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.TemplateParameters.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetTemplateParameterDetails}, @ClientId={client_Id}, @TemplatesId={template_Id}").ToListAsync();
+            _logger.LogDebug("Calling procedure usp_Templates_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.GetTemplateParameterDetails, CrudEnum.GetTemplateParameterDetails, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
 
         public async Task<List<UEntityDto>> GetTemplatesAsync(int clientId, int senderId = 0, string searchStr = "")
         {
+            var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId}, @SenderId={senderId}, @SearchStr={searchStr}").ToListAsync();
+            _logger.LogDebug("Calling procedure usp_Templates_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.GetEntities, CrudEnum.GetEntities, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
 
         public async Task<List<UEntity2Dto>> GetTemplateCategoriesAsync(string searchStr = "")
         {
+            var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.Entity2.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetTemplateCategories}, @SearchStr={searchStr}").ToListAsync();
+            _logger.LogDebug("Calling procedure usp_Templates_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.GetTemplateCategories, CrudEnum.GetTemplateCategories, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
 
         public async Task<List<UEntity2Dto>> GetLanguagesAsync(string searchStr = "")
         {
+            var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.Entity2.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetLanguages}, @SearchStr={searchStr}").ToListAsync();
+            _logger.LogDebug("Calling procedure usp_Templates_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime}", (int)CrudEnum.GetLanguages, CrudEnum.GetLanguages, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
     }

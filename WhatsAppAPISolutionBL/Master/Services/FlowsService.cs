@@ -45,7 +45,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UFlow>> GetFlowListAsync(int clientId, string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue)
         {
+            var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.Flow.FromSqlInterpolated($"exec usp_GetFlowList @ClientId={clientId}, @SearchStr={searchStr ?? ""}, @PageNo={pageNo}, @PageSize={pageSize}").ToListAsync();
+            _logger.LogDebug("Calling procedure usp_GetFlowList with ProcResponseTime={ProcResponseTime} ", DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
 
@@ -677,7 +679,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<List<USurveyResponse>> ExportSurveyResponseListAsync(int clientId, string searchStr = "", int senderId = 0,
             DateTime? fromDate = null, DateTime? toDate = null, int flowId = 0, int surveyId = 0)
         {
+            var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.SurveyResponse.FromSqlInterpolated($"exec usp_GetSurveyResponses @ClientId={clientId}, @SearchStr={searchStr ?? ""}, @SenderId={senderId}, @FlowId={flowId}, @SurveyId={surveyId}, @FromDate={fromDate}, @ToDate={toDate}").ToListAsync();
+            _logger.LogDebug("Calling procedure usp_GetSurveyResponses with ProcResponseTime={ProcResponseTime} ", DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
     }
