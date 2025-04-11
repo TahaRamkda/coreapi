@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Agent;
 using WhatsAppAPISolutionDL.Enum;
@@ -17,16 +18,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly IImportManager _importManager;
         private readonly ILogger<AgentsService> _logger;
+        private readonly ICacheService _cacheService;
 
         public AgentsService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
             IImportManager importManager,
-            ILogger<AgentsService> logger)
+            ILogger<AgentsService> logger,
+            ICacheService cacheService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _importManager = importManager;
             _logger = logger;
+            _cacheService = cacheService;
         }
 
         public async Task<List<UAgent>> GetAgentListAsync(int clientId, string searchStr = "", int status = 0, int senderId = 0, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
@@ -37,16 +41,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponse> AddAgentAsync(int clientId, int userId, AgentDto agent)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={clientId},@UserName={agent.UserName}, @Password={agent.Password},@AgentFName={agent.AgentFName}, @AgentLName={agent.AgentLName}, @PreferredLanguage={agent.PreferredLanguage},@SenderIds={agent.SenderIds}, @ActionBy={userId}, @AgentFNameAR={agent.AgentFNameAR}, @AgentLNameAR={agent.AgentLNameAR}, @ChatReasonIds={agent.ChatReasonIds}").ToListAsync();
+            await _cacheService.RemoveAsync(CacheKeys.AGENTS_PATTERN_KEY);
             return response[0];
         }
         public async Task<UResponse> UpdateAgentAsync(int clientId, int userId, AgentDto agent)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.Update}, @Id={agent.Id}, @ClientId={clientId}, @AgentFName={agent.AgentFName}, @AgentLName={agent.AgentLName}, @PreferredLanguage={agent.PreferredLanguage},@SenderIds={agent.SenderIds}, @ActionBy={userId}, @AgentFNameAR={agent.AgentFNameAR}, @AgentLNameAR={agent.AgentLNameAR}, @ChatReasonIds={agent.ChatReasonIds}").ToListAsync();
+            await _cacheService.RemoveAsync(CacheKeys.AGENTS_PATTERN_KEY);
             return response[0];
         }
         public async Task<UResponse> DeleteAgentAsync(int AgentId)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.Delete}, @Id={AgentId}").ToListAsync();
+            await _cacheService.RemoveAsync(CacheKeys.AGENTS_PATTERN_KEY);
             return response[0];
         }
         public async Task<UResponse> SetAgentStatusAsync(int agentId, int status)
@@ -88,10 +95,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UAgentDetail> GetAgentByIdAsync(int clientId, int agentId)
         {
-            var response = await _dbContext2.AgentDetails.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.GetById}, @ClientId={clientId}, @Id={agentId}").ToListAsync();
-            if (response == null || response.Count == 0)
-                return null;
-            return response[0];
+            string cacheKey = String.Format(CacheKeys.AGENTS_BY_ID_KEY, clientId, agentId);
+
+            var cachedResult = await _cacheService.GetAsync(cacheKey, async () =>
+            {
+                var response = await _dbContext2.AgentDetails.FromSqlInterpolated($"exec usp_Agents_Ops @ActionId={(int)CrudEnum.GetById}, @ClientId={clientId}, @Id={agentId}").ToListAsync();
+                if (response == null || response.Count == 0)
+                    return null;
+                return response[0];
+            });
+
+            //If result is null due to some reason, empty cache immediately
+            if (cachedResult == null)
+                await _cacheService.RemoveAsync(cacheKey);
+
+            return cachedResult;
         }
 
         public async Task<List<UAgentSupervisorReport>> GetAgentSupervisorReportListAsync(int clientId, string searchStr = "", int status = 0, int senderId = 0, DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)

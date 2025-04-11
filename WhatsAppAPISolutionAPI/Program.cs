@@ -8,7 +8,10 @@ using System.Text;
 using WhatsAppAPISolutionAPI.Extensions;
 using WhatsAppAPISolutionAPI.Helper;
 using WhatsAppAPISolutionAPI.Middleware;
+using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Hubs;
+using WhatsAppAPISolutionDL.Setting;
 
 var builder = WebApplication.CreateBuilder(args);
 ConfigurationManager configuration = builder.Configuration;
@@ -46,6 +49,9 @@ if (loggingEnabled)
     builder.Host.UseSerilog(logger);
 }
 
+// Add services to the container. 
+builder.Services.AddMemoryCache();
+
 // Add services to the container.
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddApplicationServices(configuration);
@@ -54,6 +60,7 @@ builder.Services.AddSettingServices(configuration);
 builder.Services.AddHttpClientServices(configuration);
 builder.Services.AddOneSignalServices(configuration);
 builder.Services.AddFlowEndpointServices(configuration);
+builder.Services.Configure<CacheSettings>(builder.Configuration.GetSection(CacheSettings.ConfigKey));
 
 // Adding Authentication
 builder.Services.AddAuthentication(options =>
