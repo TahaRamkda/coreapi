@@ -163,11 +163,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         existingItem.DescriptionAr = menuItem.description?.ar ?? menuItem.description?.en;
                         existingItem.Price = menuItem.price_info?.price ?? 0;
                         existingItem.ImageUrl = menuItem.image?.url ?? "";
+                        existingItem.ProductUrl = menuItem.ItemURL ?? "";
                         existingItem.Status = 1;
                         existingItem.DeprecatedDate = null;
                         existingItem.FlowUpdated = false;
                         existingItem.FlowRequired = false;
+                        existingItem.FlowRequestProcessed = false;
 
+                        if (String.IsNullOrWhiteSpace(existingItem.DescriptionEn))
+                            existingItem.DescriptionEn = "-";
+
+                        if (String.IsNullOrWhiteSpace(existingItem.DescriptionAr))
+                            existingItem.DescriptionAr = "-";
+ 
                         _dbContext.Entry(existingItem).State = EntityState.Modified;
                     }
                     else
@@ -179,8 +187,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             IntegrationId = menuItem.id?.Trim(),
                             NameEn = menuItem.name?.en,
                             NameAr = menuItem.name?.ar ?? menuItem.name.en,
-                            DescriptionEn = menuItem.description?.en,
+                            DescriptionEn = menuItem.description?.en ?? "-",
                             DescriptionAr = menuItem.description?.ar ?? menuItem.description?.en,
+                            ProductUrl = menuItem.ItemURL ?? "",
                             EnflowId = 0,
                             ArflowId = 0,
                             ImageUrl = menuItem.image?.url ?? "",
@@ -188,12 +197,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             ItemType = menuItem.type?.ToLower() == "item" ? (int)ItemType.ITEM : (int)ItemType.CHOICE,
                             FlowUpdated = false,
                             FlowRequired = false,
+                            FlowRequestProcessed = false,
                             Status = 1,
                             CreatedBy = 0,
                             CreatedDate = dateTimeNow,
                             UpdatedBy = 0,
                             UpdatedDate = dateTimeNow
                         };
+
+                        if (String.IsNullOrWhiteSpace(item.DescriptionEn))
+                            item.DescriptionEn = "-";
+
+                        if (String.IsNullOrWhiteSpace(item.DescriptionAr))
+                            item.DescriptionAr = "-";
 
                         await _dbContext.Items.AddAsync(item);
                     }
@@ -320,7 +336,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private async Task FlowRequiredOps(int clientId, int senderId)
         {
             var items = _dbContext.Items.Where(x => x.ClientId == clientId
-                && x.SenderId == senderId).ToList();
+                && x.SenderId == senderId
+                && x.ItemType == (int)ItemType.ITEM
+                && x.Status == 1).ToList();
 
             foreach (var item in items)
             {
@@ -455,11 +473,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var response = await _dbContext2.CatalogExports.FromSqlInterpolated($"exec usp_GetItemsToExport @ClientId={clientId}, @SenderId={senderId}").ToListAsync();
 
-            var enExport = _exportManager.ExportCatalogItemsENToXlsx(response);
-            var arExport = _exportManager.ExportCatalogItemsARToXlsx(response);
+            var enExport = _exportManager.ExportCatalogItemsENToCsv(response);
+            var arExport = _exportManager.ExportCatalogItemsARToCsv(response);
 
-            _mediaService.ExportCatalog(clientId, senderId, enExport, "EN");
-            _mediaService.ExportCatalog(clientId, senderId, arExport, "AR");
+            _mediaService.ExportCatalog(clientId, senderId, enExport, "en");
+            _mediaService.ExportCatalog(clientId, senderId, arExport, "ar");
         }
 
         public async Task GenerateCatalogFlows(List<CatalogFlowGenerationDto> models)
@@ -498,12 +516,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 var response = await _flowsService.UpdateFlowAsync(model.ClientId, 0, flow);
                                 item.FlowUpdated = response.Status > 0 && response.Id > 0;
                                 item.FlowRequestProcessed = response.Status > 0 && response.Id > 0;
+                                item.UpdatedDate = DateTime.UtcNow;
                             }
                             else
                             {
                                 var response = await _flowsService.AddFlowAsync(model.ClientId, 0, flow);
                                 item.FlowUpdated = response.Status > 0 && response.Id > 0;
                                 item.FlowRequestProcessed = response.Status > 0 && response.Id > 0;
+                                item.UpdatedDate = DateTime.UtcNow;
                                 if (locale == "EN")
                                     item.EnflowId = response.Id;
                                 else if (locale == "AR")

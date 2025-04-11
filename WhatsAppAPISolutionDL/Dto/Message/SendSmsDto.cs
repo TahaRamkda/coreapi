@@ -22,5 +22,6 @@ namespace WhatsAppAPISolutionDL.Dto.Message
         public string BtnParam4 { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+        public string ParamJson { get; set; }
     }
 }

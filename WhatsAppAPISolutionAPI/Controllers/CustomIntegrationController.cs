@@ -52,6 +52,59 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (sendSms == null)
                 return Ok("error - Data required");
 
+            _logger.LogInformation("Converting custom integration object={object}", JsonConvert.SerializeObject(sendSms));
+            if (!String.IsNullOrWhiteSpace(sendSms.ParamJson))
+            {
+                //{"BParam1:": "0.75", "BtnParam1": "35903255", "BrandName":"Pizza Hut","TemplateName":"payment_link" }  
+                var json = JsonConvert.DeserializeObject<SendSmsDto>(sendSms.ParamJson);
+                if (json != null)
+                {
+                    if (!String.IsNullOrWhiteSpace(json.PhoneNumber))
+                        sendSms.PhoneNumber = json.PhoneNumber;
+
+                    if (!String.IsNullOrWhiteSpace(json.BrandName))
+                        sendSms.BrandName = json.BrandName;
+
+                    if (!String.IsNullOrWhiteSpace(json.TemplateName))
+                        sendSms.TemplateName = json.TemplateName;
+
+                    if (!String.IsNullOrWhiteSpace(json.HParam))
+                        sendSms.HParam = json.HParam;
+
+                    if (!String.IsNullOrWhiteSpace(json.BParam1))
+                        sendSms.BParam1 = json.BParam1;
+
+                    if (!String.IsNullOrWhiteSpace(json.BParam2))
+                        sendSms.BParam2 = json.BParam2;
+
+                    if (!String.IsNullOrWhiteSpace(json.BParam3))
+                        sendSms.BParam3 = json.BParam3;
+
+                    if (!String.IsNullOrWhiteSpace(json.BParam4))
+                        sendSms.BParam4 = json.BParam4;
+
+                    if (!String.IsNullOrWhiteSpace(json.BtnParam1))
+                        sendSms.BtnParam1 = json.BtnParam1;
+
+                    if (!String.IsNullOrWhiteSpace(json.BtnParam2))
+                        sendSms.BtnParam2 = json.BtnParam2;
+
+                    if (!String.IsNullOrWhiteSpace(json.BtnParam3))
+                        sendSms.BtnParam3 = json.BtnParam3;
+
+                    if (!String.IsNullOrWhiteSpace(json.BtnParam4))
+                        sendSms.BtnParam4 = json.BtnParam4;
+
+                    if (!String.IsNullOrWhiteSpace(json.Username))
+                        sendSms.Username = json.Username;
+
+                    if (!String.IsNullOrWhiteSpace(json.Password))
+                        sendSms.Password = json.Password;
+                }
+
+                _logger.LogInformation("Converted custom integration object={object}", JsonConvert.SerializeObject(sendSms));
+            }
+
             if (string.IsNullOrEmpty(sendSms.PhoneNumber))
                 return Ok("error - Phone number required");
 
