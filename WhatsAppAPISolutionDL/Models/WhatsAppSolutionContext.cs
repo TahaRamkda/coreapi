@@ -34,6 +34,7 @@ namespace WhatsAppAPISolutionDL.Models
         public virtual DbSet<Client> Clients { get; set; }
         public virtual DbSet<Contact> Contacts { get; set; }
         public virtual DbSet<Conversation> Conversations { get; set; }
+        public virtual DbSet<ConversationAnalytic> ConversationAnalytics { get; set; }
         public virtual DbSet<ConversationLog> ConversationLogs { get; set; }
         public virtual DbSet<ConversationLogsHist> ConversationLogsHists { get; set; }
         public virtual DbSet<ConversationMessage> ConversationMessages { get; set; }
@@ -431,6 +432,16 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.WaId).HasMaxLength(250);
+            });
+
+            modelBuilder.Entity<ConversationAnalytic>(entity =>
+            {
+                entity.Property(e => e.Cost).HasColumnType("decimal(18, 3)");
+
+                entity.Property(e => e.PhoneNumber)
+                    .IsRequired()
+                    .HasMaxLength(25)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<ConversationLog>(entity =>
