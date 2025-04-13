@@ -27,8 +27,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.MessageSentLogs.FromSqlInterpolated($"exec usp_MessageSentLogs_Ops @ActionId={(int)CrudEnum.List}, @Id={Id}, @ClientId={ClientId}, @ModuleId={ModuleId}, @ParentId={ParentId}, @PhoneNumber={PhoneNumber}, @WaId={WaId},@WaId2={WaId2},@SenderId={SenderId},@FromSentDate={FromSentDate}, @ToSentDate={ToSentDate}, @FromDeliveredDate={FromDeliveredDate}, @ToDeliveredDate={ToDeliveredDate}, @FromReadDate={FromReadDate}, @ToReadDate={ToReadDate},@FromDate={FromDate}, @ToDate={ToDate}, @CurrentStatus={CurrentStatus}, @SearchStr={SearchStr ?? ""}, @SortBy={SortBy}, @PageNumber={PageNo}, @PageSize={PageSize}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_MessageSentLogs_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime}", (int)CrudEnum.List, CrudEnum.List, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-
+            _logger.LogInformation("Calling procedure usp_MessageSentLogs_Ops with parameters: " +
+                "ActionId={ActionId}, ActionName={ActionName}, ClientId={ClientId}, Id={Id}, ModuleId={ModuleId}, ParentId={ParentId}, PhoneNumber={PhoneNumber}, WaId={WaId}, WaId2={WaId2}, SenderId={SenderId}, " +
+                "FromSentDate={FromSentDate}, ToSentDate={ToSentDate}, FromDeliveredDate={FromDeliveredDate}, ToDeliveredDate={ToDeliveredDate}, FromReadDate={FromReadDate}, ToReadDate={ToReadDate}, " +
+                "FromDate={FromDate}, ToDate={ToDate}, CurrentStatus={CurrentStatus}, SearchStr={SearchStr}, SortBy={SortBy}, PageNumber={PageNo}, PageSize={PageSize}, " +
+                "ProcResponseTime={ProcResponseTime}ms", (int)CrudEnum.List,CrudEnum.List, ClientId,Id,ModuleId, ParentId,PhoneNumber, WaId,  WaId2, SenderId, FromSentDate, ToSentDate, FromDeliveredDate,ToDeliveredDate, FromReadDate, ToReadDate,FromDate, ToDate, CurrentStatus,SearchStr ?? "", SortBy, PageNo,PageSize, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
 
@@ -67,7 +70,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_MessageSentLogs_StatusUpdate @ModuleId={model.ModuleId}, @ClientId={model.ClientId}, @ParentId={model.ParentId}, @SenderId={model.SenderId}, @PhoneNumber={model.RecipientId}, @WaId={model.WaId}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={model.UpdateDateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}, @MessageReferenceId={model.MessageReferenceId}, @MessageType={model.MessageType}, @MessageContent={model.MessageContent}, @MediaId={model.MediaId}, @ButtonJson={model.ButtonJson}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_MessageSentLogs_StatusUpdate with ProcResponseTime={ProcResponseTime}", DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+            _logger.LogInformation("Calling procedure usp_MessageSentLogs_StatusUpdate with ProcResponseTime={ProcResponseTime}", DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
 
             return response[0];
         }

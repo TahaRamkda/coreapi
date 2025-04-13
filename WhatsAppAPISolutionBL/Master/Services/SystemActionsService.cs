@@ -13,6 +13,7 @@ using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.SystemActions;
 using Microsoft.EntityFrameworkCore;
 using WhatsAppAPISolutionDL.Dto.SystemActions;
+using WhatsAppAPISolutionBL.Helper;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -20,13 +21,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
     {
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
+        private readonly ICacheService _cacheService;
 
         public SystemActionsService(
             WhatsAppSolutionContext dbContext, 
-            WhatsAppSolutionContext2 dbContext2)
+            WhatsAppSolutionContext2 dbContext2,
+            ICacheService cacheService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
+            _cacheService = cacheService;
         }
 
         public async Task<List<USystemActions>> GetSystemActionsListAsync(int ClientId, int SystemActionId = 0, int PageNo = 0, int PageSize = int.MaxValue)
@@ -50,21 +54,38 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponse> DeleteSystemActionsAsync(int systemActionsId)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SystemActions_Ops @action_Id={(int)CrudEnum.Delete}, @SystemActionId={systemActionsId}").ToListAsync();
+            await _cacheService.RemoveAsync(CacheKeys.SYSTEMACTIONS_PATTERN_KEY);
             return response[0];
         }
 
         public async Task<List<UEntityDto>> GetSystemActionsAsync(int clientId, string searchStr = "")
         {
-            var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_SystemActions_Ops @action_Id={(int)CrudEnum.GetEntities}, @ClientId={clientId},  @SearchStr={searchStr}").ToListAsync();
-            return response;
+            var cacheKey = string.Format(CacheKeys.SYSTEMACTIONS_DROPDOWN_KEY, clientId, searchStr);
+            var cacheResult = _cacheService.GetAsync(cacheKey, async () =>
+            {
+                var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_SystemActions_Ops @action_Id={(int)CrudEnum.GetEntities}, @ClientId={clientId},  @SearchStr={searchStr}").ToListAsync();
+                if (response == null)
+                    return null;
+                return response;
+            });
+            if (cacheResult == null)
+                await _cacheService.RemoveAsync(cacheKey);
+            return await cacheResult;
         }
 
         public async Task<USystemActionsDetail> GetSystemActionsByIdAsync(int clientId,int id)
         {
-            var response = await _dbContext2.SystemActionsDetail.FromSqlInterpolated($"exec usp_SystemActions_Ops @action_Id={(int)CrudEnum.GetById}, @ClientId={clientId}, @SystemActionId={id}").ToListAsync();
-            if (response == null || response.Count == 0)
-                return null;
-            return response[0];
+            var cacheKey = string.Format(CacheKeys.SYSTEMACTIONS_BY_ID_KEY, clientId, id);
+            var cacheResult = _cacheService.GetAsync(cacheKey, async () =>
+            {
+                var response = await _dbContext2.SystemActionsDetail.FromSqlInterpolated($"exec usp_SystemActions_Ops @action_Id={(int)CrudEnum.GetById}, @ClientId={clientId}, @SystemActionId={id}").ToListAsync();
+                if (response == null || response.Count == 0)
+                    return null;
+                return response[0];
+            });
+            if (cacheResult == null)
+                   await _cacheService.RemoveAsync(cacheKey);
+            return await cacheResult;
         }
     }
 }

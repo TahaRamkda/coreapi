@@ -26,13 +26,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
         private readonly IMediaService _mediaService;
         private readonly ILogger<TemplateService> _logger;
+        private readonly ICacheService _cacheService;
 
         public TemplateService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
             IHttpClientFactory httpClientFactory,
             IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings,
             IMediaService mediaService,
-            ILogger<TemplateService> logger)
+            ILogger<TemplateService> logger,
+            ICacheService cacheService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -40,14 +42,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
             _mediaService = mediaService;
             _logger = logger;
+            _cacheService = cacheService;
         }
 
         public async Task<List<UTemplate>> GetTemplateListAsync(int clientId, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.Templates.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SearchStr={searchStr},@SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Templates_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.List, CrudEnum.List, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-            return response;
+            _logger.LogInformation("Calling procedure usp_Templates_Ops with parameters: " +
+                "ActionId={ActionId}, ClientId={ClientId}, SearchStr={SearchStr}, SortBy={SortBy}, PageNo={PageNo}, PageSize={PageSize}, ProcResponseTime={ProcResponseTime}ms",
+                (int)CrudEnum.List,clientId,searchStr,sortBy,pageNo,pageSize, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds); return response;
         }
 
         public async Task<UResponseWithID> AddTemplateAsync(int clientId, int userId, TemplateDto model)
@@ -464,68 +468,111 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponseWithID> DeleteTemplateAsync(int Id)
         {
             var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Delete}, @TemplatesId={Id}").ToListAsync();
+            await _cacheService.RemoveAsync(CacheKeys.Template_PATTERN_KEY);
             return response[0];
         }
 
         public async Task<UResponseWithID> UpdateTemplateStatusByIdAsync(TemplateStatusUpdateDto model)
         {
             var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.UpdateTemplateStatus}, @TemplatesId={model.Id}, @TemplateId={model.TemplateId}, @Status={model.Status}, @Category={model.Category}, @ActionBy={model.ActionBy}").ToListAsync();
+            await _cacheService.RemoveAsync(CacheKeys.Template_PATTERN_KEY);
             return response[0];
         }
 
         public async Task<UTemplateDetail> GetTemplateDetailAsync(int clientId, int templateId)
         {
-            var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.TemplateDetails.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetTemplateDetails}, @ClientId={clientId}, @TemplatesId={templateId}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Templates_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.GetTemplateDetails, CrudEnum.GetTemplateDetails, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-
-            if (response != null && response.Any())
+            var cacheKey = string.Format(CacheKeys.Template_BY_ID_KEY, clientId, templateId);
+            var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
             {
-                var template = response[0];
-                template.Buttons = !String.IsNullOrWhiteSpace(template.ButtonsJson)
-                    ? JsonConvert.DeserializeObject<List<UTemplateDetail.Button>>(template.ButtonsJson)
-                    : new List<UTemplateDetail.Button>();
+                var startProcTime = DateTime.UtcNow;
+                var response = await _dbContext2.TemplateDetails.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetTemplateDetails}, @ClientId={clientId}, @TemplatesId={templateId}").ToListAsync();
+                _logger.LogInformation("Calling procedure usp_Templates_Ops with parameters: ActionId={ActionId}, ClientId={ClientId}, TemplatesId={TemplatesId}, " +
+                    "ProcResponseTime={ProcResponseTime}ms", (int)CrudEnum.GetTemplateDetails, clientId, templateId, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+                if (response != null && response.Any())
+                {
+                    var template = response[0];
+                    template.Buttons = !String.IsNullOrWhiteSpace(template.ButtonsJson)
+                        ? JsonConvert.DeserializeObject<List<UTemplateDetail.Button>>(template.ButtonsJson)
+                        : new List<UTemplateDetail.Button>();
 
-                template.Parameters = !String.IsNullOrWhiteSpace(template.ParametersJson)
-                    ? JsonConvert.DeserializeObject<List<UTemplateDetail.Parameter>>(template.ParametersJson)
-                    : new List<UTemplateDetail.Parameter>();
+                    template.Parameters = !String.IsNullOrWhiteSpace(template.ParametersJson)
+                        ? JsonConvert.DeserializeObject<List<UTemplateDetail.Parameter>>(template.ParametersJson)
+                        : new List<UTemplateDetail.Parameter>();
 
-                return template;
-            }
+                    return template;
+                }
 
-            return null;
+                return null;
+            });
+
+            if (cacheResult == null)
+                await _cacheService.RemoveAsync(cacheKey);
+            return cacheResult;
         }
 
         private async Task<List<UTemplateParameter>> GetTemplateParametersAsync(int client_Id, int template_Id = 0)
         {
-            var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.TemplateParameters.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetTemplateParameterDetails}, @ClientId={client_Id}, @TemplatesId={template_Id}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Templates_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.GetTemplateParameterDetails, CrudEnum.GetTemplateParameterDetails, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-            return response;
+            var cacheKey = string.Format(CacheKeys.Template_DROPDOWN_KEY, client_Id, template_Id);
+            var cacheResult = _cacheService.GetAsync(cacheKey, async () =>
+            {
+                var startProcTime = DateTime.UtcNow;
+                var response = await _dbContext2.TemplateParameters.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetTemplateParameterDetails}, @ClientId={client_Id}, @TemplatesId={template_Id}").ToListAsync();
+                _logger.LogInformation("Calling procedure usp_Templates_Ops with parameters: ActionId={ActionId}, ClientId={ClientId}, TemplatesId={TemplatesId}, ProcResponseTime={ProcResponseTime}ms", (int)CrudEnum.GetTemplateParameterDetails, client_Id, template_Id, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+                return response;
+            });
+            if (cacheResult == null)
+                await _cacheService.RemoveAsync(cacheKey);
+            return await cacheResult;
         }
 
         public async Task<List<UEntityDto>> GetTemplatesAsync(int clientId, int senderId = 0, string searchStr = "")
         {
-            var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId}, @SenderId={senderId}, @SearchStr={searchStr}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Templates_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.GetEntities, CrudEnum.GetEntities, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-            return response;
+            var cacheKey = string.Format(CacheKeys.Template_DROPDOWN_KEY2, clientId, senderId, searchStr);
+            var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
+            {
+                var startProcTime = DateTime.UtcNow;
+                var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId}, @SenderId={senderId}, @SearchStr={searchStr}").ToListAsync();
+                _logger.LogInformation("Calling procedure usp_Templates_Ops with parameters: " +
+                    "ActionId={ActionId}, ClientId={ClientId}, SenderId={SenderId}, SearchStr={SearchStr}, " +
+                    "ProcResponseTime={ProcResponseTime}ms", (int)CrudEnum.GetEntities, clientId, senderId, searchStr, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds); 
+                return response;
+            });
+            if (cacheResult == null)
+                await _cacheService.RemoveAsync(cacheKey);
+            return cacheResult;
+
         }
 
         public async Task<List<UEntity2Dto>> GetTemplateCategoriesAsync(string searchStr = "")
         {
-            var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.Entity2.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetTemplateCategories}, @SearchStr={searchStr}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Templates_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.GetTemplateCategories, CrudEnum.GetTemplateCategories, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-            return response;
+            var cacheKey = string.Format(CacheKeys.Template_DROPDOWN_KEY3, searchStr);
+            var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
+            {
+                var startProcTime = DateTime.UtcNow;
+                var response = await _dbContext2.Entity2.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetTemplateCategories}, @SearchStr={searchStr}").ToListAsync();
+                _logger.LogInformation("Calling procedure usp_Templates_Ops with searchStr={searchStr}, actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", searchStr, (int)CrudEnum.GetTemplateCategories, CrudEnum.GetTemplateCategories, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+                return response;
+            });
+            if (cacheResult == null)
+                await _cacheService.RemoveAsync(cacheKey);
+            return cacheResult;
+
         }
 
         public async Task<List<UEntity2Dto>> GetLanguagesAsync(string searchStr = "")
         {
-            var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.Entity2.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetLanguages}, @SearchStr={searchStr}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Templates_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime}", (int)CrudEnum.GetLanguages, CrudEnum.GetLanguages, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-            return response;
+            var cacheKey = string.Format(CacheKeys.Template_DROPDOWN_KEY3, searchStr);
+            var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
+            {
+                var startProcTime = DateTime.UtcNow;
+                var response = await _dbContext2.Entity2.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetLanguages}, @SearchStr={searchStr}").ToListAsync();
+                _logger.LogInformation("Calling procedure usp_Templates_Ops with searchStr={searchStr}, actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime}", searchStr, (int)CrudEnum.GetLanguages, CrudEnum.GetLanguages, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+                return response;
+            });
+            if (cacheResult == null)
+                await _cacheService.RemoveAsync(cacheKey);
+            return cacheResult
+;
         }
     }
 }

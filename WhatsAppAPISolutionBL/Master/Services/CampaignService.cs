@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Text.Json;
 using WhatsAppAPISolutionBL.Helper;
@@ -23,19 +24,22 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly ICommunicationService _communicationService;
         private readonly IMediaService _mediaService;
         private readonly ITemplateService _templateService;
+        private readonly ICacheService _cacheService;
 
         public CampaignService(
             WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
             ICommunicationService communicationService,
             IMediaService mediaService,
-            ITemplateService templateService)
+            ITemplateService templateService,
+            ICacheService _cacheService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _communicationService = communicationService;
             _mediaService = mediaService;
             _templateService = templateService;
+            this._cacheService = _cacheService;
         }
 
         public async Task<List<UCampaign>> GetCampaignListAsync(int ClientId, int CampaignId = 0, DateTime? FromDate = null, DateTime? ToDate = null, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue, int SenderId = 0)
@@ -46,6 +50,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> AddCampaignAsync(int clientId, int userId, CampaignDto model)
         {
+
             var template = await _templateService.GetTemplateDetailAsync(clientId, model.TemplateId);
             if (template == null)
                 return new UResponse { Message = "No template selected" };
@@ -158,7 +163,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var campaignContactJson = JsonConvert.SerializeObject(model.CampaignContacts);
 
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.Add}, @CampaignName={model.CampaignName}, @ClientId={clientId}, @SenderId={model.SenderId}, @TemplateId={model.TemplateId}, @ScheduleDate={model.ScheduleDate}, @CampaignType={model.CampaignType}, @CampaignParamsJSON={campaignParamJson}, @CampaignContactsJSON={campaignContactJson}, @GroupIds={model.GroupIds},@MediaId={model.MediaId}, @ActionBy={userId}").ToListAsync();
-
             return response[0];
         }
 
@@ -290,10 +294,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var campaignContactJson = JsonConvert.SerializeObject(model.CampaignContacts);
 
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.UpdateCampaign}, @CampaignId={model.CampaignId}, @CampaignName={model.CampaignName}, @ClientId={clientId}, @SenderId={model.SenderId}, @TemplateId={model.TemplateId}, @ScheduleDate={model.ScheduleDate}, @CampaignType={model.CampaignType}, @CampaignParamsJSON={campaignParamJson}, @CampaignContactsJSON={campaignContactJson}, @GroupIds={model.GroupIds}, @MediaId={model.MediaId}, @ActionBy={userId}").ToListAsync();
-
             return response[0];
         }
-
+       
         public async Task<UResponse> SettleCampaignAsync(int clientId, int campaignId)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.SettleCampaign}, @CampaignId={campaignId}, @ClientId={clientId}").ToListAsync();
@@ -336,33 +339,42 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UCampaignContactStat> GetCampaignContactStatsAsync(int clientId, int campaignId)
         {
             var response = await _dbContext2.CampaignContactStats.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.CampaignContactStats}, @ClientId={clientId}, @CampaignId={campaignId}").ToListAsync();
-            if (response != null && response.Any()) return response[0];
-
-            return null;
+            if (response == null || response.Count == 0)
+                return null;
+            return response[0];
         }
 
         public async Task<UResponse> DeleteFreqContactedContactsAsync(int clientId, int campaignId, int lastContactedInDays)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.DeleteFreqContactedContacts}, @ClientId={clientId}, @CampaignId={campaignId}, @LastContactedInDays={lastContactedInDays}").ToListAsync();
             if (response != null && response.Any()) return response[0];
-
+            await _cacheService.RemoveAsync(CacheKeys.CAMPAIGNS_PATTERN_KEY);
             return null;
         }
 
         public async Task<UCampaignDetail> GetCampaignDetailAsync(int clientId, int campaignId)
         {
-            var response = await _dbContext2.CampaignDetails.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.GetDetails}, @ClientId={clientId}, @CampaignId={campaignId}").ToListAsync();
-            if (response != null && response.Any())
+            var cacheKey = string.Format(CacheKeys.CAMPAIGNS_BY_ID_KEY, clientId, campaignId);
+            var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
             {
-                var campaignDetail = response[0];
-                campaignDetail.Parameters = !String.IsNullOrWhiteSpace(campaignDetail.ParamsJson)
-                    ? JsonConvert.DeserializeObject<List<UCampaignDetail.Parameter>>(campaignDetail.ParamsJson)
-                    : new List<UCampaignDetail.Parameter>();
+                var response = await _dbContext2.CampaignDetails.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.GetDetails}, @ClientId={clientId}, @CampaignId={campaignId}").ToListAsync();
+                if (response != null && response.Any())
+                {
+                    var campaignDetail = response[0];
+                    campaignDetail.Parameters = !String.IsNullOrWhiteSpace(campaignDetail.ParamsJson)
+                        ? JsonConvert.DeserializeObject<List<UCampaignDetail.Parameter>>(campaignDetail.ParamsJson)
+                        : new List<UCampaignDetail.Parameter>();
 
-                return campaignDetail;
+                    return campaignDetail;
+                }
+
+                return null;
+            });
+            if (cacheResult == null)
+            {
+                await _cacheService.RemoveAsync(cacheKey);
             }
-
-            return null;
+            return cacheResult;
         }
     }
 }

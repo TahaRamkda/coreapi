@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Contact;
 using WhatsAppAPISolutionDL.Enum;
@@ -15,14 +16,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly IImportManager _importManager;
-
+        private readonly ICacheService _cacheService;
         public ContactService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
-            IImportManager importManager)
+            IImportManager importManager,
+            ICacheService cacheService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _importManager = importManager;
+            _cacheService = cacheService;
         }
 
         public async Task<List<UContact>> GetContactListAsync(int ClientId, int GroupId = 0, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
@@ -41,12 +44,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponse> UpdateContactAsync(int userId, ContactDto contact)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Contacts_Ops @ActionId={(int)CrudEnum.Update}, @ContactId={contact.ContactId}, @GroupId={contact.GroupId}, @FirstName={contact.FirstName}, @LastName={contact.LastName}, @PhoneNumber={contact.PhoneNumber}, @EmailAddress={contact.EmailAddress}, @AreaName={contact.AreaName}, @ActionBy={userId}").ToListAsync();
+            await _cacheService.RemoveAsync(CacheKeys.CONTACT_PATTERN_KEY);
             return response[0];
         }
 
         public async Task<UResponse> DeleteContactAsync(int ContactId)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Contacts_Ops @ActionId={(int)CrudEnum.Delete}, @ContactId={ContactId}").ToListAsync();
+            await _cacheService.RemoveAsync(CacheKeys.CONTACT_PATTERN_KEY);
             return response[0];
         }
 
@@ -69,10 +74,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UContactDetail> GetContactByIdAsync(int clientId, int contactId)
         {
-            var response = await _dbContext2.ContactDetails.FromSqlInterpolated($"exec usp_Contacts_Ops @ActionId={(int)CrudEnum.GetById}, @ClientId={clientId},@ContactId={contactId}").ToListAsync();
-            if (response == null || response.Count == 0)
-                return null;
-            return response[0];
+            var cacheKey = string.Format(CacheKeys.CONTACT_BY_ID_KEY, clientId, contactId);
+            var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
+            {
+                var response = await _dbContext2.ContactDetails.FromSqlInterpolated($"exec usp_Contacts_Ops @ActionId={(int)CrudEnum.GetById}, @ClientId={clientId},@ContactId={contactId}").ToListAsync();
+                if (response == null)
+                    return null;
+                return response[0];
+            });
+           if (cacheResult == null)
+            {  return null; }
+           return cacheResult;
         }
+
     }
 }

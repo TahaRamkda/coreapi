@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Conversation;
 using WhatsAppAPISolutionDL.Enum;
@@ -27,6 +28,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly ICommunicationService _communicationService;
         private readonly IOneSignalService _oneSignalService;
         private readonly IAgentsService _agentsService;
+        private readonly ICacheService _cacheService;
 
         public ConversationService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
@@ -34,7 +36,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IHubContext<ConversationHub> conversationHubContext,
             ICommunicationService communicationService,
             IOneSignalService oneSignalService,
-            IAgentsService agentsService)
+            IAgentsService agentsService,
+            ICacheService _cacheService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -43,6 +46,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _communicationService = communicationService;
             _oneSignalService = oneSignalService;
             _agentsService = agentsService;
+            this._cacheService = _cacheService;
         }
 
         public async Task<List<UConversation>> GetConversationListAsync(int clientId = 0, int senderId = 0, int id = 0, string conversationId = "",
@@ -62,8 +66,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.AgentConversationLists.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.AgentConversationList},@ClientId={clientId},@Id={id},@SenderId={senderId},@AgentId={agentId}, @PageNo={pageNo}, @PageSize={pageSize}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Conversations_Ops with actionId = {actionId}, actionName = {actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.AgentConversationList, CrudEnum.AgentConversationList, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-
+            _logger.LogInformation("Calling procedure usp_Conversations_Ops with parameters: ActionId={ActionId}, ActionName={ActionName}, ClientId={ClientId}, SenderId={SenderId}, Id={Id}, AgentId={AgentId}, PageNo={PageNo}, PageSize={PageSize}, ProcResponseTime={ProcResponseTime}ms",(int)CrudEnum.AgentConversationList,CrudEnum.AgentConversationList,clientId,senderId,id,agentId,pageNo,pageSize,DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
 
@@ -71,23 +74,33 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.ConversationListByConversations.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.ConversationListByConversation},@ClientId={clientId},@Id={id}, @messageId={messageId},@SenderId={senderId},@AgentId={agentId}, @PageNo={pageNo}, @PageSize={pageSize}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Conversations_Ops with actionId = {actionId}, actionName = {actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.ConversationListByConversation, CrudEnum.ConversationListByConversation, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+            _logger.LogInformation("Calling procedure usp_Conversations_Ops with parameters: ActionId={ActionId}, ActionName={ActionName}, ClientId={ClientId}, SenderId={SenderId}, Id={Id}, AgentId={AgentId}, PageNo={PageNo}, PageSize={PageSize},messageId={messageId}, ProcResponseTime={ProcResponseTime}ms", (int)CrudEnum.AgentConversationList, CrudEnum.AgentConversationList, clientId, senderId, id, agentId, pageNo, pageSize, messageId, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
 
         public async Task<UResponse> AddConversationToQueueAsync(int clientId = 0, int id = 0, string comment = "")
-        {   
-            var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.AddConversationToQueue},@ClientId={clientId},@Id={id}, @Comment={comment}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Conversations_Ops with actionId = {actionId}, actionName = {actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.AddConversationToQueue, CrudEnum.AddConversationToQueue, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-            return response[0];
-        }
+        {
+                var startProcTime = DateTime.UtcNow;
+                var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.AddConversationToQueue},@ClientId={clientId},@Id={id}, @Comment={comment}").ToListAsync();
+                _logger.LogInformation("Calling procedure usp_Conversations_Ops with clientId={clientId}, id={id}, , comment = {comment}, actionId = {actionId}, actionName = {actionName} and ProcResponseTime={ProcResponseTime} ", clientId, id, comment, (int)CrudEnum.AddConversationToQueue, CrudEnum.AddConversationToQueue, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+                if (response == null || !response.Any())
+                {
+                    return new UResponse
+                    {
+                        Status = 0,
+                        Message = "Cannot add conversation to queue"
+                    };
+                }
+                return response[0];
+            
+            }
+   
 
         public async Task<UResponse> TransferConversationToAgentAsync(int clientId = 0, int id = 0, int oldAgentId = 0, int agentId = 0, string comment = "")
         {
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.TransferConversationToAgent},@ClientId={clientId},@Id={id},@AgentId={agentId},@Comment={comment}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Conversations_Ops with actionId = {actionId}, actionName = {actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.TransferConversationToAgent, CrudEnum.TransferConversationToAgent, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+            _logger.LogInformation("Calling procedure usp_Conversations_Ops with clientId={clientId}, id={id}, oldAgent={oldAgent}, agentId={agentId}, comment={comment}, actionId = {actionId}, actionName = {actionName} and ProcResponseTime={ProcResponseTime} ", clientId, id, agentId, comment, (int)CrudEnum.TransferConversationToAgent, CrudEnum.TransferConversationToAgent, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             if (response != null && response.Any())
             {
                 // Look up the connection ID for the Agent ID and send the conversation
@@ -223,7 +236,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.LatestConversationByConversations.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetConversationByMessageId},@ClientId={clientId}, @SenderId={senderId},@Id={conversationId}, @MessageId={conversationMessageId}, @Status={status}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Conversations_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.GetConversationByMessageId, CrudEnum.GetConversationByMessageId, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+            _logger.LogInformation("Calling procedure usp_Conversations_Ops with clientId={clientId}, senderId={senderId}, conversationId={conversationId}, conversationMessageId={conversationMessageId}, status={status}, actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", clientId, senderId, conversationId, conversationMessageId, status, (int)CrudEnum.GetConversationByMessageId, CrudEnum.GetConversationByMessageId, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             if (response.Any())
                 return response[0];
 
@@ -234,14 +247,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.ConversationReports.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.ConversationReportList},@ClientId={clientId},@Id={id},@SenderId={senderId}, @AgentId={agentId}, @FStatus={status}, @PageNo={pageNo}, @PageSize={pageSize}, @SearchStr={searchStr}, @FChatInitiated={fChatInitiated}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Conversations_Ops with actionId = {actionId}, actionName = {actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.ConversationReportList, CrudEnum.ConversationReportList, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+            _logger.LogInformation(
+                "Calling procedure usp_Conversations_Ops with clientId={ClientId}, senderId={SenderId}, id={Id}, agentId={AgentId}, pageNo={PageNo}, pageSize={PageSize}, status={Status}, searchStr={SearchStr}, fChatInitiated={FChatInitiated}, actionId={ActionId}, actionName={ActionName}, ProcResponseTime={ProcResponseTime}ms", clientId, senderId, id, agentId, pageNo,
+                pageSize, status, searchStr, fChatInitiated, (int)CrudEnum.ConversationReportList,
+                CrudEnum.ConversationReportList,
+                DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
         public async Task<List<UConversationReportList>> GetConversationDetailReportListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", DateTime? fromDate = null, DateTime? toDate = null, string searchStr = "", string fChatInitiated = "")
         {
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.ConversationReports.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.ConversationDetailReportList},@ClientId={clientId},@Id={id},@SenderId={senderId}, @AgentId={agentId}, @FStatus={status}, @PageNo={pageNo}, @PageSize={pageSize}, @FromDate={fromDate}, @ToDate={toDate}, @SearchStr={searchStr}, @FChatInitiated={fChatInitiated}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Conversations_Ops with actionId = {actionId}, actionName = {actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.ConversationDetailReportList, CrudEnum.ConversationDetailReportList, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+            _logger.LogInformation("Calling procedure usp_Conversations_Ops with clientId={ClientId}, senderId={SenderId}, id={Id}, agentId={AgentId}, status={Status}, pageNo={PageNo}, pageSize={PageSize}, fromDate={FromDate}, toDate={ToDate}, searchStr={SearchStr}, fChatInitiated={FChatInitiated}, actionId={ActionId}, actionName={ActionName}, ProcResponseTime={ProcResponseTime}ms",
+                clientId, senderId, id, agentId, status, pageNo, pageSize, fromDate, toDate, searchStr, fChatInitiated,(int)CrudEnum.ConversationDetailReportList, CrudEnum.ConversationDetailReportList,DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
 
@@ -317,17 +335,29 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<List<UConversationLogsList>> GetConversationLogsListAsync(int clientId = 0, int conversationId = 0)
         {
-            var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.ConversationLogsList.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetConversationLogs},@ClientId={clientId}, @Id={conversationId}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Conversations_Ops with actionId = {actionId}, actionName = {actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.GetConversationLogs, CrudEnum.GetConversationLogs, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-            return response;
+            var cacheKey = String.Format(CacheKeys.CONVERSATION_DROPDOWN_KEY, clientId, conversationId);
+            var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
+            {
+                var startProcTime = DateTime.UtcNow;
+                var response = await _dbContext2.ConversationLogsList.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetConversationLogs},@ClientId={clientId}, @Id={conversationId}").ToListAsync();
+                _logger.LogInformation(
+                    "Calling procedure usp_Conversations_Ops with clientId={ClientId}, conversationId={ConversationId}, actionId={ActionId}, actionName={ActionName}, ProcResponseTime={ProcResponseTime}ms",
+                    clientId, conversationId, (int)CrudEnum.GetConversationLogs, CrudEnum.GetConversationLogs,DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds); if (response == null || response.Count == 0)
+                    return null;
+                return response;
+            });
+            if (cacheResult == null || cacheResult.Count == 0)
+                return null;
+            return cacheResult;
         }
         public async Task<UConversationStatistics> GetConversationStatisticsAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", DateTime? fromDate = null, DateTime? toDate = null, string searchStr = "", string fChatInitiated = "")
         {
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.ConversationStatistics.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetConversationStatistics},@ClientId={clientId},@Id={id},@SenderId={senderId}, @AgentId={agentId}, @FStatus={status}, @PageNo={pageNo}, @PageSize={pageSize}, @FromDate={fromDate}, @ToDate={toDate}, @SearchStr={searchStr}, @FChatInitiated={fChatInitiated}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Conversations_Ops with actionId = {actionId}, actionName = {actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.GetConversationStatistics, CrudEnum.GetConversationStatistics, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-            return response[0];
+            _logger.LogDebug(
+                "Calling procedure usp_Conversations_Ops with clientId={ClientId}, senderId={SenderId}, id={Id}, agentId={AgentId}, status={Status}, pageNo={PageNo}, pageSize={PageSize}, fromDate={FromDate}, toDate={ToDate}, searchStr={SearchStr}, fChatInitiated={FChatInitiated}, actionId={ActionId}, actionName={ActionName}, ProcResponseTime={ProcResponseTime}ms",
+                clientId, senderId, id, agentId, status, pageNo, pageSize, fromDate, toDate, searchStr, fChatInitiated,(int)CrudEnum.GetConversationStatistics, CrudEnum.GetConversationStatistics,DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds
+            ); return response[0];
         }
     }
 }
