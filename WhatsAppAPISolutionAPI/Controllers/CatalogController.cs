@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto.Catalog;
 using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -23,6 +24,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("Import")]
         public async Task<IActionResult> Import([FromQuery] int ClientId, [FromQuery] int SenderId, CatalogDto model)
         {
+            _logger.LogInformation("Calling function Import in Catalog with received clientId={clientId} and senderId={senderId} and data={data}", ClientId, SenderId, JsonConvert.SerializeObject(model));
+
             if (ClientId == 0)
                 return Ok(new ApiResult { Message = "Client id is required" });
 
@@ -84,6 +87,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             if (model == null || model.Count == 0)
                 return Ok(new ApiResult { Message = "Item ids is required" });
+
+            _logger.LogInformation("Received GenerateCatalogFlows request with data={data}", JsonConvert.SerializeObject(model));
 
             await _catalogService.GenerateCatalogFlows(model);
             return Ok();

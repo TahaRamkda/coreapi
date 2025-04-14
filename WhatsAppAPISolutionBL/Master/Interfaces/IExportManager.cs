@@ -16,5 +16,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         byte[] ExportSurveyResponseToXlsx(IEnumerable<USurveyResponse> surveyResponses);
         byte[] ExportCatalogItemsENToXlsx(IEnumerable<UCatalogExport> item);
         byte[] ExportCatalogItemsARToXlsx(IEnumerable<UCatalogExport> item);
+        byte[] ExportCatalogItemsENToCsv(IEnumerable<UCatalogExport> item);
+        byte[] ExportCatalogItemsARToCsv(IEnumerable<UCatalogExport> item);
     }
 }

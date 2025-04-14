@@ -229,7 +229,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 // Ensure directories exist
                 if (!Directory.Exists(Path.Combine(_uploadPath, mediaFolder)))
-                    Directory.CreateDirectory(Path.Combine(_uploadPath, mediaFolder)); 
+                    Directory.CreateDirectory(Path.Combine(_uploadPath, mediaFolder));
 
                 // Construct the final file path
                 var filePath = Path.Combine(_uploadPath, mediaFolder, originalFileName);
@@ -517,21 +517,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
             mediaTypeFolder = Path.Combine(Enum.GetName(MediaSourceEnum.Catalog));
 
             // Create folder path: uploads/clientId/senderId/mediaType
-            string mediaFolder = _staticFolderPath;
+            string mediaFolder = Path.Combine(_staticFolderPath, mediaTypeFolder);
             if (clientId > 0)
                 mediaFolder = Path.Combine(mediaFolder, clientId.ToString());
 
             if (senderId > 0)
                 mediaFolder = Path.Combine(mediaFolder, senderId.ToString());
 
-            mediaFolder = Path.Combine(mediaFolder, mediaTypeFolder);
+            //mediaFolder = Path.Combine(mediaFolder, mediaTypeFolder);
 
             // Ensure directories exist
             if (!Directory.Exists(Path.Combine(_uploadPath, mediaFolder)))
                 Directory.CreateDirectory(Path.Combine(_uploadPath, mediaFolder));
 
             // Construct the final file path
-            var filePath = Path.Combine(_uploadPath, mediaFolder, String.Concat(localization, ".xlsx"));
+            var filePath = Path.Combine(_uploadPath, mediaFolder, String.Concat(localization, ".csv"));
 
             if (File.Exists(filePath))
                 File.Delete(filePath);

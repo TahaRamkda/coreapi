@@ -1,17 +1,10 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Events;
-using System.Text;
 using WhatsAppAPISolutionAPI.Extensions;
 using WhatsAppAPISolutionAPI.Helper;
 using WhatsAppAPISolutionAPI.Middleware;
-using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Hubs;
-using WhatsAppAPISolutionDL.Setting;
 
 var builder = WebApplication.CreateBuilder(args);
 ConfigurationManager configuration = builder.Configuration;
@@ -33,7 +26,7 @@ if (loggingEnabled)
         "Warning" => LogEventLevel.Warning,
         "Error" => LogEventLevel.Error,
         _ => LogEventLevel.Information // Default level
-    }; 
+    };
 
     var logger = new LoggerConfiguration()
                  .MinimumLevel.Is(minLevel) // Dynamically apply level
@@ -49,99 +42,32 @@ if (loggingEnabled)
     builder.Host.UseSerilog(logger);
 }
 
-// Add services to the container. 
+// Core framework services
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
+builder.Services.AddSwaggerServices();
 
 // Add services to the container.
-builder.Services.AddHttpContextAccessor();
 builder.Services.AddApplicationServices(configuration);
 builder.Services.AddDatabaseServices(configuration);
 builder.Services.AddSettingServices(configuration);
 builder.Services.AddHttpClientServices(configuration);
 builder.Services.AddOneSignalServices(configuration);
 builder.Services.AddFlowEndpointServices(configuration);
-builder.Services.Configure<CacheSettings>(builder.Configuration.GetSection(CacheSettings.ConfigKey));
+builder.Services.AddAuthorizationServices(configuration);
+builder.Services.AddSignalRServices(configuration);
 
-// Adding Authentication
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.SaveToken = true;
-    options.RequireHttpsMetadata = false;
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ClockSkew = TimeSpan.Zero,
-        ValidAudience = configuration["Jwt:Audience"],
-        ValidIssuer = configuration["Jwt:Issuer"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
-    };
-});
-
+// MVC Controllers
 builder.Services.AddControllers();
-
-// Configure SignalR options
-builder.Services.AddSignalR(options =>
-{
-    options.KeepAliveInterval = TimeSpan.FromSeconds(Convert.ToInt32(configuration["SignalRConfiguration:KeepAliveInterval"]));  //
-    options.ClientTimeoutInterval = TimeSpan.FromSeconds(Convert.ToInt32(configuration["SignalRConfiguration:ClientTimeoutInterval"]));  //
-    options.HandshakeTimeout = TimeSpan.FromSeconds(Convert.ToInt32(configuration["SignalRConfiguration:HandshakeTimeout"])); //
-    options.EnableDetailedErrors = true;
-});
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
-
-builder.Services.AddSwaggerGen(setup =>
-{
-    var schemaHelper = new SwashbuckleSchemaHelper();
-    setup.CustomSchemaIds(type => schemaHelper.GetSchemaId(type));
-
-    // Include 'SecurityScheme' to use JWT Authentication
-    var jwtSecurityScheme = new OpenApiSecurityScheme
-    {
-        BearerFormat = "JWT",
-        Name = "JWT Authentication",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = JwtBearerDefaults.AuthenticationScheme,
-        Description = "Put **_ONLY_** your JWT Bearer token on textbox below!",
-
-        Reference = new OpenApiReference
-        {
-            Id = JwtBearerDefaults.AuthenticationScheme,
-            Type = ReferenceType.SecurityScheme
-        }
-    };
-
-    setup.AddSecurityDefinition(jwtSecurityScheme.Reference.Id, jwtSecurityScheme);
-
-    setup.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        { jwtSecurityScheme, Array.Empty<string>() }
-    });
-
-});
 
 var app = builder.Build();
 app.UseStaticFiles(new StaticFileOptions()
 {
     FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Media/")),
-
     RequestPath = new PathString("/Media")
 });
 
 bool enableGlobalExceptionHandler = Convert.ToBoolean(builder.Configuration["EnableGlobalExceptionHandler"]);
-
 if (enableGlobalExceptionHandler)
     app.UseExceptionHandlerMiddleware();
 
@@ -164,10 +90,16 @@ else
 }
 
 app.UseHttpsRedirection();
-app.UseCors();
-app.UseAuthentication();
+// Serve static files (place early to avoid unnecessary pipeline processing)
 app.UseStaticFiles();
+// Enable CORS before auth if you need it for preflight requests
+app.UseCors();
+// Add authentication before authorization
+app.UseAuthentication();
 app.UseAuthorization();
+// Map controllers
 app.MapControllers();
+// Map SignalR hubs
 app.MapHub<ConversationHub>("/Conversation");
+// Start the app
 app.Run();

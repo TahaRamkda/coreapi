@@ -35,6 +35,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Template
         public string BodyText { get; set; }
         public int? BodyParamCount { get; set; }
         public string FooterText { get; set; }
+        public int? TemplateTypeId { get; set; }
         [JsonIgnore]
         public string ButtonsJson { get; set; }
         [JsonIgnore]

@@ -278,6 +278,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var apiCallStart = DateTime.UtcNow;
             string apiEndpoint = $"/api/Template/SendBatchTemplateMessage";
 
+            if (template.TemplateTypeId == (int)TemplateTypeEnum.Carousel)
+                apiEndpoint = $"/api/Template/SendBatchCarouselMessage";
+
             var res = new StringContent(request, Encoding.UTF8, "application/json");
             var response1 = await _httpClient.PostAsync(apiEndpoint, res);
             var content = await response1.Content.ReadAsStringAsync();

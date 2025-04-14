@@ -1,5 +1,9 @@
-﻿using OfficeOpenXml;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
+using OfficeOpenXml;
 using OfficeOpenXml.Style;
+using System.Globalization;
+using System.Text;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.UserModels.Agent;
@@ -11,6 +15,57 @@ namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class ExportManager : IExportManager
     {
+        #region Utilities
+
+        private static byte[] ConvertToCsvBytes<T>(IEnumerable<T> records, ClassMap<T> classMap)
+        {
+            using var memoryStream = new MemoryStream();
+            using var writer = new StreamWriter(memoryStream, Encoding.UTF8, leaveOpen: true);
+            using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+
+            csv.Context.RegisterClassMap(classMap);
+            csv.WriteRecords(records);
+            writer.Flush(); // Important: Flush before reading from MemoryStream
+
+            return memoryStream.ToArray();
+        }
+ 
+        public class UCatalogExportMapEN : ClassMap<UCatalogExport>
+        {
+            public UCatalogExportMapEN()
+            {
+                Map(p => p.ItemId).Name("id");
+                Map(p => p.ProductNameEn).Name("title");
+                Map(p => p.DescriptionEn).Name("description");
+                Map(p => p.Availability).Name("availability");
+                Map(p => p.Condition).Name("condition");
+                Map(p => p.Price).Name("price");
+                Map(p => p.Link).Name("link");
+                Map(p => p.ImageUrl).Name("image_link");
+                Map(p => p.Brand).Name("brand");
+                Map(p => p.CategoryNameEn).Name("google_product_category"); 
+            }
+        }
+
+        public class UCatalogExportMapAR : ClassMap<UCatalogExport>
+        {
+            public UCatalogExportMapAR()
+            {
+                Map(p => p.ItemId).Name("id");
+                Map(p => p.ProductNameAr).Name("title");
+                Map(p => p.DescriptionAr).Name("description");
+                Map(p => p.Availability).Name("availability");
+                Map(p => p.Condition).Name("condition");
+                Map(p => p.Price).Name("price");
+                Map(p => p.Link).Name("link");
+                Map(p => p.ImageUrl).Name("image_link");
+                Map(p => p.Brand).Name("brand");
+                Map(p => p.CategoryNameAr).Name("google_product_category");
+            }
+        }
+         
+        #endregion
+
         public virtual byte[] ExportToXlsx<T>(PropertyByName<T>[] properties, IEnumerable<T> itemsToExport)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -41,8 +96,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
             style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(184, 204, 228));
             style.Font.Bold = true;
         }
-
-
         public virtual byte[] ExportConversationDetailReportToXlsx(IEnumerable<UConversationReportList> report)
         {
             //property array
@@ -213,6 +266,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
 
             return ExportToXlsx(properties, item);
+        }
+
+        public virtual byte[] ExportCatalogItemsENToCsv(IEnumerable<UCatalogExport> item)
+        {
+            var csvBytes = ConvertToCsvBytes(item, new UCatalogExportMapEN());
+            return csvBytes;
+        }
+
+        public virtual byte[] ExportCatalogItemsARToCsv(IEnumerable<UCatalogExport> item)
+        {
+            var csvBytes = ConvertToCsvBytes(item, new UCatalogExportMapAR());
+            return csvBytes;
         }
     }
 }

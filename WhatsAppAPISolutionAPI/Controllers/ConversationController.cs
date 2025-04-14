@@ -1,14 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System.Drawing.Printing;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Conversation;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using WhatsAppAPISolutionDL.Models;
-using Microsoft.Extensions.Logging;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
