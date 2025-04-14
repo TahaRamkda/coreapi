@@ -5,8 +5,7 @@
         Add = 1,
         AllocateSalary = 1,
         GetClientInvoiceNumber = 1,
-        GetAppSettings = 1,
-
+        
         Update = 2,
         RepayLoan = 2,
         AllocateBonus = 2,
@@ -60,6 +59,7 @@
         GetById = 8,
 
         AssignConversationToAgent = 9,
+        GetAppSettings = 9,
 
         GetAllLoanTransactions = 10,
         GetLatestConversationByConversationId = 10,

@@ -3,21 +3,20 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text.Json;
-using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Flow;
 using WhatsAppAPISolutionDL.Dto.Message;
+using WhatsAppAPISolutionDL.Dto.Order;
 using WhatsAppAPISolutionDL.Dto.Template;
-using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
-using WhatsAppAPISolutionDL.UserModels.Message;
+using WhatsAppAPISolutionDL.Setting;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    [AllowAnonymous]
+    [Authorize(Policy = AuthenticationSchemes.ApiKeyPolicy)]
     public class BridgeController : ControllerBase
     {
         private readonly IMessageService _messageService;
@@ -174,7 +173,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         #endregion
 
-        #region flow response
+        #region Flow response
 
         [HttpPost("flowresponse")]
         public async Task<IActionResult> FlowResponseAsync([FromBody] FlowResponseDto flowResponse)
@@ -202,6 +201,30 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Result = response,
                 Message = "Data added successfully"
             });
+        }
+
+        #endregion
+
+        #region Order
+
+        [HttpPost("order")]
+        public async Task<IActionResult> OrderAsync([FromBody] MetaOrderRequestDto model)
+        {
+            _logger.LogInformation("Calling OrderAsync api from Bridge with data={data}", JsonConvert.SerializeObject(model));
+
+            if (model == null)
+                return BadRequest();
+
+            //You need to continue the code
+            //create OrderService
+            //function CreateOrder
+
+            //required data to procedure
+            //Abbas and Shabbir
+
+            //verify entry is getting populated in database 
+
+            return Ok();
         }
 
         #endregion
