@@ -154,15 +154,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.UMediaUploads.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SenderNameId={senderId}, @ContentTypeStr={contentTypeStr}, @PageNo={PageNo}, @PageSize={PageSize}, @MediaTypeId={mediaTypeId}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Medias_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.List, CrudEnum.List, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-            return response;
+            _logger.LogInformation("Calling procedure usp_Medias_Ops with parameters: ActionId={ActionId}, ActionName={ActionName}, ClientId={ClientId}, SenderId={SenderId}, ContentType={ContentType}, PageNo={PageNo}, PageSize={PageSize}, MediaTypeId={MediaTypeId}, ProcResponseTime={ProcResponseTime}ms",
+                (int)CrudEnum.List, CrudEnum.List, clientId, senderId, contentTypeStr, PageNo, PageSize, mediaTypeId, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);            
+                return response;
         }
 
         public async Task<UResponseWithID> AddMediaAsync(MediaUploadDto media)
         {
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={media.ClientId}, @WhatsAppBusinessAccountId={media.WhatsAppBusinessAccountId}, @SenderNameId={media.SenderNameId}, @MediaPath={media.MediaPath}, @ContentType={media.ContentType}, @FileSize={media.FileSize}, @FileName={media.FileName}, @FileExtension={media.FileExtension}, @MediaSourceId={media.MediaSourceId}, @ActionBy={userId}, @MediaId={media.MediaId}, @MediaTypeId={media.MediaTypeId}").ToListAsync();
-            _logger.LogDebug("Calling procedure usp_Medias_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.Add, CrudEnum.Add, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+            _logger.LogInformation("Calling procedure usp_Medias_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.Add, CrudEnum.Add, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response[0];
         }
 

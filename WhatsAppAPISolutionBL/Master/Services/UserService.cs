@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.User;
 using WhatsAppAPISolutionDL.Enum;
@@ -18,15 +19,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<UserService> _logger;
+        private readonly ICacheService _cacheService;   
         private ClaimsPrincipal User => _httpContextAccessor.HttpContext?.User;
 
         public UserService(WhatsAppSolutionContext2 dbContext2,
             WhatsAppSolutionContext dbContext,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            ICacheService cacheService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _httpContextAccessor = httpContextAccessor;
+            _cacheService = cacheService;
         }
 
         public int GetClientIdFromAccessToken()
@@ -79,6 +83,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponse> DeleteUserAsync(int UserId, int ClientId)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.Delete}, @UserId={UserId}, @ClientId={ClientId}").ToListAsync();
+            await _cacheService.RemoveAsync(string.Format(CacheKeys.USER_PATTERN_KEY));
             return response[0];
         }
 
@@ -90,8 +95,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UUserList>> GetUsersListAsync(int clientId, string searchStr = "")
         {
-            var response = await _dbContext2.UserLists.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SearchStr={searchStr}").ToListAsync();
-            return response;
+            var cacheKey = string.Format(CacheKeys.USER_PATTERN_KEY, clientId, searchStr);
+            var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
+            {
+                var response = await _dbContext2.UserLists.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SearchStr={searchStr}").ToListAsync();
+                if (response == null || response.Count == 0)
+                    return null;
+                return response;
+            });
+            if (cacheResult == null)
+                await _cacheService.RemoveAsync(cacheKey);
+            return cacheResult;
         }
 
         public async Task<UResponse> AddUserTokenAsync(UserDto user)
@@ -102,10 +116,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UUserDetail> GetUserByIdAsync(int clientId, int userId)
         {
-            var response = await _dbContext2.UserDetails.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.GetById}, @ClientId={clientId}, @UserId={userId}").ToListAsync();
-            if (response == null || response.Count == 0)
-                return null;
-            return response[0];
+            var cacheKey = string.Format(CacheKeys.USER_BY_ID_KEY, clientId, userId);
+           var  cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
+            {
+                var response = await _dbContext2.UserDetails.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.GetById}, @ClientId={clientId}, @UserId={userId}").ToListAsync();
+                if (response == null || response.Count == 0)
+                    return null;
+                return response[0];
+            });
+            if(cacheResult == null)
+                await _cacheService.RemoveAsync(cacheKey);
+            return cacheResult;
         }
     }
 }

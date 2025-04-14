@@ -70,7 +70,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public virtual async Task<T> GetAsync<T>(string key, Func<Task<T>> acquire, int cacheTime)
         {
-            if (_cache.TryGetValue(key, out T cacheEntry)) return cacheEntry;
+            if (_cache.TryGetValue(key, out T cacheEntry)) 
+                return cacheEntry;
+            
             var semaphore = CacheEntries.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
             await semaphore.WaitAsync();
             try

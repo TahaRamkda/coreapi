@@ -10,14 +10,16 @@ namespace WhatsAppAPISolutionAPI.Extensions
         {
             services.AddHttpClient(HttpClientType.bridge_api, (serviceProvider, httpClient) =>
             {
-                var whatsAppConfiguration = serviceProvider.GetRequiredService<IOptions<BridgeConfigurationSettings>>().Value;
+                var bridgeConfigurationSettings = serviceProvider.GetRequiredService<IOptions<BridgeConfigurationSettings>>().Value;
 
-                httpClient.BaseAddress = new Uri(whatsAppConfiguration.BaseURL);
-                httpClient.Timeout = TimeSpan.FromSeconds(whatsAppConfiguration.TimeOutInSeconds);
+                httpClient.DefaultRequestHeaders.Add("X-API-KEY", $"{bridgeConfigurationSettings.ApiKey}");
+                httpClient.BaseAddress = new Uri(bridgeConfigurationSettings.BaseURL);
+                httpClient.Timeout = TimeSpan.FromSeconds(bridgeConfigurationSettings.TimeOutInSeconds);
             });
 
             return services;
         }
+
         public static IServiceCollection AddOneSignalServices(this IServiceCollection services, IConfiguration config)
         {
             services.AddHttpClient(HttpClientType.one_signal_api, (serviceProvider, httpClient) =>
@@ -29,6 +31,7 @@ namespace WhatsAppAPISolutionAPI.Extensions
 
             return services;
         }
+        
         public static IServiceCollection AddFlowEndpointServices(this IServiceCollection services, IConfiguration config)
         {
             services.AddHttpClient(HttpClientType.flow_endpoint, (serviceProvider, httpClient) =>

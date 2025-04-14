@@ -11,6 +11,8 @@ namespace WhatsAppAPISolutionAPI.Extensions
             services.Configure<APISolutionConfigurationSettings>(config.GetSection(APISolutionConfigurationSettings.ConfigKey));
             services.Configure<OneSignalConfigurationSettings>(config.GetSection(OneSignalConfigurationSettings.ConfigKey));
             services.Configure<FlowEndpointSettings>(config.GetSection(FlowEndpointSettings.ConfigKey));
+            services.Configure<CacheSettings>(config.GetSection(CacheSettings.ConfigKey));
+            services.Configure<ApiKeyAuthenticationConfigurationSettings>(config.GetSection(ApiKeyAuthenticationConfigurationSettings.ConfigKey));
 
             return services;
         }
