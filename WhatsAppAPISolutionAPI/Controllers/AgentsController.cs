@@ -36,8 +36,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger = logger;
             _userService = userService;
             _exportManager = exportManager;
-
-
             clientId = _userService.GetClientIdFromAccessToken();
             userId = _userService.GetUserIdFromAccessToken();
         }
