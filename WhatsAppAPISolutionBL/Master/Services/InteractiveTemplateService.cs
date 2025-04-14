@@ -374,7 +374,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<UInteractiveTemplateDetail> GetInteractiveTemplateDetailsAsync(int clientId, int senderId, int interactiveTemplateId)
         {
-            var cacheKey = string.Format(CacheKeys.INTERACTIVE_TEMPLATE_DROPDOWN_KEY, clientId, senderId, interactiveTemplateId);
+            var cacheKey = string.Format(CacheKeys.INTERACTIVE_TEMPLATE_BY_ID_KEY, clientId, senderId, interactiveTemplateId);
 
             var cachedResult = await _cacheService.GetAsync(cacheKey, async () =>
             {

@@ -51,10 +51,7 @@ namespace WhatsAppAPISolutionBL.Helper
         #endregion
 
         #region Conversation
-        public static string CONVERSATION_PATTERN_KEY => "Api.Conversation.";
-        public static string CONVERSATION_BY_ID_KEY => "Api.Conversation.{0}-{1}";  
-
-        public static string CONVERSATION_DROPDOWN_KEY => "Api.Conversation.{0}-{1}-{2}";
+        public static string CONVERSATION_DROPDOWN_KEY => "Api.Conversation.{0}-{1}";
         #endregion
 
         #region Dashboard
@@ -72,8 +69,8 @@ namespace WhatsAppAPISolutionBL.Helper
 
         #region InteractiveTemplate
         public static string INTERACTIVE_TEMPLATE_PATTERN_KEY => "Api.InteractiveTemplate.";
-        public static string INTERACTIVE_TEMPLATE_BY_ID_KEY => "Api.InteractiveTemplate.{0}-{1}";
-        public static string INTERACTIVE_TEMPLATE_DROPDOWN_KEY => "Api.InteractiveTemplate.{0}-{1}-{2}";
+        public static string INTERACTIVE_TEMPLATE_BY_ID_KEY => "Api.InteractiveTemplate.{0}-{1}-{2}";
+        public static string INTERACTIVE_TEMPLATE_DROPDOWN_KEY => "Api.InteractiveTemplate.{0}-{1}-{2}-{3}";
         #endregion
 
         #region AgentInteractiveTemplate
@@ -100,6 +97,7 @@ namespace WhatsAppAPISolutionBL.Helper
 
 
         #region SenderName
+
         public static string SENDERNAME_PATTERN_KEY = "Api.SenderName.";
         public static string SENDERNAME_DROPDOWN_KEY = "Api.SenderName.{0}";
         public static string SENDERNAME_DROPDOWN_KEY2 = "Api.SenderName.{0}-{1}";

@@ -335,21 +335,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<List<UConversationLogsList>> GetConversationLogsListAsync(int clientId = 0, int conversationId = 0)
         {
-            var cacheKey = String.Format(CacheKeys.CONVERSATION_DROPDOWN_KEY, clientId, conversationId);
-            var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
-            {
-                var startProcTime = DateTime.UtcNow;
-                var response = await _dbContext2.ConversationLogsList.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetConversationLogs},@ClientId={clientId}, @Id={conversationId}").ToListAsync();
-                _logger.LogInformation(
-                    "Calling procedure usp_Conversations_Ops with clientId={ClientId}, conversationId={ConversationId}, actionId={ActionId}, actionName={ActionName}, ProcResponseTime={ProcResponseTime}ms",
-                    clientId, conversationId, (int)CrudEnum.GetConversationLogs, CrudEnum.GetConversationLogs,DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds); if (response == null || response.Count == 0)
-                    return null;
-                return response;
-            });
-            if (cacheResult == null || cacheResult.Count == 0)
-                return null;
-            return cacheResult;
+            var startProcTime = DateTime.UtcNow;
+            var response = await _dbContext2.ConversationLogsList.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetConversationLogs},@ClientId={clientId}, @Id={conversationId}").ToListAsync();
+            _logger.LogInformation(
+                "Calling procedure usp_Conversations_Ops with clientId={ClientId}, conversationId={ConversationId}, actionId={ActionId}, actionName={ActionName}, ProcResponseTime={ProcResponseTime}ms",
+                clientId, conversationId, (int)CrudEnum.GetConversationLogs, CrudEnum.GetConversationLogs, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+            return response;
         }
+
         public async Task<UConversationStatistics> GetConversationStatisticsAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", DateTime? fromDate = null, DateTime? toDate = null, string searchStr = "", string fChatInitiated = "")
         {
             var startProcTime = DateTime.UtcNow;
