@@ -132,7 +132,7 @@ namespace WhatsAppAPISolutionBL.Helper
 
         public static string Template_DROPDOWN_KEY => "Api.Template.{0}-{1}";
         public static string Template_DROPDOWN_KEY2 => "Api.Template.{0}-{1}-{2}";
-        public static string Template_DROPDOWN_KEY3 => "Api.Template.{0}-{1}";
+        public static string Template_DROPDOWN_KEY3 => "Api.Template.{0}";
         #endregion
 
         #region UserService
