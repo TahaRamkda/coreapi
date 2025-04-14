@@ -141,6 +141,11 @@ namespace WhatsAppAPISolutionBL.Helper
         public static string USER_DROPDOWN_KEY => "Api.User.{0}-{1}";
         #endregion
 
+        #region AppSettings
+        public static string APPSETTINGS_PATTERN_KEY => "Api.AppSettings.";
+        public static string APPSETTINGS_BY_ID_KEY => "Api.AppSettings.{0}-{1}";
+        public static string APPSETTINGS_DROPDOWN_KEY => "Api.AppSettings.{0}-{1}";
+        #endregion
 
         /// <summary>
         /// Key pattern to clear cache
