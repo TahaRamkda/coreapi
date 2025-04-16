@@ -16,6 +16,7 @@ using WhatsAppAPISolutionDL.UserModels.Entity;
 using Microsoft.EntityFrameworkCore;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
+using WhatsAppAPISolutionBL.Master.Interfaces;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -23,84 +24,31 @@ namespace WhatsAppAPISolutionAPI.Controllers
     [Route("[controller]")]
     public class AnalyticController : ControllerBase
     {
+        #region Fields
         private readonly HttpClient _httpClient;
         private readonly WhatsAppSolutionContext2 _dbcontext2;
         private readonly WhatsAppSolutionContext _dbContext;
+        private readonly IConversationAnalyticsService _conversationAnalyticsService;
+        #endregion
 
-        public AnalyticController(IHttpClientFactory httpClientFactory, WhatsAppSolutionContext2 _dbcontext2, WhatsAppSolutionContext dbContext)
+        #region Ctor
+        public AnalyticController(IHttpClientFactory httpClientFactory, WhatsAppSolutionContext2 _dbcontext2, WhatsAppSolutionContext dbContext, IConversationAnalyticsService conversationAnalyticsService)
         {
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             this._dbcontext2 = _dbcontext2;
             _dbContext = dbContext;
+            _conversationAnalyticsService = conversationAnalyticsService;
         }
+        #endregion
+
+        #region Method
         [HttpPost("GetAnalytic")]
         public async Task<IActionResult> GetConversationAnalytics([FromBody] ConversationAnalyticRequestDto model)
         {
-            var bridgeEndpoint = $"/api/Analytics/ConversationAnalytics";
-            var bridgeDto = new ConversationAnalyticBridgeRequestDto
-            {
-                ClientId = model.ClientId.ToString(),
-                SenderId = model.SenderId.ToString(),
-                StartDate = model.StartDate,
-                EndDate = model.EndDate
-            };
-
-            var requestJson = JsonConvert.SerializeObject(bridgeDto);
-            var content = new StringContent(requestJson, null, "application/json");
-            var bridgeResponse = await _httpClient.PostAsync(bridgeEndpoint, content);
-
-            if (!bridgeResponse.IsSuccessStatusCode)
-            {
-                return Ok(new ApiResult
-                {
-                    Message = "Bridge API failed",
-                    StatusCode = StatusCodes.Status500InternalServerError
-                });
-            }
-
-            var bridgeContent = await bridgeResponse.Content.ReadAsStringAsync();
-            var result = JsonConvert.DeserializeObject<SyncResultDto>(bridgeContent);
-
-            if (result != null && result.success && result.result != null)
-            {
-                var data = JsonConvert.SerializeObject(result.result);
-                var bridgeResults = JsonConvert.DeserializeObject<List<ConversationAnalyticBridgeResponeDto>>(data);
-                if (!bridgeResults.Any())
-                {
-                    return Ok(new ApiResult
-                    {
-                        Success = true,
-                        Message = "ConversationAnalytics Not Exists",
-                        StatusCode = StatusCodes.Status200OK
-                    });
-                }
-               var conversationEntities = bridgeResults.Select(item => new ConversationAnalytic
-               {
-                    Start = item.Start,
-                    End = item.End,
-                    StartUtc = item.StartDateUtc,
-                    EndUtc = item.EndDateUtc,
-                    ConversationCount = item.Conversation,
-                    PhoneNumber = item.PhoneNumber,
-                    Cost = item.Cost,
-                    Category = item.ConversationCategory,
-                    ClientId = model.ClientId,
-                    SenderId = model.SenderId,
-                    CreatedDate = DateTime.UtcNow,
-                    ConversationType = item.ConversationType
-               }).ToList();
-
-                await _dbContext.ConversationAnalytics.AddRangeAsync(conversationEntities);
-                await _dbContext.SaveChangesAsync();
-            }
-
-            return Ok(new ApiResult
-            {
-                Success = true,
-                Message = "Analytics data processed and stored successfully.",
-                StatusCode = StatusCodes.Status200OK
-            });
+            var result = await _conversationAnalyticsService.ProcessConversationAnalyticsAsync(model);
+            return Ok(result);
         }
-
+        #endregion
     }
 }
+
