@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.AppSetting;
 using WhatsAppAPISolutionDL.UserModels.Campaign;
@@ -88,6 +89,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UFlow> Flow { get; set; } = null!;
         public virtual DbSet<USurveyResponse> SurveyResponse { get; set; } = null!;
         public virtual DbSet<UCatalogExport> CatalogExports { get; set; } = null!;
+        public virtual DbSet<ConversationAnalytic> ConversationAnalytics { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -146,6 +148,8 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UFlow>().HasNoKey();
             modelBuilder.Entity<USurveyResponse>().HasNoKey();
             modelBuilder.Entity<UCatalogExport>().HasNoKey();
+            modelBuilder.Entity<ConversationAnalytic>().HasNoKey();
+
         }
     }
 }
