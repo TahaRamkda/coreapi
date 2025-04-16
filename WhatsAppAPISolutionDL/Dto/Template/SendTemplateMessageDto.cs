@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WhatsAppAPISolutionDL.Models;
-using static WhatsAppAPISolutionDL.Dto.Template.TemplateWithParametersDto;
-
-namespace WhatsAppAPISolutionDL.Dto.Template
+﻿namespace WhatsAppAPISolutionDL.Dto.Template
 {
     public partial class SendTemplateMessageDto
     {

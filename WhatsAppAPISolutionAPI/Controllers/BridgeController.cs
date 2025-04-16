@@ -81,7 +81,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                             Id = template.Id,
                             TemplateId = tempParam.Id,
                             Status = tempParam.Status,
-                            Category = tempParam.Category,
+                            //Category = tempParam.Category,
                             ActionBy = template.UpdatedBy != null ? template.UpdatedBy.Value : 0
                         };
 

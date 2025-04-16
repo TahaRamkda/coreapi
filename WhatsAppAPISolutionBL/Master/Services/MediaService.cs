@@ -320,7 +320,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     // Step 1: Get the media information
                     string mediaInfoUrl = $"{_bridgeConfigurationSettings.Value.WhatsappBaseURL}/{mediaId}";
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", client?.AccessToken);
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", senderName?.AccessToken);
 
                     var mediaInfoResponse = await httpClient.GetAsync(mediaInfoUrl);
                     if (!mediaInfoResponse.IsSuccessStatusCode)

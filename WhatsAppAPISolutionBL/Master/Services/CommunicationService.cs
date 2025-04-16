@@ -278,14 +278,268 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var apiCallStart = DateTime.UtcNow;
             string apiEndpoint = $"/api/Template/SendBatchTemplateMessage";
 
-            if (template.TemplateTypeId == (int)TemplateTypeEnum.Carousel)
-                apiEndpoint = $"/api/Template/SendBatchCarouselMessage";
-
             var res = new StringContent(request, Encoding.UTF8, "application/json");
             var response1 = await _httpClient.PostAsync(apiEndpoint, res);
             var content = await response1.Content.ReadAsStringAsync();
 
             _logger.LogInformation("Calling bridge API apiEndpoint={apiEndpoint} Send Template Message with request={request} and response={response} with apiResponseTime={apiResponseTime}", apiEndpoint, request, content, DateTime.UtcNow.Subtract(apiCallStart).TotalMilliseconds);
+
+            List<CustomIntegrationResult> models = new List<CustomIntegrationResult>();
+            var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
+            if (result != null && result.success)
+            {
+                var data = System.Text.Json.JsonSerializer.Serialize(result.result);
+                var tempResult = JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
+                if (tempResult != null)
+                {
+                    foreach (var item in tempResult)
+                    {
+                        var response = new CustomIntegrationResult
+                        {
+                            Sent = item.success,
+                            PhoneNumber = item.phoneNumber,
+                            WaId = item.waId
+                        };
+
+                        var message = new InsertMessageDto
+                        {
+                            ClientId = template.ClientId ?? 0,
+                            SenderId = template.SenderId,
+                            WaId = item.waId,
+                            RecipientId = item.phoneNumber,
+                            Status = item.success ? MessageStatusEnum.SENT : MessageStatusEnum.FAILED,
+                            ModuleId = model.ModuleId,
+                            ParentId = model.ParentId,
+                            MessageType = (int)MainMessageTypeEnum.TEMPLATE,
+                            MessageReferenceId = (int)template.Id,
+                            MessageContent = messageContent.ToString(),
+                            ButtonJson = buttonJson,
+                            MediaId = (model.MediaId > 0 ? model.MediaId : template.MediaId) ?? 0 //If in campaign media id is present take reference from there, else default media
+                        };
+
+                        if (item.errors != null && item.errors.Any())
+                        {
+                            string errors = String.Join(',', item.errors);
+                            message.Error = new InsertMessageDto.ErrorDto
+                            {
+                                ErrorDetails = errors
+                            };
+
+                            response.Errors = errors;
+                        }
+
+                        await _messageSentLogsService.AddMessageSentLogAsync(message);
+
+                        //Add result to custom integration result models
+                        models.Add(response);
+                    }
+                }
+            }
+
+            //If custom integration models exist
+            if (models.Any())
+            {
+                return new ApiResult
+                {
+                    Success = true,
+                    StatusCode = 200,
+                    Result = models,
+                    Message = "Processed"
+                };
+            }
+
+            return new ApiResult
+            {
+                StatusCode = 0,
+                Message = result.message
+            };
+        }
+
+        public async Task<ApiResult> SendCarouselTemplateMessageAsync(TemplateMessagePayloadDto model)
+        {
+            var template = await _templateService.GetTemplateDetailAsync(model.ClientId, model.TemplateId);
+            if (template == null)
+                return new ApiResult { StatusCode = 0, Message = "Template not found or deleted" };
+
+            ParamData headerParameter = model.Params != null ? model.Params.Where(x => x.ParamType == (int)TemplateParamEnum.Header).FirstOrDefault() : null;
+            List<ParamData> bodyParameters = model.Params != null ? model.Params.Where(x => x.ParamType == (int)TemplateParamEnum.Body).ToList() : new List<ParamData>();
+            List<ParamData> buttonParameters = model.Params != null ? model.Params.Where(x => x.ParamType == (int)TemplateParamEnum.Button).ToList() : new List<ParamData>();
+
+            string headerText = template.HeaderText ?? "";
+            string bodyText = template.BodyText ?? "";
+            string footerText = template.FooterText ?? "";
+            string buttonJson = String.Empty;
+
+            var sendMessage = new SendCarouselTemplateMessageDto
+            {
+                ClientId = template.ClientId.ToString(),
+                SenderNameId = template.SenderId.ToString(),
+                PhoneNumbers = model.PhoneNumbers,
+                LanguageCode = template.Language,
+                TemplateId = template.TemplateId,
+                TemplateName = template.TemplateName,
+                Cards = new List<SendCarouselTemplateMessageDto.CardComponent>()
+            };
+
+            foreach (var screen in template.Screens)
+            {
+                var cardComponent = new SendCarouselTemplateMessageDto.CardComponent
+                {
+                    Index = screen.Sequence ?? 0,
+                    Components = new List<SendCarouselTemplateMessageDto.Component>()
+                };
+
+                #region Header 
+
+                var headerType = (TemplateHeaderEnum)screen.HeaderType;
+                if (headerType == TemplateHeaderEnum.TEXT && screen.HeaderParamCount > 0)
+                {
+                    if (headerParameter == null || String.IsNullOrWhiteSpace(headerParameter.ParamValue))
+                        return new ApiResult { StatusCode = 0, Message = $"error - HParam is required." };
+
+                    var headerComponents = new SendCarouselTemplateMessageDto.Component
+                    {
+                        ComponentType = nameof(TemplateParamEnum.Header)
+                    };
+
+                    headerComponents.Values.Add(new SendCarouselTemplateMessageDto.KeyValue
+                    {
+                        Type = headerType.ToString(),
+                        Value = headerParameter.ParamValue,
+                        Index = headerParameter.Sequence ?? 0,
+                    });
+
+                    //Replace {{example}} in header
+                    var templateHeaderParam = template.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Header).FirstOrDefault();
+                    if (templateHeaderParam != null)
+                        headerText = headerText.Replace(templateHeaderParam.ParamName, headerParameter.ParamValue);
+
+                    cardComponent.Components.Add(headerComponents);
+                }
+                else if (headerType == TemplateHeaderEnum.IMAGE || headerType == TemplateHeaderEnum.DOCUMENT || headerType == TemplateHeaderEnum.VIDEO)
+                {
+                    var headerComponents = new SendCarouselTemplateMessageDto.Component
+                    {
+                        ComponentType = TemplateParamEnum.Header.ToString()
+                    };
+
+                    var media = _dbContext.Medias.Find(model.MediaId > 0 ? model.MediaId : screen.MediaId); //If in campaign media id is present take reference from there, else default media
+                    if (media != null)
+                    {
+                        var mediaPath = String.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, media.MediaPath);
+                        headerComponents.Values.Add(new SendCarouselTemplateMessageDto.KeyValue
+                        {
+                            Type = headerType.ToString(),
+                            Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath
+                        });
+                    }
+                    else
+                        return new ApiResult { Message = $"error - Cannot find template media." };
+
+                    cardComponent.Components.Add(headerComponents);
+                }
+
+                #endregion
+
+                #region Body
+
+                if (screen.BodyParamCount > 0)
+                {
+                    if (bodyParameters.Count == 0 || bodyParameters.Count < screen.BodyParamCount)
+                        return new ApiResult { StatusCode = 0, Message = $"error - Body paramaters passed is less than required parameters." };
+
+                    var bodyComponents = new SendCarouselTemplateMessageDto.Component
+                    {
+                        ComponentType = TemplateParamEnum.Body.ToString()
+                    };
+
+                    for (var i = 0; i < screen.BodyParamCount; i++)
+                    {
+                        var param = bodyParameters.Where(x => x.Sequence == i).FirstOrDefault();
+                        if (param == null || String.IsNullOrWhiteSpace(param.ParamValue))
+                            return new ApiResult { StatusCode = 0, Message = $"error - BParam {i + 1} is not passed." };
+
+                        //Replace {{example}} in body
+                        var templateBodyParam = template.Parameters.Where(x => x.TemplateScreenId == screen.TemplateScreenId && x.ParamType == (int)TemplateParamEnum.Body && x.Sequence == i).FirstOrDefault();
+                        if (templateBodyParam != null)
+                            bodyText = bodyText.Replace(templateBodyParam.ParamName, param.ParamValue);
+
+                        bodyComponents.Values.Add(new SendCarouselTemplateMessageDto.KeyValue
+                        {
+                            Type = "text",
+                            Value = param.ParamValue,
+                            Index = i
+                        });
+                    }
+
+                    cardComponent.Components.Add(bodyComponents);
+                }
+
+                #endregion
+
+                #region Button
+
+                var templateButtonParams = template.Parameters.Where(x => x.TemplateScreenId == screen.TemplateScreenId && x.ParamType == (int)TemplateParamEnum.Button).ToList();
+                if (templateButtonParams != null && templateButtonParams.Any())
+                {
+                    var buttonComponents = new SendCarouselTemplateMessageDto.Component
+                    {
+                        ComponentType = TemplateParamEnum.Button.ToString()
+                    };
+
+                    for (var i = 0; i < templateButtonParams.Count; i++)
+                    {
+                        var param = buttonParameters.Where(x => x.Sequence == templateButtonParams[i].Sequence).FirstOrDefault();
+                        if (param == null || String.IsNullOrWhiteSpace(param.ParamValue))
+                            return new ApiResult { StatusCode = 0, Message = $"error - BtnParam {templateButtonParams[i].Sequence + 1} is not passed." };
+
+                        buttonComponents.Values.Add(new SendCarouselTemplateMessageDto.KeyValue
+                        {
+                            Type = nameof(ButtonTypeEnum.URL),
+                            Value = param.ParamValue,
+                            Index = templateButtonParams[i].Sequence ?? 0
+                        });
+                    }
+
+                    cardComponent.Components.Add(buttonComponents);
+                }
+
+                #endregion
+
+                sendMessage.Cards.Add(cardComponent);
+            }
+
+            //Add the button in button JSON
+            List<ButtonDto> buttons = new List<ButtonDto>();
+
+            StringBuilder messageContent = new StringBuilder();
+            if (!String.IsNullOrWhiteSpace(headerText))
+            {
+                messageContent.Append(headerText);
+                messageContent.AppendLine();
+            }
+
+            if (!String.IsNullOrWhiteSpace(bodyText))
+            {
+                messageContent.Append(bodyText);
+                messageContent.AppendLine();
+            }
+
+            if (!String.IsNullOrWhiteSpace(footerText))
+                messageContent.Append(footerText);
+
+            buttonJson = JsonConvert.SerializeObject(buttons);
+
+            var request = JsonConvert.SerializeObject(sendMessage);
+
+            var apiCallStart = DateTime.UtcNow;
+            string apiEndpoint = $"/api/Template/SendBatchCarouselMessage";
+
+            var res = new StringContent(request, Encoding.UTF8, "application/json");
+            var response1 = await _httpClient.PostAsync(apiEndpoint, res);
+            var content = await response1.Content.ReadAsStringAsync();
+
+            _logger.LogInformation("Calling bridge API apiEndpoint={apiEndpoint} SendBatchCarouselMessage with request={request} and response={response} with apiResponseTime={apiResponseTime}", apiEndpoint, request, content, DateTime.UtcNow.Subtract(apiCallStart).TotalMilliseconds);
 
             List<CustomIntegrationResult> models = new List<CustomIntegrationResult>();
             var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
