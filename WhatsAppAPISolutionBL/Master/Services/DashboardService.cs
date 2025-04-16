@@ -26,11 +26,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.JsonDatas.FromSqlInterpolated($"exec usp_Dashboard_Ops  @ClientId={clientId}, @SenderId={senderId}, @DashboardTypeId=1, @FromDate={fromDate}, @ToDate={toDate}").ToListAsync();
-            _logger.LogInformation(
-                "Calling procedure usp_Dashboard_Ops with clientId={ClientId}, senderId={SenderId}, fromDate={FromDate}, toDate={ToDate}, DashboardTypeId=1, ProcResponseTime={ProcResponseTime}ms", clientId, senderId, fromDate, toDate,DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds
-            ); if (response != null && response.Any())
+            
+            _logger.LogInformation("Calling procedure usp_Dashboard_Ops with clientId={ClientId}, senderId={SenderId}, fromDate={FromDate}, toDate={ToDate}, DashboardTypeId=1, ProcResponseTime={ProcResponseTime}ms", clientId, senderId, fromDate, toDate, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+            
+            if (response != null && response.Any())
                 return response[0].JsonDataStr;
-            await _cacheService.RemoveAsync(CacheKeys.DASHBOARD_PATTERN_KEY);
+            
             return String.Empty;
         }
 
@@ -38,10 +39,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.JsonDatas.FromSqlInterpolated($"exec usp_Template_Insight  @ClientId={clientId}, @TemplateId={templateId}, @FromDate={fromDate}, @ToDate={toDate}").ToListAsync();
-            _logger.LogInformation("Calling procedure usp_Template_Insight with clientId={ClientId}, templateId={TemplateId}, fromDate={FromDate}, toDate={ToDate}, ProcResponseTime={ProcResponseTime}ms",clientId, templateId, fromDate, toDate,DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds
-            ); if (response != null && response.Any())
+
+            _logger.LogInformation("Calling procedure usp_Template_Insight with clientId={ClientId}, templateId={TemplateId}, fromDate={FromDate}, toDate={ToDate}, ProcResponseTime={ProcResponseTime}ms", clientId, templateId, fromDate, toDate, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+
+            if (response != null && response.Any())
                 return response[0].JsonDataStr;
-            await _cacheService.RemoveAsync(CacheKeys.DASHBOARD_PATTERN_KEY);
+
             return String.Empty;
         }
     }

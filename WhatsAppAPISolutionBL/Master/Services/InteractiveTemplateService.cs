@@ -446,8 +446,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     return null;
                 return response;
             });
+
             if (cacheResult == null || cacheResult.Count == 0)
                 await _cacheService.RemoveAsync(cacheKey);
+            
             return cacheResult;
         }
     }

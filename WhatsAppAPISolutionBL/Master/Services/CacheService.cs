@@ -1,12 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Setting;
 
@@ -70,9 +65,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public virtual async Task<T> GetAsync<T>(string key, Func<Task<T>> acquire, int cacheTime)
         {
-            if (_cache.TryGetValue(key, out T cacheEntry)) 
+            //If caching is not enabled, return the object directly
+            if (!_cacheSettings.CachingEnabled)
+                return await acquire();
+
+            if (_cache.TryGetValue(key, out T cacheEntry))
                 return cacheEntry;
-            
+
             var semaphore = CacheEntries.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
             await semaphore.WaitAsync();
             try
