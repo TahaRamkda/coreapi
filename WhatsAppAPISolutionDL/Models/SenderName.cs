@@ -23,5 +23,8 @@ namespace WhatsAppAPISolutionDL.Models
         public string PublicCertificate { get; set; }
         public string PrivateCertificate { get; set; }
         public string WebsiteUrl { get; set; }
+        public string BusinessId { get; set; }
+        public string AppId { get; set; }
+        public string AccessToken { get; set; }
     }
 }
