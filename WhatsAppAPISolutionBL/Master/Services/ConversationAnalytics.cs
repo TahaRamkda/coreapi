@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
@@ -6,7 +7,7 @@ using WhatsAppAPISolutionDL.Dto.ConversationAnalytic;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 
-
+ 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class ConversationAnalytics : IConversationAnalyticsService
@@ -14,19 +15,22 @@ namespace WhatsAppAPISolutionBL.Master.Services
         #region Fields
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly HttpClient _httpClient;
+        private readonly ILogger<ConversationAnalytics> _logger;
         #endregion
 
         #region Ctor
-        public ConversationAnalytics(IHttpClientFactory httpClientFactory, WhatsAppSolutionContext dbContext)
+        public ConversationAnalytics(IHttpClientFactory httpClientFactory, WhatsAppSolutionContext dbContext, ILogger<ConversationAnalytics> logger)
         {
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             _dbContext = dbContext;
+            _logger = logger;
         }
         #endregion
 
         #region Method
         public async Task<ApiResult> ProcessConversationAnalyticsAsync(ConversationAnalyticRequestDto model)
         {
+            _logger.LogInformation("ProcessConversationAnalyticsAsync called with model: {model}", JsonConvert.SerializeObject(model));
             if (model.ClientId == 0 || model.SenderId == 0)
             {
                 return new ApiResult
@@ -36,6 +40,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     StatusCode = StatusCodes.Status400BadRequest
                 };
             }
+            _logger.LogInformation("Calling the Bridge Api with the parameter : ClientId: {ClientId}, SenderId: {SenderId}, StartDate: {StartDate}, EndDate: {EndDate}", model.ClientId, model.SenderId, model.StartDate, model.EndDate);
             var bridgeEndpoint = "/api/Analytics/ConversationAnalytics";
             var bridgeDto = new ConversationAnalyticBridgeRequestDto
             {
@@ -90,7 +95,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     CreatedDate = DateTime.UtcNow,
                     ConversationType = item.ConversationType
                 }).ToList();
-
+                _logger.LogInformation("ConversationAnalytics data to be saved: {data}", JsonConvert.SerializeObject(conversationEntities));
                 await _dbContext.ConversationAnalytics.AddRangeAsync(conversationEntities);
                 await _dbContext.SaveChangesAsync();
             }

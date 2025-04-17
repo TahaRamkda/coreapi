@@ -29,15 +29,17 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly WhatsAppSolutionContext2 _dbcontext2;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly IConversationAnalyticsService _conversationAnalyticsService;
+        private readonly ILogger<AnalyticController> _logger;
         #endregion
 
         #region Ctor
-        public AnalyticController(IHttpClientFactory httpClientFactory, WhatsAppSolutionContext2 _dbcontext2, WhatsAppSolutionContext dbContext, IConversationAnalyticsService conversationAnalyticsService)
+        public AnalyticController(IHttpClientFactory httpClientFactory, WhatsAppSolutionContext2 _dbcontext2, WhatsAppSolutionContext dbContext, IConversationAnalyticsService conversationAnalyticsService, ILogger<AnalyticController> logger)
         {
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             this._dbcontext2 = _dbcontext2;
             _dbContext = dbContext;
             _conversationAnalyticsService = conversationAnalyticsService;
+            _logger = logger;
         }
         #endregion
 
@@ -45,6 +47,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("GetAnalytic")]
         public async Task<IActionResult> GetConversationAnalytics([FromBody] ConversationAnalyticRequestDto model)
         {
+            _logger.LogInformation("GetConversationAnalytics called with model: {model}", JsonConvert.SerializeObject(model));
             var result = await _conversationAnalyticsService.ProcessConversationAnalyticsAsync(model);
             return Ok(result);
         }
