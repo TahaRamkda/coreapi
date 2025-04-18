@@ -14,6 +14,7 @@ using WhatsAppAPISolutionDL.Hubs;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Entity;
+using WhatsAppAPISolutionDL.UserModels.Flow;
 using WhatsAppAPISolutionDL.UserModels.Message;
 
 namespace WhatsAppAPISolutionBL.Master.Services
@@ -222,6 +223,39 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     var conversation = await _conversationService.GetConversationMessageByMessageIdAsync(clientId: client.ClientId, conversationMessageId: action.ConversationMessageId.Value, status: (int)ConversationStatusEnum.AgentAssigned);
                     if (conversation != null && conversation.AgentId > 0) //Check if agent id exist
                     {
+
+
+                        var client1 = new HttpClient();
+                        var apiUrl = $"https://api.wit.ai/message?v=20250405&q={conversation.MessageContent}";
+                        client1.DefaultRequestHeaders.Clear();
+                        client1.DefaultRequestHeaders.Add("Authorization", "Bearer XKNTI6I446CSPCAJ52VABGCSVPYS2QCI");
+
+                        var response1 = await client1.GetAsync(apiUrl);
+                        _logger.LogInformation("FlowResponseAsync - getting response from wit.ai response = {response}", JsonConvert.SerializeObject(response1));
+                        string resultString = string.Empty;
+                        if (response1.IsSuccessStatusCode)
+                        {
+                            var content = await response1.Content.ReadAsStringAsync();
+                            _logger.LogInformation("FlowResponseAsync - getting response from wit.ai success response = {response}", JsonConvert.SerializeObject(content));
+                            var result = JsonConvert.DeserializeObject<WitAiResponseDto>(content);
+                            if (result != null)
+                            {
+                                _logger.LogInformation("FlowResponseAsync - getting response from wit.ai success DeserializeObject response = {response}", JsonConvert.SerializeObject(result));
+                                if (result.Intents != null && result.Intents.Count > 0)
+                                {
+                                    var intent = result.Intents[0];
+                                    resultString += $"Intent: {intent.Name} ({intent.Confidence:F3})\n";
+                                }
+                                if (result.Traits?.WitSentiment != null && result.Traits.WitSentiment.Count > 0)
+                                {
+                                    var sentiment = result.Traits.WitSentiment[0];
+                                    resultString += $"Sentiment: {sentiment.Value} ({sentiment.Confidence:F3})\n";
+                                }
+                            }
+                        }
+                        conversation.MessageContent += resultString;
+                        _logger.LogInformation("FlowResponseAsync - merging wit.ai response message with conversation MessageContent = {msg}", conversation.MessageContent);
+
                         // Look up the connection ID for the Agent ID and send the conversation
                         string connectionId = String.Empty;
                         int i;
