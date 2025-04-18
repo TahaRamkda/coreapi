@@ -24,18 +24,20 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<BridgeController> _logger;
         private readonly IFlowsService _flowService;
-
+        private readonly IOrderService _orderService;
         public BridgeController(IMessageService messageService,
             ITemplateService templateService,
             WhatsAppSolutionContext dbContext,
             ILogger<BridgeController> logger,
-            IFlowsService flowService)
+            IFlowsService flowService,
+            IOrderService orderService)
         {
             _templateService = templateService;
             _messageService = messageService;
             _dbContext = dbContext;
             _logger = logger;
             _flowService = flowService;
+            _orderService = orderService;
         }
 
         #region Template
@@ -213,8 +215,24 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Calling OrderAsync api from Bridge with data={data}", JsonConvert.SerializeObject(model));
 
             if (model == null)
+            {
                 return BadRequest();
+            }
+            var response = await _orderService.CreateOrdersAsync(model);
 
+            _logger.LogInformation("Received api CreateOrdersAsync response with data={data}", JsonConvert.SerializeObject(response));
+
+            if (response == null || response.Status <= 0)
+                return Ok(new ApiResult { Message = response?.Message });
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = response,
+                Message = "Data added successfully"
+            });
+
+            //var response = await _orderService.
             //You need to continue the code
             //create OrderService
             //function CreateOrder

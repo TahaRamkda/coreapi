@@ -40,6 +40,7 @@ namespace WhatsAppAPISolutionAPI.Extensions
             services.AddScoped<ICatalogService, CatalogService>();
             services.AddScoped<ICacheService, CacheService>();
             services.AddScoped<IAppSettingsService, AppSettingsService>();
+            services.AddScoped<IOrderService , OrderService>();
 
             return services;
 
