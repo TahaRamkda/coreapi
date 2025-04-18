@@ -13,6 +13,5 @@ namespace WhatsAppAPISolutionDL.UserModels.AppSetting
         public string Val { get; set; }
         public int? ClientId { get; set; }
         public int? SenderId { get; set; }
-        public int? TotalRecords { get; set; }
     }
 }
