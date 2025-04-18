@@ -63,7 +63,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var templateNameExist = await _dbContext.Templates
                 .Where(x => x.ClientId == clientId
                 && x.SenderId == model.SenderNameId
-                && x.RecordStatus != -1
+                //&& x.RecordStatus != -1
                 && x.TemplateName != null
                 && x.Language != null
                 && x.TemplateName.ToLower() == model.Name.ToLower()
@@ -486,8 +486,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 var startProcTime = DateTime.UtcNow;
                 var response = await _dbContext2.TemplateDetails.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetTemplateDetails}, @ClientId={clientId}, @TemplatesId={templateId}").ToListAsync();
+                
                 _logger.LogInformation("Calling procedure usp_Templates_Ops with parameters: ActionId={ActionId}, ClientId={ClientId}, TemplatesId={TemplatesId}, " +
                     "ProcResponseTime={ProcResponseTime}ms", (int)CrudEnum.GetTemplateDetails, clientId, templateId, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+                
                 if (response != null && response.Any())
                 {
                     var template = response[0];
@@ -498,6 +500,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     template.Parameters = !String.IsNullOrWhiteSpace(template.ParametersJson)
                         ? JsonConvert.DeserializeObject<List<UTemplateDetail.Parameter>>(template.ParametersJson)
                         : new List<UTemplateDetail.Parameter>();
+
+                    template.Screens = !String.IsNullOrWhiteSpace(template.ScreensJson)
+                     ? JsonConvert.DeserializeObject<List<UTemplateDetail.Screen>>(template.ScreensJson)
+                     : new List<UTemplateDetail.Screen>();
 
                     return template;
                 }

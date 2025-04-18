@@ -10,5 +10,6 @@ namespace WhatsAppAPISolutionDL.Setting
     {
         public const string ConfigKey = "CacheSettings";
         public int DefaultExpirationInMinutes { get; set; }
+        public bool CachingEnabled { get; set; }
     }
 }

@@ -296,7 +296,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.UpdateCampaign}, @CampaignId={model.CampaignId}, @CampaignName={model.CampaignName}, @ClientId={clientId}, @SenderId={model.SenderId}, @TemplateId={model.TemplateId}, @ScheduleDate={model.ScheduleDate}, @CampaignType={model.CampaignType}, @CampaignParamsJSON={campaignParamJson}, @CampaignContactsJSON={campaignContactJson}, @GroupIds={model.GroupIds}, @MediaId={model.MediaId}, @ActionBy={userId}").ToListAsync();
             return response[0];
         }
-       
+
         public async Task<UResponse> SettleCampaignAsync(int clientId, int campaignId)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.SettleCampaign}, @CampaignId={campaignId}, @ClientId={clientId}").ToListAsync();
@@ -311,6 +311,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (campaign.TemplateId <= 0)
                 return new ApiResult { Message = "No template id found in this campaign please add template" };
+
+            var template = await _dbContext.Templates.FindAsync(campaign.TemplateId);
+            if (template == null)
+                return new ApiResult { Message = "No template found, please add template" };
 
             if (model.PhoneNumbers == null || model.PhoneNumbers.Count == 0)
                 return new ApiResult { Message = "Please enter phone numbers" };
@@ -333,7 +337,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             var flowToken = $"{FlowIdentifier.ClientId}:{tempPayload.ClientId}|" + $"{FlowIdentifier.SenderId}:{campaign.SenderId}|" + $"{FlowIdentifier.ModuleId}:{tempPayload.ModuleId}|" + $"{FlowIdentifier.ParentId}:{tempPayload.ParentId}";
             tempPayload.FlowToken = flowToken;
-            return await _communicationService.SendTemplateMessageAsync(tempPayload);
+
+            if (template.TemplateTypeId == (int)TemplateTypeEnum.Carousel)
+                return await _communicationService.SendCarouselTemplateMessageAsync(tempPayload);
+            else
+                return await _communicationService.SendTemplateMessageAsync(tempPayload);
         }
 
         public async Task<UCampaignContactStat> GetCampaignContactStatsAsync(int clientId, int campaignId)

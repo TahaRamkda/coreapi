@@ -29,5 +29,6 @@ namespace WhatsAppAPISolutionDL.Models
         public int? ArflowId { get; set; }
         public string ProductUrl { get; set; }
         public bool? FlowRequestProcessed { get; set; }
+        public string ItemsUrl { get; set; }
     }
 }

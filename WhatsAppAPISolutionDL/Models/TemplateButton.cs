@@ -21,5 +21,6 @@ namespace WhatsAppAPISolutionDL.Models
         public DateTime? UpdatedDate { get; set; }
         public int? RecordStatus { get; set; }
         public int? SystemActionSubId { get; set; }
+        public int? TemplateScreenId { get; set; }
     }
 }

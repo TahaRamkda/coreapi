@@ -217,8 +217,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
                 _logger.LogDebug($"Input json: {JsonConvert.SerializeObject(template.TemplateId)}");
 
-                var fullUrl = String.Concat(baseUrl, $"//api/template/synctemplatebyid?messageTemplateId={template.TemplateId}");
-                var url = $"/api/template/synctemplatebyid?clientId={template.ClientId}&messageTemplateId={template.TemplateId}";
+                var fullUrl = String.Concat(baseUrl, $"/api/template/synctemplatebyid?messageTemplateId={template.TemplateId}");
+                var url = $"/api/template/synctemplatebyid?clientId={template.ClientId}&senderId={template.SenderId}&messageTemplateId={template.TemplateId}";
 
                 var response = await _httpClient.GetAsync(url);
                 var content = await response.Content.ReadAsStringAsync();

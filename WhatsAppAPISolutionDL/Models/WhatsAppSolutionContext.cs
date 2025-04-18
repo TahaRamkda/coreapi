@@ -64,6 +64,10 @@ namespace WhatsAppAPISolutionDL.Models
         public virtual DbSet<ModifierGroup> ModifierGroups { get; set; }
         public virtual DbSet<ModifierItemMap> ModifierItemMaps { get; set; }
         public virtual DbSet<Module> Modules { get; set; }
+        public virtual DbSet<Order> Orders { get; set; }
+        public virtual DbSet<OrderAddress> OrderAddresses { get; set; }
+        public virtual DbSet<OrderItem> OrderItems { get; set; }
+        public virtual DbSet<OrderStep> OrderSteps { get; set; }
         public virtual DbSet<Page> Pages { get; set; }
         public virtual DbSet<Permission> Permissions { get; set; }
         public virtual DbSet<PermissionTask> PermissionTasks { get; set; }
@@ -80,6 +84,7 @@ namespace WhatsAppAPISolutionDL.Models
         public virtual DbSet<TemplateParametersBak> TemplateParametersBaks { get; set; }
         public virtual DbSet<TemplateResponse> TemplateResponses { get; set; }
         public virtual DbSet<TemplateResponsesHist> TemplateResponsesHists { get; set; }
+        public virtual DbSet<TemplateScreen> TemplateScreens { get; set; }
         public virtual DbSet<TemplatesBak> TemplatesBaks { get; set; }
         public virtual DbSet<UnsubscribedNumber> UnsubscribedNumbers { get; set; }
         public virtual DbSet<User> Users { get; set; }
@@ -436,7 +441,13 @@ namespace WhatsAppAPISolutionDL.Models
 
             modelBuilder.Entity<ConversationAnalytic>(entity =>
             {
+                entity.Property(e => e.Category).HasMaxLength(100);
+
+                entity.Property(e => e.ConversationType).HasMaxLength(100);
+
                 entity.Property(e => e.Cost).HasColumnType("decimal(18, 3)");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.PhoneNumber)
                     .IsRequired()
@@ -992,6 +1003,81 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
             });
 
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.DeliveryChages).HasColumnType("numeric(18, 3)");
+
+                entity.Property(e => e.Discount).HasColumnType("numeric(18, 3)");
+
+                entity.Property(e => e.Language).HasMaxLength(2);
+
+                entity.Property(e => e.MetaOrderId).HasMaxLength(100);
+
+                entity.Property(e => e.Name).HasMaxLength(150);
+
+                entity.Property(e => e.OrderDate).HasColumnType("datetime");
+
+                entity.Property(e => e.PhoneNumber).HasMaxLength(15);
+
+                entity.Property(e => e.Subtotal).HasColumnType("numeric(18, 3)");
+
+                entity.Property(e => e.Total).HasColumnType("numeric(18, 3)");
+
+                entity.Property(e => e.WaId).HasMaxLength(150);
+            });
+
+            modelBuilder.Entity<OrderAddress>(entity =>
+            {
+                entity.HasKey(e => e.OrderId)
+                    .HasName("PK__OrderAdd__C3905BCF54BCA6B1");
+
+                entity.ToTable("OrderAddress");
+
+                entity.Property(e => e.OrderId).ValueGeneratedNever();
+
+                entity.Property(e => e.Block).HasMaxLength(100);
+
+                entity.Property(e => e.Cordinates).HasMaxLength(100);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.Direction).HasMaxLength(250);
+
+                entity.Property(e => e.FlatNo).HasMaxLength(100);
+
+                entity.Property(e => e.Floor).HasMaxLength(100);
+
+                entity.Property(e => e.House).HasMaxLength(100);
+
+                entity.Property(e => e.Street).HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<OrderItem>(entity =>
+            {
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.ItemName).HasMaxLength(100);
+
+                entity.Property(e => e.Price).HasColumnType("numeric(18, 3)");
+            });
+
+            modelBuilder.Entity<OrderStep>(entity =>
+            {
+                entity.Property(e => e.BodyText).HasMaxLength(250);
+
+                entity.Property(e => e.ButtonText).HasMaxLength(20);
+
+                entity.Property(e => e.FlowToken).HasMaxLength(250);
+
+                entity.Property(e => e.Language).HasMaxLength(2);
+
+                entity.Property(e => e.PhoneNumber).HasMaxLength(15);
+
+                entity.Property(e => e.StepName).HasMaxLength(250);
+            });
+
             modelBuilder.Entity<Page>(entity =>
             {
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
@@ -1031,7 +1117,13 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.ToTable("SenderName");
 
+                entity.Property(e => e.AccessToken).HasMaxLength(250);
+
+                entity.Property(e => e.AppId).HasMaxLength(100);
+
                 entity.Property(e => e.BusinessAccountId).HasMaxLength(50);
+
+                entity.Property(e => e.BusinessId).HasMaxLength(100);
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
@@ -1233,6 +1325,19 @@ namespace WhatsAppAPISolutionDL.Models
                 entity.Property(e => e.PhoneNumber).HasMaxLength(15);
 
                 entity.Property(e => e.WaId).HasMaxLength(250);
+            });
+
+            modelBuilder.Entity<TemplateScreen>(entity =>
+            {
+                entity.Property(e => e.BodyText).HasMaxLength(500);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.FooterText).HasMaxLength(250);
+
+                entity.Property(e => e.HeaderText).HasMaxLength(250);
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
             });
 
             modelBuilder.Entity<TemplatesBak>(entity =>

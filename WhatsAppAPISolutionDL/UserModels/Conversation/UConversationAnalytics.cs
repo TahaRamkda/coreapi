@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Numerics;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace WhatsAppAPISolutionDL.Models
+namespace WhatsAppAPISolutionDL.UserModels.Conversation
 {
-    public partial class ConversationAnalytic
+    public class UConversationAnalytics
     {
         public int Id { get; set; }
         public long Start { get; set; }
@@ -14,9 +19,8 @@ namespace WhatsAppAPISolutionDL.Models
         public string PhoneNumber { get; set; }
         public decimal Cost { get; set; }
         public string Category { get; set; }
-        public int? ClientId { get; set; }
-        public int? SenderId { get; set; }
-        public DateTime? CreatedDate { get; set; }
-        public string ConversationType { get; set; }
+        public int ClientId { get; set; }
+        public int SenderId { get; set; }
+        public DateTime CreatedDate { get; set; }
     }
 }

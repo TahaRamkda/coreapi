@@ -40,12 +40,15 @@ namespace WhatsAppAPISolutionDL.UserModels.Template
         public string ButtonsJson { get; set; }
         [JsonIgnore]
         public string ParametersJson { get; set; }
+        [JsonIgnore]
+        public string ScreensJson { get; set; }
 
         [NotMapped]
         public List<Button> Buttons { get; set; }
-
         [NotMapped]
         public List<Parameter> Parameters { get; set; }
+        [NotMapped]
+        public List<Screen> Screens{ get; set; }
 
         public class Button
         {
@@ -57,6 +60,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Template
             public int? ActionId { get; set; }
             public int? ActionType { get; set; }
             public int? SystemActionId { get; set; }
+            public int? TemplateScreenId { get; set; }
         }
 
         public class Parameter
@@ -65,6 +69,21 @@ namespace WhatsAppAPISolutionDL.UserModels.Template
             public string ParamName { get; set; }
             public int ParamType { get; set; }
             public string ParamDefaultValue { get; set; }
+            public int? Sequence { get; set; }
+            public int? TemplateScreenId { get; set; } 
+        }
+
+        public class Screen
+        {
+            public int? TemplateScreenId { get; set; }
+            public int? TemplateId { get; set; }
+            public int? HeaderType { get; set; }
+            public int? MediaId { get; set; }
+            public int? HeaderParamCount { get; set; }
+            public string HeaderText { get; set; }
+            public int? BodyParamCount { get; set; }
+            public string BodyText { get; set; }
+            public string FooterText { get; set; }
             public int? Sequence { get; set; }
         }
     }

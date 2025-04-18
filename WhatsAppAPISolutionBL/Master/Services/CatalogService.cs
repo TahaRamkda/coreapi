@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Catalog;
@@ -7,6 +8,7 @@ using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 using static WhatsAppAPISolutionDL.Dto.Catalog.CatalogDto;
+using static WhatsAppAPISolutionDL.Dto.Order.MetaOrderRequestDto.Order;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -49,7 +51,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private async Task DeactivateExistingCatalog(int clientId, int senderId)
         {
             // Soft delete existing records with clientId and senderId filters
-            var items = await _dbContext.Items.Where(x => x.ClientId == clientId && x.SenderId == senderId).ToListAsync();
+            var items = await _dbContext.Items.Where(x => x.ClientId == clientId && x.SenderId == senderId && x.Status == 1).ToListAsync();
 
             //Update item status = 0
             foreach (var item in items)
@@ -61,25 +63,60 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 _dbContext.Entry(item).State = EntityState.Modified;
             }
 
-            //Delete categories
-            var categories = await _dbContext.Categories.Where(x => x.ClientId == clientId && x.SenderId == senderId).ToListAsync();
-            _dbContext.Categories.RemoveRange(categories);
+            // Soft delete existing categories
+            var categories = await _dbContext.Categories.Where(x => x.ClientId == clientId && x.SenderId == senderId && x.Status == 1).ToListAsync();
+            foreach (var category in categories)
+            {
+                category.Status = 0;
+                category.DeprecatedDate = dateTimeNow;
+                category.UpdatedDate = dateTimeNow;
 
-            //Delete category item map
-            var categoryItemMaps = await _dbContext.CategoryItemMaps.Where(x => x.ClientId == clientId && x.SenderId == senderId).ToListAsync();
-            _dbContext.CategoryItemMaps.RemoveRange(categoryItemMaps);
+                _dbContext.Entry(category).State = EntityState.Modified;
+            }
 
-            //Delete modifiers
-            var modifiers = await _dbContext.ModifierGroups.Where(x => x.ClientId == clientId && x.SenderId == senderId).ToListAsync();
-            _dbContext.ModifierGroups.RemoveRange(modifiers);
+            // Soft delete existing category item map
+            var categoryItemMaps = await _dbContext.CategoryItemMaps.Where(x => x.ClientId == clientId && x.SenderId == senderId && x.Status == 1).ToListAsync();
+            foreach (var categoryItemMap in categoryItemMaps)
+            {
+                categoryItemMap.Status = 0;
+                categoryItemMap.DeprecatedDate = dateTimeNow;
+                categoryItemMap.UpdatedDate = dateTimeNow;
 
-            //Delete modifier item map
-            var modifierItemMaps = await _dbContext.ModifierItemMaps.Where(x => x.ClientId == clientId && x.SenderId == senderId).ToListAsync();
-            _dbContext.ModifierItemMaps.RemoveRange(modifierItemMaps);
+                _dbContext.Entry(categoryItemMap).State = EntityState.Modified;
+            }
 
-            //Delete item modifier map
-            var itemModifierMaps = await _dbContext.ItemModifierMaps.Where(x => x.ClientId == clientId && x.SenderId == senderId).ToListAsync();
-            _dbContext.ItemModifierMaps.RemoveRange(itemModifierMaps);
+            // Soft delete existing modifiers
+            var modifiers = await _dbContext.ModifierGroups.Where(x => x.ClientId == clientId && x.SenderId == senderId && x.Status == 1).ToListAsync();
+            foreach (var modifier in modifiers)
+            {
+                modifier.Status = 0;
+                modifier.DeprecatedDate = dateTimeNow;
+                modifier.UpdatedDate = dateTimeNow;
+
+                _dbContext.Entry(modifier).State = EntityState.Modified;
+            }
+
+            // Soft delete existing modifier item map
+            var modifierItemMaps = await _dbContext.ModifierItemMaps.Where(x => x.ClientId == clientId && x.SenderId == senderId && x.Status == 1).ToListAsync();
+            foreach (var modifierItemMap in modifierItemMaps)
+            {
+                modifierItemMap.Status = 0;
+                modifierItemMap.DeprecatedDate = dateTimeNow;
+                modifierItemMap.UpdatedDate = dateTimeNow;
+
+                _dbContext.Entry(modifierItemMap).State = EntityState.Modified;
+            }
+
+            // Soft delete existing item modifier map
+            var itemModifierMaps = await _dbContext.ItemModifierMaps.Where(x => x.ClientId == clientId && x.SenderId == senderId && x.Status == 1).ToListAsync();
+            foreach (var itemModifierMap in itemModifierMaps)
+            {
+                itemModifierMap.Status = 0;
+                itemModifierMap.DeprecatedDate = dateTimeNow;
+                itemModifierMap.UpdatedDate = dateTimeNow;
+
+                _dbContext.Entry(itemModifierMap).State = EntityState.Modified;
+            }
 
             await _dbContext.SaveChangesAsync();
         }
@@ -93,24 +130,41 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 for (int i = 0; i < menuCategories.Count; i++)
                 {
                     var menuCategory = menuCategories[i];
-                    var category = new WhatsAppAPISolutionDL.Models.Category
-                    {
-                        ClientId = clientId,
-                        SenderId = senderId,
-                        NameEn = menuCategory.name?.en,
-                        NameAr = menuCategory.name?.ar ?? menuCategory.name.en,
-                        DescriptionEn = String.Empty,
-                        DescriptionAr = String.Empty,
-                        DisplayOrder = i + 1,
-                        IntegerationId = menuCategory.id?.Trim(),
-                        Status = 1,
-                        CreatedBy = 0,
-                        CreatedDate = dateTimeNow,
-                        UpdatedBy = 0,
-                        UpdatedDate = dateTimeNow
-                    };
 
-                    await _dbContext.Categories.AddAsync(category);
+                    var category = _dbContext.Categories.FirstOrDefault(x => x.ClientId == clientId && x.SenderId == senderId && x.IntegerationId == menuCategory.id);
+                    if (category != null)
+                    {
+                        category.NameEn = menuCategory.name?.en;
+                        category.NameAr = menuCategory.name?.ar ?? menuCategory.name.en;
+                        category.DisplayOrder = i + 1;
+                        category.Status = 1;
+                        category.DeprecatedDate = null;
+                        category.UpdatedBy = 0;
+                        category.UpdatedDate = dateTimeNow;
+
+                        _dbContext.Entry(category).State = EntityState.Modified;
+                    }
+                    else
+                    {
+                        category = new WhatsAppAPISolutionDL.Models.Category
+                        {
+                            ClientId = clientId,
+                            SenderId = senderId,
+                            NameEn = menuCategory.name?.en,
+                            NameAr = menuCategory.name?.ar ?? menuCategory.name.en,
+                            DescriptionEn = String.Empty,
+                            DescriptionAr = String.Empty,
+                            DisplayOrder = i + 1,
+                            IntegerationId = menuCategory.id?.Trim(),
+                            Status = 1,
+                            CreatedBy = 0,
+                            CreatedDate = dateTimeNow,
+                            UpdatedBy = 0,
+                            UpdatedDate = dateTimeNow
+                        };
+
+                        await _dbContext.Categories.AddAsync(category);
+                    }
 
                     //save context
                     await _dbContext.SaveChangesAsync();
@@ -120,27 +174,44 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         var item = await _dbContext.Items.FirstOrDefaultAsync(x => x.ClientId == clientId && x.SenderId == senderId && x.IntegrationId == menuCategory.item_ids[j]);
                         if (item != null)
                         {
-                            var categoryItemMap = new CategoryItemMap
-                            {
-                                ClientId = clientId,
-                                SenderId = senderId,
-                                ItemId = item.Id,
-                                CategoryId = category.Id,
-                                DisplayOrder = j + 1,
-                                Status = 1,
-                                CreatedBy = 0,
-                                CreatedDate = dateTimeNow,
-                                UpdateBy = 0,
-                                UpdatedDate = dateTimeNow
-                            };
+                            var categoryItemMap = await _dbContext.CategoryItemMaps.FirstOrDefaultAsync(x => x.ClientId == clientId && x.SenderId == senderId
+                                && x.CategoryId == category.Id
+                                && x.ItemId == item.Id);
 
-                            await _dbContext.CategoryItemMaps.AddAsync(categoryItemMap);
+                            if (categoryItemMap != null)
+                            {
+                                categoryItemMap.DisplayOrder = j + 1;
+                                categoryItemMap.Status = 1;
+                                categoryItemMap.DeprecatedDate = null;
+                                categoryItemMap.UpdateBy = 0;
+                                categoryItemMap.UpdatedDate = dateTimeNow;
+
+                                _dbContext.Entry(categoryItemMap).State = EntityState.Modified;
+                            }
+                            else
+                            {
+                                categoryItemMap = new CategoryItemMap
+                                {
+                                    ClientId = clientId,
+                                    SenderId = senderId,
+                                    ItemId = item.Id,
+                                    CategoryId = category.Id,
+                                    DisplayOrder = j + 1,
+                                    Status = 1,
+                                    CreatedBy = 0,
+                                    CreatedDate = dateTimeNow,
+                                    UpdateBy = 0,
+                                    UpdatedDate = dateTimeNow
+                                };
+
+                                await _dbContext.CategoryItemMaps.AddAsync(categoryItemMap);
+                            }
+
+                            //save context
+                            await _dbContext.SaveChangesAsync();
                         }
                     }
                 }
-
-                //save context
-                await _dbContext.SaveChangesAsync();
             }
         }
 
@@ -169,13 +240,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         existingItem.FlowUpdated = false;
                         existingItem.FlowRequired = false;
                         existingItem.FlowRequestProcessed = false;
+                        existingItem.UpdatedBy = 0;
+                        existingItem.UpdatedDate = dateTimeNow;
 
                         if (String.IsNullOrWhiteSpace(existingItem.DescriptionEn))
                             existingItem.DescriptionEn = "-";
 
                         if (String.IsNullOrWhiteSpace(existingItem.DescriptionAr))
                             existingItem.DescriptionAr = "-";
- 
+
                         _dbContext.Entry(existingItem).State = EntityState.Modified;
                     }
                     else
@@ -229,25 +302,45 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 for (int i = 0; i < menuModifiers.Count; i++)
                 {
                     var menuModifier = menuModifiers[i];
-                    var modifierGroup = new WhatsAppAPISolutionDL.Models.ModifierGroup
-                    {
-                        ClientId = clientId,
-                        SenderId = senderId,
-                        IntegrationId = menuModifier.id,
-                        NameEn = menuModifier.name?.en,
-                        NameAr = menuModifier.name?.ar ?? menuModifier.name.en,
-                        DescriptionEn = menuModifier.description?.en,
-                        DescriptionAr = menuModifier.description?.ar ?? menuModifier.description.en,
-                        Status = 1,
-                        CreatedBy = 0,
-                        CreatedDate = dateTimeNow,
-                        UpdatedBy = 0,
-                        UpdatedDate = dateTimeNow,
-                        MinSelection = menuModifier.min_selection,
-                        MaxSelection = menuModifier.max_selection
-                    };
 
-                    await _dbContext.ModifierGroups.AddAsync(modifierGroup);
+                    var modifierGroup = await _dbContext.ModifierGroups.FirstOrDefaultAsync(x => x.ClientId == clientId && x.SenderId == senderId && x.IntegrationId == menuModifier.id);
+                    if (modifierGroup != null)
+                    {
+                        modifierGroup.NameEn = menuModifier.name?.en;
+                        modifierGroup.NameAr = menuModifier.name?.ar ?? menuModifier.name.en;
+                        modifierGroup.DescriptionEn = menuModifier.description?.en;
+                        modifierGroup.DescriptionAr = menuModifier.description?.ar ?? menuModifier.description.en;
+                        modifierGroup.MinSelection = menuModifier.min_selection;
+                        modifierGroup.MaxSelection = menuModifier.max_selection;
+                        modifierGroup.Status = 1;
+                        modifierGroup.DeprecatedDate = null;
+                        modifierGroup.UpdatedBy = 0;
+                        modifierGroup.UpdatedDate = dateTimeNow;
+
+                        _dbContext.Entry(modifierGroup).State = EntityState.Modified;
+                    }
+                    else
+                    {
+                        modifierGroup = new ModifierGroup
+                        {
+                            ClientId = clientId,
+                            SenderId = senderId,
+                            IntegrationId = menuModifier.id,
+                            NameEn = menuModifier.name?.en,
+                            NameAr = menuModifier.name?.ar ?? menuModifier.name.en,
+                            DescriptionEn = menuModifier.description?.en,
+                            DescriptionAr = menuModifier.description?.ar ?? menuModifier.description.en,
+                            Status = 1,
+                            CreatedBy = 0,
+                            CreatedDate = dateTimeNow,
+                            UpdatedBy = 0,
+                            UpdatedDate = dateTimeNow,
+                            MinSelection = menuModifier.min_selection,
+                            MaxSelection = menuModifier.max_selection
+                        };
+
+                        await _dbContext.ModifierGroups.AddAsync(modifierGroup);
+                    }
 
                     //save context
                     await _dbContext.SaveChangesAsync();
@@ -267,69 +360,107 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (modifier.item_ids != null && modifier.item_ids.Any())
             {
                 var menuItems = await _dbContext.Items.Where(x =>
-                x.ClientId == modifierGroup.ClientId
-                && x.SenderId == modifierGroup.SenderId
-                && x.Status == 1
-                && modifier.item_ids.Contains(x.IntegrationId)).ToListAsync();
+                        x.ClientId == modifierGroup.ClientId && x.SenderId == modifierGroup.SenderId
+                        && x.Status == 1
+                        && x.ItemType == (int)ItemType.CHOICE
+                        && modifier.item_ids.Contains(x.IntegrationId)).ToListAsync();
 
                 for (int i = 0; i < menuItems.Count; i++)
                 {
-                    var modifierItemMap = new ModifierItemMap
+                    var menuItem = menuItems[i];
+
+                    //Check existing modifier item map
+                    var modifierItemMap = await _dbContext.ModifierItemMaps.FirstOrDefaultAsync(x => x.ClientId == modifierGroup.ClientId && x.SenderId == modifierGroup.SenderId
+                    && x.ModifierGroupId == modifierGroup.Id && x.ItemId == menuItem.Id);
+
+                    if (modifierItemMap != null)
                     {
-                        ClientId = modifierGroup.ClientId,
-                        SenderId = modifierGroup.SenderId,
-                        Status = 1,
-                        ItemId = menuItems[i].Id,
-                        ModifierGroupId = modifierGroup.Id,
-                        DisplayOrder = i + 1,
-                        CreatedBy = 0,
-                        CreatedDate = dateTimeNow,
-                        UpdatedBy = 0,
-                        UpdatedDate = dateTimeNow
-                    };
+                        modifierItemMap.DisplayOrder = i + 1;
+                        modifierItemMap.Status = 1;
+                        modifierItemMap.DeprecatedDate = null;
+                        modifierItemMap.UpdatedBy = 0;
+                        modifierItemMap.UpdatedDate = dateTimeNow;
 
-                    await _dbContext.ModifierItemMaps.AddAsync(modifierItemMap);
+                        _dbContext.Entry(modifierItemMap).State = EntityState.Modified;
+                    }
+                    else
+                    {
+                        modifierItemMap = new ModifierItemMap
+                        {
+                            ClientId = modifierGroup.ClientId,
+                            SenderId = modifierGroup.SenderId,
+                            Status = 1,
+                            ItemId = menuItems[i].Id,
+                            ModifierGroupId = modifierGroup.Id,
+                            DisplayOrder = i + 1,
+                            CreatedBy = 0,
+                            CreatedDate = dateTimeNow,
+                            UpdatedBy = 0,
+                            UpdatedDate = dateTimeNow
+                        };
+
+                        await _dbContext.ModifierItemMaps.AddAsync(modifierItemMap);
+                    }
+
+                    //save context
+                    await _dbContext.SaveChangesAsync();
                 }
-
-                //save context
-                await _dbContext.SaveChangesAsync();
             }
         }
 
         private async Task ItemModifiersOps(ModifierGroup modifierGroup, CatalogDto catalog)
         {
+            //Filter out the items which has this modifier
             var items = catalog.menu.items.Where(x => x.modifier_ids.Contains(modifierGroup.IntegrationId)).Select(x => x.id).ToList();
 
             //Add item modifiers
             if (items != null && items.Any())
             {
                 var menuItems = await _dbContext.Items.Where(x =>
-                    x.ClientId == modifierGroup.ClientId
-                    && x.SenderId == modifierGroup.SenderId
-                    && x.Status == 1
-                    && items.Contains(x.IntegrationId)).ToListAsync();
+                        x.ClientId == modifierGroup.ClientId && x.SenderId == modifierGroup.SenderId
+                        && x.Status == 1 
+                        && items.Contains(x.IntegrationId)).ToListAsync();
 
                 for (int i = 0; i < menuItems.Count; i++)
                 {
-                    var itemModifierMap = new ItemModifierMap
+                    var menuItem = menuItems[i];
+
+                    //Check existing modifier item map
+                    var itemModifierMap = await _dbContext.ItemModifierMaps.FirstOrDefaultAsync(x => x.ClientId == modifierGroup.ClientId && x.SenderId == modifierGroup.SenderId
+                    && x.ModifierGroupId == modifierGroup.Id && x.ItemId == menuItem.Id);
+
+                    if (itemModifierMap != null)
                     {
-                        ClientId = modifierGroup.ClientId,
-                        SenderId = modifierGroup.SenderId,
-                        Status = 1,
-                        ItemId = menuItems[i].Id,
-                        ModifierGroupId = modifierGroup.Id,
-                        DisplayOrder = i + 1,
-                        CreatedBy = 0,
-                        CreatedDate = dateTimeNow,
-                        UpdatedBy = 0,
-                        UpdatedDate = dateTimeNow
-                    };
+                        itemModifierMap.Status = 1;
+                        itemModifierMap.DeprecatedDate = null;
+                        itemModifierMap.DisplayOrder = i + 1;
+                        itemModifierMap.UpdatedBy = 0;
+                        itemModifierMap.UpdatedDate = dateTimeNow;
 
-                    await _dbContext.ItemModifierMaps.AddAsync(itemModifierMap);
+                        _dbContext.Entry(itemModifierMap).State = EntityState.Modified;
+                    }
+                    else
+                    {
+                        itemModifierMap = new ItemModifierMap
+                        {
+                            ClientId = modifierGroup.ClientId,
+                            SenderId = modifierGroup.SenderId,
+                            Status = 1,
+                            ItemId = menuItem.Id,
+                            ModifierGroupId = modifierGroup.Id,
+                            DisplayOrder = i + 1,
+                            CreatedBy = 0,
+                            CreatedDate = dateTimeNow,
+                            UpdatedBy = 0,
+                            UpdatedDate = dateTimeNow
+                        };
+
+                        await _dbContext.ItemModifierMaps.AddAsync(itemModifierMap);
+                    }
+
+                    //save context
+                    await _dbContext.SaveChangesAsync();
                 }
-
-                //save context
-                await _dbContext.SaveChangesAsync();
             }
         }
 
@@ -344,6 +475,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 var itemModifierMaps = await _dbContext.ItemModifierMaps.Where(x => x.ClientId == clientId
                                       && x.SenderId == senderId
+                                      && x.Status == 1
                                       && x.ItemId == item.Id).ToListAsync();
 
                 //If item modifier map is present, we mark as flow required
@@ -406,6 +538,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 var modifierItems = await _dbContext.ModifierItemMaps.Where(x => x.ClientId == clientId
                                     && x.SenderId == senderId
+                                    && x.Status == 1
                                     && x.ModifierGroupId == modifierGroup.Id).ToListAsync();
 
                 foreach (var modifierItem in modifierItems)
@@ -416,7 +549,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                     var flowOption = new FlowOptionDTO
                     {
-                        OptionId = modItem.IntegrationId,
+                        OptionId = modItem.Id.ToString(),
                         OptionText = localization.ToLower() == "en" ? modItem.NameEn : modItem.NameAr ?? modItem.NameEn,
                         Metadata = String.Concat("(", (modItem.Price ?? 0).ToString("0.000"), ")")
                     };
@@ -487,6 +620,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var items = _dbContext.Items.Where(x => x.ClientId == model.ClientId
                         && x.SenderId == model.SenderId
                         && x.Id == model.ItemId
+                        && x.Status == 1
+                        && x.ItemType == (int)ItemType.ITEM
                         && x.FlowUpdated == false
                         && x.FlowRequired == true).ToList();
 
@@ -494,6 +629,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     var itemModifierMaps = await _dbContext.ItemModifierMaps.Where(x => x.ClientId == model.ClientId
                                             && x.SenderId == model.SenderId
+                                            && x.Status == 1
                                             && x.ItemId == item.Id).ToListAsync();
 
                     //If item modifier maps exists then only generate flows else no need for simple items
@@ -502,6 +638,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         var modifierGroups = await _dbContext.ModifierGroups
                             .Where(x => x.ClientId == model.ClientId
                             && x.SenderId == model.SenderId
+                            && x.Status == 1
                             && itemModifierMaps.Select(x => x.ModifierGroupId).Contains(x.Id)).ToListAsync();
 
                         List<string> localizations = new List<string> { "EN", "AR" };

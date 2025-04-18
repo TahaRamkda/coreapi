@@ -16,17 +16,20 @@ namespace WhatsAppAPISolutionAPI.Controllers
     {
         private readonly IAppSettingsService _appSettingsService;
         private readonly WhatsAppSolutionContext _dbContext;
+        private readonly int clientId;
         private readonly ILogger<AppSettingsController> _logger;
+        private readonly IUserService _userService;
 
-        public AppSettingsController(WhatsAppSolutionContext dbContext, ILogger<AppSettingsController> logger, IAppSettingsService appSettingsService)
+        public AppSettingsController(WhatsAppSolutionContext dbContext, ILogger<AppSettingsController> logger, IAppSettingsService appSettingsService, IUserService _userService)
         {
             _dbContext = dbContext;
             _logger = logger;
             _appSettingsService = appSettingsService;
+            clientId = _userService.GetClientIdFromAccessToken();
         }
 
         [HttpGet("getappsettinglist")]
-        public async Task<ActionResult> GetAppSettingListAsync(int clientId, string SearchStr = "",  int PageNo = 0, int PageSize = int.MaxValue)
+        public async Task<ActionResult> GetAppSettingListAsync(string SearchStr = "",  int PageNo = 0, int PageSize = int.MaxValue)
         {
             _logger.LogDebug("Calling api GetAppSettingsAsync with clientId={clientId}, searchStr={searchStr}, pageNo={pageNo}, pageSize={pageSize}", clientId, SearchStr,  PageNo, PageSize);
 
@@ -40,7 +43,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getappsettingbyid")]
-        public async Task<ActionResult> GetAppSettingById(int id, int clientId)
+        public async Task<ActionResult> GetAppSettingById(int id)
         {
             _logger.LogDebug("Calling api GetAppSettingsByIdAsync with clientId={clientId}, id={id}", id, clientId);
 
@@ -62,8 +65,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
-        [HttpPost("addGroup")]
-        public async Task<ActionResult> AddAppSettings(int clientId, int userId, [FromBody] AppSettingsDto Appsetting)
+        [HttpPost("addAppsettings")]
+        public async Task<ActionResult> AddAppSettings(int userId, [FromBody] AppSettingsDto Appsetting)
         {
             _logger.LogInformation("Calling api AddAppSettingsAsync with request={request}", JsonConvert.SerializeObject(Appsetting));
 
@@ -89,7 +92,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpPut("updateappsettings")]
-        public async Task<IActionResult> UpdateAppSettings(int clientId, int userId, [FromBody] AppSettingsDto appSettings)
+        public async Task<IActionResult> UpdateAppSettings(int userId, [FromBody] AppSettingsDto appSettings)
         {
             _logger.LogDebug("Calling api UpdateAppSettingsAsync with request={request}", JsonConvert.SerializeObject(appSettings));
 
@@ -138,7 +141,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getappsettings")]
-        public async Task<IActionResult> GetAppSettingAsync(int clientId, string searchStr = "")
+        public async Task<IActionResult> GetAppSettingAsync(string searchStr = "")
         {
             _logger.LogDebug("Calling api GetAppSettingAsync with clientId={clientId}, searchStr={searchStr}", clientId, searchStr);
 
