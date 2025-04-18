@@ -11,7 +11,6 @@ namespace WhatsAppAPISolutionDL.Dto.AppSettings
         public int Id { get; set; }
         public string KeyName { get; set; }
         public string Val { get; set; }
-        public int ClientId { get; set; }
         public int SenderId { get; set; }
     }
 }
