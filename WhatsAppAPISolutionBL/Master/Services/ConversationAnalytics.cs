@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
@@ -31,7 +32,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<ApiResult> ProcessConversationAnalyticsAsync(ConversationAnalyticRequestDto model)
         {
             _logger.LogInformation("ProcessConversationAnalyticsAsync called with model: {model}", JsonConvert.SerializeObject(model));
-            if (model.ClientId == 0 || model.SenderId == 0)
+            if (model.ClientId == 0 || model.SenderId == 0) 
             {
                 return new ApiResult
                 {
@@ -95,9 +96,31 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     CreatedDate = DateTime.UtcNow,
                     ConversationType = item.ConversationType
                 }).ToList();
-                _logger.LogInformation("ConversationAnalytics data to be saved: {data}", JsonConvert.SerializeObject(conversationEntities));
-                await _dbContext.ConversationAnalytics.AddRangeAsync(conversationEntities);
-                await _dbContext.SaveChangesAsync();
+
+                var existingRecords = await _dbContext.ConversationAnalytics
+                    .Where(ca => ca.ClientId == model.ClientId && ca.SenderId == model.SenderId)
+                    .Select(ca => new { ca.Start, ca.End })
+                    .ToListAsync();
+
+                var newEntities = conversationEntities
+                    .Where(ce => !existingRecords.Any(er => er.Start == ce.Start && er.End == ce.End))
+                    .ToList();
+
+                if (newEntities.Any())
+                {
+                    _logger.LogInformation("ConversationAnalytics data to be saved: {data}", JsonConvert.SerializeObject(newEntities));
+                    await _dbContext.ConversationAnalytics.AddRangeAsync(newEntities);
+                    await _dbContext.SaveChangesAsync();
+                }
+                else
+                {
+                    return new ApiResult
+                    {
+                        Success = true,
+                        Message = "No new data to insert into the ConversationAnalytics",
+                        StatusCode = StatusCodes.Status200OK
+                    };
+                }
             }
 
             return new ApiResult

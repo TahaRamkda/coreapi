@@ -17,7 +17,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly IAppSettingsService _appSettingsService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly int clientId;
-        private readonly ILogger<AppSettingsController> _logger;
+        private readonly ILogger<AppSettingsController> _logger; 
         private readonly IUserService _userService;
 
         public AppSettingsController(WhatsAppSolutionContext dbContext, ILogger<AppSettingsController> logger, IAppSettingsService appSettingsService, IUserService _userService)

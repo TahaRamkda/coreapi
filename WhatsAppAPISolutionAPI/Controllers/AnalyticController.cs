@@ -47,7 +47,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("GetAnalytic")]
         public async Task<IActionResult> GetConversationAnalytics([FromBody] ConversationAnalyticRequestDto model)
         {
-            _logger.LogInformation("GetConversationAnalytics called with model: {model}", JsonConvert.SerializeObject(model));
+             _logger.LogInformation("GetConversationAnalytics called with model: {model}", JsonConvert.SerializeObject(model));
             var result = await _conversationAnalyticsService.ProcessConversationAnalyticsAsync(model);
             return Ok(result);
         }
