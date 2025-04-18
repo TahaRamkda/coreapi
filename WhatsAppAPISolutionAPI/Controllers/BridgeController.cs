@@ -222,14 +222,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             _logger.LogInformation("Received api CreateOrdersAsync response with data={data}", JsonConvert.SerializeObject(response));
 
-            if (response == null || response.Status <= 0)
-                return Ok(new ApiResult { Message = response?.Message });
+            if (response.Success =false)
+                return Ok(new ApiResult { Message = response.Message });
 
             return Ok(new ApiResult
             {
-                Success = true,
-                Result = response,
-                Message = "Data added successfully"
+                Success = response.Success,
+                Result = response.Result,
+                Message = response.Message
             });
 
             //var response = await _orderService.

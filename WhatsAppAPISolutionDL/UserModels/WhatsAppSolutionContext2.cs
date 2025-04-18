@@ -15,6 +15,7 @@ using WhatsAppAPISolutionDL.UserModels.InteractiveTemplate;
 using WhatsAppAPISolutionDL.UserModels.MasterData;
 using WhatsAppAPISolutionDL.UserModels.Media;
 using WhatsAppAPISolutionDL.UserModels.Message;
+using WhatsAppAPISolutionDL.UserModels.Orders;
 using WhatsAppAPISolutionDL.UserModels.Permission;
 using WhatsAppAPISolutionDL.UserModels.SenderName;
 using WhatsAppAPISolutionDL.UserModels.SystemActions;
@@ -90,7 +91,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<USurveyResponse> SurveyResponse { get; set; } = null!;
         public virtual DbSet<UCatalogExport> CatalogExports { get; set; } = null!;
         public virtual DbSet<ConversationAnalytic> ConversationAnalytics { get; set; } = null!;
-
+        public virtual DbSet<OrderResponse> CreateOrderResponse { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

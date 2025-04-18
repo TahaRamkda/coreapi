@@ -4,6 +4,8 @@ using Serilog.Events;
 using WhatsAppAPISolutionAPI.Extensions;
 using WhatsAppAPISolutionAPI.Helper;
 using WhatsAppAPISolutionAPI.Middleware;
+using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,6 +48,10 @@ if (loggingEnabled)
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 builder.Services.AddSwaggerServices();
+builder.Services.AddHttpClient<ConversationAnalytics>(client =>
+{
+    client.Timeout = TimeSpan.FromMinutes(10);
+});
 
 // Add services to the container.
 builder.Services.AddApplicationServices(configuration);
