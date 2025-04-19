@@ -244,12 +244,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 if (result.Intents != null && result.Intents.Count > 0)
                                 {
                                     var intent = result.Intents[0];
-                                    resultString += $"Intent: {intent.Name} ({intent.Confidence:F3})\n";
+                                    resultString += $" - Intent: {intent.Name} ({intent.Confidence:F3})";
                                 }
                                 if (result.Traits?.WitSentiment != null && result.Traits.WitSentiment.Count > 0)
                                 {
                                     var sentiment = result.Traits.WitSentiment[0];
-                                    resultString += $"Sentiment: {sentiment.Value} ({sentiment.Confidence:F3})\n";
+                                    resultString += $" - Sentiment: {sentiment.Value} ({sentiment.Confidence:F3})";
                                 }
                             }
                         }

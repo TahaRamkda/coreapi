@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace WhatsAppAPISolutionDL.Dto.Common
@@ -22,7 +24,10 @@ namespace WhatsAppAPISolutionDL.Dto.Common
 
     public class Traits
     {
+        [JsonProperty("wit$on_off")]
         public List<OnOffTrait> WitOnOff { get; set; }
+
+        [JsonProperty("wit$sentiment")]
         public List<SentimentTrait> WitSentiment { get; set; }
     }
 
