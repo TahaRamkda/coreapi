@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WhatsAppAPISolutionDL.Dto.Common;
+﻿using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.Flow;
 using WhatsAppAPISolutionDL.Dto.Order;
-using WhatsAppAPISolutionDL.UserModels.Entity;
-using WhatsAppAPISolutionDL.UserModels.Orders;
+using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface IOrderService
     {
-        Task<ApiResult> CreateOrdersAsync(MetaOrderRequestDto Orderdata);
+        Task<ApiResult> CreateOrdersAsync(MetaOrderRequestDto model);
+        Task<ApiResult> SaveFlowResponse(FlowResponseDto flowResponse, Flow flow); 
     }
 }

@@ -2,8 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System;
-using System.Drawing.Printing;
 using System.Text;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
@@ -11,6 +9,7 @@ using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Flow;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Extensions;
+using WhatsAppAPISolutionDL.Hubs;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
@@ -28,6 +27,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly FlowOpsService _flowOpsService;
         private readonly ILogger<FlowsService> _logger;
         private readonly ICacheService _cachingService;
+        private readonly IMessageService _messageService;
+        private readonly IOrderService _orderService;
 
         public FlowsService(WhatsAppSolutionContext2 dbContext2,
             WhatsAppSolutionContext dbContext,
@@ -35,7 +36,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IHttpClientFactory httpClientFactory,
             FlowOpsService flowOpsService,
             ILogger<FlowsService> logger,
-            ICacheService cacheService)
+            ICacheService cacheService,
+            IMessageService messageService,
+            IOrderService orderService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -44,13 +47,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _flowOpsService = flowOpsService;
             _logger = logger;
             _cachingService = cacheService;
+            _messageService = messageService;
+            _orderService = orderService;
         }
 
         public async Task<List<UFlow>> GetFlowListAsync(int clientId, string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue)
         {
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.Flow.FromSqlInterpolated($"exec usp_GetFlowList @ClientId={clientId}, @SearchStr={searchStr ?? ""}, @PageNo={pageNo}, @PageSize={pageSize}").ToListAsync();
-            _logger.LogInformation("Calling procedure usp_GetFlowList with clientId={ClientId}, searchStr={SearchStr}, pageNo={PageNo}, pageSize={PageSize}, ProcResponseTime={ProcResponseTime}ms",clientId, searchStr, pageNo, pageSize,DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds
+            _logger.LogInformation("Calling procedure usp_GetFlowList with clientId={ClientId}, searchStr={SearchStr}, pageNo={PageNo}, pageSize={PageSize}, ProcResponseTime={ProcResponseTime}ms", clientId, searchStr, pageNo, pageSize, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds
             ); return response;
         }
 
@@ -275,7 +280,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 return new UResponseWithID { Status = 1, Message = "Data added successfully" };
             }
-           
+
             catch (Exception ex)
             {
                 return new UResponseWithID
@@ -664,7 +669,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 return flowDto;
             });
             if (cacheResult == null)
-                 await _cachingService.RemoveAsync(cacheKey);
+                await _cachingService.RemoveAsync(cacheKey);
             return cacheResult;
         }
 
@@ -693,7 +698,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             });
             if (cacheResult == null)
                 await _cachingService.RemoveAsync(cacheKey);
-            return  await cacheResult;
+            return await cacheResult;
 
         }
 
@@ -706,6 +711,54 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 clientId, searchStr, senderId, flowId, surveyId, fromDate, toDate,
                 DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds
             ); return response;
+        }
+
+        public async Task<ApiResult> FlowResponseAsync(FlowResponseDto flowResponse)
+        {
+            try
+            {
+                if (flowResponse == null || string.IsNullOrEmpty(flowResponse.from))
+                    return new ApiResult { StatusCode = 0, Message = "Invalid request data" };
+
+                if (flowResponse.flowResponse == null)
+                    return new ApiResult { StatusCode = 0, Message = "Flow response is required" };
+
+                if (string.IsNullOrEmpty(flowResponse.flowResponse.flowToken))
+                    return new ApiResult { StatusCode = 0, Message = "Flow token is required" };
+
+                flowResponse.flowResponse.flowToken = flowResponse.flowResponse.flowToken ?? "";
+                string flowToken = flowResponse.flowResponse.flowToken;
+
+                int flowId = 0;
+                int moduleId = 0;
+
+                var (isValid, path, matchedKeys) = flowToken.ParseIdPath<FlowTokenIdentifier>();
+                if (matchedKeys.Contains(nameof(FlowTokenIdentifier.FlowId)))
+                    flowId = Convert.ToInt32(flowToken.ParseIdPath<FlowTokenIdentifier>().path.FlowId);
+
+                if (matchedKeys.Contains(nameof(FlowTokenIdentifier.ModuleId)))
+                    moduleId = Convert.ToInt32(flowToken.ParseIdPath<FlowTokenIdentifier>().path.ModuleId);
+
+                if (flowId == 0)
+                    return new ApiResult { StatusCode = 0, Message = "Invalid FlowId" };
+
+                // Fetch Flow using MetaFlowId (Ensure correct field is used)
+                var flow = await _dbContext.Flows.FirstOrDefaultAsync(x => x.FlowId == flowId);
+                if (flow == null)
+                    return new ApiResult { StatusCode = 0, Message = "No flow found with this MetaFlowId" };
+
+                //If survey, add into survey table
+                if (flow.ModuleId == (int)ModuleEnum.Survey)
+                    return await _messageService.SaveSurveyResponse(flowResponse, flow);
+                if (flow.ModuleId == (int)ModuleEnum.Order)
+                    return await _orderService.SaveFlowResponse(flowResponse, flow);
+
+                return new ApiResult { StatusCode = 0, Message = "Something went wrong" };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResult { StatusCode = 0, Message = $"Error: {ex.Message}" };
+            }
         }
     }
 }

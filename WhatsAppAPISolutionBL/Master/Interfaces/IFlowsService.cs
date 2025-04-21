@@ -1,4 +1,5 @@
-﻿using WhatsAppAPISolutionDL.Dto.Flow;
+﻿using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.Flow;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Flow;
 
@@ -14,5 +15,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<FlowDTO> GetFlowDetailsByIdAsync(int flowId);
         Task<List<UEntityDto>> GetFlowsAsync(int clientId, int senderId = 0, string searchStr = "");
         Task<List<USurveyResponse>> ExportSurveyResponseListAsync(int clientId, string searchStr = "", int senderId = 0, DateTime? fromDate = null, DateTime? toDate = null, int flowId = 0, int surveyId = 0);
+        Task<ApiResult> FlowResponseAsync(FlowResponseDto flowResponse);
     }
 }

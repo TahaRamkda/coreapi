@@ -150,7 +150,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<USurveyResponse>().HasNoKey();
             modelBuilder.Entity<UCatalogExport>().HasNoKey();
             modelBuilder.Entity<ConversationAnalytic>().HasNoKey();
-
+            modelBuilder.Entity<OrderResponse>().HasNoKey();
         }
     }
 }

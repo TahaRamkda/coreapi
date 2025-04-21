@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Reflection;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Agent;
@@ -298,69 +299,49 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return await _communicationService.SendAgentInteractiveMessageAsync(model);
         }
 
-        public async Task<UResponse> FlowResponseAsync(FlowResponseDto flowResponse)
+        public async Task<ApiResult> SaveSurveyResponse(FlowResponseDto flowResponse, Flow flow)
         {
             try
             {
-                if (flowResponse == null || string.IsNullOrEmpty(flowResponse.from))
-                    return new UResponse { Status = 0, Message = "Invalid request data" };
+                int parentId = 0;
+                var (isValid, path, matchedKeys) = flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>();
+                if (matchedKeys.Contains(nameof(FlowTokenIdentifier.ParentId)))
+                    parentId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.ParentId);
 
-                if (flowResponse.flowResponse == null)
-                    return new UResponse { Status = 0, Message = "Flow response is required" };
-
-                if (string.IsNullOrEmpty(flowResponse.flowResponse.flowToken))
-                    return new UResponse { Status = 0, Message = "Flow token is required" };
-
-                string fullName = flowResponse.contact != null ? flowResponse.contact.name : String.Empty;
-                string flowToken = flowResponse.flowResponse.flowToken;
-                var flowId = Convert.ToInt32(flowToken.ParseIdPath<FlowTokenIdentifier>().path.FlowId);
-                var parentId = Convert.ToInt32(flowToken.ParseIdPath<FlowTokenIdentifier>().path.ParentId);
-                var moduleId = Convert.ToInt32(flowToken.ParseIdPath<FlowTokenIdentifier>().path.ModuleId);
-                if (flowId == 0)
-                    return new UResponse { Status = 0, Message = "Invalid FlowId" };
-
-                // Fetch Flow using MetaFlowId (Ensure correct field is used)
-                var flow = await _dbContext.Flows.FirstOrDefaultAsync(x => x.FlowId == flowId);
-                if (flow == null)
-                    return new UResponse { Status = 0, Message = "No flow found with this MetaFlowId" };
-
-                //If survey, add into survey table
-                if (flow.ModuleId == (int)ModuleEnum.Survey)
+                var surveyResponse = new SurveyResponse
                 {
-                    var surveyResponse = new SurveyResponse
-                    {
-                        SurveyId = flow.ParentId,
-                        FlowId = flow.FlowId,
-                        MetaFlowId = flow.MetaFlowId,
-                        PhoneNumber = flowResponse.from,
-                        Name = flow.FlowName ?? "Unknown",
-                        FlowToken = flowResponse.flowResponse.flowToken,
-                        SenderId = flow.SenderId ?? 0,
-                        ClientId = flow.ClientId ?? 0,
-                        ParentId = parentId,
-                        ModuleId = moduleId,
-                        CreatedDate = DateTime.UtcNow
-                    };
+                    SurveyId = flow.ParentId,
+                    FlowId = flow.FlowId,
+                    MetaFlowId = flow.MetaFlowId,
+                    PhoneNumber = flowResponse.from,
+                    Name = flow.FlowName ?? "Unknown",
+                    FlowToken = flowResponse.flowResponse.flowToken,
+                    SenderId = flow.SenderId ?? 0,
+                    ClientId = flow.ClientId ?? 0,
+                    ParentId = parentId,
+                    ModuleId = (int)ModuleEnum.Survey,
+                    CreatedDate = DateTime.UtcNow
+                };
 
-                    _dbContext.SurveyResponses.Add(surveyResponse);
-                    await _dbContext.SaveChangesAsync();
+                _dbContext.SurveyResponses.Add(surveyResponse);
+                await _dbContext.SaveChangesAsync();
 
-                    _logger.LogInformation("FlowResponseAsync - added response in SurveyResponse table with data = {data}", JsonConvert.SerializeObject(surveyResponse));
+                _logger.LogInformation("FlowResponseAsync - added response in SurveyResponse table with data = {data}", JsonConvert.SerializeObject(surveyResponse));
 
-                    // Prepare SurveyResponseDetails in a batch insert
-                    var surveyResponseDetails = flowResponse.flowResponse.responses
-                        ?.SelectMany(response => response.multiSelect.Any()
-                            ? response.multiSelect.Select(option => new SurveyResponseDetail
-                            {
-                                SurveyResponseId = surveyResponse.SurveyResponseId,
-                                OptionText = option.Trim(),
-                                QuestionText = response.question ?? string.Empty,
-                                Type = response.type,
-                                QuestionKey = response.questionKey,
-                                AnswerKey = response.answerKey
-                            })
-                            : new List<SurveyResponseDetail>
-                            {
+                // Prepare SurveyResponseDetails in a batch insert
+                var surveyResponseDetails = flowResponse.flowResponse.responses
+                    ?.SelectMany(response => response.multiSelect.Any()
+                        ? response.multiSelect.Select(option => new SurveyResponseDetail
+                        {
+                            SurveyResponseId = surveyResponse.SurveyResponseId,
+                            OptionText = option.Trim(),
+                            QuestionText = response.question ?? string.Empty,
+                            Type = response.type,
+                            QuestionKey = response.questionKey,
+                            AnswerKey = response.answerKey
+                        })
+                        : new List<SurveyResponseDetail>
+                        {
                             new SurveyResponseDetail
                             {
                                 SurveyResponseId = surveyResponse.SurveyResponseId,
@@ -370,77 +351,77 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 QuestionKey = response.questionKey,
                                 AnswerKey = response.answerKey
                             }
-                            }
-                        ).ToList() ?? new List<SurveyResponseDetail>();
-
-                    if (surveyResponseDetails.Any())
-                    {
-                        _dbContext.SurveyResponseDetails.AddRange(surveyResponseDetails);
-                        await _dbContext.SaveChangesAsync();
-
-                        _logger.LogInformation("FlowResponseAsync - added response in SurveyResponseDetail table with data = {data}", JsonConvert.SerializeObject(surveyResponseDetails));
-
-                    }
-
-                    //Message received log entry, Hussain will provide procedure and Burhan has to share json
-                    var flowResponseJson = System.Text.Json.JsonSerializer.Serialize(surveyResponseDetails.Select(detail => new
-                    {
-                        detail.OptionText,
-                        detail.QuestionText,
-                        detail.QuestionKey,
-                        detail.AnswerKey
-                    })
-                    );
-                    var startProcTime = DateTime.UtcNow;
-                    var response = await _dbContext2.UMessageReceiveds.FromSqlInterpolated($"exec usp_MessageReceivedLogsFlow_ops @ClientId={flow.ClientId}, @SenderId={flow.SenderId}, @WaId={flowResponse.wam_Id}, @ContextWaId={flowResponse.context?.wam_Id},@Name={fullName}, @PhoneNumber={flowResponse.from}, @FlowResponseJson={flowResponseJson}, @FlowToken={flowToken}").ToListAsync();
-                    _logger.LogInformation("Calling procedure usp_MessageReceivedLogsFlow_ops with ProcResponseTime={ProcResponseTime} ", DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-
-                    //Central service call
-                    if (response != null & response.Any())
-                    {
-                        _logger.LogInformation("Message Received Log DB call response: {response}", JsonConvert.SerializeObject(response[0]));
-                        var action = response[0];
-                        if (action.ActionType > 0 && action.ActionId > 0)
-                        {
-                            if (action.ActionType == (int)ActionTypeEnum.TEMPLATE) //Send template or interactive message or normal message 
-                                await _communicationService.SendInteractiveMessageAsync(action, flow.ClientId.Value, flow.SenderId.Value, flowResponse.from, flowToken: flowToken);
                         }
+                    ).ToList() ?? new List<SurveyResponseDetail>();
 
-                        if (action.ModuleId == (int)ModuleEnum.Chat && action.ConversationMessageId > 0 && action.IsFoul == 0) //If conversation is going on and no foul word received
-                        {
-                            var conversation = await _conversationService.GetConversationMessageByMessageIdAsync(clientId: flow.ClientId.Value, conversationMessageId: action.ConversationMessageId.Value, status: (int)ConversationStatusEnum.AgentAssigned);
-                            if (conversation != null && conversation.AgentId > 0) //Check if agent id exist
-                            {
-                                // Look up the connection ID for the Agent ID and send the conversation
-                                string connectionId = String.Empty;
-                                int i;
-                                for (i = 1; i <= 5; i++)
-                                {
-                                    if (ConversationHub.connections.TryGetValue(conversation.AgentId ?? 0, out connectionId))
-                                    {
-                                        await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.MessageReceived.ToString(), conversation);
-                                        if (await _agentsService.IsAgentOneSignalEnabled(conversation.ClientId, conversation.SenderId))
-                                            await _oneSignalService.SendMessageReceivedNotification(conversation);
-                                        _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", SignalREnum.MessageReceived.ToString(), conversation.AgentId ?? 0, connectionId, conversation.Id ?? 0, i, JsonConvert.SerializeObject(conversation));
-                                        break;
-                                    }
-                                    else
-                                        _logger.LogError("SignalR, No connection found for event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", SignalREnum.MessageReceived.ToString(), conversation.AgentId ?? 0, connectionId, conversation.Id ?? 0, i, JsonConvert.SerializeObject(conversation));
-                                }
-                            }
-                        }
-                    }
+                if (surveyResponseDetails.Any())
+                {
+                    _dbContext.SurveyResponseDetails.AddRange(surveyResponseDetails);
+                    await _dbContext.SaveChangesAsync();
 
-                    var response1 = response != null && response.Any() ? response[0] : null;
-
-                    _logger.LogInformation("FlowResponseAsync - recieved response from db with data = {data}", JsonConvert.SerializeObject(response1));
+                    _logger.LogInformation("FlowResponseAsync - added response in SurveyResponseDetail table with data = {data}", JsonConvert.SerializeObject(surveyResponseDetails));
 
                 }
-                return new UResponse { Status = 1, Message = "Survey response recorded successfully" };
+
+                //Message received log entry, Hussain will provide procedure and Burhan has to share json
+                var flowResponseJson = System.Text.Json.JsonSerializer.Serialize(surveyResponseDetails.Select(detail => new
+                {
+                    detail.OptionText,
+                    detail.QuestionText,
+                    detail.QuestionKey,
+                    detail.AnswerKey
+                })
+                );
+
+                var startProcTime = DateTime.UtcNow;
+                var response = await _dbContext2.UMessageReceiveds.FromSqlInterpolated($"exec usp_MessageReceivedLogsFlow_ops @ClientId={flow.ClientId}, @SenderId={flow.SenderId}, @WaId={flowResponse.wam_Id}, @ContextWaId={flowResponse.context?.wam_Id},@Name={flowResponse.contact.name}, @PhoneNumber={flowResponse.from}, @FlowResponseJson={flowResponseJson}, @FlowToken={flowResponse.flowResponse.flowToken}").ToListAsync();
+                _logger.LogInformation("Calling procedure usp_MessageReceivedLogsFlow_ops with ProcResponseTime={ProcResponseTime} ", DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+
+                //Central service call
+                if (response != null & response.Any())
+                {
+                    _logger.LogInformation("Message Received Log DB call response: {response}", JsonConvert.SerializeObject(response[0]));
+                    var action = response[0];
+                    if (action.ActionType > 0 && action.ActionId > 0)
+                    {
+                        if (action.ActionType == (int)ActionTypeEnum.TEMPLATE) //Send template or interactive message or normal message 
+                            await _communicationService.SendInteractiveMessageAsync(action, flow.ClientId.Value, flow.SenderId.Value, flowResponse.from, flowToken: flowResponse.flowResponse.flowToken);
+                    }
+
+                    if (action.ModuleId == (int)ModuleEnum.Chat && action.ConversationMessageId > 0 && action.IsFoul == 0) //If conversation is going on and no foul word received
+                    {
+                        var conversation = await _conversationService.GetConversationMessageByMessageIdAsync(clientId: flow.ClientId.Value, conversationMessageId: action.ConversationMessageId.Value, status: (int)ConversationStatusEnum.AgentAssigned);
+                        if (conversation != null && conversation.AgentId > 0) //Check if agent id exist
+                        {
+                            // Look up the connection ID for the Agent ID and send the conversation
+                            string connectionId = String.Empty;
+                            int i;
+                            for (i = 1; i <= 5; i++)
+                            {
+                                if (ConversationHub.connections.TryGetValue(conversation.AgentId ?? 0, out connectionId))
+                                {
+                                    await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.MessageReceived.ToString(), conversation);
+                                    if (await _agentsService.IsAgentOneSignalEnabled(conversation.ClientId, conversation.SenderId))
+                                        await _oneSignalService.SendMessageReceivedNotification(conversation);
+                                    _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", SignalREnum.MessageReceived.ToString(), conversation.AgentId ?? 0, connectionId, conversation.Id ?? 0, i, JsonConvert.SerializeObject(conversation));
+                                    break;
+                                }
+                                else
+                                    _logger.LogError("SignalR, No connection found for event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", SignalREnum.MessageReceived.ToString(), conversation.AgentId ?? 0, connectionId, conversation.Id ?? 0, i, JsonConvert.SerializeObject(conversation));
+                            }
+                        }
+                    }
+                }
+
+                var response1 = response != null && response.Any() ? response[0] : null;
+
+                _logger.LogInformation("FlowResponseAsync - recieved response from db with data = {data}", JsonConvert.SerializeObject(response1));
+
+                return new ApiResult { StatusCode = 200, Success = true, Message = "Survey response recorded successfully" };
             }
             catch (Exception ex)
             {
-                return new UResponse { Status = 0, Message = $"Error: {ex.Message}" };
+                return new ApiResult { StatusCode = 0, Message = $"Error: {ex.Message}" };
             }
         }
     }

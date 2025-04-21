@@ -1,20 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.Flow;
+using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.Dto.Order;
 using WhatsAppAPISolutionDL.Enum;
+using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
-using WhatsAppAPISolutionDL.UserModels.Entity;
-using Newtonsoft.Json;
 using WhatsAppAPISolutionDL.UserModels.Orders;
-using WhatsAppAPISolutionDL.Dto.Common;
-using WhatsAppAPISolutionDL.Dto.Template;
-using WhatsAppAPISolutionDL.Dto.Flow;
+using WhatsAppAPISolutionDL.UserModels.SenderName;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -22,64 +20,192 @@ namespace WhatsAppAPISolutionBL.Master.Services
     {
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
+        private readonly ICommunicationService _communicationService;
         private readonly IUserService _userService;
-        private readonly int clientId;
-        private readonly int userId;
+        private readonly ILogger<OrderService> _logger;
+
         public OrderService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
-            IUserService userservice)
+            ICommunicationService communicationService,
+            IUserService userservice,
+            ILogger<OrderService> logger)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
+            _communicationService = communicationService;
             _userService = userservice;
-
-            clientId = _userService.GetClientIdFromAccessToken();
-            userId = _userService.GetUserIdFromAccessToken();
+            _logger = logger;
         }
-        public async Task<ApiResult> CreateOrdersAsync(MetaOrderRequestDto Orderdata)
+
+        public async Task<ApiResult> CreateOrdersAsync(MetaOrderRequestDto model)
         {
-            var result = new ApiResult
-            {
-                Success = false,
-                Message = "Error Creating order",
-                StatusCode = 200,
-            };
+            _logger.LogInformation("Calling function CreateOrdersAsync with received request={request}", JsonConvert.SerializeObject(model));
+
             var orderRequest = new
             {
-                CatalogId = Orderdata.order.catalog_id,
-                waid = Orderdata.wam_Id,
-                contacts = Orderdata.contact,
-                product_items = Orderdata.order.product_items,
+                CatalogId = model.order.catalog_id,
+                waid = model.wam_Id,
+                contact = model.contact,
+                product_items = model.order.product_items,
             };
+
+            var senderName = await _dbContext.SenderNames.FirstOrDefaultAsync(x => x.PhoneNumberId == model.phone_number_Id.phone_number_id);
+
             var orderjson = JsonConvert.SerializeObject(orderRequest);
 
-            var dbresponse = await _dbContext2.CreateOrderResponse.FromSqlInterpolated($"exec usp_Orders_PlaceOrder   @ClientId={clientId},@SenderId={userId},@OrderJson={orderjson}").ToListAsync();
-            var dbresponsejson = JsonConvert.SerializeObject(dbresponse[0]);
-            var OrderResponse = JsonConvert.DeserializeObject<OrderResponse>(dbresponsejson);
-            if(OrderResponse.Json == null)
-            {
-                return result;
-            }
-            if (OrderResponse.ResponseType.ToString() == OrderEnum.Template.ToString())
-            {
-                var ExistingOrder = JsonConvert.DeserializeObject<UReOrder>(OrderResponse.Json);
-            }
-            else
-            {
-                var Neworder = JsonConvert.DeserializeObject<UCreateOrder>(OrderResponse.Json);
-                var flowRequest = new FlowRequestDto
-                {
-                    ClientId = Neworder.ClientId.ToString(),
-                    SenderNameId = Neworder.SenderId.ToString(),
-                    Name = Neworder.FlowToken,
-                    Category = model.Category,
-                    LanguageCode = model.Language,
-                };
+            var dbresponse = await _dbContext2.CreateOrderResponse.FromSqlInterpolated($"exec usp_Orders_PlaceOrder   @ClientId={senderName.ClientId},@SenderId={senderName.SenderId},@OrderJson={orderjson}").ToListAsync();
+            _logger.LogInformation("Received response from procedure usp_Orders_PlaceOrder with request={request} and response={response}", JsonConvert.SerializeObject(model), JsonConvert.SerializeObject(dbresponse));
 
+            var dbresponsejson = JsonConvert.SerializeObject(dbresponse[0]);
+            var orderResponse = JsonConvert.DeserializeObject<OrderResponse>(dbresponsejson);
+
+            if (orderResponse.ResponseType == (int)OrderStepTypeEnum.Template)
+            {
+                var existingOrder = JsonConvert.DeserializeObject<UReOrder>(orderResponse.Json);
             }
-            result.Message = "Order Created succesfully";
-            result.Success = true;
-            return result;
+            else if (orderResponse.ResponseType == (int)OrderStepTypeEnum.ModifierFlow
+                || orderResponse.ResponseType == (int)OrderStepTypeEnum.Address
+                || orderResponse.ResponseType == (int)OrderStepTypeEnum.Confirmation)
+            {
+                var createOrder = JsonConvert.DeserializeObject<UCreateOrder>(orderResponse.Json);
+                if (createOrder != null)
+                {
+                    var request = new InteractiveMessageRequestDto
+                    {
+                        ClientId = createOrder.ClientId,
+                        SenderId = createOrder.SenderId,
+                        PhoneNumber = createOrder.PhoneNumber,
+                        BodyText = createOrder.BodyText,
+                        MessageReferenceId = createOrder.OrderStepId,
+                        ModuleId = (int)ModuleEnum.Order,
+                        ParentId = createOrder.OrderStepId,
+                        ActionId = createOrder.FlowId,
+                        FlowToken = createOrder.FlowToken,
+                        Buttons = new List<InteractiveMessageRequestDto.Button>()
+                    };
+
+                    if (createOrder.FlowId > 0)
+                    {
+                        request.Buttons.Add(new InteractiveMessageRequestDto.Button
+                        {
+                            ActionType = (int)ActionTypeEnum.FLOW,
+                            ActionId = createOrder.FlowId,
+                            ButtonText = createOrder.ButtonText,
+                            Sequence = 0
+                        });
+                    }
+                    else if (orderResponse.ResponseType == (int)OrderStepTypeEnum.Address)
+                        request.AskForLocation = true;
+
+                    await _communicationService.SendInteractiveMessageAsync(request);
+                }
+            }
+
+            return new ApiResult { Success = true, Message = "Order created successfully" };
+        }
+
+        public async Task<ApiResult> SaveFlowResponse(FlowResponseDto flowResponse, Flow flow)
+        {
+            _logger.LogInformation("Calling function SaveFlowResponse in OrderService with received flowResponse={flowResponse} and flow={flow}", JsonConvert.SerializeObject(flowResponse), JsonConvert.SerializeObject(flow));
+
+            int orderId = 0;
+            int orderStepTypeId = 0;
+            var (isValid, path, matchedKeys) = flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>();
+            if (matchedKeys.Contains(nameof(FlowTokenIdentifier.OrderId)))
+                orderId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.OrderId);
+            if (matchedKeys.Contains(nameof(FlowTokenIdentifier.StepTypeId)))
+                orderStepTypeId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.StepTypeId);
+
+            var order = await _dbContext.Orders.FindAsync(orderId);
+            if (order == null)
+            {
+                _logger.LogError("No order found with orderId={orderId} in SaveFlowResponse in OrderService", orderId);
+                return new ApiResult { Message = $"No order found with id - {orderId}" };
+            }
+
+            if (orderStepTypeId == (int)OrderStepTypeEnum.ModifierFlow)
+            {
+                int orderItemId = 0;
+                if (matchedKeys.Contains(nameof(FlowTokenIdentifier.OrderItemId)))
+                    orderItemId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.OrderItemId);
+
+                var orderItem = await _dbContext.OrderItems.FindAsync(orderItemId);
+                if (orderItem == null)
+                {
+                    _logger.LogError("No item found for orderId={orderId} with orderItemId={orderItem} in SaveFlowResponse in OrderService", orderId, orderItemId);
+                    return new ApiResult { Message = $"No order item id found with id - {orderItemId}" };
+                }
+
+                var selectedModifierResponse = flowResponse.flowResponse.responses;
+                if (selectedModifierResponse == null || !selectedModifierResponse.Any()) //It means all modifiers were optional, get next step
+                {
+                    //Call next step procedure
+                }
+                else
+                {
+                    List<int> itemIds = new List<int>();
+
+                    //Get all selected modifiers
+                    foreach (var response in selectedModifierResponse)
+                    {
+                        int id = 0;
+                        if (!String.IsNullOrWhiteSpace(response.text))
+                        {
+                            int.TryParse(response.text, out id);
+                            if (id > 0) itemIds.Add(id);
+                        }
+
+                        if (response.multiSelect != null && response.multiSelect.Any())
+                        {
+                            foreach (var item in response.multiSelect)
+                            {
+                                int.TryParse(item, out id);
+                                if (id > 0) itemIds.Add(id);
+                            }
+                        }
+                    }
+
+                    var modifierItemsJson = JsonConvert.SerializeObject(itemIds);
+                    var dbresponse = await _dbContext2.CreateOrderResponse.FromSqlInterpolated($"exec usp_Orders_SaveModifiers_Temp @OrderItemId={orderItemId},@ModifierItemsJson={modifierItemsJson}").ToListAsync();
+                    _logger.LogInformation("Received response from procedure usp_Orders_SaveModifiers_Temp with OrderItemId={orderItemId} and ModifierItemsJson={json} and response={response}", orderItemId, JsonConvert.SerializeObject(modifierItemsJson), JsonConvert.SerializeObject(dbresponse));
+
+                    var dbresponsejson = JsonConvert.SerializeObject(dbresponse[0]);
+                    var orderResponse = JsonConvert.DeserializeObject<OrderResponse>(dbresponsejson);
+
+                    var createOrder = JsonConvert.DeserializeObject<UCreateOrder>(orderResponse.Json);
+
+                    var request = new InteractiveMessageRequestDto
+                    {
+                        ClientId = createOrder.ClientId,
+                        SenderId = createOrder.SenderId,
+                        PhoneNumber = createOrder.PhoneNumber,
+                        BodyText = createOrder.BodyText,
+                        MessageReferenceId = createOrder.OrderStepId,
+                        ModuleId = (int)ModuleEnum.Order,
+                        ParentId = createOrder.OrderStepId,
+                        ActionId = createOrder.FlowId,
+                        FlowToken = createOrder.FlowToken,
+                        Buttons = new List<InteractiveMessageRequestDto.Button>()
+                    };
+
+                    if (createOrder.FlowId > 0)
+                    {
+                        request.Buttons.Add(new InteractiveMessageRequestDto.Button
+                        {
+                            ActionType = (int)ActionTypeEnum.FLOW,
+                            ActionId = createOrder.FlowId,
+                            ButtonText = createOrder.ButtonText,
+                            Sequence = 0
+                        });
+                    }
+                    else if (orderResponse.ResponseType == (int)OrderStepTypeEnum.Address)
+                        request.AskForLocation = true;
+
+                    await _communicationService.SendInteractiveMessageAsync(request);
+                }
+            }
+
+            return null;
         }
     }
 }

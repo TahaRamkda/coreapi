@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WhatsAppAPISolutionDL.Enum
+﻿namespace WhatsAppAPISolutionDL.Enum
 {
-    public enum OrderEnum
+    public enum OrderStepTypeEnum
     {
         Template = 1,
-        Flow = 2,
-        GeoLocation = 3,
-        Address = 4
+        ModifierFlow = 2,
+        Address = 3,
+        Confirmation = 4
     }
 }

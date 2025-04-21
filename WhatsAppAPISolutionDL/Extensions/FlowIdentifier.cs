@@ -32,5 +32,25 @@ namespace WhatsAppAPISolutionDL.Extensions
         /// Flow Id
         /// </summary>
         public static string FlowId => "F";
+
+        /// <summary>
+        /// Order Id
+        /// </summary>
+        public static string OrderId { get; set; } = "O";
+
+        /// <summary>
+        /// Order Item Id
+        /// </summary>
+        public static string OrderItemId { get; set; } = "OI";
+
+        /// <summary>
+        /// Step type id
+        /// </summary>
+        public static string StepTypeId { get; set; } = "STI";
+
+        /// <summary>
+        /// Item id
+        /// </summary>
+        public static string ItemId { get; set; } = "ITMID";
     }
 }

@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text.Json;
+using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Flow;
 using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.Dto.Order;
 using WhatsAppAPISolutionDL.Dto.Template;
+using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 
@@ -185,24 +187,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (flowResponse == null)
                 return BadRequest();
 
-            var response = await _messageService.FlowResponseAsync(flowResponse);
+            var response = await _flowService.FlowResponseAsync(flowResponse);
 
             _logger.LogInformation("Received api AddFlowResponseAsync response with data={data}", JsonConvert.SerializeObject(response));
-
-            if (response == null || response.Status <= 0)
-            {
-                return Ok(new ApiResult
-                {
-                    Result = response,
-                    Message = response?.Message
-                });
-            }
-            return Ok(new ApiResult
-            {
-                Success = true,
-                Result = response,
-                Message = "Data added successfully"
-            });
+            return Ok(response);
         }
 
         #endregion
@@ -218,11 +206,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 return BadRequest();
             }
+
             var response = await _orderService.CreateOrdersAsync(model);
 
             _logger.LogInformation("Received api CreateOrdersAsync response with data={data}", JsonConvert.SerializeObject(response));
 
-            if (response.Success =false)
+            if (!response.Success)
                 return Ok(new ApiResult { Message = response.Message });
 
             return Ok(new ApiResult

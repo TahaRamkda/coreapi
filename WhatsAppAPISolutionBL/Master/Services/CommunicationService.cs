@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
+using System.IO;
 using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -612,7 +613,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
         }
 
-        public async Task<UResponse> SendMessageAsync(SendMessageRequestDto model)
+        public async Task<ApiResult> SendMessageAsync(SendMessageRequestDto model)
         {
             model.MessageContent = (model.MessageContent ?? "").Trim();
             model.PhoneNumbers = model.PhoneNumbers.TrimPhoneNumbers();
@@ -629,9 +630,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     mediaId = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath;
                 }
                 else
-                    return new UResponse
+                    return new ApiResult
                     {
-                        Status = 0,
+                        Success = false,
                         Message = "No media found with this MediaId"
                     };
             }
@@ -693,9 +694,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         await _messageSentLogsService.AddMessageSentLogAsync(message);
 
                         if (!item.success)
-                            return new UResponse
+                            return new ApiResult
                             {
-                                Status = 0,
+                                StatusCode = 0,
+                                Success = false,
                                 Message = item.errors != null && item.errors.Count() > 0 ? String.Join(',', item.errors) : "Something went wrong"
                             };
                     }
@@ -703,15 +705,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
             else if (result != null && !result.success)
             {
-                return new UResponse
+                return new ApiResult
                 {
-                    Status = 0,
+                    StatusCode = 0,
+                    Success = false,
                     Message = result.message
                 };
             }
-            return new UResponse
+            return new ApiResult
             {
-                Status = 1,
+                StatusCode = 200,
+                Success = true,
                 Message = "Message Sent Successfully"
             };
         }
@@ -800,7 +804,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             //In interactive button is required, if not available send normal message
             if (interactiveTemplate.Buttons == null || !interactiveTemplate.Buttons.Any() && !String.IsNullOrWhiteSpace(interactiveTemplate.BodyText))
             {
-                return await SendMessageAsync(new SendMessageRequestDto
+                var messageSentResult = await SendMessageAsync(new SendMessageRequestDto
                 {
                     ClientId = interactiveTemplate.ClientId ?? 0,
                     SenderId = interactiveTemplate.SenderId ?? 0,
@@ -815,6 +819,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     FileName = media != null ? media.FileName : String.Empty,
                     PhoneNumbers = new List<string> { phoneNumber }.TrimPhoneNumbers()
                 });
+
+                return new UResponse { Status = messageSentResult.StatusCode, Message = messageSentResult.Message };
             }
 
             var sendMessage = new SendInteractiveMessageRequestDto
@@ -1173,6 +1179,257 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 StatusCode = 200,
                 Message = result.Message
             };
+        }
+
+        public async Task<ApiResult> SendInteractiveMessageAsync(InteractiveMessageRequestDto model)
+        {
+            Media media = null;
+            var headerType = (TemplateHeaderEnum)model.HeaderType;
+
+            //Try to fetch the media
+            if (headerType == TemplateHeaderEnum.IMAGE
+                || headerType == TemplateHeaderEnum.VIDEO
+                || headerType == TemplateHeaderEnum.DOCUMENT) //Try to get the media
+                media = await _dbContext.Medias.FindAsync(model.MediaId > 0 ? model.MediaId : model.MediaId);
+
+            string headerText = model.HeaderText ?? "";
+            string bodyText = model.BodyText ?? "";
+            string footerText = model.FooterText ?? "";
+            string buttonJson = String.Empty;
+
+            //Replace all the dynamic values with the correct one
+            if (model.Values != null && model.Values.Any())
+            {
+                foreach (var value in model.Values)
+                {
+                    headerText = headerText.Replace(value.Key, value.Value);
+                    bodyText = bodyText.Replace(value.Key, value.Value);
+                    footerText = footerText.Replace(value.Key, value.Value);
+
+                    if (model.Buttons != null && model.Buttons.Any())
+                    {
+                        foreach (var button in model.Buttons)
+                        {
+                            button.ButtonValue = button.ButtonValue.Replace(value.Key, value.Value);
+                        }
+                    }
+                }
+            }
+
+            int type = 0;
+            switch (headerType)
+            {
+                case TemplateHeaderEnum.TEXT:
+                    type = (int)MessageTypeEnum.TEXT;
+                    break;
+                case TemplateHeaderEnum.IMAGE:
+                    type = (int)MessageTypeEnum.IMAGE;
+                    break;
+                case TemplateHeaderEnum.VIDEO:
+                    type = (int)MessageTypeEnum.VIDEO;
+                    break;
+                case TemplateHeaderEnum.DOCUMENT:
+                    type = (int)MessageTypeEnum.DOCUMENT;
+                    break;
+                case TemplateHeaderEnum.LOCATION:
+                    type = (int)MessageTypeEnum.LOCATION;
+                    break;
+                default:
+                    break;
+            }
+
+            StringBuilder messageContent = new StringBuilder();
+            if (!String.IsNullOrWhiteSpace(headerText))
+            {
+                messageContent.Append(headerText);
+                messageContent.AppendLine();
+            }
+
+            if (!String.IsNullOrWhiteSpace(bodyText))
+            {
+                messageContent.Append(bodyText);
+                messageContent.AppendLine();
+            }
+
+            if (!String.IsNullOrWhiteSpace(footerText))
+                messageContent.Append(footerText);
+
+            //In interactive button is required or ask for location, if not available send normal message
+            if (model.Buttons == null || !model.Buttons.Any() && !String.IsNullOrWhiteSpace(model.BodyText) && !model.AskForLocation)
+            {
+                return await SendMessageAsync(new SendMessageRequestDto
+                {
+                    ClientId = model.ClientId,
+                    SenderId = model.SenderId,
+                    MediaId = media != null ? media.Id : 0,
+                    ModuleId = model.ModuleId,
+                    ParentId = model.ParentId,
+                    ActionId = model.ActionId,
+                    Type = type,
+                    MessageTypeId = (int)MainMessageTypeEnum.INTERACTIVETEMPLATE,
+                    MessageReferenceId = model.MessageReferenceId,
+                    MessageContent = messageContent.ToString(),
+                    FileName = media != null ? media.FileName : String.Empty,
+                    PhoneNumbers = new List<string> { model.PhoneNumber }.TrimPhoneNumbers()
+                });
+            }
+
+            var sendMessage = new SendInteractiveMessageRequestDto
+            {
+                ClientId = Convert.ToString(model.ClientId),
+                SenderNameId = Convert.ToString(model.SenderId),
+                PhoneNumbers = new List<string> { model.PhoneNumber }.TrimPhoneNumbers(),
+                AskForLocation = model.AskForLocation
+            };
+
+            if (headerType == TemplateHeaderEnum.TEXT)
+            {
+                sendMessage.Header = new SendInteractiveMessageRequestDto.HeaderDto
+                {
+                    Format = headerType.ToString(),
+                    Value = headerText
+                };
+            }
+            else if (headerType == TemplateHeaderEnum.IMAGE
+                || headerType == TemplateHeaderEnum.DOCUMENT
+                || headerType == TemplateHeaderEnum.VIDEO)
+            {
+                if (media != null)
+                {
+                    var mediaPath = String.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, media.MediaPath);
+                    sendMessage.Header = new SendInteractiveMessageRequestDto.HeaderDto
+                    {
+                        Format = headerType.ToString(),
+                        Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath
+                    };
+                }
+            }
+
+            if (!String.IsNullOrWhiteSpace(bodyText))
+            {
+                sendMessage.Body = new SendInteractiveMessageRequestDto.BodyDto
+                {
+                    Text = bodyText
+                };
+            }
+
+            if (!String.IsNullOrWhiteSpace(footerText))
+            {
+                sendMessage.Footer = new SendInteractiveMessageRequestDto.FooterDto
+                {
+                    Text = footerText
+                };
+            }
+
+            if (model.Buttons != null && model.Buttons.Any())
+            {
+                sendMessage.Buttons = new List<SendInteractiveMessageRequestDto.ButtonDto>();
+
+                //If FLOW type action is present, skip buttons
+                if (model.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW))
+                {
+                    var button = model.Buttons.FirstOrDefault(x => x.ActionType == (int)ActionTypeEnum.FLOW);
+                    var flow = await _dbContext.Flows.FindAsync(button.ActionId);
+                    if (flow == null)
+                        return new ApiResult { StatusCode = 0, Message = $"Flow not found with id - {button.ActionId}" };
+
+                    if (String.IsNullOrWhiteSpace(flow.MetaFlowId))
+                        return new ApiResult { StatusCode = 0, Message = $"Flow with id - {button.ActionId} does not have meta id yet" };
+
+                    if ((flow.Status ?? "").ToLower() != FlowStatusEnum.PUBLISHED.ToString().ToLower())
+                        return new ApiResult { StatusCode = 0, Message = $"Flow is not published with id - {button.ActionId}" };
+
+                    var (isValid, path, matchedKeys) = (model.FlowToken ?? "").ParseIdPath<FlowTokenIdentifier>();
+                    if (!matchedKeys.Contains(nameof(FlowTokenIdentifier.FlowId)))
+                        model.FlowToken = model.FlowToken + $"|{FlowIdentifier.FlowId}:{flow.FlowId}";
+
+                    sendMessage.FlowAction = new SendInteractiveMessageRequestDto.FlowActionDto
+                    {
+                        FlowId = flow.MetaFlowId,
+                        Version = "3", //flow.DataApiVersion, //must be 3 //https://developers.facebook.com/docs/whatsapp/flows/guides/sendingaflow/
+                        ButtonText = button.ButtonText,
+                        Token = model.FlowToken ?? ""
+                    };
+                }
+                else
+                {
+                    for (int i = 0; i < model.Buttons.Count; i++)
+                    {
+                        var button = model.Buttons[i];
+                        var buttonType = ((ButtonTypeEnum)button.ButtonType);
+
+                        if (buttonType != ButtonTypeEnum.QUICK_REPLY
+                            && buttonType != ButtonTypeEnum.URL
+                            && buttonType != ButtonTypeEnum.PHONE_NUMBER)
+                            continue;
+
+                        //In interactive, phone number is not available, so we are making as URL
+                        if (buttonType == ButtonTypeEnum.PHONE_NUMBER)
+                        {
+                            buttonType = ButtonTypeEnum.URL;
+                            button.ButtonValue = String.Concat("tel:", button.ButtonValue ?? "").Replace("-", "").Trim(); //Replace +965-99310864
+                        }
+
+                        sendMessage.Buttons.Add(new SendInteractiveMessageRequestDto.ButtonDto
+                        {
+                            Id = Convert.ToString(button.ButtonId),
+                            Text = button.ButtonText,
+                            Type = buttonType.ToString(),
+                            Url = button.ButtonValue
+                        });
+                    }
+                }
+
+                //Create button json
+                buttonJson = JsonConvert.SerializeObject(model.Buttons.Select(x => new ButtonDto
+                {
+                    ButtonId = x.ButtonId ?? 0,
+                    ButtonText = x.ButtonText,
+                    ButtonValue = x.ButtonValue,
+                    ButtonType = x.ButtonType ?? 0,
+                    Sequence = x.Sequence ?? 0
+                }).ToList());
+            }
+
+            var request = JsonConvert.SerializeObject(sendMessage);
+
+            var apiCallStart = DateTime.UtcNow;
+            string apiEndpoint = $"/api/Message/SendInteractiveMessage";
+
+            var requestStr = new StringContent(request, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync(apiEndpoint, requestStr);
+            var content = await response.Content.ReadAsStringAsync();
+
+            _logger.LogInformation("Calling bridge API apiEndpoint={apiEndpoint} SendInteractiveMessage with request={request} and response={response} with apiResponseTime={apiResponseTime}", apiEndpoint, request, content, DateTime.UtcNow.Subtract(apiCallStart).TotalMilliseconds);
+
+            var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
+            if (result != null && result.success)
+            {
+                var data = System.Text.Json.JsonSerializer.Serialize(result.result);
+                var sendSmsResults = JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
+                if (sendSmsResults != null && sendSmsResults.Any())
+                {
+                    var sendSmsResult = sendSmsResults[0];
+                    bool success = sendSmsResult.errors == null || !sendSmsResult.errors.Any();
+                    return new ApiResult
+                    {
+                        Success = success,
+                        StatusCode = success ? 200 : 0,
+                        Result = sendSmsResult,
+                        Message = sendSmsResult.errors != null && sendSmsResult.errors.Any() ? String.Join(',', sendSmsResult.errors) : "Message sent successfully"
+                    };
+                }
+            }
+            else if (result != null && !result.success)
+            {
+                return new ApiResult
+                {
+                    StatusCode = 0,
+                    Message = result.message
+                };
+            }
+
+            return new ApiResult { StatusCode = 0, Message = "Something went wrong while sending message" };
         }
     }
 }

@@ -7,6 +7,7 @@
         URL = 3,
         PRODUCT = 4,
         LIST = 5,
-        SURVEY = 6 
+        SURVEY = 6,
+        LOCATION = 7
     }
 }
