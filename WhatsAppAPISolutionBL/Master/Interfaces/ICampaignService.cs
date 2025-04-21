@@ -7,7 +7,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface ICampaignService
     {
-        Task<List<UCampaign>> GetCampaignListAsync(int ClientId, int CampaignId = 0, DateTime? FromDate = null, DateTime? ToDate = null, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue, int SenderId = 0);
+        Task<List<UCampaign>> GetCampaignListAsync(int ClientId, int CampaignId = 0, DateTime? FromDate = null, DateTime? ToDate = null, int TemplateId=0, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue, int SenderId = 0);
         Task<UResponse> AddCampaignAsync(int clientId, int userId, CampaignDto campaign);
         Task<UResponse> ActivateCampaignAsync(int clientId, int userId, ActivateCampaignDto campaign);
         Task<UResponse> UpdateCampaignAsync(int clientId, int userId, CampaignDto campaign);

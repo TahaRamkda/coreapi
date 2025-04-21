@@ -27,12 +27,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _cacheService = cacheService;
         }
 
-        public async Task<List<UAppSetting>> GetAppSettingsAsync(int clientId, string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue)
+        public async Task<List<UAppSettingsList>> GetAppSettingsAsync(int ClientId,  string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue,int senderId = 0)
         {
             var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_AppSettings_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SearchStr={searchStr}, @PageNo={pageNo}, @PageSize={pageSize}").ToListAsync();
+            var response = await _dbContext2.AppSettingsList.FromSqlInterpolated($"exec usp_AppSettings_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}, @SearchStr={searchStr}, @PageNo={pageNo}, @PageSize={pageSize}, @senderId={senderId}").ToListAsync();
             _logger.LogInformation("Calling procedure usp_AppSettings_Ops with ActionId = {actionId}, ActionName = {actionName}, ClientId = {clientId}, SearchStr = {searchStr}, PageNo = {pageNo}, PageSize = {pageSize}, ProcResponseTime = {ProcResponseTime} ms",
-     (int)CrudEnum.List, CrudEnum.List, clientId, searchStr, pageNo, pageSize, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+     (int)CrudEnum.List, CrudEnum.List, ClientId, searchStr, pageNo, pageSize, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
 
             return response;
         }
