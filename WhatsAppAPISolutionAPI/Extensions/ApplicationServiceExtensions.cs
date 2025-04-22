@@ -42,6 +42,7 @@ namespace WhatsAppAPISolutionAPI.Extensions
             services.AddScoped<IAppSettingsService, AppSettingsService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IConversationAnalyticsService, ConversationAnalytics>();  // added IConversationAnalyticsService in the scope
+            services.AddScoped<ISurveyReportService, SurveyReportService>();
 
 
             return services;

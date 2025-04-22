@@ -18,6 +18,7 @@ using WhatsAppAPISolutionDL.UserModels.Message;
 using WhatsAppAPISolutionDL.UserModels.Orders;
 using WhatsAppAPISolutionDL.UserModels.Permission;
 using WhatsAppAPISolutionDL.UserModels.SenderName;
+using WhatsAppAPISolutionDL.UserModels.SurveyReport;
 using WhatsAppAPISolutionDL.UserModels.SystemActions;
 using WhatsAppAPISolutionDL.UserModels.Template;
 using WhatsAppAPISolutionDL.UserModels.User;
@@ -93,6 +94,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<ConversationAnalytic> ConversationAnalytics { get; set; } = null!;
         public virtual DbSet<OrderResponse> CreateOrderResponse { get; set; } = null!;
         public virtual DbSet<UAppSettingsList> AppSettingsList { get; set; } = null!;
+        public virtual DbSet<USurveyReport> SurveyReports { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -153,6 +155,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<ConversationAnalytic>().HasNoKey();
             modelBuilder.Entity<OrderResponse>().HasNoKey();
             modelBuilder.Entity<UAppSettingsList>().HasNoKey();
+            modelBuilder.Entity<USurveyReport>().HasNoKey();
         }
     }
 }
