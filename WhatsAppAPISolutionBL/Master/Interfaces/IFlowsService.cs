@@ -1,5 +1,6 @@
 ﻿using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Flow;
+using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Flow;
 
@@ -7,7 +8,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface IFlowsService
     {
-        Task<List<UFlow>> GetFlowListAsync(int clientId, string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue);
+        Task<List<UFlow>> GetFlowListAsync(int clientId, string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue, int senderId=0, LanguageTypeEnum? lang=null);
         Task<UResponseWithID> AddFlowAsync(int clientId, int userId, FlowDTO obj);
         Task<UResponseWithID> UpdateFlowAsync(int clientId, int userId, FlowDTO obj);
         Task<UResponse> PublishFlowAsync(int clientId, int flowId);

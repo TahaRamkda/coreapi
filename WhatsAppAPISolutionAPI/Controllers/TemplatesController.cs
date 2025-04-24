@@ -58,11 +58,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("gettemplateslist")]
-        public async Task<ActionResult> GetTemplatesListAsync(string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        public async Task<ActionResult> GetTemplatesListAsync(string searchStr = "", int senderId = 0, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue, LanguageTypeEnum? lang=null, CategoryTypeEnum? Category = null)
         {
-            _logger.LogDebug("Calling api GetAgentsListAsync with clientId={clientId}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, searchStr, sortBy, pageNo, pageSize);
+            _logger.LogDebug("Calling api GetAgentsListAsync with clientId={clientId}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}, lang={lang}", clientId, searchStr, sortBy, pageNo, pageSize);
 
-            var res = await _templateService.GetTemplateListAsync(clientId, searchStr, sortBy, pageNo, pageSize);
+            var res = await _templateService.GetTemplateListAsync(clientId, senderId, searchStr, sortBy, pageNo, pageSize, lang, Category);
             return Ok(new ApiResult
             {
                 Success = true,

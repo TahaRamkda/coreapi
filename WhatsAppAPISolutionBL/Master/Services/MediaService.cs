@@ -150,12 +150,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         #region Methods
 
-        public async Task<List<UMediaUpload>> GetMediaListAsync(int clientId, int senderId = 0, string contentTypeStr = "", int PageNo = 0, int PageSize = int.MaxValue, int mediaTypeId = 0)
+        public async Task<List<UMediaUpload>> GetMediaListAsync(int clientId, int senderId = 0, string FileName = "", string contentTypeStr = "", int PageNo = 0, int PageSize = int.MaxValue, int mediaTypeId = 0)
         {
             var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.UMediaUploads.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SenderNameId={senderId}, @ContentTypeStr={contentTypeStr}, @PageNo={PageNo}, @PageSize={PageSize}, @MediaTypeId={mediaTypeId}").ToListAsync();
-            _logger.LogInformation("Calling procedure usp_Medias_Ops with parameters: ActionId={ActionId}, ActionName={ActionName}, ClientId={ClientId}, SenderId={SenderId}, ContentType={ContentType}, PageNo={PageNo}, PageSize={PageSize}, MediaTypeId={MediaTypeId}, ProcResponseTime={ProcResponseTime}ms",
-                (int)CrudEnum.List, CrudEnum.List, clientId, senderId, contentTypeStr, PageNo, PageSize, mediaTypeId, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);            
+            var response = await _dbContext2.UMediaUploads.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SenderNameId={senderId}, @ContentTypeStr={contentTypeStr}, @PageNo={PageNo}, @PageSize={PageSize}, @MediaTypeId={mediaTypeId}, @FileName = {FileName}").ToListAsync();
+            _logger.LogInformation("Calling procedure usp_Medias_Ops with parameters: ActionId={ActionId}, ActionName={ActionName}, ClientId={ClientId}, SenderId={SenderId}, ContentType={ContentType}, PageNo={PageNo}, PageSize={PageSize}, MediaTypeId={MediaTypeId}, FileName={FileName}, ProcResponseTime={ProcResponseTime}ms",
+                (int)CrudEnum.List, CrudEnum.List, clientId, senderId, contentTypeStr, PageNo, PageSize, mediaTypeId, FileName, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);            
                 return response;
         }
 

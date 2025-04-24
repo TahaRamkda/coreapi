@@ -34,16 +34,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _cacheService = cacheService;
         }
 
-        public async Task<List<UInteractiveTemplate>> GetInteractiveTemplateListAsync(int clientId, int senderId = 0, string searchStr = "", DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        public async Task<List<UInteractiveTemplate>> GetInteractiveTemplateListAsync(int clientId, int senderId = 0, string searchStr = "", DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue, LanguageTypeEnum? lang = null)
         {
             var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.InteractiveTemplates.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId},@SenderId={senderId},@FromDate={fromDate}, @ToDate={toDate},@SearchStr={searchStr},@SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}").ToListAsync();
-            _logger.LogInformation("Calling procedure usp_InteractiveTemplate_Ops with actionId={actionId}, actionName={actionName}, clientId={clientId}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}, ProcResponseTime={ProcResponseTime}ms",
-                (int)CrudEnum.List, CrudEnum.List, clientId, senderId, fromDate, toDate, searchStr, sortBy, pageNo, pageSize,DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds
+            var response = await _dbContext2.InteractiveTemplates.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId},@SenderId={senderId},@FromDate={fromDate}, @ToDate={toDate},@SearchStr={searchStr},@SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}, @Language={lang.ToString()}").ToListAsync();
+            _logger.LogInformation("Calling procedure usp_InteractiveTemplate_Ops with actionId={actionId}, actionName={actionName}, clientId={clientId}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}, lang={lang},ProcResponseTime={ProcResponseTime}ms",
+                (int)CrudEnum.List, CrudEnum.List, clientId, senderId, fromDate, toDate, searchStr, sortBy, pageNo, pageSize, lang, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds
             ); return response;
         }
 
-        public async Task<UResponse> AddInteractiveTemplateAsync(int clientId, int userId, InteractiveTemplateDto model)
+        public async Task<UResponse> AddInteractiveTemplateAsync(int clientId, int userId, InteractiveTemplateDto model)    
         {
             _logger.LogDebug("Calling function AddInteractiveTemplateAsync with received object {object}", JsonConvert.SerializeObject(model));
             model.Name = model.Name.Replace(" ", "_").ToLower().Trim();

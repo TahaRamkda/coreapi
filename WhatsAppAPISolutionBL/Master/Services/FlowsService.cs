@@ -51,11 +51,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _orderService = orderService;
         }
 
-        public async Task<List<UFlow>> GetFlowListAsync(int clientId, string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue)
+        public async Task<List<UFlow>> GetFlowListAsync(int clientId, string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue, int senderId = 0, LanguageTypeEnum? lang=null)
         {
             var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.Flow.FromSqlInterpolated($"exec usp_GetFlowList @ClientId={clientId}, @SearchStr={searchStr ?? ""}, @PageNo={pageNo}, @PageSize={pageSize}").ToListAsync();
-            _logger.LogInformation("Calling procedure usp_GetFlowList with clientId={ClientId}, searchStr={SearchStr}, pageNo={PageNo}, pageSize={PageSize}, ProcResponseTime={ProcResponseTime}ms", clientId, searchStr, pageNo, pageSize, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds
+            var response = await _dbContext2.Flow.FromSqlInterpolated($"exec usp_GetFlowList @ClientId={clientId}, @SearchStr={searchStr ?? ""}, @PageNo={pageNo}, @PageSize={pageSize}, @SenderId={senderId}, @FlowLanguage={lang.ToString()}").ToListAsync();
+            _logger.LogInformation("Calling procedure usp_GetFlowList with clientId={ClientId}, searchStr={SearchStr}, pageNo={PageNo}, pageSize={PageSize}, lang={lang}, ProcResponseTime={ProcResponseTime}ms", clientId, searchStr, pageNo, pageSize, lang, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds
             ); return response;
         }
 

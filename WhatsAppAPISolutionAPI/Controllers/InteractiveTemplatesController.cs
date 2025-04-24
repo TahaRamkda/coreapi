@@ -37,11 +37,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
 
         [HttpGet("getinteractivetemplateslist")]
-        public async Task<ActionResult> GetInteractiveTemplatesListAsync(int senderId = 0, string searchStr = "", DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        public async Task<ActionResult> GetInteractiveTemplatesListAsync(int senderId = 0, string searchStr = "", DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue, LanguageTypeEnum? lang = null)
         {
-            _logger.LogDebug("Calling api GetAgentsListAsync with clientId={clientId}, senderId={senderId}, searchStr={searchStr}, fromDate={fromDate}, toDate={toDate}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}", clientId, senderId, searchStr, fromDate, toDate, sortBy, pageNo, pageSize);
+            _logger.LogDebug("Calling api GetAgentsListAsync with clientId={clientId}, senderId={senderId}, searchStr={searchStr}, fromDate={fromDate}, toDate={toDate}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}, lang={lang}", clientId, senderId, searchStr, fromDate, toDate, sortBy, pageNo, pageSize, lang);
 
-            var res = await _interactiveTemplateService.GetInteractiveTemplateListAsync(clientId, senderId, searchStr, fromDate, toDate, sortBy, pageNo, pageSize);
+            var res = await _interactiveTemplateService.GetInteractiveTemplateListAsync(clientId, senderId, searchStr, fromDate, toDate, sortBy, pageNo, pageSize, lang);
             return Ok(new ApiResult
             {
                 Success = true,

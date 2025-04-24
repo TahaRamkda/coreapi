@@ -200,7 +200,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("order")]
         public async Task<IActionResult> OrderAsync([FromBody] MetaOrderRequestDto model)
         {
-            _logger.LogInformation("Calling OrderAsync api from Bridge with data={data}", JsonConvert.SerializeObject(model));
+                _logger.LogInformation("Calling OrderAsync api from Bridge with data={data}", JsonConvert.SerializeObject(model));
 
             if (model == null)
             {
