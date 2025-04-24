@@ -29,11 +29,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getappsettinglist")]
-        public async Task<ActionResult> GetAppSettingListAsync(string SearchStr = "",  int PageNo = 0, int PageSize = int.MaxValue)
+        public async Task<ActionResult> GetAppSettingListAsync(string SearchStr = "",  int ClientId = 0, int SenderId = 0,  int PageNo = 0, int PageSize = int.MaxValue)
         {
-            _logger.LogDebug("Calling api GetAppSettingsAsync with clientId={clientId}, searchStr={searchStr}, pageNo={pageNo}, pageSize={pageSize}", clientId, SearchStr,  PageNo, PageSize);
+            _logger.LogDebug("Calling api GetAppSettingsAsync with ClientId={ClientId}, searchStr={searchStr}, pageNo={pageNo}, pageSize={pageSize}", clientId, SearchStr,  PageNo, PageSize);
 
-            var res = await _appSettingsService.GetAppSettingsAsync(clientId, SearchStr, PageNo, PageSize);
+            var res = await _appSettingsService.GetAppSettingsAsync(ClientId, SearchStr, PageNo, PageSize, SenderId);
             return Ok(new ApiResult
             {
                 Success = true,
@@ -156,5 +156,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = string.Empty
             });
         }
+
+
     }
 }

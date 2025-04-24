@@ -38,12 +38,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getcampaignlist")]
-        public async Task<ActionResult> GetCampaignListAsync(int CampaignId = 0, DateTime? FromDate = null, DateTime? ToDate = null, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue, int SenderId = 0)
+        public async Task<ActionResult> GetCampaignListAsync(int CampaignId = 0, DateTime? FromDate = null, DateTime? ToDate = null, string SearchStr = "", int TemplateId = 0,int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue, int SenderId = 0)
         {
-            _logger.LogDebug("Calling function GetCampaignListAsync request with ClientId={ClientId}, CampaignId={CampaignId}, FromDate={FromDate}, ToDate={ToDate}, SearchStr={SearchStr}, SortBy={SortBy}, PageNo={PageNo}, PageSize={PageSize}, SenderId={SenderId}",
-            clientId, CampaignId, FromDate, ToDate, SearchStr, SortBy, PageNo, PageSize, SenderId);
+            _logger.LogDebug("Calling function GetCampaignListAsync request with ClientId={ClientId}, CampaignId={CampaignId}, FromDate={FromDate}, ToDate={ToDate}, TemplateId={TemplateId}, SearchStr={SearchStr}, SortBy={SortBy}, PageNo={PageNo}, PageSize={PageSize}, SenderId={SenderId}",
+            clientId, CampaignId, FromDate, ToDate, TemplateId, SearchStr, SortBy, PageNo, PageSize, SenderId);
 
-            var res = await _campaignService.GetCampaignListAsync(clientId, CampaignId, FromDate, ToDate, SearchStr, SortBy, PageNo, PageSize, SenderId);
+            var res = await _campaignService.GetCampaignListAsync(clientId, CampaignId, FromDate, ToDate, TemplateId, SearchStr, SortBy, PageNo, PageSize, SenderId);
 
             return Ok(new ApiResult
             {
