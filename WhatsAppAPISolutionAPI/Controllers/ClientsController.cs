@@ -181,17 +181,18 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 return NotFound("not found");
             }
 
-            var response = (from a in _dbContext.Clients
-                            join b in _dbContext.SenderNames on a.ClientId equals b.ClientId
-                            where a.ClientId == ClientId && a.RecordStatus != -1 && b.RecordStatus != -1
-                            select new
-                            {
-                                ClientId = a.ClientId,
-                                ClientName = a.ClientName,
-                                AccessToken = a.AccessToken,
-                                AppId = a.AppId,
-                                BusinessId = a.BusinessId
-                            }).FirstOrDefault();
+            var client = _dbContext.Clients.Find(ClientId);
+            if (client == null)
+                return Ok(new ApiResult { Message = "No client found" });
+
+            var response = new
+            {
+                ClientId = client.ClientId,
+                ClientName = client.ClientName,
+                AccessToken = client.AccessToken,
+                AppId = client.AppId,
+                BusinessId = client.BusinessId
+            };
 
             _logger.LogInformation("Received api GetClientInformationAsync response with data={data}", JsonConvert.SerializeObject(response));
 

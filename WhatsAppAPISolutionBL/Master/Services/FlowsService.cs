@@ -87,7 +87,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 int? surveyId = null;
                 // If ModuleId = 4, insert into Survey table first
-                if (obj.ModuleId == 4)
+                if (obj.ModuleId == (int)ModuleEnum.Survey)
                 {
                     var survey = new Survey
                     {
@@ -315,7 +315,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     return new UResponseWithID { Status = 0, Message = "Please enter DataApiVersion/Version or Layout" };
 
                 int? surveyId = null;
-                if (obj.ModuleId == 4)
+                if (obj.ModuleId == (int)ModuleEnum.Survey)
                 {
                     // Check if a survey already exists for this flow
                     var existingSurvey = await _dbContext.Surveys.FirstOrDefaultAsync(s => s.FlowId == obj.FlowId);
@@ -743,7 +743,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     return new ApiResult { StatusCode = 0, Message = "Invalid FlowId" };
 
                 // Fetch Flow using MetaFlowId (Ensure correct field is used)
-                var flow = await _dbContext.Flows.FirstOrDefaultAsync(x => x.FlowId == flowId);
+                var flow = await _dbContext.Flows.FindAsync(flowId);
                 if (flow == null)
                     return new ApiResult { StatusCode = 0, Message = "No flow found with this MetaFlowId" };
 
