@@ -1,8 +1,8 @@
 ﻿namespace WhatsAppAPISolutionDL.Enum
 {
     public enum LanguageTypeEnum
-    {   
-       en,
-       ar
+    {
+        en = 0,
+        ar = 1
     }
 }
