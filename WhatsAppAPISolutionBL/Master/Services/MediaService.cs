@@ -335,7 +335,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     using (var httpClient = new HttpClient())
                     {
                         var request = new HttpRequestMessage(HttpMethod.Get, mediaResult.url);
-                        request.Headers.Add("Authorization", $"Bearer {client?.AccessToken}");
+                        request.Headers.Add("Authorization", $"Bearer {senderName?.AccessToken}");
                         request.Headers.Add("User-Agent", $"node");
                         var mediaResponse = await httpClient.SendAsync(request);
                         if (!mediaResponse.IsSuccessStatusCode)
