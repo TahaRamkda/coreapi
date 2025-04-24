@@ -2,7 +2,7 @@
 {
     public  enum CategoryTypeEnum
     {
-        MARKETING,
-        UTILITY
+        MARKETING=0,
+        UTILITY=1
     }
 }
