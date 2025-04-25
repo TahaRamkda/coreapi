@@ -45,7 +45,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("getflowslist")]
-        public async Task<ActionResult> GetFlowsListAsync(string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue, int senderId=0, LanguageTypeEnum? lang = null)
+        public async Task<ActionResult> GetFlowsListAsync(string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue, int senderId=0, LanguageTypeEnum lang = LanguageTypeEnum.none)
         {
             _logger.LogDebug("Calling api GetFlowsListAsync with clientId={clientId}, searchStr={searchStr}, pageNo={pageNo}, pageSize={pageSize}, lang={lang}", clientId, searchStr, pageNo, pageSize, lang);
 

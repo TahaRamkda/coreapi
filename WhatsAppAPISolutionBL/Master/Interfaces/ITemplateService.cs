@@ -7,7 +7,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface ITemplateService
     {
-        Task<List<UTemplate>> GetTemplateListAsync(int clientId,int senderId, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue, LanguageTypeEnum? lang = null, CategoryTypeEnum? category = null);
+        Task<List<UTemplate>> GetTemplateListAsync(int clientId,int senderId, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue, LanguageTypeEnum lang = LanguageTypeEnum.none, CategoryTypeEnum category = CategoryTypeEnum.none);
         Task<UResponseWithID> AddTemplateAsync(int clientId, int userId, TemplateDto template);
         Task<UResponseWithID> DeleteTemplateAsync(int templates_Id);
         Task<UTemplateDetail> GetTemplateDetailAsync(int clientId, int templateId);

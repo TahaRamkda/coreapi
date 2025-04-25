@@ -15,6 +15,7 @@ using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Template;
+using static WhatsAppAPISolutionDL.Dto.Catalog.CatalogDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -45,13 +46,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _cacheService = cacheService;
         }
 
-        public async Task<List<UTemplate>> GetTemplateListAsync(int clientId, int senderId, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue, LanguageTypeEnum? lang = null, CategoryTypeEnum? Category = null)
+        public async Task<List<UTemplate>> GetTemplateListAsync(int clientId, int senderId, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue, LanguageTypeEnum lang = LanguageTypeEnum.none, CategoryTypeEnum cat= CategoryTypeEnum.none)
         {
+            object languageParam = lang == LanguageTypeEnum.none ? (object)DBNull.Value : lang.ToString().ToLower(); 
+            object categoryParam = cat == CategoryTypeEnum.none ? (object)DBNull.Value : cat.ToString(); 
+
             var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.Templates.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SenderId= {senderId}, @SearchStr={searchStr},@SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}, @Language={lang.ToString()}, @Category={Category.ToString()}").ToListAsync();
+            var response = await _dbContext2.Templates.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SenderId= {senderId}, @SearchStr={searchStr},@SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}, @Language={languageParam}, @Category={categoryParam}").ToListAsync();
             _logger.LogInformation("Calling procedure usp_Templates_Ops with parameters: " +
-                "ActionId={ActionId}, ClientId={ClientId}, SearchStr={SearchStr}, SortBy={SortBy}, PageNo={PageNo}, PageSize={PageSize}, lang={lang}, ProcResponseTime={ProcResponseTime}ms",
-                (int)CrudEnum.List,clientId,searchStr,sortBy,pageNo,pageSize, lang, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds); return response;
+                "ActionId={ActionId}, ClientId={ClientId}, SearchStr={SearchStr}, SortBy={SortBy}, PageNo={PageNo}, PageSize={PageSize}, lang={lang}, cat ={cat}, ProcResponseTime={ProcResponseTime}ms",
+                (int)CrudEnum.List,clientId,searchStr,sortBy,pageNo,pageSize, lang, cat,  DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds); return response;
         }
 
         public async Task<UResponseWithID> AddTemplateAsync(int clientId, int userId, TemplateDto model)
@@ -60,7 +64,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             model.Name = model.Name.Replace(" ", "_").ToLower().Trim();
 
             //Check if template name already exists
-            var templateNameExist = await _dbContext.Templates
+            var templateNameExist = await _dbContext.Templates 
                 .Where(x => x.ClientId == clientId
                 && x.SenderId == model.SenderNameId
                 //&& x.RecordStatus != -1
