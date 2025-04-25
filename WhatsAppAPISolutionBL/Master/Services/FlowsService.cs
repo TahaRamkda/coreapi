@@ -56,7 +56,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             object languageParam = lang == LanguageTypeEnum.none ? (object)DBNull.Value : lang.ToString().ToLower(); 
 
             var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.Flow.FromSqlInterpolated($"exec usp_GetFlowList @ClientId={clientId}, @SearchStr={searchStr ?? ""}, @PageNo={pageNo}, @PageSize={pageSize}, @SenderId={senderId}, @FlowLanguage={lang}").ToListAsync();
+            var response = await _dbContext2.Flow.FromSqlInterpolated($"exec usp_GetFlowList @ClientId={clientId}, @SearchStr={searchStr ?? ""}, @PageNo={pageNo}, @PageSize={pageSize}, @SenderId={senderId}, @FlowLanguage={languageParam}").ToListAsync();
             _logger.LogInformation("Calling procedure usp_GetFlowList with clientId={ClientId}, searchStr={SearchStr}, pageNo={PageNo}, pageSize={PageSize}, lang={lang}, ProcResponseTime={ProcResponseTime}ms", clientId, searchStr, pageNo, pageSize, lang, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds
             ); return response;
         }
