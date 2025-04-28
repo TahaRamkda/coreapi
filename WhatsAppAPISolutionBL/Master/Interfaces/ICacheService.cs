@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WhatsAppAPISolutionDL.Dto.Common;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
@@ -17,5 +18,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task RemoveAsync(string key);
         Task RemoveByPrefix(string prefix);
         Task Clear(bool publisher = true);
+        Task<ApiResult> ClearBridgeCacheAsync();
+        Task<ApiResult> ClearBridgeCachebyPrefixAsync(string prefix);
     }
 }

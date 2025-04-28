@@ -1,9 +1,16 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using System.Collections.Concurrent;
+using System.Net.Http;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Setting;
+using Microsoft.AspNetCore.Http;
+using WhatsAppAPISolutionDL.Dto.Common;
+using Newtonsoft.Json;
+using System.Text;
+
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -13,6 +20,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         private readonly IMemoryCache _cache;
         private readonly CacheSettings _cacheSettings;
+        private readonly HttpClient _httpClient;
+        private readonly ILogger<CacheService> _logger;
 
         private static CancellationTokenSource _resetCacheToken = new();
 
@@ -22,10 +31,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         #region Ctor
 
-        public CacheService(IMemoryCache cache, IOptions<CacheSettings> cacheSettings)
+        public CacheService(IHttpClientFactory httpClientFactory, IMemoryCache cache, IOptions<CacheSettings> cacheSettings, ILogger<CacheService> logger, HttpClient httpClient)
         {
             _cache = cache;
             _cacheSettings = cacheSettings.Value;
+            _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
+            _logger = logger;
         }
 
         #endregion
@@ -161,5 +172,65 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
 
         #endregion
+
+        public async Task<ApiResult> ClearBridgeCacheAsync()
+        {
+            _logger.LogInformation("Calling Bridge ClearBridgeCacheAsync.");
+            var bridgeEndpoint = "/api/Cache/Clear";
+            var response =  await _httpClient.PostAsync(bridgeEndpoint, null);
+            if(!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("Failed to clear bridge cache.Status Code: {StatusCode}", response.StatusCode);
+                return new ApiResult
+                {
+                    Success = false,
+                    Message = "Failed to clear bridge cache",
+                    StatusCode = StatusCodes.Status500InternalServerError
+                };
+            }
+            _logger.LogInformation("Bridge cache cleared successfully.");
+            return new ApiResult
+            {
+                Success = true,
+                Message = "Bridge cache cleared successfully.",
+                StatusCode = StatusCodes.Status200OK
+            };
+        }
+        public async Task<ApiResult> ClearBridgeCachebyPrefixAsync(string prefix)
+        {
+            _logger.LogInformation("Calling bridge api with the prefix={prefix}", prefix);
+            // Prepare request payload for the endpoint 
+            var requestDto = new { Prefix = prefix }; //creating a dynamix dto for the 
+            var json = JsonConvert.SerializeObject(requestDto);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            
+            // Call the bridge endpoint
+            var bridgeEndpoint = "api/Cache/ClearByPrefix";
+            var response = await _httpClient.PostAsync(bridgeEndpoint, content);
+
+            // Handle failure
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("Bridge API ClearByPrefix failed. StatusCode={StatusCode}", response.StatusCode);
+                return new ApiResult
+                {
+                    Success = false,
+                    Message = "Failed to clear bridge cache by prefix.",
+                    StatusCode = (int)response.StatusCode
+                };
+            }
+
+            var payload = await response.Content.ReadAsStringAsync();
+
+            _logger.LogInformation("Bridge cache cleared by prefix successfully.");
+
+            return new ApiResult
+            {
+                Success = true,
+                Message = "Bridge cache cleared by prefix successfully.",
+                StatusCode = StatusCodes.Status200OK
+            };
+
+        }
     }
 }
