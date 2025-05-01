@@ -8,7 +8,7 @@ using WhatsAppAPISolutionDL.Dto.ConversationAnalytic;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 
- 
+
 namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class ConversationAnalytics : IConversationAnalyticsService
@@ -32,7 +32,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<ApiResult> ProcessConversationAnalyticsAsync(ConversationAnalyticRequestDto model)
         {
             _logger.LogInformation("ProcessConversationAnalyticsAsync called with model: {model}", JsonConvert.SerializeObject(model));
-            if (model.ClientId == 0 || model.SenderId == 0) 
+            if (model.ClientId == 0 || model.SenderId == 0)
             {
                 return new ApiResult
                 {
@@ -81,46 +81,47 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     };
                 }
 
-                var conversationEntities = bridgeResults.Select(item => new ConversationAnalytic
+                foreach (var bridgeResult in bridgeResults)
                 {
-                    Start = item.Start,
-                    End = item.End,
-                    StartUtc = item.StartDateUtc,
-                    EndUtc = item.EndDateUtc,
-                    ConversationCount = item.Conversation,
-                    PhoneNumber = item.PhoneNumber,
-                    Cost = item.Cost,
-                    Category = item.ConversationCategory,
-                    ClientId = model.ClientId,
-                    SenderId = model.SenderId,
-                    CreatedDate = DateTime.UtcNow,
-                    ConversationType = item.ConversationType
-                }).ToList();
+                    var existingRecord = await _dbContext.ConversationAnalytics
+                                        .FirstOrDefaultAsync(ca => ca.PhoneNumber == bridgeResult.PhoneNumber
+                                        && ca.Start == bridgeResult.Start && ca.End == bridgeResult.End);
 
-                var existingRecords = await _dbContext.ConversationAnalytics
-                    .Where(ca => ca.ClientId == model.ClientId && ca.SenderId == model.SenderId)
-                    .Select(ca => new { ca.Start, ca.End })
-                    .ToListAsync();
+                    if (existingRecord != null)
+                        continue;
 
-                var newEntities = conversationEntities
-                    .Where(ce => !existingRecords.Any(er => er.Start == ce.Start && er.End == ce.End))
-                    .ToList();
+                    var senderName = await _dbContext.SenderNames.FirstOrDefaultAsync(x => x.PhoneNumber == bridgeResult.PhoneNumber);
+                    if (senderName == null)
+                        continue;
 
-                if (newEntities.Any())
-                {
-                    _logger.LogInformation("ConversationAnalytics data to be saved: {data}", JsonConvert.SerializeObject(newEntities));
-                    await _dbContext.ConversationAnalytics.AddRangeAsync(newEntities);
-                    await _dbContext.SaveChangesAsync();
-                }
-                else
-                {
-                    return new ApiResult
+                    var conversationAnalytic = new ConversationAnalytic
                     {
-                        Success = true,
-                        Message = "No new data to insert into the ConversationAnalytics",
-                        StatusCode = StatusCodes.Status200OK
+                        Start = bridgeResult.Start,
+                        End = bridgeResult.End,
+                        StartUtc = bridgeResult.StartDateUtc,
+                        EndUtc = bridgeResult.EndDateUtc,
+                        ConversationCount = bridgeResult.Conversation,
+                        PhoneNumber = bridgeResult.PhoneNumber,
+                        Cost = bridgeResult.Cost,
+                        Category = bridgeResult.ConversationCategory,
+                        ClientId = senderName.ClientId,
+                        SenderId = senderName.SenderId,
+                        CreatedDate = DateTime.UtcNow,
+                        ConversationType = bridgeResult.ConversationType
                     };
+
+                    await _dbContext.ConversationAnalytics.AddAsync(conversationAnalytic);
                 }
+
+                await _dbContext.SaveChangesAsync();
+
+
+                return new ApiResult
+                {
+                    Success = true,
+                    Message = "No new data to insert into the ConversationAnalytics",
+                    StatusCode = StatusCodes.Status200OK
+                };
             }
 
             return new ApiResult
