@@ -11,6 +11,7 @@ using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.UserModels.InteractiveTemplate;
 using WhatsAppAPISolutionDL.UserModels.Orders;
 using WhatsAppAPISolutionDL.UserModels.SenderName;
 
@@ -212,6 +213,38 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
 
                 return null;
+        }
+
+        private async Task<String>SendOrderResponse(OrderResponse orderResponse)
+        {
+            try
+            {
+                var createOrder = JsonConvert.DeserializeObject<UCreateOrder>(orderResponse.Json);
+                InteractiveMessageRequestDto requestDto = new InteractiveMessageRequestDto();
+                if(orderResponse.ResponseType == (int)DBResponseEnum.InteractiveTemplate)
+                {
+                    var templatedetail = await _dbContext.InteractiveTemplates.Where(t => t.Id == createOrder.ActionId).FirstOrDefaultAsync();
+                    if (templatedetail != null) {
+                        requestDto.BodyText = templatedetail.BodyText;
+                       // re
+                    }
+
+
+                }
+                else if (orderResponse.ResponseType == (int)DBResponseEnum.ManualTemplate)
+                {
+
+                }
+                else if(orderResponse.ResponseType == (int)DBResponseEnum.AddressRequest)
+                {
+
+                }
+                await _communicationService.SendInteractiveMessageAsync(requestDto);
+            }
+            catch (Exception ex) {
+            }
+
+            return string.Empty;
         }
     }
 }

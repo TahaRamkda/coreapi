@@ -38,7 +38,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponse> AddMessageSentLogAsync(InsertMessageDto model)
         {
             int eventType = (int)model.Status;
-            int eventStatus = model.Status == MessageStatusEnum.FAILED ? 0 : 1;
+            int eventStatus = model.Status == MessageStatusEnum.FAILED ? 0 : 1; 
             string conversationId = "";
             string eventMessage = "";
             string pricingModel = "";

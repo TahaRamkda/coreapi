@@ -9,6 +9,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Orders
         public int OrderId { get; set; }
         public int ClientId { get; set; }
         public int SenderId { get; set; }
+        public int ActionId { get; set; }
         public String? PhoneNumber { get; set; }
         public int StepTypeId { get; set; }
         public int ItemId { get; set; }
