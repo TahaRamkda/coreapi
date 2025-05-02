@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Text;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Catalog;
 using WhatsAppAPISolutionDL.Dto.Common;
-using WhatsAppAPISolutionDL.Models;
+using static WhatsAppAPISolutionDL.Dto.Catalog.CatalogDto;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -62,6 +63,26 @@ namespace WhatsAppAPISolutionAPI.Controllers
             var duplicateItemIds = model.menu.items.GroupBy(item => item.id?.Trim()).Where(group => group.Count() > 1).Select(group => group.Key).ToList();
             if (duplicateItemIds.Any())
                 return Ok(new ApiResult { Message = "Duplicate item id not allowed." });
+
+            var duplicateModifierIds = model.menu.modifiers.GroupBy(item => item.id?.Trim()).Where(group => group.Count() > 1).Select(group => group.Key).ToList();
+            if (duplicateModifierIds.Any())
+                return Ok(new ApiResult { Message = "Duplicate modifier id not allowed." });
+
+            //Check if all the mandatory modifiers has default=true
+            var invalidModifiers = model.menu.modifiers
+                .Where(x => x.modifier_items != null && x.modifier_items.Any())
+                .Where(mod => mod.min_selection > 0 && mod.max_selection > 0)
+                .Where(mod => mod.modifier_items.Count(mi => mi.is_default) != mod.max_selection)
+                .ToList();
+
+            StringBuilder invalidModifierError = new StringBuilder();
+            foreach (var mod in invalidModifiers)
+            {
+                invalidModifierError.AppendLine($"Modifier {mod.id} is invalid: received {mod.modifier_items.Count(mi => mi.is_default)} default(s), " + $"expected {mod.max_selection}.");
+            }
+
+            if (invalidModifierError.Length > 0)
+                return Ok(new ApiResult { Message = invalidModifierError.ToString() });
 
             await _catalogService.ImportCatalog(ClientId, SenderId, model);
 
