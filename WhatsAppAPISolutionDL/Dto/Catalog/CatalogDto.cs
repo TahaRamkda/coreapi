@@ -50,7 +50,7 @@
         {
             public Modifier()
             {
-                item_ids = new List<string>();
+                modifier_items = new List<ModifierItem>();
             }
 
             public string id { get; set; }
@@ -58,7 +58,13 @@
             public Description description { get; set; }
             public int min_selection { get; set; }
             public int max_selection { get; set; }
-            public List<string> item_ids { get; set; }
+            public List<ModifierItem> modifier_items { get; set; }
+
+            public class ModifierItem
+            {
+                public string item_id { get; set; }
+                public bool is_default { get; set; }
+            }
         }
 
         public class Name

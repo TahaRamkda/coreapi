@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Catalog;
@@ -8,7 +7,6 @@ using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 using static WhatsAppAPISolutionDL.Dto.Catalog.CatalogDto;
-using static WhatsAppAPISolutionDL.Dto.Order.MetaOrderRequestDto.Order;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -298,7 +296,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             //Add modifiers
             if (catalog.menu.modifiers != null && catalog.menu.modifiers.Any())
             {
-                var menuModifiers = catalog.menu.modifiers.Where(x => x.item_ids != null && x.item_ids.Any()).ToList();
+                var menuModifiers = catalog.menu.modifiers.Where(x => x.modifier_items != null && x.modifier_items.Any()).ToList();
                 for (int i = 0; i < menuModifiers.Count; i++)
                 {
                     var menuModifier = menuModifiers[i];
@@ -354,25 +352,34 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private async Task ModifierItemsOps(ModifierGroup modifierGroup, Modifier modifier)
         {
             //Add modifier items
-            if (modifier.item_ids != null && modifier.item_ids.Any())
+            if (modifier.modifier_items != null && modifier.modifier_items.Any())
             {
                 var menuItems = await _dbContext.Items.Where(x =>
                         x.ClientId == modifierGroup.ClientId && x.SenderId == modifierGroup.SenderId
                         && x.Status == 1
                         && x.ItemType == (int)ItemType.CHOICE
-                        && modifier.item_ids.Contains(x.IntegrationId)).ToListAsync();
+                        && modifier.modifier_items.Select(x => x.item_id).Contains(x.IntegrationId)).ToListAsync();
 
                 for (int i = 0; i < menuItems.Count; i++)
                 {
                     var menuItem = menuItems[i];
+                    var modifierItem = modifier.modifier_items.FirstOrDefault(x => x.item_id == menuItem.IntegrationId);
+
+                    if (modifierItem == null)
+                    {
+                        var error = $"Catalog Import, cannot find modifier item in modifierId={modifierGroup.IntegrationId} and itemId={menuItem.IntegrationId}";
+                        _logger.LogError(error);
+                        throw new ArgumentNullException(error);
+                    }
 
                     //Check existing modifier item map
                     var modifierItemMap = await _dbContext.ModifierItemMaps.FirstOrDefaultAsync(x => x.ClientId == modifierGroup.ClientId && x.SenderId == modifierGroup.SenderId
-                    && x.ModifierGroupId == modifierGroup.Id && x.ItemId == menuItem.Id);
+                                            && x.ModifierGroupId == modifierGroup.Id && x.ItemId == menuItem.Id);
 
                     if (modifierItemMap != null)
                     {
                         modifierItemMap.DisplayOrder = i + 1;
+                        modifierItemMap.IsDefault = modifierItem.is_default ? 1 : 0; //Add is default
                         modifierItemMap.Status = 1;
                         modifierItemMap.DeprecatedDate = null;
                         modifierItemMap.UpdatedBy = 0;
@@ -388,6 +395,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             SenderId = modifierGroup.SenderId,
                             Status = 1,
                             ItemId = menuItems[i].Id,
+                            IsDefault = modifierItem.is_default ? 1 : 0, //Add is default
                             ModifierGroupId = modifierGroup.Id,
                             DisplayOrder = i + 1,
                             CreatedBy = 0,
