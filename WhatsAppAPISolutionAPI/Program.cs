@@ -66,6 +66,8 @@ builder.Services.AddSignalRServices(configuration);
 // MVC Controllers
 builder.Services.AddControllers();
 
+builder.Services.AddHttpClient<KFGPaymentService>();
+
 var app = builder.Build();
 app.UseStaticFiles(new StaticFileOptions()
 {
