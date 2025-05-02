@@ -7,6 +7,7 @@
         API = 2,
         Chat = 3,
         Survey = 4,
-        Order = 5
+        Order = 5,
+        Location = 6,    
     }
 }

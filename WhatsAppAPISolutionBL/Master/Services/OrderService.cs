@@ -23,11 +23,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly ICommunicationService _communicationService;
         private readonly IUserService _userService;
         private readonly ILogger<OrderService> _logger;
-
+        private readonly ILocationService _locationService;
         public OrderService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
             ICommunicationService communicationService,
             IUserService userservice,
+            ILocationService locationService,
             ILogger<OrderService> logger)
         {
             _dbContext = dbContext;
@@ -35,6 +36,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _communicationService = communicationService;
             _userService = userservice;
             _logger = logger;
+            _locationService = locationService;
         }
 
         public async Task<ApiResult> CreateOrdersAsync(MetaOrderRequestDto model)
@@ -204,8 +206,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     await _communicationService.SendInteractiveMessageAsync(request);
                 }
             }
+            else if (orderStepTypeId == (int)OrderStepTypeEnum.CompleteAddress)
+            {
+                await _locationService.SaveCompleteAddress(flowResponse , flow);
+            }
 
-            return null;
+                return null;
         }
     }
 }

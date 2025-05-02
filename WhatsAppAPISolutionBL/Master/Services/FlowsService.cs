@@ -29,6 +29,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly ICacheService _cachingService;
         private readonly IMessageService _messageService;
         private readonly IOrderService _orderService;
+        private readonly ILocationService _locationService;
 
         public FlowsService(WhatsAppSolutionContext2 dbContext2,
             WhatsAppSolutionContext dbContext,
@@ -38,7 +39,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             ILogger<FlowsService> logger,
             ICacheService cacheService,
             IMessageService messageService,
-            IOrderService orderService)
+            IOrderService orderService,
+            ILocationService locationService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -49,6 +51,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _cachingService = cacheService;
             _messageService = messageService;
             _orderService = orderService;
+            _locationService = locationService;
         }
 
         public async Task<List<UFlow>> GetFlowListAsync(int clientId, string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue, int senderId = 0, LanguageTypeEnum lang=LanguageTypeEnum.none)
@@ -754,6 +757,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     return await _messageService.SaveSurveyResponse(flowResponse, flow);
                 if (flow.ModuleId == (int)ModuleEnum.Order)
                     return await _orderService.SaveFlowResponse(flowResponse, flow);
+                //if (flow.ModuleId == (int)ModuleEnum.Location)
+                //    return await _locationService.SaveCompleteAddress(flowResponse, flow);
 
                 return new ApiResult { StatusCode = 0, Message = "Something went wrong" };
             }
