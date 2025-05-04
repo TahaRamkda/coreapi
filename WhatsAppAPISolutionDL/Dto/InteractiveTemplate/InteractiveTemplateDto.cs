@@ -15,7 +15,7 @@
         public bool UsedByAgent { get; set; }
         public int MediaId { get; set; }
         public int DefaultTypeId { get; set; }
-        public int Status { get; set; }
+        public int Status { get; set; } 
         //public int ActionBy { get; set; }
         public HeaderComponent Header { get; set; }
         public BodyComponent Body { get; set; }

@@ -630,11 +630,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     mediaId = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath;
                 }
                 else
-                    return new ApiResult
-                    {
-                        Success = false,
-                        Message = "No media found with this MediaId"
-                    };
+                    return new ApiResult { Success = false, Message = "No media found with this MediaId" };
             }
 
             var req = new SendMessageToBridgeDto
@@ -662,45 +658,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
             if (result != null && result.success)
             {
-                var data = JsonConvert.SerializeObject(result.result);
-                var tempResult = JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
-                if (tempResult != null)
+                var data = System.Text.Json.JsonSerializer.Serialize(result.result);
+                var sendSmsResults = JsonConvert.DeserializeObject<List<SendSmsResultDto>>(data);
+                if (sendSmsResults != null && sendSmsResults.Any())
                 {
-                    foreach (var item in tempResult)
+                    var sendSmsResult = sendSmsResults[0];
+                    bool success = sendSmsResult.errors == null || !sendSmsResult.errors.Any();
+                    return new ApiResult
                     {
-                        var message = new InsertMessageDto
-                        {
-                            ClientId = model.ClientId,
-                            SenderId = model.SenderId,
-                            WaId = item.waId,
-                            RecipientId = item.phoneNumber,
-                            Status = item.success ? MessageStatusEnum.SENT : MessageStatusEnum.FAILED,
-                            ModuleId = model.ModuleId,
-                            ParentId = model.ParentId,
-                            MessageReferenceId = model.MessageReferenceId,
-                            MessageType = model.MessageTypeId,
-                            MessageContent = model.MessageContent,
-                            MediaId = model.MediaId.HasValue ? model.MediaId.Value : 0
-                        };
-
-                        if (item.errors != null && item.errors.Any())
-                        {
-                            message.Error = new InsertMessageDto.ErrorDto
-                            {
-                                ErrorDetails = String.Join(',', item.errors)
-                            };
-                        }
-
-                        await _messageSentLogsService.AddMessageSentLogAsync(message);
-
-                        if (!item.success)
-                            return new ApiResult
-                            {
-                                StatusCode = 0,
-                                Success = false,
-                                Message = item.errors != null && item.errors.Count() > 0 ? String.Join(',', item.errors) : "Something went wrong"
-                            };
-                    }
+                        Success = success,
+                        StatusCode = success ? 200 : 0,
+                        Result = sendSmsResult,
+                        Message = sendSmsResult.errors != null && sendSmsResult.errors.Any() ? String.Join(',', sendSmsResult.errors) : "Message sent successfully"
+                    };
                 }
             }
             else if (result != null && !result.success)
@@ -712,6 +682,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Message = result.message
                 };
             }
+
             return new ApiResult
             {
                 StatusCode = 200,
@@ -819,6 +790,27 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     FileName = media != null ? media.FileName : String.Empty,
                     PhoneNumbers = new List<string> { phoneNumber }.TrimPhoneNumbers()
                 });
+
+                var sendMessageResponse = (SendSmsResultDto)messageSentResult.Result;
+
+                var message = new InsertMessageDto
+                {
+                    ClientId = interactiveTemplate.ClientId ?? 0,
+                    SenderId = interactiveTemplate.SenderId ?? 0,
+                    WaId = sendMessageResponse != null ? sendMessageResponse.waId : String.Empty,
+                    RecipientId = phoneNumber,
+                    Status = sendMessageResponse.success ? MessageStatusEnum.SENT : MessageStatusEnum.FAILED,
+                    ModuleId = model.ModuleId ?? 0,
+                    ParentId = model.ParentId ?? 0,
+                    MessageReferenceId = interactiveTemplate.Id,
+                    MessageType = (int)MainMessageTypeEnum.INTERACTIVETEMPLATE,
+                    MessageContent = messageContent.ToString(),
+                    MediaId = media != null ? media.Id : 0,
+                    Error = sendMessageResponse.errors != null && sendMessageResponse.errors.Any() ?
+                            new InsertMessageDto.ErrorDto { ErrorDetails = String.Join(',', sendMessageResponse.errors) } : null
+                };
+
+                await _messageSentLogsService.AddMessageSentLogAsync(message);
 
                 return new UResponse { Status = messageSentResult.StatusCode, Message = messageSentResult.Message };
             }
@@ -1181,6 +1173,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
         }
 
+        /// <summary>
+        /// This will just convert the provided object to bridge template dto and sends the response of message sent
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         public async Task<ApiResult> SendInteractiveMessageAsync(InteractiveMessageRequestDto model)
         {
             Media media = null;
@@ -1255,7 +1252,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 messageContent.Append(footerText);
 
             //In interactive button is required or ask for location, if not available send normal message
-            if (model.Buttons == null || !model.Buttons.Any() && !String.IsNullOrWhiteSpace(model.BodyText) && !model.AskForLocation)
+            if (model.Buttons == null || !model.Buttons.Any() && !String.IsNullOrWhiteSpace(model.BodyText))
             {
                 return await SendMessageAsync(new SendMessageRequestDto
                 {
@@ -1278,8 +1275,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 ClientId = Convert.ToString(model.ClientId),
                 SenderNameId = Convert.ToString(model.SenderId),
-                PhoneNumbers = new List<string> { model.PhoneNumber }.TrimPhoneNumbers(),
-                AskForLocation = model.AskForLocation
+                PhoneNumbers = new List<string> { model.PhoneNumber }.TrimPhoneNumbers() 
             };
 
             if (headerType == TemplateHeaderEnum.TEXT)
@@ -1325,8 +1321,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 sendMessage.Buttons = new List<SendInteractiveMessageRequestDto.ButtonDto>();
 
+                //If Location type
+                if (model.Buttons.Any(x => x.ButtonType == (int)ButtonTypeEnum.LOCATION))
+                {
+                    sendMessage.AskForLocation = true;
+                }
                 //If FLOW type action is present, skip buttons
-                if (model.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW))
+                else if (model.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW))
                 {
                     var button = model.Buttons.FirstOrDefault(x => x.ActionType == (int)ActionTypeEnum.FLOW);
                     var flow = await _dbContext.Flows.FindAsync(button.ActionId);

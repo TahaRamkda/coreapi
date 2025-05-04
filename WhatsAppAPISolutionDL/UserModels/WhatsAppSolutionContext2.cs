@@ -16,7 +16,6 @@ using WhatsAppAPISolutionDL.UserModels.Location;
 using WhatsAppAPISolutionDL.UserModels.MasterData;
 using WhatsAppAPISolutionDL.UserModels.Media;
 using WhatsAppAPISolutionDL.UserModels.Message;
-using WhatsAppAPISolutionDL.UserModels.Orders;
 using WhatsAppAPISolutionDL.UserModels.Permission;
 using WhatsAppAPISolutionDL.UserModels.SenderName;
 using WhatsAppAPISolutionDL.UserModels.SurveyReport;
@@ -93,7 +92,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<USurveyResponse> SurveyResponse { get; set; } = null!;
         public virtual DbSet<UCatalogExport> CatalogExports { get; set; } = null!;
         public virtual DbSet<ConversationAnalytic> ConversationAnalytics { get; set; } = null!;
-        public virtual DbSet<OrderResponse> CreateOrderResponse { get; set; } = null!;
+        public virtual DbSet<DBResponse> DBResponses { get; set; } = null!;
         public virtual DbSet<UAppSettingsList> AppSettingsList { get; set; } = null!;
         public virtual DbSet<USurveyReport> SurveyReports { get; set; } = null!;
         public virtual DbSet<USaveGeoLocation> SaveGeoLocation { get; set; } = null!;
@@ -155,7 +154,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<USurveyResponse>().HasNoKey();
             modelBuilder.Entity<UCatalogExport>().HasNoKey();
             modelBuilder.Entity<ConversationAnalytic>().HasNoKey();
-            modelBuilder.Entity<OrderResponse>().HasNoKey();
+            modelBuilder.Entity<DBResponse>().HasNoKey();
             modelBuilder.Entity<UAppSettingsList>().HasNoKey();
             modelBuilder.Entity<USurveyReport>().HasNoKey();
         }

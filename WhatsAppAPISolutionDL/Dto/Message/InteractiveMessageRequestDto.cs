@@ -22,8 +22,7 @@ namespace WhatsAppAPISolutionDL.Dto.Message
         public string HeaderText { get; set; }
         public string BodyText { get; set; }
         public string FooterText { get; set; }
-        public string FlowToken { get; set; }
-        public bool AskForLocation { get; set; }
+        public string FlowToken { get; set; }  
         public List<ParamValue> Values { get; set; }
         public List<Button> Buttons { get; set; }
 

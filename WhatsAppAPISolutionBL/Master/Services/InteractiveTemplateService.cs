@@ -359,7 +359,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var buttonJson = JsonConvert.SerializeObject(model.Buttons);
             var parameterJson = JsonConvert.SerializeObject(parameters);
 
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.Update},@InteractiveTemplateId={model.Id}, @ClientId={clientId}, @SenderId={model.SenderNameId},@TemplateName={model.Name},@Language={model.Language}, @TransactionType={(int)TransactionTypeEnum.Interactive},@Status={model.Status}, @DefaultTypeId={model.DefaultTypeId},@UsedByAgent={model.UsedByAgent},@HeaderType={model.Header.Format}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @MediaId={model.MediaId}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @FooterText={footerText}, @ButtonsJson={buttonJson},@ParametersJson={parameterJson}, @ActionBy={userId}").ToListAsync();
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.Update},@InteractiveTemplateId={model.Id}, @ClientId={clientId}, @SenderId={model.SenderNameId},@TemplateName={model.Name},@Language={model.Language},  @TransactionType={(int)TransactionTypeEnum.Interactive},@Status={model.Status}, @DefaultTypeId={model.DefaultTypeId},@UsedByAgent={model.UsedByAgent},@HeaderType={model.Header.Format}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @MediaId={model.MediaId}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @FooterText={footerText}, @ButtonsJson={buttonJson},@ParametersJson={parameterJson}, @ActionBy={userId}").ToListAsync();
             await _cacheService.RemoveAsync(CacheKeys.INTERACTIVE_TEMPLATE_PATTERN_KEY);
             if (response == null || !response.Any())
                 return new UResponse
@@ -374,6 +374,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 Message = response[0].Message
             };
         }
+      
         public async Task<UInteractiveTemplateDetail> GetInteractiveTemplateDetailsAsync(int clientId, int senderId, int interactiveTemplateId)
         {
             var cacheKey = string.Format(CacheKeys.INTERACTIVE_TEMPLATE_BY_ID_KEY, clientId, senderId, interactiveTemplateId);

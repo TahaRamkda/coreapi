@@ -1,0 +1,11 @@
+﻿id,title,description,availability,condition,price,link,image_link,brand,google_product_category
+1,Whopper Meal,"1 piece of our flame grilled beef patty topped with ketchup, fresh onion , pickles, tomato, lettuce and  mayo in our special sesame bun with french fries and a drink.",in stock,new,2.250,https://consulttechies.com,"https://lsm.koutfood.com/Content/img/Menu/Cari/2_0/6000.jpg                                         ",Babji Consult Techies,Flame Grilled Meals
+2,Hamburger Meal,-,in stock,new,1.400,https://consulttechies.com,"https://lsm.koutfood.com/Content/img/Menu/Cari/2_0/6110.jpg                                         ",Babji Consult Techies,Flame Grilled Meals
+3,Cheese Burger Meal,-,in stock,new,1.500,https://consulttechies.com,"https://lsm.koutfood.com/Content/img/Menu/Cari/2_0/6280.jpg                                         ",Babji Consult Techies,Flame Grilled Meals
+4,Curly Fries,-,in stock,new,0.000,https://consulttechies.com,"https://lsm.koutfood.com/Content/img/Menu/Cari/2_0/9.jpg                                            ",Babji Consult Techies,Sides and Salads
+5,Fries,-,in stock,new,0.000,https://consulttechies.com,"https://lsm.koutfood.com/Content/img/Menu/Cari/2_0/5.jpg                                            ",Babji Consult Techies,Sides and Salads
+6,Garlic Mayo,-,in stock,new,0.100,https://consulttechies.com,"https://lsm.koutfood.com/Content/img/Menu/Cari/2_0/257106.jpg                                       ",Babji Consult Techies,Sides and Salads
+7,BBQ Sauce,-,in stock,new,0.100,https://consulttechies.com,"https://lsm.koutfood.com/Content/img/Menu/Cari/2_0/257105.jpg                                       ",Babji Consult Techies,Sides and Salads
+8,Coca Cola,-,in stock,new,0.450,https://consulttechies.com,"https://lsm.koutfood.com/Content/img/Menu/Cari/2_0/248020.jpg                                       ",Babji Consult Techies,Desserts and Drinks
+9,Coke Zero,-,in stock,new,0.450,https://consulttechies.com,"https://lsm.koutfood.com/Content/img/Menu/Cari/2_0/248284.jpg                                       ",Babji Consult Techies,Desserts and Drinks
+10,Sprite,-,in stock,new,0.450,https://consulttechies.com,"https://lsm.koutfood.com/Content/img/Menu/Cari/2_0/248100.jpg                                       ",Babji Consult Techies,Desserts and Drinks

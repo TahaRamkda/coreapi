@@ -1,0 +1,8 @@
+﻿namespace WhatsAppAPISolutionDL.UserModels
+{
+    public partial class DBResponse
+    {
+        public int ResponseType { get; set; }
+        public string Json { get; set; }
+    }
+}

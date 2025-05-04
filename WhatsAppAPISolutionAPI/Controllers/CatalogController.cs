@@ -4,7 +4,6 @@ using System.Text;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Catalog;
 using WhatsAppAPISolutionDL.Dto.Common;
-using static WhatsAppAPISolutionDL.Dto.Catalog.CatalogDto;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {

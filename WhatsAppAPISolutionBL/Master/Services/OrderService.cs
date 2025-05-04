@@ -25,12 +25,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IUserService _userService;
         private readonly ILogger<OrderService> _logger;
         private readonly ILocationService _locationService;
+        private readonly IMediatorService _mediatorService;
+
         public OrderService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
             ICommunicationService communicationService,
             IUserService userservice,
             ILocationService locationService,
-            ILogger<OrderService> logger)
+            ILogger<OrderService> logger,
+            IMediatorService mediatorService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -38,6 +41,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _userService = userservice;
             _logger = logger;
             _locationService = locationService;
+            _mediatorService = mediatorService;
         }
 
         public async Task<ApiResult> CreateOrdersAsync(MetaOrderRequestDto model)
@@ -56,53 +60,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             var orderjson = JsonConvert.SerializeObject(orderRequest);
 
-            var dbresponse = await _dbContext2.CreateOrderResponse.FromSqlInterpolated($"exec usp_Orders_PlaceOrder   @ClientId={senderName.ClientId},@SenderId={senderName.SenderId},@OrderJson={orderjson}").ToListAsync();
+            var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PlaceOrder @ClientId={senderName.ClientId},@SenderId={senderName.SenderId},@OrderJson={orderjson}").ToListAsync();
             _logger.LogInformation("Received response from procedure usp_Orders_PlaceOrder with request={request} and response={response}", JsonConvert.SerializeObject(model), JsonConvert.SerializeObject(dbresponse));
 
-            var dbresponsejson = JsonConvert.SerializeObject(dbresponse[0]);
-            var orderResponse = JsonConvert.DeserializeObject<OrderResponse>(dbresponsejson);
-
-            if (orderResponse.ResponseType == (int)OrderStepTypeEnum.Template)
-            {
-                 var existingOrder = JsonConvert.DeserializeObject<UReOrder>(orderResponse.Json);
-            }
-            else if (orderResponse.ResponseType == (int)OrderStepTypeEnum.ModifierFlow
-                || orderResponse.ResponseType == (int)OrderStepTypeEnum.Address
-                || orderResponse.ResponseType == (int)OrderStepTypeEnum.Confirmation)
-            {
-                var createOrder = JsonConvert.DeserializeObject<UCreateOrder>(orderResponse.Json);
-                if (createOrder != null)
-                {
-                    var request = new InteractiveMessageRequestDto
-                    {
-                        ClientId = createOrder.ClientId,
-                        SenderId = createOrder.SenderId,
-                        PhoneNumber = createOrder.PhoneNumber,
-                        BodyText = createOrder.BodyText,
-                        MessageReferenceId = createOrder.OrderStepId,
-                        ModuleId = (int)ModuleEnum.Order,
-                        ParentId = createOrder.OrderStepId,
-                        ActionId = createOrder.FlowId,
-                        FlowToken = createOrder.FlowToken,
-                        Buttons = new List<InteractiveMessageRequestDto.Button>()
-                    };
-
-                    if (createOrder.FlowId > 0)
-                    {
-                        request.Buttons.Add(new InteractiveMessageRequestDto.Button
-                        {
-                            ActionType = (int)ActionTypeEnum.FLOW,
-                            ActionId = createOrder.FlowId,
-                            ButtonText = createOrder.ButtonText,
-                            Sequence = 0
-                        });
-                    }
-                    else if (orderResponse.ResponseType == (int)OrderStepTypeEnum.Address)
-                        request.AskForLocation = true;
-
-                    await _communicationService.SendInteractiveMessageAsync(request);
-                }
-            } 
+            await _mediatorService.ProcessDBResponse(senderName.ClientId ?? 0, senderName.SenderId, dbresponse[0]);
 
             return new ApiResult { Success = true, Message = "Order created successfully" };
         }
@@ -169,11 +130,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     }
 
                     var modifierItemsJson = JsonConvert.SerializeObject(itemIds);
-                    var dbresponse = await _dbContext2.CreateOrderResponse.FromSqlInterpolated($"exec usp_Orders_SaveModifiers_Temp @OrderItemId={orderItemId},@ModifierItemsJson={modifierItemsJson}").ToListAsync();
+                    var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_SaveModifiers_Temp @OrderItemId={orderItemId},@ModifierItemsJson={modifierItemsJson}").ToListAsync();
                     _logger.LogInformation("Received response from procedure usp_Orders_SaveModifiers_Temp with OrderItemId={orderItemId} and ModifierItemsJson={json} and response={response}", orderItemId, JsonConvert.SerializeObject(modifierItemsJson), JsonConvert.SerializeObject(dbresponse));
 
                     var dbresponsejson = JsonConvert.SerializeObject(dbresponse[0]);
-                    var orderResponse = JsonConvert.DeserializeObject<OrderResponse>(dbresponsejson);
+                    var orderResponse = JsonConvert.DeserializeObject<DBResponse>(dbresponsejson);
 
                     var createOrder = JsonConvert.DeserializeObject<UCreateOrder>(orderResponse.Json);
 
@@ -201,32 +162,31 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             Sequence = 0
                         });
                     }
-                    else if (orderResponse.ResponseType == (int)OrderStepTypeEnum.Address)
-                        request.AskForLocation = true;
 
                     await _communicationService.SendInteractiveMessageAsync(request);
                 }
             }
             else if (orderStepTypeId == (int)OrderStepTypeEnum.CompleteAddress)
             {
-                await _locationService.SaveCompleteAddress(flowResponse , flow);
+                await _locationService.SaveCompleteAddress(flowResponse, flow);
             }
 
-                return null;
+            return null;
         }
 
-        private async Task<String>SendOrderResponse(OrderResponse orderResponse)
+        private async Task<String> SendOrderResponse(DBResponse orderResponse)
         {
             try
             {
                 var createOrder = JsonConvert.DeserializeObject<UCreateOrder>(orderResponse.Json);
                 InteractiveMessageRequestDto requestDto = new InteractiveMessageRequestDto();
-                if(orderResponse.ResponseType == (int)DBResponseEnum.InteractiveTemplate)
+                if (orderResponse.ResponseType == (int)DBResponseEnum.InteractiveTemplate)
                 {
                     var templatedetail = await _dbContext.InteractiveTemplates.Where(t => t.Id == createOrder.ActionId).FirstOrDefaultAsync();
-                    if (templatedetail != null) {
+                    if (templatedetail != null)
+                    {
                         requestDto.BodyText = templatedetail.BodyText;
-                       // re
+                        // re
                     }
 
 
@@ -235,13 +195,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
 
                 }
-                else if(orderResponse.ResponseType == (int)DBResponseEnum.AddressRequest)
+                else if (orderResponse.ResponseType == (int)DBResponseEnum.InteractiveTemplate)
                 {
 
                 }
                 await _communicationService.SendInteractiveMessageAsync(requestDto);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
             }
 
             return string.Empty;
