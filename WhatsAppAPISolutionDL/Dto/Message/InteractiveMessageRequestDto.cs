@@ -30,7 +30,7 @@ namespace WhatsAppAPISolutionDL.Dto.Message
         {
             public Button() { }
 
-            public int? ButtonId { get; set; }
+            public string ButtonId { get; set; }
             public string ButtonText { get; set; } = string.Empty;
             public string ButtonValue { get; set; } = string.Empty;
             public int? ButtonType { get; set; }

@@ -245,7 +245,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                     buttons.Add(new ButtonDto
                     {
-                        ButtonId = button.ButtonId ?? 0,
+                        ButtonId = Convert.ToString(button.ButtonId),
                         ButtonText = button.ButtonText,
                         ButtonValue = buttonValue,
                         ButtonType = button.ButtonType ?? 0,
@@ -919,7 +919,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 //Create button json
                 buttonJson = JsonConvert.SerializeObject(interactiveTemplate.Buttons.Select(x => new ButtonDto
                 {
-                    ButtonId = x.ButtonId ?? 0,
+                    ButtonId = Convert.ToString(x.ButtonId),
                     ButtonText = x.ButtonText,
                     ButtonValue = x.ButtonValue,
                     ButtonType = x.ButtonType ?? 0,
@@ -1384,7 +1384,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 //Create button json
                 buttonJson = JsonConvert.SerializeObject(model.Buttons.Select(x => new ButtonDto
                 {
-                    ButtonId = x.ButtonId ?? 0,
+                    ButtonId = x.ButtonId,
                     ButtonText = x.ButtonText,
                     ButtonValue = x.ButtonValue,
                     ButtonType = x.ButtonType ?? 0,

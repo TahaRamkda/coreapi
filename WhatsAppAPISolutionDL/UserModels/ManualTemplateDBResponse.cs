@@ -31,7 +31,7 @@ namespace WhatsAppAPISolutionDL.UserModels
 
         public class Button
         {
-            public int ButtonId { get; set; }
+            public string ButtonId { get; set; }
             public string ButtonText { get; set; }
             public string ButtonValue { get; set; }
             public int ButtonType { get; set; }
