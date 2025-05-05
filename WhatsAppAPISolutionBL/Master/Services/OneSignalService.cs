@@ -6,7 +6,6 @@ using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.OneSignal;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels.Agent;
-using WhatsAppAPISolutionDL.UserModels.Conversation;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -26,16 +25,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _logger = logger;
         }
 
-        public async Task SendConversationAssignedNotification(UAgentConversationList conversation)
+        public async Task SendConversationAssignedNotification(int agentId, string language, string message)
         {
-            _logger.LogDebug("Calling api SendConversationAssignedNotification with request={request}", conversation);
-            await SendNotification("Conversation Assigned", conversation.LastMessageText, conversation.AgentId.ToString(), conversation.Language);
+            _logger.LogDebug("Calling api SendConversationAssignedNotification with agentId={agentId} language={language} and message={message}", agentId, language, message);
+            await SendNotification("Conversation Assigned", message, agentId.ToString(), language);
         }
 
-        public async Task SendMessageReceivedNotification(ULatestConversationByConversation conversation)
+        public async Task SendMessageReceivedNotification(int agentId, string language, string message)
         {
-            _logger.LogDebug("Calling api SendMessageReceivedNotification with request={request}", conversation);
-            await SendNotification("Message Received", conversation.MessageContent, conversation.AgentId.ToString(), conversation.Language);
+            _logger.LogDebug("Calling api SendMessageReceivedNotification with agentId={agentId} language={language} and message={message}", agentId, language, message);
+            await SendNotification("Message Received", message, agentId.ToString(), language);
         }
 
         public async Task SendConversationUnAssignedNotification(int agentId)
@@ -47,6 +46,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private async Task SendNotification(string headerContent, string bodyContent, string agentId, string language = "en")
         {
             _logger.LogDebug("Calling api SendNotification with headerContent={headerContent}, bodyContent={bodyContent}, agentId={agentId}, language={language}", headerContent, bodyContent, agentId, language);
+            
             var oneSignal = new OneSignalRequestDto()
             {
                 app_id = _oneSignalConfigurationSettings.Value.AppId,
@@ -54,6 +54,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 contents = new Dictionary<string, string> { { language.ToLower(), bodyContent } },
                 headings = new Dictionary<string, string> { { language.ToLower(), headerContent } }
             };
+
             var request = JsonConvert.SerializeObject(oneSignal);
 
             var apiCallStart = DateTime.UtcNow;
