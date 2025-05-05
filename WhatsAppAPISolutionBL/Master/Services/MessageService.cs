@@ -31,6 +31,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IHubContext<ConversationHub> _conversationHubContext;
         private readonly IOneSignalService _oneSignalService;
         private readonly IAgentsService _agentsService;
+        private readonly IMediatorService _mediatorService;
 
         public MessageService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
@@ -40,7 +41,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IHubContext<ConversationHub> conversationHubContext,
             IConversationService conversationService,
             IOneSignalService oneSignalService,
-            IAgentsService agentsService)
+            IAgentsService agentsService,
+            IMediatorService mediatorService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -51,6 +53,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _conversationService = conversationService;
             _oneSignalService = oneSignalService;
             _agentsService = agentsService;
+            _mediatorService = mediatorService;
         }
 
         #region Utilities
