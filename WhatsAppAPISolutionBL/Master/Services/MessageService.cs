@@ -31,6 +31,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IHubContext<ConversationHub> _conversationHubContext;
         private readonly IOneSignalService _oneSignalService;
         private readonly IAgentsService _agentsService;
+        private readonly IMediatorService _mediatorService;
 
         public MessageService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
@@ -40,7 +41,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IHubContext<ConversationHub> conversationHubContext,
             IConversationService conversationService,
             IOneSignalService oneSignalService,
-            IAgentsService agentsService)
+            IAgentsService agentsService,
+            IMediatorService mediatorService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -51,6 +53,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _conversationService = conversationService;
             _oneSignalService = oneSignalService;
             _agentsService = agentsService;
+            _mediatorService = mediatorService;
         }
 
         #region Utilities
@@ -127,7 +130,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         /// </summary>
         /// <param name="messageReceive"></param>
         /// <returns></returns>
-        public async Task<UMessageReceived> AddMessageReceivedLogAsync(WhatsAppMessageReceiveDto messageReceive)
+        public async Task<ApiResult> AddMessageReceivedLogAsync(WhatsAppMessageReceiveDto messageReceive)
         {
             var client = await _dbContext.Clients.FirstOrDefaultAsync(x => x.ClientId == Convert.ToInt32(messageReceive.client_Id));
             var senderName = await _dbContext.SenderNames.FirstOrDefaultAsync(x => x.PhoneNumberId == messageReceive.phone_number_Id.phone_number_id);
@@ -202,94 +205,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     messageText = messageReceive.listReply.title ?? "";
                 }
             }
+
             var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.UMessageReceiveds.FromSqlInterpolated($"exec usp_MessageReceivedLogs_ops @ClientId={messageReceive.client_Id}, @SenderId={senderName?.SenderId}, @WaId={messageReceive.wam_Id}, @ContextWaId={messageReceive.context?.wam_Id},@Name={fullName}, @PhoneNumber={messageReceive.from}, @ResponseType={messageType}, @ResponseText={messageText}, @MediaId={mediaId}, @IsFoul ={isFoulMsg}").ToListAsync();
+            var response = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_MessageReceivedLogs_ops @ClientId={messageReceive.client_Id}, @SenderId={senderName?.SenderId}, @WaId={messageReceive.wam_Id}, @ContextWaId={messageReceive.context?.wam_Id},@Name={fullName}, @PhoneNumber={messageReceive.from}, @ResponseType={messageType}, @ResponseText={messageText}, @MediaId={mediaId}, @IsFoul ={isFoulMsg}").ToListAsync();
             _logger.LogInformation("Calling procedure usp_MessageReceivedLogs_ops with ProcResponseTime={ProcResponseTime} ", DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
 
             //Mediator service
-
-            //Central service call
             if (response != null & response.Any())
             {
                 _logger.LogInformation("Message Received Log DB call response: {response}", JsonConvert.SerializeObject(response[0]));
                 var action = response[0];
-                if (action.ActionType > 0 && action.ActionId > 0)
-                {
-                    //var flowToken = "C:"+ client.ClientId+"|S:"+ senderName.SenderId+"|M:"+ response[0].ModuleId + "|P:" + response[0].ParentId;
-                    var flowToken = $"{FlowIdentifier.ClientId}:{client.ClientId}|" + $"{FlowIdentifier.SenderId}:{senderName.SenderId}|" + $"{FlowIdentifier.ModuleId}:{action.ModuleId}|" + $"{FlowIdentifier.ParentId}:{action.ParentId}";
-                    if (action.ActionType == (int)ActionTypeEnum.TEMPLATE) //Send template or interactive message or normal message 
-                        await _communicationService.SendInteractiveMessageAsync(action, client.ClientId, senderName.SenderId, messageReceive.from, flowToken: flowToken);
-                }
-
-                if (action.ModuleId == (int)ModuleEnum.Chat && action.ConversationMessageId > 0 && action.IsFoul == 0) //If conversation is going on and no foul word received
-                {
-                    var conversation = await _conversationService.GetConversationMessageByMessageIdAsync(clientId: client.ClientId, conversationMessageId: action.ConversationMessageId.Value, status: (int)ConversationStatusEnum.AgentAssigned);
-                    if (conversation != null && conversation.AgentId > 0) //Check if agent id exist
-                    { 
-                        var client1 = new HttpClient();
-                        var apiUrl = $"https://api.wit.ai/message?v=20250405&q={conversation.MessageContent}";
-                        client1.DefaultRequestHeaders.Clear();
-                        client1.DefaultRequestHeaders.Add("Authorization", "Bearer XKNTI6I446CSPCAJ52VABGCSVPYS2QCI");
-
-                        var response1 = await client1.GetAsync(apiUrl);
-                        _logger.LogInformation("FlowResponseAsync - getting response from wit.ai response = {response}", JsonConvert.SerializeObject(response1));
-                        string resultString = string.Empty;
-                        if (response1.IsSuccessStatusCode)
-                        {
-                            var content = await response1.Content.ReadAsStringAsync();
-                            _logger.LogInformation("FlowResponseAsync - getting response from wit.ai success response = {response}", JsonConvert.SerializeObject(content));
-                            var result = JsonConvert.DeserializeObject<WitAiResponseDto>(content);
-                            if (result != null)
-                            {
-                                _logger.LogInformation("FlowResponseAsync - getting response from wit.ai success DeserializeObject response = {response}", JsonConvert.SerializeObject(result));
-                                if (result.Intents != null && result.Intents.Count > 0)
-                                {
-                                    var intent = result.Intents[0];
-                                    resultString += $"   - Intent: {intent.Name} ({intent.Confidence:F3})";
-                                }
-                                if (result.Traits?.WitSentiment != null && result.Traits.WitSentiment.Count > 0)
-                                {
-                                    var sentiment = result.Traits.WitSentiment[0];
-                                    resultString += $" | Sentiment: {sentiment.Value} ({sentiment.Confidence:F3})";
-                                }
-                            }
-                        }
-                        conversation.MessageContent += resultString;
-                        _logger.LogInformation("FlowResponseAsync - merging wit.ai response message with conversation MessageContent = {msg}", conversation.MessageContent);
-
-                        // Look up the connection ID for the Agent ID and send the conversation
-                        string connectionId = String.Empty;
-                        int i;
-                        for (i = 1; i <= 5; i++)
-                        {
-                            if (ConversationHub.connections.TryGetValue(conversation.AgentId ?? 0, out connectionId))
-                            {
-                                await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.MessageReceived.ToString(), conversation);
-                                if (await _agentsService.IsAgentOneSignalEnabled(conversation.ClientId, conversation.SenderId))
-                                    await _oneSignalService.SendMessageReceivedNotification(conversation);
-                                _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", SignalREnum.MessageReceived.ToString(), conversation.AgentId ?? 0, connectionId, conversation.Id ?? 0, i, JsonConvert.SerializeObject(conversation));
-                                break;
-                            }
-                            else
-                                _logger.LogError("SignalR, No connection found for event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", SignalREnum.MessageReceived.ToString(), conversation.AgentId ?? 0, connectionId, conversation.Id ?? 0, i, JsonConvert.SerializeObject(conversation));
-                        }
-
-                        //if (i >= 5) // If max retry exceeded, unassign the conversation again
-                        //    await _conversationService.AddConversationToQueueAsync(clientId: conversation.ClientId ?? 0, id: conversation.Id ?? 0, comment: "Cannot send the conversation to agent!");
-
-                        ////Send to all the agents except the agent that has been assigned just now
-                        //if (!String.IsNullOrEmpty(connectionId))
-                        //    await _conversationHubContext.Clients.AllExcept(connectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), conversation.Id ?? 0);
-                        //else
-                        //    await _conversationHubContext.Clients.All.SendAsync(SignalREnum.ConversationUnAssigned.ToString(), conversation.Id ?? 0);
-                    }
-                }
+                var result = await _mediatorService.ProcessDBResponse(client.ClientId, senderName.SenderId, action);
+                return result;
             }
 
-            //Order related
-            //call order service
-
-            return response != null && response.Any() ? response[0] : null;
+            return new ApiResult { Message = "Something went wrong" };
         }
 
         public async Task<ApiResult> SendAgentMessageAsync(SendAgentMessageRequestDto model)
@@ -405,7 +335,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 {
                                     await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.MessageReceived.ToString(), conversation);
                                     if (await _agentsService.IsAgentOneSignalEnabled(conversation.ClientId, conversation.SenderId))
-                                        await _oneSignalService.SendMessageReceivedNotification(conversation);
+                                        await _oneSignalService.SendMessageReceivedNotification(conversation.AgentId ?? 0, conversation.Language, conversation.MessageContent);
                                     _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", SignalREnum.MessageReceived.ToString(), conversation.AgentId ?? 0, connectionId, conversation.Id ?? 0, i, JsonConvert.SerializeObject(conversation));
                                     break;
                                 }

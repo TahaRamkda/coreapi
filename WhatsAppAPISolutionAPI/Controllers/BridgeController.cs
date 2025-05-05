@@ -156,7 +156,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("whatsappmessagereceive")]
         public async Task<IActionResult> WhatsAppMessageReceive([FromBody] WhatsAppMessageReceiveDto messageReceive)
         {
-            _logger.LogInformation("Calling function WhatsAppMessageReceive with data={messageStatus}", JsonConvert.SerializeObject(messageReceive));
+            _logger.LogInformation("Calling function WhatsAppMessageReceive with data={data}", JsonConvert.SerializeObject(messageReceive));
 
             if (messageReceive == null)
                 return BadRequest();
