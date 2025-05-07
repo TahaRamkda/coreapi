@@ -101,15 +101,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
 
                 var selectedModifierResponse = flowResponse.flowResponse.responses;
-                if (selectedModifierResponse == null || !selectedModifierResponse.Any()) //It means all modifiers were optional, get next step
-                {
-                    //Call next step procedure
-                }
-                else
-                {
-                    List<int> itemIds = new List<int>();
+                List<int> itemIds = new List<int>();
 
-                    //Get all selected modifiers
+                //Get all selected modifiers
+                if (selectedModifierResponse != null && selectedModifierResponse.Any())
+                {
                     foreach (var response in selectedModifierResponse)
                     {
                         int id = 0;
@@ -128,51 +124,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             }
                         }
                     }
-
-                    var modifierItemsJson = JsonConvert.SerializeObject(itemIds);
-                    var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_SaveModifiers @FlowToken={flowResponse.flowResponse.flowToken},@Json={modifierItemsJson}").ToListAsync();
-                    _logger.LogInformation("Received response from procedure usp_Orders_SaveModifiers_Temp with OrderItemId={orderItemId} and ModifierItemsJson={json} and response={response}", orderItemId, JsonConvert.SerializeObject(modifierItemsJson), JsonConvert.SerializeObject(dbresponse));
-
-                    var dbresponsejson = JsonConvert.SerializeObject(dbresponse[0]);
-
-                    if (dbresponse != null && dbresponse.Any())
-                    {
-                        await _mediatorService.ProcessDBResponse(flow.ClientId ?? 0, flow.SenderId ?? 0, dbresponse[0]);
-
-                    }
-                    return new ApiResult { Success = true, Message = "Modifier saved successfully" };
-
-                    // var orderResponse = JsonConvert.DeserializeObject<DBResponse>(dbresponsejson);
-
-                    // var createOrder = JsonConvert.DeserializeObject<UCreateOrder>(orderResponse.Json);
-
-                    //var request = new InteractiveMessageRequestDto
-                    //{
-                    //    ClientId = createOrder.ClientId,
-                    //    SenderId = createOrder.SenderId,
-                    //    PhoneNumber = createOrder.PhoneNumber,
-                    //    BodyText = createOrder.BodyText,
-                    //    MessageReferenceId = createOrder.OrderStepId,
-                    //    ModuleId = (int)ModuleEnum.Order,
-                    //    ParentId = createOrder.OrderStepId,
-                    //    ActionId = createOrder.FlowId,
-                    //    FlowToken = createOrder.FlowToken,
-                    //    Buttons = new List<InteractiveMessageRequestDto.Button>()
-                    //};
-
-                    //if (createOrder.FlowId > 0)
-                    //{
-                    //    request.Buttons.Add(new InteractiveMessageRequestDto.Button
-                    //    {
-                    //        ActionType = (int)ActionTypeEnum.FLOW,
-                    //        ActionId = createOrder.FlowId,
-                    //        ButtonText = createOrder.ButtonText,
-                    //        Sequence = 0
-                    //    });
-                    //}
-
-                    //await _communicationService.SendInteractiveMessageAsync(request);
                 }
+
+                var modifierItemsJson = JsonConvert.SerializeObject(itemIds);
+                var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_SaveModifiers @FlowToken={flowResponse.flowResponse.flowToken},@Json={modifierItemsJson}").ToListAsync();
+                _logger.LogInformation("Received response from procedure usp_Orders_SaveModifiers_Temp with OrderItemId={orderItemId} and ModifierItemsJson={json} and response={response}", orderItemId, JsonConvert.SerializeObject(modifierItemsJson), JsonConvert.SerializeObject(dbresponse));
+
+                var dbresponsejson = JsonConvert.SerializeObject(dbresponse[0]);
+                if (dbresponse != null && dbresponse.Any())
+                    await _mediatorService.ProcessDBResponse(flow.ClientId ?? 0, flow.SenderId ?? 0, dbresponse[0]);
+
+                return new ApiResult { Success = true, Message = "Modifier saved successfully" };
+
             }
             else if (orderStepTypeId == (int)OrderStepTypeEnum.CompleteAddress)
             {

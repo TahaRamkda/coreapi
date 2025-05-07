@@ -7,6 +7,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public InteractiveTemplateDBResponse()
         {
             Params = new List<ParamValue>();
+            KeyValues = new List<ParamValue>();
         }
 
         public int ClientId { get; set; }
@@ -21,5 +22,6 @@ namespace WhatsAppAPISolutionDL.UserModels
         public int ConversationMessageId { get; set; }
         public int IsFoul { get; set; }
         public List<ParamValue> Params { get; set; }
+        public List<ParamValue> KeyValues { get; set; }
     }
 }

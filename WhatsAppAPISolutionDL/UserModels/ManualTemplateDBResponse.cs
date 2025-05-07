@@ -8,6 +8,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         {
             Params = new List<ParamValue>();
             Buttons = new List<Button>();
+            KeyValues = new List<ParamValue>();
         }
 
         public int ClientId { get; set; }
@@ -27,6 +28,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public string BodyText { get; set; }
         public string FooterText { get; set; }
         public List<ParamValue> Params { get; set; }
+        public List<ParamValue> KeyValues { get; set; }
         public List<Button> Buttons { get; set; }
 
         public class Button
