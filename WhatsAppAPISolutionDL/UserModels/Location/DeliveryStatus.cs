@@ -9,6 +9,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Location
     public class DeliveryStatus
     {
         public String AreaName { get; set; }
+        public String AreaNameAr { get; set; }
         public String Reason { get; set; }
         public bool IsDeliverable { get; set; }
     }

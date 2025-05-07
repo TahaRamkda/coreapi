@@ -2,9 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Net;
 using System.Text;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.Flow;
 using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Extensions;
@@ -13,6 +15,9 @@ using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
 using WhatsAppAPISolutionDL.UserModels.Entity;
+using WhatsAppAPISolutionDL.UserModels.Flow;
+using WhatsAppAPISolutionDL.UserModels.Location;
+using WhatsAppAPISolutionBL.Helper;
 using static WhatsAppAPISolutionDL.Dto.Flow.FlowResponseDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
@@ -239,6 +244,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
         }
 
+
+      
         #endregion
 
         #region Methods
@@ -451,16 +458,46 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     //Response
                     var deliveryStatus = await _locationService.GetDeliveryStatus(orderId, geoLocation);
 
-                    //var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_SaveModifiers @FlowToken={flowResponse.flowResponse.flowToken},@Json={modifierItemsJson}").ToListAsync();
-                    //_logger.LogInformation("Received response from procedure usp_Orders_SaveModifiers_Temp with OrderItemId={orderItemId} and ModifierItemsJson={json} and response={response}", orderItemId, JsonConvert.SerializeObject(modifierItemsJson), JsonConvert.SerializeObject(dbresponse));
+                    var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_DeliveryValidation @OrderId={orderId},@Deliverable={deliveryStatus.IsDeliverable},@LocationName={deliveryStatus.AreaName},@LocationNameAr={deliveryStatus.AreaNameAr}").ToListAsync();
+                    _logger.LogInformation("Received response from procedure usp_Orders_DeliveryValidation with OrderItemId={orderItemId} and Delivery status={Deliverable} and response={response}", orderId, deliveryStatus.IsDeliverable, JsonConvert.SerializeObject(dbresponse));
 
                     //Call ProcessDBResponse(dbresponse);
+                    if(dbresponse != null && dbresponse.Any())
+                    {
+                         await ProcessDBResponse(clientId , senderId , dbresponse[0]);
+
+                    }
+
 
                     break;
                 case (int)DBResponseEnum.PaymentRequest:
 
                     //Call decima service
                     //Response
+                    var DBResponse = JsonConvert.DeserializeObject<ManualTemplateDBResponse>(model.Json);
+                    if (DBResponse == null)
+                        return new ApiResult { Success = false, Message = $"Cannot parse DBResponse JSON. DBResponse={JsonConvert.SerializeObject(model)}" };
+
+                    _logger.LogInformation("Parsed ProcessDBResponse with received clientId={clientId} senderId={senderId} and DBResponse={DBResponse} and result={result}", clientId, senderId, model, DBResponse);
+                    orderId = string.Empty;
+                    if (DBResponse.KeyValues != null && DBResponse.KeyValues.Any())
+                    {
+                      
+                        var orderParam = DBResponse.KeyValues.FirstOrDefault(x => !String.IsNullOrWhiteSpace(x.Key) && x.Key.Equals(DBResponseKey.ORDERID, StringComparison.OrdinalIgnoreCase));
+                        if (orderParam != null)
+                            orderId = orderParam.Value;
+                    }
+
+
+                     dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentRequest @OrderId={orderId},@Success={1},@Link='https://google.com'").ToListAsync();
+                  //  _logger.LogInformation("Received response from procedure usp_Orders_DeliveryValidation with OrderItemId={orderItemId} and Delivery status={Deliverable} and response={response}", orderId, del, JsonConvert.SerializeObject(dbresponse));
+
+                    //Call ProcessDBResponse(dbresponse);
+                    if (dbresponse != null && dbresponse.Any())
+                    {
+                        await ProcessDBResponse(clientId, senderId, dbresponse[0]);
+
+                    }
 
                     break;
                 default:

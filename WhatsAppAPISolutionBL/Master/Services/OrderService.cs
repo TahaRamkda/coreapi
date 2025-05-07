@@ -11,7 +11,9 @@ using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.UserModels.Flow;
 using WhatsAppAPISolutionDL.UserModels.InteractiveTemplate;
+using WhatsAppAPISolutionDL.UserModels.Location;
 using WhatsAppAPISolutionDL.UserModels.Orders;
 using WhatsAppAPISolutionDL.UserModels.SenderName;
 
@@ -87,7 +89,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 return new ApiResult { Message = $"No order found with id - {orderId}" };
             }
 
-            if (orderStepTypeId == (int)OrderStepTypeEnum.ModifierFlow)
+            if (orderStepTypeId == (int)OrderStepTypeEnum.SelectModifier)
             {
                 int orderItemId = 0;
                 if (matchedKeys.Contains(nameof(FlowTokenIdentifier.OrderItemId)))
@@ -139,7 +141,74 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
             else if (orderStepTypeId == (int)OrderStepTypeEnum.CompleteAddress)
             {
-                await _locationService.SaveCompleteAddress(flowResponse, flow);
+                //_logger.LogInformation("Calling function SaveCompleteAddress in LocationService with received flowResponse={flowResponse} and flow={flow}", JsonConvert.SerializeObject(flowResponse), JsonConvert.SerializeObject(flow));
+
+                int orderItemId = 0;
+                if (matchedKeys.Contains(nameof(FlowTokenIdentifier.OrderId)))
+                    orderId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.OrderId);
+                if (matchedKeys.Contains(nameof(FlowTokenIdentifier.StepTypeId)))
+                    orderStepTypeId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.StepTypeId);
+
+               
+                if (order == null)
+                {
+                    _logger.LogError("No order found with orderId={orderId} in SaveCompleteAddress in LocationService", orderId);
+                    return new ApiResult { Message = $"No order found with id - {orderId}" };
+                }
+                var completeAddresResponse = flowResponse.flowResponse.responses;
+                if (completeAddresResponse == null)
+                {
+
+                }
+                else
+                {
+                    CompleteAddressDetail addressDetail = null;
+                    if (flowResponse.flowResponse.responses != null && flowResponse.flowResponse.responses.Any())
+                    {
+                        addressDetail = new CompleteAddressDetail();
+                        foreach (var response in flowResponse.flowResponse.responses)
+                        {
+                            if (response.answerKey.Equals(FlowResponseKey.STREET, StringComparison.OrdinalIgnoreCase))
+                            {
+                                addressDetail.Street = response.text;
+                                continue;
+                            }
+
+                            if (response.answerKey.Equals(FlowResponseKey.BUILDINGNAME, StringComparison.OrdinalIgnoreCase))
+                            {
+                                addressDetail.BuildingName = response.text;
+                                continue;
+                            }
+
+                            if (response.answerKey.Equals(FlowResponseKey.FLOOR, StringComparison.OrdinalIgnoreCase))
+                            {
+                                addressDetail.FloorNo = response.text;
+                                continue;
+                            }
+
+                            if (response.answerKey.Equals(FlowResponseKey.FLATNO, StringComparison.OrdinalIgnoreCase))
+                            {
+                                addressDetail.FlatNo = response.text;
+                                continue;
+                            }
+
+                            if (response.answerKey.Equals(FlowResponseKey.EXTRADIRECTION, StringComparison.OrdinalIgnoreCase))
+                            {
+                                addressDetail.ExtraDirection = response.text;
+                                continue;
+                            }
+                        }
+                    }
+
+                    var AddressJson = JsonConvert.SerializeObject(addressDetail);
+                    var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_SaveAddress @FlowToken={flowResponse.flowResponse.flowToken},@Json={AddressJson}").ToListAsync();
+                    if (dbresponse != null && dbresponse.Any())
+                    {
+                        await _mediatorService.ProcessDBResponse(flow.ClientId ?? 0, flow.SenderId ?? 0, dbresponse[0]);
+                    }
+                }
+
+                //await _locationService.SaveCompleteAddress(flowResponse, flow);
             }
 
             return null;

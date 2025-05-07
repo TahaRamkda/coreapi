@@ -12,6 +12,7 @@ using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.UserModels.Flow;
 using WhatsAppAPISolutionDL.UserModels.Location;
 
 namespace WhatsAppAPISolutionBL.Master.Services
@@ -43,42 +44,79 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _cacheService = cacheService;
         }
 
-        public async Task<ApiResult> SaveCompleteAddress(FlowResponseDto flowResponse, Flow flow)
-        {
-            _logger.LogInformation("Calling function SaveCompleteAddress in LocationService with received flowResponse={flowResponse} and flow={flow}", JsonConvert.SerializeObject(flowResponse), JsonConvert.SerializeObject(flow));
+        //public async Task<ApiResult> SaveCompleteAddress(FlowResponseDto flowResponse, Flow flow)
+        //{
+        //    _logger.LogInformation("Calling function SaveCompleteAddress in LocationService with received flowResponse={flowResponse} and flow={flow}", JsonConvert.SerializeObject(flowResponse), JsonConvert.SerializeObject(flow));
 
-            int orderId = 0;
-            int orderStepTypeId = 0;
-            var (isValid, path, matchedKeys) = flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>();
-            if (matchedKeys.Contains(nameof(FlowTokenIdentifier.OrderId)))
-                orderId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.OrderId);
-            if (matchedKeys.Contains(nameof(FlowTokenIdentifier.StepTypeId)))
-                orderStepTypeId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.StepTypeId);
+        //    int orderId = 0;
+        //    int orderStepTypeId = 0;
+        //    var (isValid, path, matchedKeys) = flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>();
+        //    if (matchedKeys.Contains(nameof(FlowTokenIdentifier.OrderId)))
+        //        orderId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.OrderId);
+        //    if (matchedKeys.Contains(nameof(FlowTokenIdentifier.StepTypeId)))
+        //        orderStepTypeId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.StepTypeId);
 
-            var order = await _dbContext.Orders.FindAsync(orderId);
-            if (order == null)
-            {
-                _logger.LogError("No order found with orderId={orderId} in SaveCompleteAddress in LocationService", orderId);
-                return new ApiResult { Message = $"No order found with id - {orderId}" };
-            }
-            var completeAddresResponse = flowResponse.flowResponse.responses;
-            if (completeAddresResponse == null)
-            {
+        //    var order = await _dbContext.Orders.FindAsync(orderId);
+        //    if (order == null)
+        //    {
+        //        _logger.LogError("No order found with orderId={orderId} in SaveCompleteAddress in LocationService", orderId);
+        //        return new ApiResult { Message = $"No order found with id - {orderId}" };
+        //    }
+        //    var completeAddresResponse = flowResponse.flowResponse.responses;
+        //    if (completeAddresResponse == null)
+        //    {
 
-            }
-            else
-            {
-                CompleteAddressDetail addressDetail = new CompleteAddressDetail();
-                foreach (var Addressdetail in completeAddresResponse)
-                {
-                }
-                var AddressJson = JsonConvert.SerializeObject(addressDetail);
-                var dbrespose = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Orders_SaveCompleteAddress @OrderId={orderId},@CompleteAddressJson={AddressJson}").ToListAsync();
+        //    }
+        //    else
+        //    {
+        //        CompleteAddressDetail addressDetail = null;
+        //        if (flowResponse.flowResponse.responses != null && flowResponse.flowResponse.responses.Any())
+        //        {
+        //            addressDetail = new CompleteAddressDetail();
+        //            foreach (var response in flowResponse.flowResponse.responses)
+        //            {
+        //                if (response.answerKey.Equals(FlowResponseKey.STREET, StringComparison.OrdinalIgnoreCase))
+        //                {
+        //                    addressDetail.Street = response.text;
+        //                    continue;
+        //                }
 
-            }
+        //                if (response.answerKey.Equals(FlowResponseKey.BUILDINGNAME, StringComparison.OrdinalIgnoreCase))
+        //                {
+        //                    addressDetail.BuildingName = response.text;
+        //                    continue;
+        //                }
 
-            return null;
-        }
+        //                if (response.answerKey.Equals(FlowResponseKey.FLOOR, StringComparison.OrdinalIgnoreCase))
+        //                {
+        //                    addressDetail.FloorNo = response.text;
+        //                    continue;
+        //                }
+
+        //                if (response.answerKey.Equals(FlowResponseKey.FLATNO, StringComparison.OrdinalIgnoreCase))
+        //                {
+        //                    addressDetail.FlatNo = response.text;
+        //                    continue;
+        //                }
+
+        //                if (response.answerKey.Equals(FlowResponseKey.EXTRADIRECTION, StringComparison.OrdinalIgnoreCase))
+        //                {
+        //                    addressDetail.ExtraDirection = response.text;
+        //                    continue;
+        //                }
+        //            }
+        //        }
+
+        //        var AddressJson = JsonConvert.SerializeObject(addressDetail);
+        //        var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_SaveAddress @FlowToken={flowResponse.flowResponse.flowToken},@Json={AddressJson}").ToListAsync();
+        //        if (dbresponse != null)
+        //        {
+                    
+        //        }
+        //    }
+
+        //    return null;
+        //}
 
         public async Task<DeliveryStatus> GetDeliveryStatus(string orderId, string geoLocation)
         {
@@ -91,7 +129,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 deliveryStatus.IsDeliverable = true;
                 deliveryStatus.AreaName = "Hawalli block 4";
+                deliveryStatus.AreaNameAr = "Hawali block 4 AR";
                 deliveryStatus.Reason = "Delivery is available in your area";
+
             }
 
             //try

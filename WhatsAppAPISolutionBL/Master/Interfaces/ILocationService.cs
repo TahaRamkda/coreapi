@@ -7,7 +7,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface ILocationService
     {
-        Task<ApiResult> SaveCompleteAddress(FlowResponseDto flowResponse, Flow flow);
+        //Task<ApiResult> SaveCompleteAddress(FlowResponseDto flowResponse, Flow flow);
         Task<DeliveryStatus> GetDeliveryStatus(string orderId, string geoLocation);
     }
 }
