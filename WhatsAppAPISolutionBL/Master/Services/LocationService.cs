@@ -156,9 +156,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
 
 
-        private async Task<DeliveryStatus> GetDeliveryStatus(WhatsAppMessageReceiveDto.Location Location) { 
+        public async Task<DeliveryStatus> GetDeliveryStatus(WhatsAppMessageReceiveDto.Location Location) { 
         
             DeliveryStatus deliveryStatus = new DeliveryStatus();
+            {
+                deliveryStatus.IsDeliverable = true;
+                deliveryStatus.AreaName = "Hawali block 4";
+                deliveryStatus.Reason = "Delivery s vailble in your area";
+            }
             
             try
             {

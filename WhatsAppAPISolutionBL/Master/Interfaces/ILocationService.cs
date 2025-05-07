@@ -15,6 +15,8 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
     {
         Task<string> SaveGeoLocation(int senderId, int UserId, string OrderId, WhatsAppMessageReceiveDto MessageDetail);
         Task<ApiResult> SaveCompleteAddress(FlowResponseDto flowResponse, Flow flow);
-       
+        Task<DeliveryStatus> GetDeliveryStatus(WhatsAppMessageReceiveDto.Location Location);
+
+
     }
 }

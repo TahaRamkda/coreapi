@@ -130,40 +130,48 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     }
 
                     var modifierItemsJson = JsonConvert.SerializeObject(itemIds);
-                    var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_SaveModifiers_Temp @OrderItemId={orderItemId},@ModifierItemsJson={modifierItemsJson}").ToListAsync();
+                    var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_SaveModifiers @FlowToken={flowResponse.flowResponse.flowToken},@Json={modifierItemsJson}").ToListAsync();
                     _logger.LogInformation("Received response from procedure usp_Orders_SaveModifiers_Temp with OrderItemId={orderItemId} and ModifierItemsJson={json} and response={response}", orderItemId, JsonConvert.SerializeObject(modifierItemsJson), JsonConvert.SerializeObject(dbresponse));
 
                     var dbresponsejson = JsonConvert.SerializeObject(dbresponse[0]);
-                    var orderResponse = JsonConvert.DeserializeObject<DBResponse>(dbresponsejson);
 
-                    var createOrder = JsonConvert.DeserializeObject<UCreateOrder>(orderResponse.Json);
-
-                    var request = new InteractiveMessageRequestDto
+                    if (dbresponse != null && dbresponse.Any())
                     {
-                        ClientId = createOrder.ClientId,
-                        SenderId = createOrder.SenderId,
-                        PhoneNumber = createOrder.PhoneNumber,
-                        BodyText = createOrder.BodyText,
-                        MessageReferenceId = createOrder.OrderStepId,
-                        ModuleId = (int)ModuleEnum.Order,
-                        ParentId = createOrder.OrderStepId,
-                        ActionId = createOrder.FlowId,
-                        FlowToken = createOrder.FlowToken,
-                        Buttons = new List<InteractiveMessageRequestDto.Button>()
-                    };
+                        await _mediatorService.ProcessDBResponse(flow.ClientId ?? 0, flow.SenderId ?? 0, dbresponse[0]);
 
-                    if (createOrder.FlowId > 0)
-                    {
-                        request.Buttons.Add(new InteractiveMessageRequestDto.Button
-                        {
-                            ActionType = (int)ActionTypeEnum.FLOW,
-                            ActionId = createOrder.FlowId,
-                            ButtonText = createOrder.ButtonText,
-                            Sequence = 0
-                        });
                     }
+                    return new ApiResult { Success = true, Message = "Modifier saved successfully" };
 
-                    await _communicationService.SendInteractiveMessageAsync(request);
+                    // var orderResponse = JsonConvert.DeserializeObject<DBResponse>(dbresponsejson);
+
+                    // var createOrder = JsonConvert.DeserializeObject<UCreateOrder>(orderResponse.Json);
+
+                    //var request = new InteractiveMessageRequestDto
+                    //{
+                    //    ClientId = createOrder.ClientId,
+                    //    SenderId = createOrder.SenderId,
+                    //    PhoneNumber = createOrder.PhoneNumber,
+                    //    BodyText = createOrder.BodyText,
+                    //    MessageReferenceId = createOrder.OrderStepId,
+                    //    ModuleId = (int)ModuleEnum.Order,
+                    //    ParentId = createOrder.OrderStepId,
+                    //    ActionId = createOrder.FlowId,
+                    //    FlowToken = createOrder.FlowToken,
+                    //    Buttons = new List<InteractiveMessageRequestDto.Button>()
+                    //};
+
+                    //if (createOrder.FlowId > 0)
+                    //{
+                    //    request.Buttons.Add(new InteractiveMessageRequestDto.Button
+                    //    {
+                    //        ActionType = (int)ActionTypeEnum.FLOW,
+                    //        ActionId = createOrder.FlowId,
+                    //        ButtonText = createOrder.ButtonText,
+                    //        Sequence = 0
+                    //    });
+                    //}
+
+                    //await _communicationService.SendInteractiveMessageAsync(request);
                 }
             }
             else if (orderStepTypeId == (int)OrderStepTypeEnum.CompleteAddress)
