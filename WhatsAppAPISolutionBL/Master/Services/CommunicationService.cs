@@ -726,7 +726,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                     if (interactiveTemplate.Buttons != null && interactiveTemplate.Buttons.Any())
                     {
-                        foreach (var button in interactiveTemplate.Buttons)
+                        foreach (var button in interactiveTemplate.Buttons.Where(x => !String.IsNullOrWhiteSpace(x.ButtonValue)))
                         {
                             button.ButtonValue = button.ButtonValue.Replace(value.Key, value.Value);
                         }
@@ -1205,7 +1205,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                     if (model.Buttons != null && model.Buttons.Any())
                     {
-                        foreach (var button in model.Buttons)
+                        foreach (var button in model.Buttons.Where(x => !String.IsNullOrWhiteSpace(x.ButtonValue)))
                         {
                             button.ButtonValue = button.ButtonValue.Replace(value.Key, value.Value);
                         }
@@ -1275,7 +1275,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 ClientId = Convert.ToString(model.ClientId),
                 SenderNameId = Convert.ToString(model.SenderId),
-                PhoneNumbers = new List<string> { model.PhoneNumber }.TrimPhoneNumbers() 
+                PhoneNumbers = new List<string> { model.PhoneNumber }.TrimPhoneNumbers()
             };
 
             if (headerType == TemplateHeaderEnum.TEXT)
