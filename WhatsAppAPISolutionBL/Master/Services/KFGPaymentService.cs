@@ -1,72 +1,93 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using System.Text.Json.Serialization;
-using System.Text.Json;
-using WhatsAppAPISolutionDL.UserModels.Entity;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using WhatsAppAPISolutionDL.Setting;
+using Newtonsoft.Json;
+using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.UserModels.Entity;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
-    public class KFGPaymentService
-    {     
+    public class KFGPaymentService: IKFGPaymentService
+    {
+        private readonly WhatsAppSolutionContext _dbContext;
+        private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly HttpClient _httpClient;
         private readonly string _baseUrl = "";
         private readonly string _merchantId = "";
         private readonly string _licenseKey = "";
         private readonly string _secretKey = "";
         private readonly KFGPaymentConfiguration _config;
+        //private readonly IMessageService _messageService;
+        private readonly ILogger<KFGPaymentService> _logger;
+        public readonly IMediatorService _mediatorService;
 
-        public KFGPaymentService(HttpClient httpClient, IOptions<KFGPaymentConfiguration> config)
+        public KFGPaymentService(
+            WhatsAppSolutionContext dbContext,
+            WhatsAppSolutionContext2 dbContext2,
+            HttpClient httpClient, 
+            IOptions<KFGPaymentConfiguration> config,
+            ILogger<KFGPaymentService> logger, //,
+            IMediatorService mediatorService
+            //IMessageService messageService
+
+            )
         {
+            _dbContext = dbContext;
+            _dbContext2 = dbContext2;
             _httpClient = httpClient;
             _config = config.Value;
-
+            _mediatorService = mediatorService;
             _baseUrl=_config.BaseURL;
             _merchantId=_config.MerchantId;
             _licenseKey=_config.LicenseKey;
             _secretKey=_config.SecretKey;
+            _logger = logger;
+            //_messageService = messageService;
         }
 
-        public async Task<KfgPaymentResponse?> CreatePaymentAsync(KfgPaymentRequest request)
+      
+
+        public async Task<UResponse?> CheckPaymentStatusAsync(PaymentStatus paymentStatus)
         {
-            request.MerchantId = int.Parse(_merchantId);
-            request.LicenceKey = _licenseKey;
-
-            var url = $"{_baseUrl}/CreatePaymentRequest";
-            var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync(url, content);
-            response.EnsureSuccessStatusCode();
-
-            var json = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<KfgPaymentResponse>(json);
-        }
-
-        public async Task<KfgDecryptedResponse?> CheckPaymentStatusAsync(string transactionId)
-        {
-            var payload = new
+            UResponse response = new UResponse();
             {
-                MerchantId = int.Parse(_merchantId),
-                LicenceKey = _licenseKey,
-                TransactionId = transactionId
-            };
+                response.Status = 0;
+                response.Message= "OK";
+            }
+            var order = await _dbContext.Orders.FindAsync(paymentStatus.OrderId);
+            if (order == null)
+            {
+                _logger.LogError("No order found with orderId={orderId} in Checkpaymentstatus in paymentService", paymentStatus.OrderId);
+                response.Status = 1;
+                response.Message = "No order found with provided response id";
+                return response;
+            }
+            var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentCompleted @OrderId={paymentStatus.OrderId},@Success={paymentStatus.IsSuccess},@TransactionId={paymentStatus.TransactionId}").ToListAsync();
+            _logger.LogInformation("Received response from procedure usp_Orders_PaymentCompleted with OrderId={OrderId} and TransactionId = {paymentStatus.IsSuccess}response={response}",paymentStatus.OrderId, paymentStatus.TransactionId, JsonConvert.SerializeObject(dbresponse));
 
-            var url = $"{_baseUrl}/GetPaymentInformation";
-            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+          await _mediatorService.ProcessDBResponse(order.ClientId ?? 0, order.SenderId ?? 0, dbresponse[0]);
 
-            var response = await _httpClient.PostAsync(url, content);
-            response.EnsureSuccessStatusCode();
+            //var payload = new
+            //{
+            //    MerchantId = int.Parse(_merchantId),
+            //    LicenceKey = _licenseKey,
+            //    TransactionId = paymentStatus.TransactionId,
+            //};
 
-            var json = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<KfgEncryptedResponse>(json);
+            //var url = $"{_baseUrl}/GetPaymentInformation";
+            //var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
-            return await DecryptKfgResponse(result?.Result);
+            //var response = await _httpClient.PostAsync(url, content);
+            //response.EnsureSuccessStatusCode();
+
+            //var json = await response.Content.ReadAsStringAsync();
+            //var result = JsonSerializer.Deserialize<KfgEncryptedResponse>(json);
+
+            return response ;
         }
 
         public async Task<KfgDecryptedResponse?> DecryptKfgResponse(string? encryptedBase64)
@@ -85,7 +106,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             byte[] decryptedBytes = decryptor.TransformFinalBlock(encryptedBytes, 0, encryptedBytes.Length);
             var decryptedJson = Encoding.UTF8.GetString(decryptedBytes);
 
-            return JsonSerializer.Deserialize<KfgDecryptedResponse>(decryptedJson);
-        }     
+            return JsonConvert.DeserializeObject<KfgDecryptedResponse>(decryptedJson);
+        }
     }
 }

@@ -8,10 +8,10 @@ using WhatsAppAPISolutionDL.UserModels.Message;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
-    public interface IKFGPaymentService
+    public interface IKFGPaymentService 
     {
-        Task<KfgPaymentResponse?> CreatePaymentAsync(KfgPaymentRequest request);
-        Task<KfgDecryptedResponse?> CheckPaymentStatusAsync(string transactionId);
+       // Task<KfgPaymentResponse?> CreatePaymentAsync(KfgPaymentRequest request);
+        Task<UResponse?> CheckPaymentStatusAsync(PaymentStatus paymentstatus);
         Task<KfgDecryptedResponse?> DecryptKfgResponse(string? encryptedBase64);
     }
 }

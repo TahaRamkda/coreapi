@@ -33,9 +33,10 @@ namespace WhatsAppAPISolutionDL.UserModels.Entity
     public class KfgPaymentResponse
     {
         public int Code { get; set; }
+        public bool success { get; set; }
         public string Message { get; set; }
         public string Result { get; set; } // Redirect URL
-        public string QrCode { get; set; }
+       // public string QrCode { get; set; }
     }
 
     public class KfgEncryptedResponse
@@ -81,5 +82,13 @@ namespace WhatsAppAPISolutionDL.UserModels.Entity
         public string RT { get; set; }
         public string Ud1 { get; set; }
         public string Ud2 { get; set; }
+    }
+    public class PaymentStatus
+    {
+        public bool IsSuccess { get; set; } 
+        public string PaymentResult { get; set; }
+        public string TransactionId { get; set; }
+        public int OrderId { get; set; }
+        public DateTime PaymentDate { get; set; }
     }
 }

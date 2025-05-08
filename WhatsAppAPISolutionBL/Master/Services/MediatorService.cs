@@ -1,12 +1,10 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using System.Text;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Net;
-using System.Text;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
-using WhatsAppAPISolutionDL.Dto.Flow;
 using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Extensions;
@@ -15,10 +13,6 @@ using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
 using WhatsAppAPISolutionDL.UserModels.Entity;
-using WhatsAppAPISolutionDL.UserModels.Flow;
-using WhatsAppAPISolutionDL.UserModels.Location;
-using WhatsAppAPISolutionBL.Helper;
-using static WhatsAppAPISolutionDL.Dto.Flow.FlowResponseDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -242,6 +236,30 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 else
                     _logger.LogError("SignalR, No connection found for event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", type.ToString(), agentId, connectionId, conversationId, i, JsonConvert.SerializeObject(data));
             }
+        }
+
+        private async Task<KfgPaymentResponse?> CreatePaymentAsync(KfgPaymentRequest request)
+        {
+            KfgPaymentResponse response = new KfgPaymentResponse();
+            {
+                response.Code = 200;
+                response.success = true;
+                response.Message = "Payment link created successfully";
+                response.Result = "https://google.com";
+            }
+           
+            //request.MerchantId = int.Parse(_merchantId);
+            //request.LicenceKey = _licenseKey;
+
+            //var url = $"{_baseUrl}/CreatePaymentRequest";
+            //var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+
+            //var response = await _httpClient.PostAsync(url, content);
+            //response.EnsureSuccessStatusCode();
+
+            //var json = await response.Content.ReadAsStringAsync();
+
+            return response;
         }
 
 
@@ -488,15 +506,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             orderId = orderParam.Value;
                     }
 
+                    KfgPaymentRequest paymentRequest = new KfgPaymentRequest
+                    {
+                        TransactionId = orderId,
+                        PhoneNo = DBResponse.PhoneNumber,
+                    };
 
-                    dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentRequest @OrderId={orderId},@Success={1},@Link='https://google.com'").ToListAsync();
-                    //  _logger.LogInformation("Received response from procedure usp_Orders_DeliveryValidation with OrderItemId={orderItemId} and Delivery status={Deliverable} and response={response}", orderId, del, JsonConvert.SerializeObject(dbresponse));
+                    var paymentresponse = await CreatePaymentAsync(paymentRequest);
+
+                    dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentRequest @OrderId={orderId},@Success={paymentresponse.success},@Link={paymentresponse.Result}").ToListAsync();
+                    _logger.LogInformation("Received response from procedure usp_Orders_PaymentRequest with OrderId={orderId} and Success={paymentresponse.success} and response={response}", orderId, paymentresponse.success, JsonConvert.SerializeObject(dbresponse));
 
                     //Call ProcessDBResponse(dbresponse);
                     if (dbresponse != null && dbresponse.Any())
                     {
                         await ProcessDBResponse(clientId, senderId, dbresponse[0]);
-
                     }
 
                     break;

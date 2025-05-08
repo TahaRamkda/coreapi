@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using System;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Reflection;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Agent;
@@ -14,9 +14,9 @@ using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Hubs;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.UserModels.Client;
 using WhatsAppAPISolutionDL.UserModels.Entity;
-using WhatsAppAPISolutionDL.UserModels.Flow;
-using WhatsAppAPISolutionDL.UserModels.Message;
+using WhatsAppAPISolutionDL.UserModels.SenderName;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -356,6 +356,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 return new ApiResult { StatusCode = 0, Message = $"Error: {ex.Message}" };
             }
+        }
+
+        public async Task<ApiResult> ProcessDBResponse(int clientId, int senderId, DBResponse action)
+        {
+            return await _mediatorService.ProcessDBResponse(clientId, senderId, action);
         }
     }
 }

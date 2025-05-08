@@ -45,6 +45,7 @@ namespace WhatsAppAPISolutionAPI.Extensions
             services.AddScoped<ISurveyReportService, SurveyReportService>();
             services.AddScoped<ILocationService, LocationService>();
             services.AddScoped<IMediatorService, MediatorService>();
+            services.AddScoped<IKFGPaymentService, KFGPaymentService>();
              
             return services;
 

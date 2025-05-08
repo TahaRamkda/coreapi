@@ -62,11 +62,11 @@ builder.Services.AddOneSignalServices(configuration);
 builder.Services.AddFlowEndpointServices(configuration);
 builder.Services.AddAuthorizationServices(configuration);
 builder.Services.AddSignalRServices(configuration);
-
+//builder.Services.
 // MVC Controllers
 builder.Services.AddControllers();
 
-builder.Services.AddHttpClient<KFGPaymentService>();
+//builder.Services.AddHttpClient<KFGPaymentService>();
 
 var app = builder.Build();
 app.UseStaticFiles(new StaticFileOptions()

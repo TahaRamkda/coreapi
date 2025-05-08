@@ -84,8 +84,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                         HeaderText = "",
                         BodyText = $"Please complete the payment of ₹{amount:0.00} for Order #{orderId}.",
                         FooterText = "Click below to proceed to payment.",
-                        FlowToken = "",
-                        AskForLocation = false,
+                        FlowToken = "", 
                         Values = paramValues,
                         Buttons = new List<InteractiveMessageRequestDto.Button>
                 {
@@ -116,8 +115,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                         HeaderText = "",
                         BodyText = $"We were unable to generate a payment link for Order #{orderId}.\nPlease contact support or try again later.",
                         FooterText = "Click below to retry.",
-                        FlowToken = "",
-                        AskForLocation = false,
+                        FlowToken = "", 
                         Values = new List<ParamValue>(),
                         Buttons = new List<InteractiveMessageRequestDto.Button>
                         {

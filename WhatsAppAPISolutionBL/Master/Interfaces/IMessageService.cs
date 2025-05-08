@@ -3,6 +3,7 @@ using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Flow;
 using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
@@ -14,5 +15,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<ApiResult> SendAgentMessageAsync(SendAgentMessageRequestDto model);
         Task<ApiResult> SendAgentInteractiveMessageAsync(SendAgentInteractiveMessageRequestDto model);
         Task<ApiResult> SaveSurveyResponse(FlowResponseDto flowResponse, Flow flow);
+        Task<ApiResult> ProcessDBResponse(int clientId, int senderId, DBResponse action);
     }
 }

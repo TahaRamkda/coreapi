@@ -654,8 +654,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var content = await response.Content.ReadAsStringAsync();
 
             _logger.LogInformation("Calling bridge API apiEndpoint={apiEndpoint} SendBatchMessage with request={request} and response={response} with apiResponseTime={apiResponseTime}", apiEndpoint, request, content, DateTime.UtcNow.Subtract(apiCallStart).TotalMilliseconds);
-
-            var result = JsonConvert.DeserializeObject<SyncResultDto>(content);
+             
+            var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
             if (result != null && result.success)
             {
                 var data = System.Text.Json.JsonSerializer.Serialize(result.result);
