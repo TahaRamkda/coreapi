@@ -98,7 +98,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                     if (model.Buttons != null && model.Buttons.Any())
                     {
-                        foreach (var button in model.Buttons)
+                        foreach (var button in model.Buttons.Where(x => !String.IsNullOrWhiteSpace(x.ButtonValue)))
                         {
                             button.ButtonValue = button.ButtonValue.Replace(value.Key, value.Value);
                         }
@@ -245,7 +245,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
 
 
-      
+
         #endregion
 
         #region Methods
@@ -462,9 +462,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     _logger.LogInformation("Received response from procedure usp_Orders_DeliveryValidation with OrderItemId={orderItemId} and Delivery status={Deliverable} and response={response}", orderId, deliveryStatus.IsDeliverable, JsonConvert.SerializeObject(dbresponse));
 
                     //Call ProcessDBResponse(dbresponse);
-                    if(dbresponse != null && dbresponse.Any())
+                    if (dbresponse != null && dbresponse.Any())
                     {
-                         await ProcessDBResponse(clientId , senderId , dbresponse[0]);
+                        await ProcessDBResponse(clientId, senderId, dbresponse[0]);
 
                     }
 
@@ -482,15 +482,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     orderId = string.Empty;
                     if (DBResponse.KeyValues != null && DBResponse.KeyValues.Any())
                     {
-                      
+
                         var orderParam = DBResponse.KeyValues.FirstOrDefault(x => !String.IsNullOrWhiteSpace(x.Key) && x.Key.Equals(DBResponseKey.ORDERID, StringComparison.OrdinalIgnoreCase));
                         if (orderParam != null)
                             orderId = orderParam.Value;
                     }
 
 
-                     dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentRequest @OrderId={orderId},@Success={1},@Link='https://google.com'").ToListAsync();
-                  //  _logger.LogInformation("Received response from procedure usp_Orders_DeliveryValidation with OrderItemId={orderItemId} and Delivery status={Deliverable} and response={response}", orderId, del, JsonConvert.SerializeObject(dbresponse));
+                    dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentRequest @OrderId={orderId},@Success={1},@Link='https://google.com'").ToListAsync();
+                    //  _logger.LogInformation("Received response from procedure usp_Orders_DeliveryValidation with OrderItemId={orderItemId} and Delivery status={Deliverable} and response={response}", orderId, del, JsonConvert.SerializeObject(dbresponse));
 
                     //Call ProcessDBResponse(dbresponse);
                     if (dbresponse != null && dbresponse.Any())
