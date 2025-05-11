@@ -42,7 +42,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             this._cacheService = _cacheService;
         }
 
-        public async Task<List<UCampaign>> GetCampaignListAsync(int ClientId, int CampaignId = 0, DateTime? FromDate = null, DateTime? ToDate = null, int TemplateId = 0, string SearchStr = "",  int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue, int SenderId = 0)
+        public async Task<List<UCampaign>> GetCampaignListAsync(int ClientId, int CampaignId = 0, DateTime? FromDate = null, DateTime? ToDate = null, int TemplateId = 0, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue, int SenderId = 0)
         {
             var response = await _dbContext2.Campaigns.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}, @CampaignId={CampaignId}, @TemplateId={TemplateId} , @FromDate={FromDate}, @ToDate={ToDate}, @SearchStr={SearchStr}, @SortBy={SortBy}, @PageNo={PageNo}, @PageSize={PageSize}, @SenderId={SenderId}").ToListAsync();
             return response;
@@ -378,10 +378,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 return null;
             });
+
             if (cacheResult == null)
-            {
                 await _cacheService.RemoveAsync(cacheKey);
-            }
+
             return cacheResult;
         }
     }

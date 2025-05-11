@@ -1,17 +1,18 @@
-﻿using System.Text;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Text;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.Conversation;
 using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Hubs;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
-using WhatsAppAPISolutionDL.UserModels.Conversation;
+using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 
 namespace WhatsAppAPISolutionBL.Master.Services
@@ -28,8 +29,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IMessageSentLogsService _messageSentLogsService;
         private readonly IHubContext<ConversationHub> _conversationHubContext;
         private readonly IAgentsService _agentsService;
-        private readonly IOneSignalService _oneSignalService;
         private readonly ILocationService _locationService;
+        private readonly ISignalRService _signalRService;
 
         #endregion
 
@@ -44,8 +45,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IMessageSentLogsService messageSentLogsService,
             IHubContext<ConversationHub> conversationHubContext,
             IAgentsService agentsService,
-            IOneSignalService oneSignalService,
-            ILocationService locationService)
+            ILocationService locationService,
+            ISignalRService signalRService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -55,8 +56,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _messageSentLogsService = messageSentLogsService;
             _conversationHubContext = conversationHubContext;
             _agentsService = agentsService;
-            _oneSignalService = oneSignalService;
             _locationService = locationService;
+            _signalRService = signalRService;
         }
 
         #endregion
@@ -116,7 +117,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (!String.IsNullOrWhiteSpace(footerText))
                 messageContent.Append(footerText);
 
-
             //Create button json
             if (model.Buttons != null && model.Buttons.Any())
             {
@@ -160,94 +160,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return result;
         }
 
-        private async Task<string> SendContentToWitAi(string message)
-        {
-            string resultString = string.Empty;
-
-            try
-            {
-                var client1 = new HttpClient();
-                var apiUrl = $"https://api.wit.ai/message?v=20250405&q={message}";
-                client1.DefaultRequestHeaders.Clear();
-                client1.DefaultRequestHeaders.Add("Authorization", "Bearer XKNTI6I446CSPCAJ52VABGCSVPYS2QCI");
-
-                var response1 = await client1.GetAsync(apiUrl);
-                _logger.LogInformation("FlowResponseAsync - getting response from wit.ai response = {response}", JsonConvert.SerializeObject(response1));
-
-                if (response1.IsSuccessStatusCode)
-                {
-                    var content = await response1.Content.ReadAsStringAsync();
-                    _logger.LogInformation("FlowResponseAsync - getting response from wit.ai success response = {response}", JsonConvert.SerializeObject(content));
-                    var result = JsonConvert.DeserializeObject<WitAiResponseDto>(content);
-                    if (result != null)
-                    {
-                        _logger.LogInformation("FlowResponseAsync - getting response from wit.ai success DeserializeObject response = {response}", JsonConvert.SerializeObject(result));
-                        if (result.Intents != null && result.Intents.Count > 0)
-                        {
-                            var intent = result.Intents[0];
-                            resultString += $" - Intent: {intent.Name} ({intent.Confidence:F3})";
-                        }
-                        if (result.Traits?.WitSentiment != null && result.Traits.WitSentiment.Count > 0)
-                        {
-                            var sentiment = result.Traits.WitSentiment[0];
-                            resultString += $" | Sentiment: {sentiment.Value} ({sentiment.Confidence:F3})";
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-            }
-
-            return resultString;
-        }
-
-        private async Task SendSignalRNotification(int clientId, int senderId, int agentId, SignalREnum type, object data)
-        {
-            // Look up the connection ID for the Agent ID and send the conversation
-            string connectionId = String.Empty;
-            int i;
-            int conversationId = 0;
-            for (i = 1; i <= 5; i++)
-            {
-                if (ConversationHub.connections.TryGetValue(agentId, out connectionId))
-                {
-                    await _conversationHubContext.Clients.Client(connectionId).SendAsync(type.ToString(), data);
-
-                    if (type == SignalREnum.MessageReceived && await _agentsService.IsAgentOneSignalEnabled(clientId, senderId))
-                    {
-                        if (data.GetType() == typeof(ULatestConversationByConversation))
-                        {
-                            var conversation = (ULatestConversationByConversation)data;
-                            conversationId = conversation.Id ?? 0;
-
-                            if (!String.IsNullOrWhiteSpace(conversation.MessageContent))
-                            {
-                                var result = await SendContentToWitAi(conversation.MessageContent);
-                                conversation.MessageContent = String.Concat(conversation.MessageContent, result);
-                                await _oneSignalService.SendMessageReceivedNotification(agentId, conversation.Language, conversation.MessageContent);
-                            }
-                        }
-                    }
-
-                    _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", type.ToString(), agentId, connectionId, conversationId, i, JsonConvert.SerializeObject(data));
-                    break;
-                }
-                else
-                    _logger.LogError("SignalR, No connection found for event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", type.ToString(), agentId, connectionId, conversationId, i, JsonConvert.SerializeObject(data));
-            }
-        }
-
         private async Task<KfgPaymentResponse?> CreatePaymentAsync(KfgPaymentRequest request)
         {
-            KfgPaymentResponse response = new KfgPaymentResponse();
+            KfgPaymentResponse response = new KfgPaymentResponse
             {
-                response.Code = 200;
-                response.success = true;
-                response.Message = "Payment link created successfully";
-                response.Result = "https://google.com";
-            }
-           
+                Code = 200,
+                success = true,
+                Message = "Payment link created successfully",
+                Result = "https://google.com"
+            };
+
             //request.MerchantId = int.Parse(_merchantId);
             //request.LicenceKey = _licenseKey;
 
@@ -262,7 +184,70 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response;
         }
 
+        private async Task<List<UAgentConversationList>> GetAgentConversationListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue)
+        {
+            var startProcTime = DateTime.UtcNow;
+            var response = await _dbContext2.AgentConversationLists.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.AgentConversationList},@ClientId={clientId},@Id={id},@SenderId={senderId},@AgentId={agentId}, @PageNo={pageNo}, @PageSize={pageSize}").ToListAsync();
+            _logger.LogInformation("Calling procedure usp_Conversations_Ops with parameters: ActionId={ActionId}, ActionName={ActionName}, ClientId={ClientId}, SenderId={SenderId}, Id={Id}, AgentId={AgentId}, PageNo={PageNo}, PageSize={PageSize}, ProcResponseTime={ProcResponseTime}ms", (int)CrudEnum.AgentConversationList, CrudEnum.AgentConversationList, clientId, senderId, id, agentId, pageNo, pageSize, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+            return response;
+        }
 
+        private async Task<InteractiveMessageRequestDto> GetInteractiveMessageRequestFromInteractiveTemplate(int clientId, int senderId, int interactiveTemplateId, int moduleId, int parentId, int actionId, string phoneNumber, List<ParamValue> parameters, string flowToken)
+        {
+            var interactiveTemplate = await _interactiveTemplateService.GetInteractiveTemplateDetailsAsync(clientId, senderId, interactiveTemplateId);
+            if (interactiveTemplate == null)
+                return null;
+
+            var interactiveMessageRequest = new InteractiveMessageRequestDto
+            {
+                ClientId = clientId,
+                SenderId = senderId,
+                ActionId = actionId,
+                ModuleId = moduleId,
+                ParentId = parentId,
+                MessageReferenceId = actionId,
+                PhoneNumber = phoneNumber,
+                HeaderType = interactiveTemplate.HeaderType ?? 0,
+                HeaderText = interactiveTemplate.HeaderText,
+                BodyText = interactiveTemplate.BodyText,
+                FooterText = interactiveTemplate.FooterText,
+                MediaId = interactiveTemplate.MediaId ?? 0,
+                FlowToken = flowToken
+            };
+
+            //Add dynamic parameters, if passed from DB
+            if (parameters != null && parameters != null)
+            {
+                foreach (var item in parameters)
+                {
+                    interactiveMessageRequest.Values.Add(new ParamValue
+                    {
+                        Key = item.Key,
+                        Value = item.Value
+                    });
+                }
+            }
+
+            //Add button from interactive template itself
+            if (interactiveTemplate.Buttons != null && interactiveTemplate.Buttons.Any())
+            {
+                foreach (var button in interactiveTemplate.Buttons)
+                {
+                    interactiveMessageRequest.Buttons.Add(new InteractiveMessageRequestDto.Button
+                    {
+                        ButtonId = Convert.ToString(button.ButtonId),
+                        ButtonText = button.ButtonText,
+                        ButtonType = button.ButtonType,
+                        ButtonValue = button.ButtonValue,
+                        Sequence = button.Sequence,
+                        ActionId = button.ActionId,
+                        ActionType = button.ActionType
+                    });
+                }
+            }
+
+            return interactiveMessageRequest;
+        }
 
         #endregion
 
@@ -303,53 +288,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         if (interactiveTemplate == null)
                             return new ApiResult { Success = false, Message = $"Cannot find interactive template with ID={interactiveTemplateDBResponse.ActionId}" };
 
-                        var interactiveMessageRequest = new InteractiveMessageRequestDto
-                        {
-                            ClientId = clientId,
-                            SenderId = senderId,
-                            ActionId = interactiveTemplateDBResponse.ActionId,
-                            ModuleId = interactiveTemplateDBResponse.ModuleId,
-                            ParentId = interactiveTemplateDBResponse.ParentId,
-                            MessageReferenceId = interactiveTemplateDBResponse.ActionId,
-                            PhoneNumber = interactiveTemplateDBResponse.PhoneNumber,
-                            HeaderType = interactiveTemplate.HeaderType ?? 0,
-                            HeaderText = interactiveTemplate.HeaderText,
-                            BodyText = interactiveTemplate.BodyText,
-                            FooterText = interactiveTemplate.FooterText,
-                            MediaId = interactiveTemplate.MediaId ?? 0,
-                            FlowToken = interactiveTemplateDBResponse.FlowToken
-                        };
-
-                        //Add dynamic parameters, if passed from DB
-                        if (interactiveTemplateDBResponse.Params != null && interactiveTemplateDBResponse.Params != null)
-                        {
-                            foreach (var item in interactiveTemplateDBResponse.Params)
-                            {
-                                interactiveMessageRequest.Values.Add(new ParamValue
-                                {
-                                    Key = item.Key,
-                                    Value = item.Value
-                                });
-                            }
-                        }
-
-                        //Add button from interactive template itself
-                        if (interactiveTemplate.Buttons != null && interactiveTemplate.Buttons.Any())
-                        {
-                            foreach (var button in interactiveTemplate.Buttons)
-                            {
-                                interactiveMessageRequest.Buttons.Add(new InteractiveMessageRequestDto.Button
-                                {
-                                    ButtonId = Convert.ToString(button.ButtonId),
-                                    ButtonText = button.ButtonText,
-                                    ButtonType = button.ButtonType,
-                                    ButtonValue = button.ButtonValue,
-                                    Sequence = button.Sequence,
-                                    ActionId = button.ActionId,
-                                    ActionType = button.ActionType
-                                });
-                            }
-                        }
+                        var interactiveMessageRequest = await GetInteractiveMessageRequestFromInteractiveTemplate(clientId, senderId, interactiveTemplateDBResponse.ActionId, interactiveTemplateDBResponse.ModuleId,
+                            interactiveTemplateDBResponse.ParentId, interactiveTemplateDBResponse.ActionId,
+                            interactiveTemplateDBResponse.PhoneNumber, interactiveTemplateDBResponse.Params, interactiveTemplateDBResponse.FlowToken
+                            );
 
                         var messageResult = await SendInteractiveTemplate(interactiveMessageRequest);
                     }
@@ -364,7 +306,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         var response = await _dbContext2.LatestConversationByConversations.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetConversationByMessageId},@ClientId={clientId}, @SenderId={senderId}, @MessageId={interactiveTemplateDBResponse.ConversationMessageId}, @Status={(int)ConversationStatusEnum.AgentAssigned}").ToListAsync();
                         _logger.LogInformation("Calling procedure usp_Conversations_Ops with clientId={clientId}, senderId={senderId}, conversationMessageId={conversationMessageId}, status={status}, actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", clientId, senderId, interactiveTemplateDBResponse.ConversationMessageId, (int)ConversationStatusEnum.AgentAssigned, (int)CrudEnum.GetConversationByMessageId, CrudEnum.GetConversationByMessageId, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
                         if (response.Any())
-                            await SendSignalRNotification(clientId, senderId, interactiveTemplateDBResponse.AgentId, SignalREnum.MessageReceived, response[0]);
+                            await _signalRService.MessageReceivedNotification(clientId, senderId, interactiveTemplateDBResponse.AgentId, response[0]);
                     }
 
                     break;
@@ -445,7 +387,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         var response = await _dbContext2.LatestConversationByConversations.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetConversationByMessageId},@ClientId={clientId}, @SenderId={senderId}, @MessageId={manualTemplateDBResponse.ConversationMessageId}, @Status={(int)ConversationStatusEnum.AgentAssigned}").ToListAsync();
                         _logger.LogInformation("Calling procedure usp_Conversations_Ops with clientId={clientId}, senderId={senderId}, conversationMessageId={conversationMessageId}, status={status}, actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", clientId, senderId, manualTemplateDBResponse.ConversationMessageId, (int)ConversationStatusEnum.AgentAssigned, (int)CrudEnum.GetConversationByMessageId, CrudEnum.GetConversationByMessageId, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
                         if (response.Any())
-                            await SendSignalRNotification(clientId, senderId, manualTemplateDBResponse.AgentId, SignalREnum.MessageReceived, response[0]);
+                            await _signalRService.MessageReceivedNotification(clientId, senderId, manualTemplateDBResponse.AgentId, response[0]);
                     }
 
                     break;
@@ -529,6 +471,98 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
 
             return new ApiResult { Success = true, Message = "Data successfully added" };
+        }
+
+        public async Task<UResponse> AssignConversationToAgentAsync(List<AssignConversationDto> models)
+        {
+            foreach (var item in models)
+            {
+                //If assigned agent template id is present, send a default template
+                if (item.ActionType > 0 && item.ActionId > 0)
+                {
+                    if (item.ActionType == (int)ActionTypeEnum.TEMPLATE)
+                    { 
+                        var flowToken = $"{FlowIdentifier.ClientId}:{item.ClientId}|" + $"{FlowIdentifier.SenderId}:{item.SenderId}|" + $"{FlowIdentifier.ModuleId}:{item.ModuleId}|" + $"{FlowIdentifier.ParentId}:{item.ParentId}";
+
+                        var interactiveMessageRequest = await GetInteractiveMessageRequestFromInteractiveTemplate(item.ClientId, item.SenderId, item.ActionId, item.ModuleId, item.ParentId, item.ActionId,
+                         item.PhoneNumber, item.Values, flowToken);
+
+                        if (interactiveMessageRequest != null)
+                            await SendInteractiveTemplate(interactiveMessageRequest);
+                    }
+                }
+
+                //If agent id is less than 0 then don't send signalR
+                if (item.AgentId <= 0)
+                    continue;
+
+                var conversations = await this.GetAgentConversationListAsync(clientId: item.ClientId, agentId: item.AgentId, id: item.ParentId);
+                if (conversations != null && conversations.Any())
+                { 
+                    var conversation = conversations[0];
+                    await _signalRService.ConversationAssignedNotification(clientId: conversation.ClientId ?? 0, conversation.SenderId ?? 0, conversation.AgentId ?? 0, 0, conversation.Id ?? 0, conversation);
+                }
+            }
+
+            return new UResponse
+            {
+                Status = 1,
+                Message = "Data updated successfully"
+            };
+        }
+
+        public async Task<UResponse> TransferConversationToAgentAsync(int clientId = 0, int id = 0, int oldAgentId = 0, int agentId = 0, string comment = "")
+        {
+            var startProcTime = DateTime.UtcNow;
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.TransferConversationToAgent},@ClientId={clientId},@Id={id},@AgentId={agentId},@Comment={comment}").ToListAsync();
+            _logger.LogInformation("Calling procedure usp_Conversations_Ops with clientId={clientId}, id={id}, oldAgent={oldAgent}, agentId={agentId}, comment={comment}, actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime}", clientId, id, oldAgentId, agentId, comment, (int)CrudEnum.TransferConversationToAgent, CrudEnum.TransferConversationToAgent, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+
+            if (response != null && response.Any())
+            {
+                var conversations = await this.GetAgentConversationListAsync(clientId: clientId, agentId: agentId, id: id);
+                if (conversations != null && conversations.Any())
+                {
+                    var conversation = conversations[0];
+                    await _signalRService.ConversationAssignedNotification(clientId: conversation.ClientId ?? 0, conversation.SenderId ?? 0, conversation.AgentId ?? 0, oldAgentId, conversation.Id ?? 0, conversation);
+                }
+            }
+
+            return response[0];
+        }
+
+        public async Task<UResponse> ExpiredConversationNotifyToAgentAsync(List<ExpiredConversationDto> models)
+        {
+            _logger.LogInformation("Calling function ExpiredConversationNotifyToAgentAsync with received data={data}", models);
+
+            foreach (var item in models)
+            {
+                //If assigned agent template id is present, send a default template
+                if (item.ActionType > 0 && item.ActionId > 0)
+                {
+                    if (item.ActionType == (int)ActionTypeEnum.TEMPLATE)
+                    {
+                        var flowToken = $"{FlowIdentifier.ClientId}:{item.ClientId}|" + $"{FlowIdentifier.SenderId}:{item.SenderId}|" + $"{FlowIdentifier.ModuleId}:{item.ModuleId}|" + $"{FlowIdentifier.ParentId}:{item.ParentId}";
+
+                        var interactiveMessageRequest = await GetInteractiveMessageRequestFromInteractiveTemplate(item.ClientId, item.SenderId, item.ActionId, item.ModuleId, item.ParentId, item.ActionId,
+                            item.PhoneNumber, item.Values, flowToken);
+
+                        if (interactiveMessageRequest != null)
+                            await SendInteractiveTemplate(interactiveMessageRequest);
+                    }
+                }
+
+                //If agentId or parentId is less than 0 then don't send signalR
+                if (item.AgentId <= 0 || item.ParentId <= 0)
+                    continue;
+
+                await _signalRService.ConversationUnAssignedNotification(item.ClientId, item.SenderId, item.AgentId, item.ParentId);
+            }
+
+            return new UResponse
+            {
+                Status = 1,
+                Message = "Data updated successfully"
+            };
         }
 
         #endregion

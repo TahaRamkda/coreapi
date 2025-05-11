@@ -48,21 +48,15 @@ if (loggingEnabled)
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 builder.Services.AddSwaggerServices();
-builder.Services.AddHttpClient<ConversationAnalytics>(client =>
-{
-    client.Timeout = TimeSpan.FromMinutes(10);
-});
-
+  
 // Add services to the container.
 builder.Services.AddApplicationServices(configuration);
 builder.Services.AddDatabaseServices(configuration);
 builder.Services.AddSettingServices(configuration);
 builder.Services.AddHttpClientServices(configuration);
-builder.Services.AddOneSignalServices(configuration);
-builder.Services.AddFlowEndpointServices(configuration);
 builder.Services.AddAuthorizationServices(configuration);
 builder.Services.AddSignalRServices(configuration);
-//builder.Services.
+ 
 // MVC Controllers
 builder.Services.AddControllers();
 

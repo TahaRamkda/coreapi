@@ -13,6 +13,7 @@ namespace WhatsAppAPISolutionAPI.Extensions
             services.Configure<FlowEndpointSettings>(config.GetSection(FlowEndpointSettings.ConfigKey));
             services.Configure<CacheSettings>(config.GetSection(CacheSettings.ConfigKey));
             services.Configure<ApiKeyAuthenticationConfigurationSettings>(config.GetSection(ApiKeyAuthenticationConfigurationSettings.ConfigKey));
+            services.Configure<WitAiConfigurationSettings>(config.GetSection(WitAiConfigurationSettings.ConfigKey));
 
             return services;
         }

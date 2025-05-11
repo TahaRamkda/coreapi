@@ -293,7 +293,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     await _dbContext.SaveChangesAsync();
 
                     _logger.LogInformation("FlowResponseAsync - added response in SurveyResponseDetail table with data = {data}", JsonConvert.SerializeObject(surveyResponseDetails));
-
                 }
 
                 //Message received log entry, Hussain will provide procedure and Burhan has to share json
@@ -307,43 +306,48 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 );
 
                 var startProcTime = DateTime.UtcNow;
-                var response = await _dbContext2.UMessageReceiveds.FromSqlInterpolated($"exec usp_MessageReceivedLogsFlow_ops @ClientId={flow.ClientId}, @SenderId={flow.SenderId}, @WaId={flowResponse.wam_Id}, @ContextWaId={flowResponse.context?.wam_Id},@Name={flowResponse.contact.name}, @PhoneNumber={flowResponse.from}, @FlowResponseJson={flowResponseJson}, @FlowToken={flowResponse.flowResponse.flowToken}").ToListAsync();
+                var response = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_MessageReceivedLogsFlow_ops @ClientId={flow.ClientId}, @SenderId={flow.SenderId}, @WaId={flowResponse.wam_Id}, @ContextWaId={flowResponse.context?.wam_Id},@Name={flowResponse.contact.name}, @PhoneNumber={flowResponse.from}, @FlowResponseJson={flowResponseJson}, @FlowToken={flowResponse.flowResponse.flowToken}").ToListAsync();
                 _logger.LogInformation("Calling procedure usp_MessageReceivedLogsFlow_ops with ProcResponseTime={ProcResponseTime} ", DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
 
-                //Central service call
+                //Mediator service
                 if (response != null & response.Any())
                 {
+                    //_logger.LogInformation("Message Received Log DB call response: {response}", JsonConvert.SerializeObject(response[0]));
+                    //var action = response[0];
+                    //if (action.ActionType > 0 && action.ActionId > 0)
+                    //{
+                    //    if (action.ActionType == (int)ActionTypeEnum.TEMPLATE) //Send template or interactive message or normal message 
+                    //        await _communicationService.SendInteractiveMessageAsync(action, flow.ClientId.Value, flow.SenderId.Value, flowResponse.from, flowToken: flowResponse.flowResponse.flowToken);
+                    //}
+
+                    //if (action.ModuleId == (int)ModuleEnum.Chat && action.ConversationMessageId > 0 && action.IsFoul == 0) //If conversation is going on and no foul word received
+                    //{
+                    //    var conversation = await _conversationService.GetConversationMessageByMessageIdAsync(clientId: flow.ClientId.Value, conversationMessageId: action.ConversationMessageId.Value, status: (int)ConversationStatusEnum.AgentAssigned);
+                    //    if (conversation != null && conversation.AgentId > 0) //Check if agent id exist
+                    //    {
+                    //        // Look up the connection ID for the Agent ID and send the conversation
+                    //        string connectionId = String.Empty;
+                    //        int i;
+                    //        for (i = 1; i <= 5; i++)
+                    //        {
+                    //            if (ConversationHub.connections.TryGetValue(conversation.AgentId ?? 0, out connectionId))
+                    //            {
+                    //                await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.MessageReceived.ToString(), conversation);
+                    //                if (await _agentsService.IsAgentOneSignalEnabled(conversation.ClientId, conversation.SenderId))
+                    //                    await _oneSignalService.SendMessageReceivedNotification(conversation.AgentId ?? 0, conversation.Language, conversation.MessageContent);
+                    //                _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", SignalREnum.MessageReceived.ToString(), conversation.AgentId ?? 0, connectionId, conversation.Id ?? 0, i, JsonConvert.SerializeObject(conversation));
+                    //                break;
+                    //            }
+                    //            else
+                    //                _logger.LogError("SignalR, No connection found for event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", SignalREnum.MessageReceived.ToString(), conversation.AgentId ?? 0, connectionId, conversation.Id ?? 0, i, JsonConvert.SerializeObject(conversation));
+                    //        }
+                    //    }
+                    //}
+
                     _logger.LogInformation("Message Received Log DB call response: {response}", JsonConvert.SerializeObject(response[0]));
                     var action = response[0];
-                    if (action.ActionType > 0 && action.ActionId > 0)
-                    {
-                        if (action.ActionType == (int)ActionTypeEnum.TEMPLATE) //Send template or interactive message or normal message 
-                            await _communicationService.SendInteractiveMessageAsync(action, flow.ClientId.Value, flow.SenderId.Value, flowResponse.from, flowToken: flowResponse.flowResponse.flowToken);
-                    }
-
-                    if (action.ModuleId == (int)ModuleEnum.Chat && action.ConversationMessageId > 0 && action.IsFoul == 0) //If conversation is going on and no foul word received
-                    {
-                        var conversation = await _conversationService.GetConversationMessageByMessageIdAsync(clientId: flow.ClientId.Value, conversationMessageId: action.ConversationMessageId.Value, status: (int)ConversationStatusEnum.AgentAssigned);
-                        if (conversation != null && conversation.AgentId > 0) //Check if agent id exist
-                        {
-                            // Look up the connection ID for the Agent ID and send the conversation
-                            string connectionId = String.Empty;
-                            int i;
-                            for (i = 1; i <= 5; i++)
-                            {
-                                if (ConversationHub.connections.TryGetValue(conversation.AgentId ?? 0, out connectionId))
-                                {
-                                    await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.MessageReceived.ToString(), conversation);
-                                    if (await _agentsService.IsAgentOneSignalEnabled(conversation.ClientId, conversation.SenderId))
-                                        await _oneSignalService.SendMessageReceivedNotification(conversation.AgentId ?? 0, conversation.Language, conversation.MessageContent);
-                                    _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", SignalREnum.MessageReceived.ToString(), conversation.AgentId ?? 0, connectionId, conversation.Id ?? 0, i, JsonConvert.SerializeObject(conversation));
-                                    break;
-                                }
-                                else
-                                    _logger.LogError("SignalR, No connection found for event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", SignalREnum.MessageReceived.ToString(), conversation.AgentId ?? 0, connectionId, conversation.Id ?? 0, i, JsonConvert.SerializeObject(conversation));
-                            }
-                        }
-                    }
+                    var result = await _mediatorService.ProcessDBResponse(flow.ClientId ?? 0, flow.SenderId ?? 0, action);
+                    return result;
                 }
 
                 var response1 = response != null && response.Any() ? response[0] : null;

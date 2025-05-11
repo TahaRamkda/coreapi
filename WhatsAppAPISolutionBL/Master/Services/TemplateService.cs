@@ -472,20 +472,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponseWithID> DeleteTemplateAsync(int Id)
         {
             var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.Delete}, @TemplatesId={Id}").ToListAsync();
-            await _cacheService.RemoveAsync(CacheKeys.Template_PATTERN_KEY);
+            await _cacheService.RemoveAsync(CacheKeys.TEMPLATE_PATTERN_KEY);
             return response[0];
         }
 
         public async Task<UResponseWithID> UpdateTemplateStatusByIdAsync(TemplateStatusUpdateDto model)
         {
             var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.UpdateTemplateStatus}, @TemplatesId={model.Id}, @TemplateId={model.TemplateId}, @Status={model.Status}, @Category={model.Category}, @ActionBy={model.ActionBy}").ToListAsync();
-            await _cacheService.RemoveAsync(CacheKeys.Template_PATTERN_KEY);
+            await _cacheService.RemoveAsync(CacheKeys.TEMPLATE_PATTERN_KEY);
             return response[0];
         }
 
         public async Task<UTemplateDetail> GetTemplateDetailAsync(int clientId, int templateId)
         {
-            var cacheKey = string.Format(CacheKeys.Template_BY_ID_KEY, clientId, templateId);
+            var cacheKey = string.Format(CacheKeys.TEMPLATE_BY_ID_KEY, clientId, templateId);
             var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
             {
                 var startProcTime = DateTime.UtcNow;
@@ -517,12 +517,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (cacheResult == null)
                 await _cacheService.RemoveAsync(cacheKey);
+
             return cacheResult;
         }
 
         private async Task<List<UTemplateParameter>> GetTemplateParametersAsync(int client_Id, int template_Id = 0)
         {
-            var cacheKey = string.Format(CacheKeys.Template_DROPDOWN_KEY, client_Id, template_Id);
+            var cacheKey = string.Format(CacheKeys.TEMPLATE_DROPDOWN_KEY, client_Id, template_Id);
             var cacheResult = _cacheService.GetAsync(cacheKey, async () =>
             {
                 var startProcTime = DateTime.UtcNow;
@@ -537,7 +538,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UEntityDto>> GetTemplatesAsync(int clientId, int senderId = 0, string searchStr = "")
         {
-            var cacheKey = string.Format(CacheKeys.Template_DROPDOWN_KEY2, clientId, senderId, searchStr);
+            var cacheKey = string.Format(CacheKeys.TEMPLATE_DROPDOWN_KEY2, clientId, senderId, searchStr);
             var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
             {
                 var startProcTime = DateTime.UtcNow;
@@ -555,7 +556,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UEntity2Dto>> GetTemplateCategoriesAsync(string searchStr = "")
         {
-            var cacheKey = string.Format(CacheKeys.Template_DROPDOWN_KEY3, searchStr);
+            var cacheKey = string.Format(CacheKeys.TEMPLATE_DROPDOWN_KEY3, searchStr);
             var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
             {
                 var startProcTime = DateTime.UtcNow;
@@ -571,7 +572,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<UEntity2Dto>> GetLanguagesAsync(string searchStr = "")
         {
-            var cacheKey = string.Format(CacheKeys.Template_DROPDOWN_KEY3, searchStr);
+            var cacheKey = string.Format(CacheKeys.TEMPLATE_DROPDOWN_KEY3, searchStr);
             var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
             {
                 var startProcTime = DateTime.UtcNow;

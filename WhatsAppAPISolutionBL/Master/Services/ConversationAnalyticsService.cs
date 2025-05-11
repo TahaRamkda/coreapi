@@ -11,16 +11,18 @@ using WhatsAppAPISolutionDL.Setting;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
-    public class ConversationAnalytics : IConversationAnalyticsService
+    public class ConversationAnalyticsService : IConversationAnalyticsService
     {
         #region Fields
+        
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly HttpClient _httpClient;
-        private readonly ILogger<ConversationAnalytics> _logger;
+        private readonly ILogger<ConversationAnalyticsService> _logger;
+        
         #endregion
 
         #region Ctor
-        public ConversationAnalytics(IHttpClientFactory httpClientFactory, WhatsAppSolutionContext dbContext, ILogger<ConversationAnalytics> logger)
+        public ConversationAnalyticsService(IHttpClientFactory httpClientFactory, WhatsAppSolutionContext dbContext, ILogger<ConversationAnalyticsService> logger)
         {
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             _dbContext = dbContext;

@@ -1,14 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.FileSystemGlobbing.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System;
-using System.IO;
-using System.Security.Policy;
 using System.Text;
-using System.Text.RegularExpressions;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Agent;
@@ -20,12 +14,8 @@ using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
-using WhatsAppAPISolutionDL.UserModels.Client;
 using WhatsAppAPISolutionDL.UserModels.Entity;
-using WhatsAppAPISolutionDL.UserModels.InteractiveTemplate;
 using WhatsAppAPISolutionDL.UserModels.Message;
-using WhatsAppAPISolutionDL.UserModels.SenderName;
-using WhatsAppAPISolutionDL.UserModels.Template;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {

@@ -32,7 +32,6 @@ namespace WhatsAppAPISolutionAPI.Extensions
             services.AddScoped<IImportManager, ImportManager>();
             services.AddScoped<IInteractiveTemplateService, InteractiveTemplateService>();
             services.AddScoped<ISystemActionsService, SystemActionsService>();
-            services.AddScoped<IOneSignalService, OneSignalService>();
             services.AddScoped<IMasterDataService, MasterDataService>();
             services.AddScoped<IFlowsService, FlowsService>();
             services.AddScoped<ISupervisorService, SupervisorService>();
@@ -41,12 +40,20 @@ namespace WhatsAppAPISolutionAPI.Extensions
             services.AddScoped<ICacheService, CacheService>();
             services.AddScoped<IAppSettingsService, AppSettingsService>();
             services.AddScoped<IOrderService, OrderService>();
-            services.AddScoped<IConversationAnalyticsService, ConversationAnalytics>();  // added IConversationAnalyticsService in the scope
+            services.AddScoped<IConversationAnalyticsService, ConversationAnalyticsService>();
             services.AddScoped<ISurveyReportService, SurveyReportService>();
             services.AddScoped<ILocationService, LocationService>();
             services.AddScoped<IMediatorService, MediatorService>();
             services.AddScoped<IKFGPaymentService, KFGPaymentService>();
+            services.AddScoped<ISignalRService, SignalRService>();
+
+            #region Third party services
+
+            services.AddScoped<IOneSignalService, OneSignalService>();
+            services.AddScoped<IWitAIService, WitAIService>();
              
+            #endregion
+
             return services;
 
         }

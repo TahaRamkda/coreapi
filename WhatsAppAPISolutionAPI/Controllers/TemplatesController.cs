@@ -35,7 +35,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         public TemplatesController(ITemplateService templateService,
             IFlowsService flowsService,
             IInteractiveTemplateService interactiveTemplateService,
-        WhatsAppSolutionContext dbContext,
+            WhatsAppSolutionContext dbContext,
             ILogger<TemplatesController> logger,
             IOptions<BridgeConfigurationSettings> bridgeConfigurationSettings,
             IHttpClientFactory httpClientFactory,
@@ -133,7 +133,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 if (model.Buttons.Any(x => String.IsNullOrWhiteSpace(x.ButtonText)))
                     return Ok(new ApiResult { Message = "Please insert button text for all buttons" });
 
-                if (model.Buttons.Any(x => (x.ButtonText.Length > 20)))
+                if (model.Buttons.Any(x => (x.ButtonText.Length > 25)))
                     return Ok(new ApiResult { Message = "Button text should not exceed 20 characters" });
  
                 if (model.Buttons.Any(x => (x.ButtonType == (int)ButtonTypeEnum.URL || x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER) && String.IsNullOrWhiteSpace(x.ButtonValue)))

@@ -672,8 +672,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 return flowDto;
             });
+
             if (cacheResult == null)
                 await _cachingService.RemoveAsync(cacheKey);
+            
             return cacheResult;
         }
 

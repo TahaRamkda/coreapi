@@ -17,28 +17,21 @@ namespace WhatsAppAPISolutionAPI.Extensions
                 httpClient.Timeout = TimeSpan.FromSeconds(bridgeConfigurationSettings.TimeOutInSeconds);
             });
 
-            return services;
-        }
-
-        public static IServiceCollection AddOneSignalServices(this IServiceCollection services, IConfiguration config)
-        {
             services.AddHttpClient(HttpClientType.one_signal_api, (serviceProvider, httpClient) =>
             {
                 var oneSignalConfiguration = serviceProvider.GetRequiredService<IOptions<OneSignalConfigurationSettings>>().Value;
 
+                httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {oneSignalConfiguration.Token}");
                 httpClient.BaseAddress = new Uri(oneSignalConfiguration.BaseURL);
             });
 
-            return services;
-        }
-        
-        public static IServiceCollection AddFlowEndpointServices(this IServiceCollection services, IConfiguration config)
-        {
-            services.AddHttpClient(HttpClientType.flow_endpoint, (serviceProvider, httpClient) =>
+            services.AddHttpClient(HttpClientType.witai_api, (serviceProvider, httpClient) =>
             {
-                var flowEndpoint = serviceProvider.GetRequiredService<IOptions<FlowEndpointSettings>>().Value;
+                var witAiConfigurationSettings = serviceProvider.GetRequiredService<IOptions<WitAiConfigurationSettings>>().Value;
 
-                httpClient.BaseAddress = new Uri(flowEndpoint.BaseURL);
+                httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {witAiConfigurationSettings.Token}");
+                httpClient.BaseAddress = new Uri(witAiConfigurationSettings.BaseURL);
+                httpClient.Timeout = TimeSpan.FromSeconds(witAiConfigurationSettings.TimeOutInSeconds);
             });
 
             return services;

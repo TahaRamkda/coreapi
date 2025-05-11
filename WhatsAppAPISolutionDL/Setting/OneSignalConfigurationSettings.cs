@@ -9,6 +9,7 @@ namespace WhatsAppAPISolutionDL.Setting
     public class OneSignalConfigurationSettings
     {
         public const string ConfigKey = "OneSignalConfiguration";
+        public bool Enabled { get; set; }
         public string BaseURL { get; set; }
         public string AppId { get; set; }
         public string Token { get; set; }
