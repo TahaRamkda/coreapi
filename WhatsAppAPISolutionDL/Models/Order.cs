@@ -15,7 +15,7 @@ namespace WhatsAppAPISolutionDL.Models
         public int? Status { get; set; }
         public int? ErrorCount { get; set; }
         public decimal? Subtotal { get; set; }
-        public decimal? DeliveryChages { get; set; }
+        public decimal? DeliveryCharges { get; set; }
         public decimal? Discount { get; set; }
         public decimal? Total { get; set; }
         public string MetaOrderId { get; set; }

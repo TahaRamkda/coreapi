@@ -1007,7 +1007,7 @@ namespace WhatsAppAPISolutionDL.Models
             {
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.DeliveryChages).HasColumnType("numeric(18, 3)");
+                entity.Property(e => e.DeliveryCharges).HasColumnType("numeric(18, 3)");
 
                 entity.Property(e => e.Discount).HasColumnType("numeric(18, 3)");
 
