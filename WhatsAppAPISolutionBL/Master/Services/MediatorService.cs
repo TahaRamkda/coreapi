@@ -418,8 +418,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     //Response
                     var deliveryStatus = await _locationService.GetDeliveryStatus(orderId, geoLocation);
 
-                    var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_DeliveryValidation @OrderId={orderId},@Deliverable={deliveryStatus.IsDeliverable},@LocationName={deliveryStatus.AreaName},@LocationNameAr={deliveryStatus.AreaNameAr}").ToListAsync();
-                    _logger.LogInformation("Received response from procedure usp_Orders_DeliveryValidation with OrderItemId={orderItemId} and Delivery status={Deliverable} and response={response}", orderId, deliveryStatus.IsDeliverable, JsonConvert.SerializeObject(dbresponse));
+                    var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_DeliveryValidation @OrderId={orderId},@Deliverable={deliveryStatus.isDeliverable},@LocationName={deliveryStatus.areaName},@LocationNameAr={deliveryStatus.areaNameAr}").ToListAsync();
+                    _logger.LogInformation("Received response from procedure usp_Orders_DeliveryValidation with OrderItemId={orderItemId} and Delivery status={Deliverable} and response={response}", orderId, deliveryStatus.isDeliverable, JsonConvert.SerializeObject(dbresponse));
 
                     //Call ProcessDBResponse(dbresponse);
                     if (dbresponse != null && dbresponse.Any())

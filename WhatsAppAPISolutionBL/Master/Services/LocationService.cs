@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -23,6 +24,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly HttpClient _httpClient;
+        public readonly IConfiguration _configuration;
         private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
         private readonly ILogger<TemplateService> _logger;
         private readonly ICacheService _cacheService;
@@ -31,6 +33,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
             HttpClient httpClient,
+            IConfiguration configuration,
             IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings,
             ILogger<TemplateService> logger,
             ICacheService cacheService
@@ -39,6 +42,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _httpClient = httpClient;
+            _configuration = configuration;
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
             _logger = logger;
             _cacheService = cacheService;
@@ -111,39 +115,85 @@ namespace WhatsAppAPISolutionBL.Master.Services
         //        var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_SaveAddress @FlowToken={flowResponse.flowResponse.flowToken},@Json={AddressJson}").ToListAsync();
         //        if (dbresponse != null)
         //        {
-                    
+
         //        }
         //    }
 
         //    return null;
-        //}
+        //}"24.58437538147,73.710174560547"
 
         public async Task<DeliveryStatus> GetDeliveryStatus(string orderId, string geoLocation)
         {
-             DeliveryStatus deliveryStatus = new DeliveryStatus();
-            _logger.LogInformation("Calling GetDeliveryStatus with orderId={orderId} and geoLocation={geoLocation}", orderId, geoLocation);
+            _logger.LogInformation("Calling GetDeliveryStatus with orderId={OrderId} and geoLocation={GeoLocation}", orderId, geoLocation);
 
-            if (String.IsNullOrWhiteSpace(geoLocation))
-                return new DeliveryStatus { IsDeliverable = false, Reason = "No geo location provided" };
+            if (string.IsNullOrWhiteSpace(geoLocation))
+            {
+                return new DeliveryStatus { isDeliverable = false, reason = "No geo location provided" };
+            }
+
+            var deliveryStatus = new DeliveryStatus();
 
             try
             {
-                string LocationUrl =_conf
-                var reqbody = new
+                var coordinates = geoLocation.Replace(" ", "").Split(',');
+                if (coordinates.Length != 2 ||
+                    !double.TryParse(coordinates[0], out double latitude) ||
+                    !double.TryParse(coordinates[1], out double longitude))
                 {
-                    latitude = Location.latitude,
-                    longitude = Location.longitude,
-                };
-                string jsonBody = JsonConvert.SerializeObject(reqbody);
-                var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-                var Response = await _httpClient.PostAsync(KfgUrl, content);
+                    return new DeliveryStatus
+                    {
+                        isDeliverable = false,
+                        reason = "Invalid geo location format"
+                    };
+                }
 
+                var baseUrl = _configuration.GetValue<string>("KFGBaseUrl");
+                var locationUrl = $"{baseUrl}/whatsapp/deliveryvalidation";
+
+                var requestBody = new 
+                {
+                    Latitude = latitude,
+                    Longitude = longitude
+                };
+
+                var jsonBody = JsonConvert.SerializeObject(requestBody);
+                var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync(locationUrl, content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("API call failed with status code {StatusCode} and reason {ReasonPhrase}", response.StatusCode, response.ReasonPhrase);
+                    return new DeliveryStatus
+                    {
+                        isDeliverable = false,
+                        reason = $"API call failed: {response.ReasonPhrase}"
+                    };
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                var apiResult = JsonConvert.DeserializeObject<DeliveryStatus>(responseContent);
+                if (apiResult == null)
+                {
+                    return new DeliveryStatus
+                    {
+                        isDeliverable = false,
+                        reason = "Invalid API response format"
+                    };
+                }
+
+                return apiResult;
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "An error occurred while getting delivery status for orderId={OrderId}", orderId);
+                return new DeliveryStatus
+                {
+                    isDeliverable = false,
+                    reason = "Unexpected error occurred while processing delivery status"
+                };
             }
-
-            return deliveryStatus;
         }
     }
 }
