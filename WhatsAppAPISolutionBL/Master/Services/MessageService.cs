@@ -88,6 +88,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var messageStatusEnum = (MessageStatusEnum)Enum.Parse(typeof(MessageStatusEnum), messageStatus.status.ToUpper());
 
+            if (messageStatusEnum == MessageStatusEnum.SENT)
+                messageStatusEnum = MessageStatusEnum.SENTWA;
+
             var eventType = (int)messageStatusEnum;
             var eventStatus = messageStatusEnum == MessageStatusEnum.FAILED ? 0 : 1;
             var conversationId = "";

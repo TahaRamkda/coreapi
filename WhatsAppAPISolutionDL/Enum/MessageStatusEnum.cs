@@ -13,6 +13,7 @@ namespace WhatsAppAPISolutionDL.Enum
         READ = 3,
         FAILED = 4,
         WARNING = 5,
-        DELETED = 6
+        DELETED = 6,
+        SENTWA = 7 
     }
 }
