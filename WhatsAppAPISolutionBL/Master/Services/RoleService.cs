@@ -33,29 +33,34 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var response = await _dbContext2.Roles.FromSqlInterpolated($"exec usp_Roles_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}").ToListAsync();
                 if (response == null || response.Count == 0)
                     return null;
+
                 return response;
             });
+
             if (cacheResult == null || cacheResult.Count == 0)
                 await _cacheService.RemoveAsync(cacheKey);
+
             return cacheResult;
         }
 
         public async Task<UResponse> AddRoleAsync(int clientId, int userId, RoleDto role)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Roles_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={clientId}, @RoleName={role.RoleName}, @ActionBy={userId}").ToListAsync();
+            await _cacheService.RemoveByPrefix(CacheKeys.ROLE_PATTERN_KEY);
             return response[0];
         }
 
         public async Task<UResponse> UpdateRoleAsync(int clientId, int userId, RoleDto role)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Roles_Ops @ActionId={(int)CrudEnum.Update}, @ClientId={clientId}, @RoleId={role.RoleId}, @RoleName={role.RoleName}, @ActionBy={userId}").ToListAsync();
+            await _cacheService.RemoveByPrefix(CacheKeys.ROLE_PATTERN_KEY);
             return response[0];
         }
 
         public async Task<UResponse> DeleteRoleAsync(int RoleId)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Roles_Ops @ActionId={(int)CrudEnum.Delete}, @RoleId={RoleId}").ToListAsync();
-            await _cacheService.RemoveAsync(CacheKeys.ROLE_PATTERN_KEY);
+            await _cacheService.RemoveByPrefix(CacheKeys.ROLE_PATTERN_KEY);
             return response[0];
         }
 
@@ -65,12 +70,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
             {
                 var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_Roles_Ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId},  @SearchStr={searchStr}").ToListAsync();
+                
                 if (response == null || response.Count == 0)
                     return null;
+            
                 return response;
             });
+
             if (cacheResult == null || cacheResult.Count == 0)
                 await _cacheService.RemoveAsync(cacheKey);
+
             return cacheResult;
         }
 
@@ -80,12 +89,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var cacheResult = _cacheService.GetAsync(cacheKey, async () =>
             {
                 var response = await _dbContext2.RoleDetails.FromSqlInterpolated($"exec usp_Roles_Ops @ActionId={(int)CrudEnum.GetById}, @ClientId={clientId},@RoleId={roleId}").ToListAsync();
+                
                 if (response == null || response.Count == 0)
                     return null;
+            
                 return response[0];
             });
+
             if (cacheResult == null)
                 await _cacheService.RemoveAsync(cacheKey);
+            
             return await cacheResult;
         }
     }

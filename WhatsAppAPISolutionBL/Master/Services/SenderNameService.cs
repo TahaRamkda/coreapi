@@ -27,8 +27,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
 
         public async Task<List<USenderName>> GetSenderNameListAsync(int ClientId)
-        {
-
+        { 
             var cacheKey = string.Format(CacheKeys.SENDERNAME_DROPDOWN_KEY, ClientId);
             var cacheResult = _cacheService.GetAsync(cacheKey, async () =>
             {
@@ -37,27 +36,31 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     return null;
                 return response;
             });
+
             if (cacheResult == null)
                 await _cacheService.RemoveAsync(cacheKey);
+          
             return await cacheResult;
         }
 
         public async Task<UResponse> AddSenderNameAsync(int clientId, int userId, SenderNameDto senderName)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={clientId}, @SenderName={senderName.SenderName}, @PhoneNumber={senderName.PhoneNumber}, @PhoneId={senderName.PhoneId}, @AppId={senderName.AppId}, @Limit={senderName.Limit}, @Quality={senderName.Quality}, @MediaId={senderName.MediaId}, @Verified={senderName.Verified}, @ActionBy={userId}, @WebsiteUrl={senderName.WebsiteUrl}").ToListAsync();
+            await _cacheService.RemoveByPrefix(CacheKeys.SENDERNAME_PATTERN_KEY);
             return response[0];
         }
 
         public async Task<UResponse> UpdateSenderNameAsync(int clientId, int userId, SenderNameDto senderName)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.Update}, @SenderId={senderName.SenderId}, @ClientId={clientId}, @SenderName={senderName.SenderName}, @PhoneNumber={senderName.PhoneNumber}, @PhoneId={senderName.PhoneId}, @AppId={senderName.AppId}, @Limit={senderName.Limit}, @Quality={senderName.Quality}, @MediaId={senderName.MediaId},@Verified={senderName.Verified}, @ActionBy={userId}, @WebsiteUrl={senderName.WebsiteUrl}").ToListAsync();
+            await _cacheService.RemoveByPrefix(CacheKeys.SENDERNAME_PATTERN_KEY);
             return response[0];
         }
 
         public async Task<UResponse> DeleteSenderNameAsync(int SenderNameId)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SenderNames_Ops @ActionId={(int)CrudEnum.Delete}, @SenderId={SenderNameId}").ToListAsync();
-            await _cacheService.RemoveAsync(CacheKeys.SENDERNAME_PATTERN_KEY);
+            await _cacheService.RemoveByPrefix(CacheKeys.SENDERNAME_PATTERN_KEY);
             return response[0];
         }
 
@@ -71,8 +74,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     return null;
                 return response;
             });
+
             if (cacheResult == null || cacheResult.Count == 0)
                 await _cacheService.RemoveAsync(cacheKey);
+            
             return cacheResult;
         }
 
@@ -86,8 +91,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     return null;
                 return response[0];
             });
+
             if (cacheResult == null)
                 await _cacheService.RemoveAsync(cacheKey);
+            
             return cacheResult;
         }
     }

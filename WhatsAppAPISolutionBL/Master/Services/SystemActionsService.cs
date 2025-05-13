@@ -42,19 +42,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponse> AddSystemActionsAsync(int clientId, int userId, SystemActionsDto systemActions)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SystemActions_Ops @action_Id={(int)CrudEnum.Add}, @ClientId={clientId}, @SenderId={systemActions.SenderId}, @ActionId={systemActions.ActionId}, @ActionName={systemActions.ActionName}, @ThirdPartyURL={systemActions.ThirdPartyURL}, @ActionType={systemActions.ActionType}, @ActionBy={userId}").ToListAsync();
+            await _cacheService.RemoveByPrefix(CacheKeys.SYSTEMACTIONS_PATTERN_KEY);
             return response[0];
         }
 
         public async Task<UResponse> UpdateSystemActionsAsync(int clientId, int userId, SystemActionsDto systemActions)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SystemActions_Ops @action_Id={(int)CrudEnum.Update}, @SystemActionId={systemActions.SystemActionId}, @ClientId={clientId}, @SenderId={systemActions.SenderId}, @ActionId={systemActions.ActionId}, @ActionName={systemActions.ActionName}, @ThirdPartyURL={systemActions.ThirdPartyURL}, @ActionType={systemActions.ActionType}, @ActionBy={userId}").ToListAsync();
+            await _cacheService.RemoveByPrefix(CacheKeys.SYSTEMACTIONS_PATTERN_KEY);
             return response[0];
         }
 
         public async Task<UResponse> DeleteSystemActionsAsync(int systemActionsId)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_SystemActions_Ops @action_Id={(int)CrudEnum.Delete}, @SystemActionId={systemActionsId}").ToListAsync();
-            await _cacheService.RemoveAsync(CacheKeys.SYSTEMACTIONS_PATTERN_KEY);
+            await _cacheService.RemoveByPrefix(CacheKeys.SYSTEMACTIONS_PATTERN_KEY);
             return response[0];
         }
 

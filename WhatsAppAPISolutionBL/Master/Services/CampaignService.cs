@@ -355,34 +355,24 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponse> DeleteFreqContactedContactsAsync(int clientId, int campaignId, int lastContactedInDays)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.DeleteFreqContactedContacts}, @ClientId={clientId}, @CampaignId={campaignId}, @LastContactedInDays={lastContactedInDays}").ToListAsync();
-            if (response != null && response.Any()) return response[0];
-            await _cacheService.RemoveAsync(CacheKeys.CAMPAIGNS_PATTERN_KEY);
+            if (response != null && response.Any()) return response[0]; 
             return null;
         }
 
         public async Task<UCampaignDetail> GetCampaignDetailAsync(int clientId, int campaignId)
         {
-            var cacheKey = string.Format(CacheKeys.CAMPAIGNS_BY_ID_KEY, clientId, campaignId);
-            var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
+            var response = await _dbContext2.CampaignDetails.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.GetDetails}, @ClientId={clientId}, @CampaignId={campaignId}").ToListAsync();
+            if (response != null && response.Any())
             {
-                var response = await _dbContext2.CampaignDetails.FromSqlInterpolated($"exec usp_Campaigns_Ops @ActionId={(int)CrudEnum.GetDetails}, @ClientId={clientId}, @CampaignId={campaignId}").ToListAsync();
-                if (response != null && response.Any())
-                {
-                    var campaignDetail = response[0];
-                    campaignDetail.Parameters = !String.IsNullOrWhiteSpace(campaignDetail.ParamsJson)
-                        ? JsonConvert.DeserializeObject<List<UCampaignDetail.Parameter>>(campaignDetail.ParamsJson)
-                        : new List<UCampaignDetail.Parameter>();
+                var campaignDetail = response[0];
+                campaignDetail.Parameters = !String.IsNullOrWhiteSpace(campaignDetail.ParamsJson)
+                    ? JsonConvert.DeserializeObject<List<UCampaignDetail.Parameter>>(campaignDetail.ParamsJson)
+                    : new List<UCampaignDetail.Parameter>();
 
-                    return campaignDetail;
-                }
+                return campaignDetail;
+            }
 
-                return null;
-            });
-
-            if (cacheResult == null)
-                await _cacheService.RemoveAsync(cacheKey);
-
-            return cacheResult;
+            return null;
         }
     }
 }

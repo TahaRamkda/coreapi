@@ -54,21 +54,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponse> AddMasterDataAsync(MasterDto masterData)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($@"EXEC usp_MasterData_Ops @ActionId = {(int)CrudEnum.Add},@Mast_Id = {masterData.Mast_Id},@Name = {masterData.Name},@Type = {masterData.Type}").ToListAsync();
-            await _cacheService.RemoveAsync(CacheKeys.MASTERDATA_PATTERN_KEY);
+            await _cacheService.RemoveByPrefix(CacheKeys.MASTERDATA_PATTERN_KEY);
             return response.FirstOrDefault(); 
         }
 
         public async Task<UResponse> UpdateMasterDataAsync(MasterDto masterData)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($@"EXEC usp_MasterData_Ops @ActionId = {(int)CrudEnum.Update}, @Mast_Id = {masterData.Mast_Id},  @Name = {masterData.Name}, @Type = {masterData.Type}").ToListAsync();
-            await _cacheService.RemoveAsync(CacheKeys.MASTERDATA_PATTERN_KEY);
+            await _cacheService.RemoveByPrefix(CacheKeys.MASTERDATA_PATTERN_KEY);
             return response.FirstOrDefault();
         }
          
         public async Task<UResponse> DeleteMasterDataAsync(int mastId)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($@"EXEC usp_MasterData_Ops @ActionId = {(int)CrudEnum.Delete}, @Mast_Id = {mastId}").ToListAsync();
-            await _cacheService.RemoveAsync(CacheKeys.MASTERDATA_PATTERN_KEY);
+            await _cacheService.RemoveByPrefix(CacheKeys.MASTERDATA_PATTERN_KEY);
             return response.FirstOrDefault();
         } 
     }

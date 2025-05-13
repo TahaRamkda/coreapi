@@ -45,7 +45,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             ); return response;
         }
 
-        public async Task<UResponse> AddInteractiveTemplateAsync(int clientId, int userId, InteractiveTemplateDto model)    
+        public async Task<UResponse> AddInteractiveTemplateAsync(int clientId, int userId, InteractiveTemplateDto model)
         {
             _logger.LogDebug("Calling function AddInteractiveTemplateAsync with received object {object}", JsonConvert.SerializeObject(model));
             model.Name = model.Name.Replace(" ", "_").ToLower().Trim();
@@ -190,7 +190,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var parameterJson = JsonConvert.SerializeObject(parameters);
 
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.Add},@InteractiveTemplateId={model.Id}, @ClientId={clientId}, @SenderId={model.SenderNameId},@TemplateName={model.Name},@Language={model.Language}, @TransactionType={(int)TransactionTypeEnum.Interactive},@Status={model.Status}, @DefaultTypeId={model.DefaultTypeId},@UsedByAgent={model.UsedByAgent},@HeaderType={model.Header.Format}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @MediaId={model.MediaId}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @FooterText={footerText}, @ButtonsJson={buttonJson},@ParametersJson={parameterJson}, @ActionBy={userId}").ToListAsync();
-            await _cacheService.RemoveAsync(CacheKeys.INTERACTIVE_TEMPLATE_PATTERN_KEY);
+
+            await _cacheService.RemoveByPrefix(CacheKeys.INTERACTIVE_TEMPLATE_PATTERN_KEY);
+
             if (response == null || !response.Any())
                 return new UResponse
                 {
@@ -360,7 +362,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var parameterJson = JsonConvert.SerializeObject(parameters);
 
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.Update},@InteractiveTemplateId={model.Id}, @ClientId={clientId}, @SenderId={model.SenderNameId},@TemplateName={model.Name},@Language={model.Language},  @TransactionType={(int)TransactionTypeEnum.Interactive},@Status={model.Status}, @DefaultTypeId={model.DefaultTypeId},@UsedByAgent={model.UsedByAgent},@HeaderType={model.Header.Format}, @HeaderParamCount={headerParamCount}, @HeaderText={headerText}, @MediaId={model.MediaId}, @BodyText={bodyText}, @BodyParamCount={bodyParamCount}, @FooterText={footerText}, @ButtonsJson={buttonJson},@ParametersJson={parameterJson}, @ActionBy={userId}").ToListAsync();
-            await _cacheService.RemoveAsync(CacheKeys.INTERACTIVE_TEMPLATE_PATTERN_KEY);
+
+            await _cacheService.RemoveByPrefix(CacheKeys.INTERACTIVE_TEMPLATE_PATTERN_KEY);
+
             if (response == null || !response.Any())
                 return new UResponse
                 {
@@ -374,7 +378,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 Message = response[0].Message
             };
         }
-      
+
         public async Task<UInteractiveTemplateDetail> GetInteractiveTemplateDetailsAsync(int clientId, int senderId, int interactiveTemplateId)
         {
             var cacheKey = string.Format(CacheKeys.INTERACTIVE_TEMPLATE_BY_ID_KEY, clientId, senderId, interactiveTemplateId);
@@ -426,33 +430,38 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 var startProcTime = DateTime.UtcNow;
                 var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.GetAgentInteractiveTemplates}, @ClientId={clientId},  @SenderId={senderId}, @Language={language},@SearchStr={searchStr}").ToListAsync();
-                _logger.LogDebug( "Calling procedure usp_InteractiveTemplate_Ops with actionId={actionId}, actionName={actionName}, clientId={clientId}, senderId={senderId}, language={language}, searchStr={searchStr}, ProcResponseTime={ProcResponseTime}ms",
-                    (int)CrudEnum.GetAgentInteractiveTemplates,CrudEnum.GetAgentInteractiveTemplates,clientId,senderId, language,searchStr,DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds); 
+                _logger.LogDebug("Calling procedure usp_InteractiveTemplate_Ops with actionId={actionId}, actionName={actionName}, clientId={clientId}, senderId={senderId}, language={language}, searchStr={searchStr}, ProcResponseTime={ProcResponseTime}ms",
+                    (int)CrudEnum.GetAgentInteractiveTemplates, CrudEnum.GetAgentInteractiveTemplates, clientId, senderId, language, searchStr, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
                 if (response == null || !response.Any())
                     return null;
                 return response;
             });
+
             if (cacheResult == null)
                 await _cacheService.RemoveAsync(cacheKey);
+
             return cacheResult;
         }
 
         public async Task<List<UEntityDto>> GetInteractiveTemplateWithoutParamsAsync(int clientId, int senderId, string language = "", string searchStr = "")
         {
-            var cacheKey = string.Format(CacheKeys.AGENT_INTERACTIVE_DROPDOWN_KEY, clientId, senderId, language, searchStr  );
+            var cacheKey = string.Format(CacheKeys.INTERACTIVE_WITHOUT_PARAM_DROPDOWN_KEY, clientId, senderId, language, searchStr);
             var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
             {
                 var startProcTime = DateTime.UtcNow;
                 var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.GetAgentInteractiveTemplatesWithoutParam}, @ClientId={clientId},  @SenderId={senderId}, @Language={language},@SearchStr={searchStr}").ToListAsync();
-                _logger.LogDebug("Calling procedure usp_InteractiveTemplate_Ops with actionId={actionId}, actionName={actionName}, clientId={clientId}, senderId={senderId}, language={language}, searchStr={searchStr}, ProcResponseTime={ProcResponseTime}ms", (int)CrudEnum.GetAgentInteractiveTemplatesWithoutParam,CrudEnum.GetAgentInteractiveTemplatesWithoutParam,clientId, senderId,language,searchStr,DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds
-                ); if (response == null || !response.Any())
+
+                _logger.LogDebug("Calling procedure usp_InteractiveTemplate_Ops with actionId={actionId}, actionName={actionName}, clientId={clientId}, senderId={senderId}, language={language}, searchStr={searchStr}, ProcResponseTime={ProcResponseTime}ms", (int)CrudEnum.GetAgentInteractiveTemplatesWithoutParam, CrudEnum.GetAgentInteractiveTemplatesWithoutParam, clientId, senderId, language, searchStr, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+
+                if (response == null || !response.Any())
                     return null;
+
                 return response;
             });
 
             if (cacheResult == null || cacheResult.Count == 0)
                 await _cacheService.RemoveAsync(cacheKey);
-            
+
             return cacheResult;
         }
     }
