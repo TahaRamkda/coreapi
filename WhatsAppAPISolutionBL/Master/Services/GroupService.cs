@@ -33,9 +33,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> AddGroupAsync(int clientId, int userId, GroupDto group)
         {
-
-            
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Groups_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={clientId}, @GroupName={group.GroupName}, @ActionBy={userId}").ToListAsync();
+            await _cacheService.RemoveByPrefix(CacheKeys.GROUP_PATTERN_KEY);
             return response[0];
         }
 
@@ -44,14 +43,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
 
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Groups_Ops @ActionId={(int)CrudEnum.Update}, @ClientId={clientId}, @GroupId={group.GroupId}, @GroupName={group.GroupName}, @ActionBy={userId}").ToListAsync();
-            await _cacheService.RemoveAsync(CacheKeys.GROUP_PATTERN_KEY);
+            await _cacheService.RemoveByPrefix(CacheKeys.GROUP_PATTERN_KEY);
             return response[0];
         }
 
         public async Task<UResponse> DeleteGroupAsync(int GroupId)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Groups_Ops @ActionId={(int)CrudEnum.Delete}, @GroupId={GroupId}").ToListAsync();
-            await _cacheService.RemoveAsync(CacheKeys.GROUP_PATTERN_KEY);
+            await _cacheService.RemoveByPrefix(CacheKeys.GROUP_PATTERN_KEY);
             return response[0];
         }
 
@@ -62,33 +61,33 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_Groups_Ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId},  @SearchStr={searchStr}").ToListAsync();
                 if (response == null || response.Count == 0)
-                {
                     return null;
-                }
+
                 return response;
             });
-            if(cacheResult == null)
-            {
+
+            if (cacheResult == null)
                 return null;
-            }
-            return cacheResult; 
-         }
+
+            return cacheResult;
+        }
 
         public async Task<UGroupDetail> GetGroupByIdAsync(int clientId, int groupId)
-        { 
+        {
             var cacheKey = string.Format(CacheKeys.GROUP_BY_ID_KEY, clientId, groupId);
             var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
             {
                 var response = await _dbContext2.GroupDetails.FromSqlInterpolated($"exec usp_Groups_Ops @ActionId={(int)CrudEnum.GetById}, @ClientId={clientId},@GroupId={groupId}").ToListAsync();
                 if (response == null || response.Count == 0)
                     return null;
+             
                 return response[0];
             });
+
             if (cacheResult == null)
-            {
                 return null;
-            }
+             
             return cacheResult;
-        } 
+        }
     }
 }

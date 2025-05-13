@@ -537,7 +537,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             flow.UpdatedBy = flow.UpdatedBy;
 
             await _dbContext.SaveChangesAsync();
-            await _cachingService.RemoveAsync(CacheKeys.FLOW_PATTERN_KEY);
+
             return new UResponse { Status = 1, Message = "Flow deleted successfully" };
         }
 
@@ -607,105 +607,84 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<FlowDTO> GetFlowDetailsByIdAsync(int flowId)
         {
-            var cacheKey = string.Format(CacheKeys.FLOW_BY_ID_KEY, flowId);
-            var cacheResult = await _cachingService.GetAsync(cacheKey, async () =>
+            // Fetch the Flow record
+            var flow = await _dbContext.Flows
+                .FirstOrDefaultAsync(f => f.FlowId == flowId && f.RecordStatus != -1);
+
+            if (flow == null)
+                throw new Exception("Flow not found");
+
+            // Fetch related FlowScreens
+            var flowScreens = await _dbContext.FlowScreens.Where(fs => fs.FlowId == flowId).ToListAsync();
+
+            var screenIds = flowScreens.Select(fs => fs.FlowScreenId).ToList();
+
+            // Fetch related FlowChildren
+            var flowChildren = await _dbContext.FlowChildrens
+                .Where(fc => fc.FlowScreenId.HasValue && screenIds.Contains(fc.FlowScreenId.Value))
+                .ToListAsync();
+
+            var flowChildrenIds = flowChildren.Select(fc => fc.FlowChildrenId).ToList();
+
+            // Fetch related FlowOptions
+            var flowOptions = await _dbContext.FlowOptions
+                .Where(fo => fo.ScreenChildrenId.HasValue && flowChildrenIds.Contains(fo.ScreenChildrenId.Value))
+                .ToListAsync();
+
+            // Map Flow to FlowDTO
+            var flowDto = new FlowDTO
             {
-
-                // Fetch the Flow record
-                var flow = await _dbContext.Flows
-                    .FirstOrDefaultAsync(f => f.FlowId == flowId && f.RecordStatus != -1);
-
-                if (flow == null)
-                    throw new Exception("Flow not found");
-
-                // Fetch related FlowScreens
-                var flowScreens = await _dbContext.FlowScreens.Where(fs => fs.FlowId == flowId).ToListAsync();
-
-                var screenIds = flowScreens.Select(fs => fs.FlowScreenId).ToList();
-
-                // Fetch related FlowChildren
-                var flowChildren = await _dbContext.FlowChildrens
-                    .Where(fc => fc.FlowScreenId.HasValue && screenIds.Contains(fc.FlowScreenId.Value))
-                    .ToListAsync();
-
-                var flowChildrenIds = flowChildren.Select(fc => fc.FlowChildrenId).ToList();
-
-                // Fetch related FlowOptions
-                var flowOptions = await _dbContext.FlowOptions
-                    .Where(fo => fo.ScreenChildrenId.HasValue && flowChildrenIds.Contains(fo.ScreenChildrenId.Value))
-                    .ToListAsync();
-
-                // Map Flow to FlowDTO
-                var flowDto = new FlowDTO
+                SenderId = flow.SenderId ?? 0,
+                ModuleId = flow.ModuleId ?? 0,
+                ParentId = flow.ParentId ?? 0,
+                FlowName = flow.FlowName,
+                FlowLanguage = flow.FlowLanguage,
+                ActionId = flow.ActionId ?? 0,
+                ActionType = flow.ActionType ?? 0,
+                //PublishToFB = false, // Set this based on your logic
+                FlowId = flow.FlowId,
+                FlowScreens = flowScreens.Select(fs => new FlowScreenDTO
                 {
-                    SenderId = flow.SenderId ?? 0,
-                    ModuleId = flow.ModuleId ?? 0,
-                    ParentId = flow.ParentId ?? 0,
-                    FlowName = flow.FlowName,
-                    FlowLanguage = flow.FlowLanguage,
-                    ActionId = flow.ActionId ?? 0,
-                    ActionType = flow.ActionType ?? 0,
-                    //PublishToFB = false, // Set this based on your logic
-                    FlowId = flow.FlowId,
-                    FlowScreens = flowScreens.Select(fs => new FlowScreenDTO
-                    {
-                        Name = fs.Name,
-                        Title = fs.Title,
-                        ScreenButtonText = fs.ScreenButtonText,
-                        FlowChildren = flowChildren
-                            .Where(fc => fc.FlowScreenId == fs.FlowScreenId)
-                            .Select(fc => new FlowChildrenDTO
-                            {
-                                Text = fc.ControlText,
-                                Type = fc.ControlType ?? 0,
-                                Required = fc.Required ?? false,
-                                FlowOptions = flowOptions
-                                    .Where(fo => fo.ScreenChildrenId == fc.FlowChildrenId)
-                                    .Select(fo => new FlowOptionDTO
-                                    {
-                                        OptionId = fo.OptionId,
-                                        OptionText = fo.OptionText
-                                    }).ToList()
-                            }).ToList()
-                    }).ToList()
-                };
+                    Name = fs.Name,
+                    Title = fs.Title,
+                    ScreenButtonText = fs.ScreenButtonText,
+                    FlowChildren = flowChildren
+                        .Where(fc => fc.FlowScreenId == fs.FlowScreenId)
+                        .Select(fc => new FlowChildrenDTO
+                        {
+                            Text = fc.ControlText,
+                            Type = fc.ControlType ?? 0,
+                            Required = fc.Required ?? false,
+                            FlowOptions = flowOptions
+                                .Where(fo => fo.ScreenChildrenId == fc.FlowChildrenId)
+                                .Select(fo => new FlowOptionDTO
+                                {
+                                    OptionId = fo.OptionId,
+                                    OptionText = fo.OptionText
+                                }).ToList()
+                        }).ToList()
+                }).ToList()
+            };
 
-                return flowDto;
-            });
-
-            if (cacheResult == null)
-                await _cachingService.RemoveAsync(cacheKey);
-            
-            return cacheResult;
+            return flowDto;
         }
 
         public async Task<List<UEntityDto>> GetFlowsAsync(int clientId, int senderId = 0, string searchStr = "")
         {
 
-            var cacheKey = string.Format(CacheKeys.FLOW_DROPDOWN_KEY, clientId, senderId, searchStr);
-            var cacheResult = _cachingService.GetAsync(cacheKey, async () =>
+            var query = _dbContext.Flows.Where(f => f.ClientId == clientId && (f.IsPublished == true) && f.RecordStatus != -1); // Assuming 1 is active
+
+            if (!string.IsNullOrEmpty(searchStr))
+                query = query.Where(f => f.FlowName.Contains(searchStr));
+
+            if (senderId > 0)
+                query = query.Where(f => f.SenderId == senderId);
+
+            return await query.Select(f => new UEntityDto
             {
-                var query = _dbContext.Flows.Where(f => f.ClientId == clientId && (f.IsPublished == true) && f.RecordStatus != -1); // Assuming 1 is active
-
-                if (!string.IsNullOrEmpty(searchStr))
-                {
-                    query = query.Where(f => f.FlowName.Contains(searchStr));
-                }
-                if (senderId > 0)
-                {
-                    query = query.Where(f => f.SenderId == senderId);
-                }
-
-                return await query.Select(f => new UEntityDto
-                {
-                    Id = f.FlowId,
-                    Name = f.FlowName
-                }).ToListAsync();
-            });
-            if (cacheResult == null)
-                await _cachingService.RemoveAsync(cacheKey);
-            return await cacheResult;
-
+                Id = f.FlowId,
+                Name = f.FlowName
+            }).ToListAsync();
         }
 
         public async Task<List<USurveyResponse>> ExportSurveyResponseListAsync(int clientId, string searchStr = "", int senderId = 0,

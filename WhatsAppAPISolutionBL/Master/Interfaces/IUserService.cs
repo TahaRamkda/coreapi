@@ -9,8 +9,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
     {
         int GetUserIdFromAccessToken();
         int GetClientIdFromAccessToken();
-        Task<List<User>> GetUserListAsync(int ClientId);
-        Task<User> RegisterUser(int ClientId);
+        Task<List<User>> GetUserListAsync(int ClientId); 
         Task<UUser> Login(string UserName, string Password, int MasterRoleTypeId = 0);
         Task<UResponse> AddUserAsync(UserDto user);
         Task<UResponse> UpdateUserAsync(UserDto user);

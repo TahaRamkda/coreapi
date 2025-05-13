@@ -42,9 +42,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     if (ConversationHub.connections.TryGetValue(agentId, out connectionId))
                     {
-                        //Send signalR
-                        await _conversationHubContext.Clients.Client(connectionId).SendAsync(signalRType, conversation);
-
                         //Call one signal and call WitAI
                         if (await _oneSignalService.IsAgentOneSignalEnabled(clientId, senderId))
                         {
@@ -55,6 +52,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 await _oneSignalService.SendMessageReceivedNotification(agentId, conversation.Language, conversation.MessageContent);
                             }
                         }
+
+                        //Send signalR
+                        await _conversationHubContext.Clients.Client(connectionId).SendAsync(signalRType, conversation);
 
                         _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", signalRType, agentId, connectionId, conversation.Id, i, JsonConvert.SerializeObject(conversation));
                         break;

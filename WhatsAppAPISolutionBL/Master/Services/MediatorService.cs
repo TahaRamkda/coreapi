@@ -413,7 +413,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         if (orderParam != null)
                             orderId = orderParam.Value;
                     }
-
+                     
                     //Call decima service
                     //Response
                     var deliveryStatus = await _locationService.GetDeliveryStatus(orderId, geoLocation);

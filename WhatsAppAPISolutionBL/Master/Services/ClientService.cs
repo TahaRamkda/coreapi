@@ -35,26 +35,26 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponse> AddClientAsync(int userId, ClientDto client)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Clients_Ops @ActionId={(int)CrudEnum.Add}, @ClientName={client.ClientName}, @ClientLanguage={client.ClientLanguage}, @ClientAddress={client.ClientAddress}, @Balance={client.Balance}, @ContactPerson={client.ContactPerson}, @ContactPersonEmail={client.ContactPersonEmail}, @ContactPersonPhone={client.ContactPersonPhone}, @BalanceAlertLimit={client.BalanceAlertLimit}, @AccessToken={client.AccessToken}, @ActionBy={userId}, @Currency={client.Currency}").ToListAsync();
+            await _cacheService.RemoveByPrefix(CacheKeys.CLIENT_PATTERN_KEY);
             return response[0];
         }
 
         public async Task<UResponse> UpdateClientAsync(int userId, ClientDto client)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Clients_Ops @ActionId={(int)CrudEnum.Update}, @ClientId={client.ClientId}, @ClientName={client.ClientName}, @ClientLanguage={client.ClientLanguage}, @ClientAddress={client.ClientAddress}, @Balance={client.Balance}, @ContactPerson={client.ContactPerson}, @ContactPersonEmail={client.ContactPersonEmail}, @ContactPersonPhone={client.ContactPersonPhone}, @BalanceAlertLimit={client.BalanceAlertLimit}, @AccessToken={client.AccessToken}, @ActionBy={userId}, @Currency={client.Currency}").ToListAsync();
-            await _cacheService.RemoveAsync(CacheKeys.CLIENT_PATTERN_KEY);
+            await _cacheService.RemoveByPrefix(CacheKeys.CLIENT_PATTERN_KEY);
             return response[0];
         }
 
         public async Task<UResponse> DeleteClientAsync(int ClientId)
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Clients_Ops @ActionId={(int)CrudEnum.Delete}, @ClientId={ClientId}").ToListAsync();
-            await _cacheService.RemoveAsync(CacheKeys.CLIENT_PATTERN_KEY);
+            await _cacheService.RemoveByPrefix(CacheKeys.CLIENT_PATTERN_KEY);
             return response[0];
         }
 
         public async Task<List<UEntityDto>> GetClientsAsync(int clientId, string searchStr = "")
         {
-
             var cacheKey = string.Format(CacheKeys.CLIENT_DROPDOWN_KEY, clientId, searchStr);
             var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
             {
@@ -63,10 +63,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     return null;
                 return response;
             });
+
             if (cacheResult == null || cacheResult.Count == 0)
                 return null;
-            return cacheResult;
 
+            return cacheResult;
         }
 
         public async Task<UClientDetail> GetClientByIdAsync(int clientId)
@@ -79,8 +80,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     return null;
                 return response[0];
             });
-           if (cacheResult == null)
+
+            if (cacheResult == null)
                 return null;
+
             return cacheResult;
         }
     }

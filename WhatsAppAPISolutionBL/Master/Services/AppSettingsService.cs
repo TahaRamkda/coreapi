@@ -43,8 +43,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var response = await _dbContext2.Response
                 .FromSqlInterpolated($"exec usp_AppSettings_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={clientId}, @KeyName={appSettingsDto.KeyName}, @Val={appSettingsDto.Val}, @ActionBy={userId}")
                 .ToListAsync();
+            
             _logger.LogInformation("Calling procedure usp_AppSettings_Ops with ActionId = {actionId}, ActionName = {actionName}, ClientId = {clientId}, KeyName = {keyName}, Val = {val}, ActionBy = {userId}, ProcResponseTime = {ProcResponseTime} ms",
            (int)CrudEnum.Add, CrudEnum.Add, clientId, appSettingsDto.KeyName, appSettingsDto.Val, userId, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+
+            await _cacheService.RemoveByPrefix(CacheKeys.APPSETTINGS_PATTERN_KEY);
 
             return response[0];
         }
@@ -57,7 +60,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 .ToListAsync();
             _logger.LogInformation("Calling procedure usp_AppSettings_Ops | ActionId = {actionId}, ActionName = {actionName}, ClientId = {clientId}, Id = {id}, KeyName = {keyName}, Val = {val}, ActionBy = {userId}, ProcResponseTime = {ProcResponseTime} ms",
     (int)CrudEnum.Update, CrudEnum.Update, clientId, appSettingsDto.Id, appSettingsDto.KeyName, appSettingsDto.Val, userId, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-            await _cacheService.RemoveAsync(CacheKeys.AGENTS_PATTERN_KEY);
+
+            await _cacheService.RemoveByPrefix(CacheKeys.APPSETTINGS_PATTERN_KEY);
+
             return response.FirstOrDefault();
         }
 
@@ -69,7 +74,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 .ToListAsync();
             _logger.LogInformation("Calling procedure usp_AppSettings_Ops | ActionId = {actionId}, ActionName = {actionName}, Id = {id}, ProcResponseTime = {ProcResponseTime} ms",
             (int)CrudEnum.Delete, CrudEnum.Delete, id, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-            await _cacheService.RemoveAsync(CacheKeys.AGENTS_PATTERN_KEY);
+
+            await _cacheService.RemoveByPrefix(CacheKeys.APPSETTINGS_PATTERN_KEY);
+
             return response.FirstOrDefault();
         }
 

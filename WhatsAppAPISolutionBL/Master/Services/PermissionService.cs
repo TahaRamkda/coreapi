@@ -40,17 +40,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     return null;
                 return response;
             });
-            if (cacheResult == null  || cacheResult.Count == 0)
+
+            if (cacheResult == null || cacheResult.Count == 0)
                 await _cacheService.RemoveAsync(cacheKey);
+
             return cacheResult;
-
-
         }
 
         public async Task<UResponse> AddPermissionAsync(int clientId, int userId, PermissionDto permission)
         {
             var permissionJson = JsonSerializer.Serialize(permission.Permissions);
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Permission_Ops @ActionId={(int)CrudEnum.Update}, @ClientId={clientId}, @RoleId={permission.RoleId}, @PermissionJson={permissionJson}, @ActionBy={userId}").ToListAsync();
+
+            await _cacheService.RemoveByPrefix(CacheKeys.PERMISSION_PATTERN_KEY);
+
             return response[0];
         }
     }
