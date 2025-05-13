@@ -52,6 +52,7 @@ namespace WhatsAppAPISolutionDL.UserModels.InteractiveTemplate
             public int? Sequence { get; set; }
             public int? ActionId { get; set; }
             public int? ActionType { get; set; }
+            public int? SystemActionId { get; set; }
         }
 
         public class InteractiveParameter
