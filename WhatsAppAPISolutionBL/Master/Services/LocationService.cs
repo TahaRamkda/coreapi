@@ -120,36 +120,28 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<DeliveryStatus> GetDeliveryStatus(string orderId, string geoLocation)
         {
+             DeliveryStatus deliveryStatus = new DeliveryStatus();
             _logger.LogInformation("Calling GetDeliveryStatus with orderId={orderId} and geoLocation={geoLocation}", orderId, geoLocation);
 
             if (String.IsNullOrWhiteSpace(geoLocation))
                 return new DeliveryStatus { IsDeliverable = false, Reason = "No geo location provided" };
 
-            DeliveryStatus deliveryStatus = new DeliveryStatus();
+            try
             {
-                deliveryStatus.IsDeliverable = true;
-                deliveryStatus.AreaName = "Hawalli block 4";
-                deliveryStatus.AreaNameAr = "Hawali block 4 AR";
-                deliveryStatus.Reason = "Delivery is available in your area";
+                string LocationUrl =_conf
+                var reqbody = new
+                {
+                    latitude = Location.latitude,
+                    longitude = Location.longitude,
+                };
+                string jsonBody = JsonConvert.SerializeObject(reqbody);
+                var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+                var Response = await _httpClient.PostAsync(KfgUrl, content);
 
             }
-
-            //try
-            //{
-            //    string KfgUrl = "https://kgf.com";
-            //    var reqbody = new
-            //    {
-            //        latitude = Location.latitude,
-            //        longitude = Location.longitude,
-            //    };
-            //    string jsonBody = JsonConvert.SerializeObject(reqbody);
-            //    var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-            //    var Response = await _httpClient.PostAsync(KfgUrl, content);
-
-            //}
-            //catch (Exception ex)
-            //{
-            //}
+            catch (Exception ex)
+            {
+            }
 
             return deliveryStatus;
         }
