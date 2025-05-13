@@ -82,7 +82,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             });
 
             if (cacheResult == null)
-                return null;
+                await _cacheService.RemoveAsync(cacheKey);
 
             return cacheResult;
         }
