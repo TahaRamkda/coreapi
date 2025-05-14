@@ -108,8 +108,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     return Ok(new ApiResult { Message = "FlowChildren text length cannot exceed 80 characters." });
 
                 // Ensure at least one FlowOption exists when Type is RadioButtonsGroup (3) or CheckboxGroup (4)
-                if ((child.Type == (int)FlowControlType.RadioButtonsGroup || child.Type == (int)FlowControlType.CheckboxGroup) && !child.FlowOptions.Any())
-                    return Ok(new ApiResult { Message = "At least one FlowOption must be entered when FlowChildren Type is RadioButtonsGroup or CheckboxGroup." });
+                if ((child.Type == (int)FlowControlType.RadioButtonsGroup || child.Type == (int)FlowControlType.CheckboxGroup || child.Type == (int)FlowControlType.Dropdown) && !child.FlowOptions.Any())
+                    return Ok(new ApiResult { Message = "At least one FlowOption must be entered when FlowChildren Type is RadioButtonsGroup or CheckboxGroup or Dropdown." });
             }
 
             // Validate FlowOptions
@@ -181,8 +181,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 if (child.Text.Length > 80)
                     return Ok(new ApiResult { Message = "FlowChildren text length cannot exceed 80 characters." });
 
-                if ((child.Type == (int)FlowControlType.RadioButtonsGroup || child.Type == (int)FlowControlType.CheckboxGroup) && !child.FlowOptions.Any())
-                    return Ok(new ApiResult { Message = "At least one FlowOption is required for RadioButtonsGroup or CheckboxGroup." });
+                if ((child.Type == (int)FlowControlType.RadioButtonsGroup || child.Type == (int)FlowControlType.CheckboxGroup || child.Type == (int)FlowControlType.Dropdown) && !child.FlowOptions.Any())
+                    return Ok(new ApiResult { Message = "At least one FlowOption is required for RadioButtonsGroup or CheckboxGroup or Dropdown." });
             }
 
             if (allOptions.Any(option => string.IsNullOrWhiteSpace(option.OptionText)))
