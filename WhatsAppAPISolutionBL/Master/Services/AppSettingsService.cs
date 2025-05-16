@@ -27,7 +27,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _cacheService = cacheService;
         }
 
-        public async Task<List<UAppSettingsList>> GetAppSettingsAsync(int ClientId,  string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue,int senderId = 0)
+        public async Task<List<UAppSettingsList>> GetAppSettingsAsync(int ClientId, string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue, int senderId = 0)
         {
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.AppSettingsList.FromSqlInterpolated($"exec usp_AppSettings_Ops @ActionId={(int)CrudEnum.List}, @ClientId={ClientId}, @SearchStr={searchStr}, @PageNo={pageNo}, @PageSize={pageSize}, @senderId={senderId}").ToListAsync();
@@ -43,7 +43,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var response = await _dbContext2.Response
                 .FromSqlInterpolated($"exec usp_AppSettings_Ops @ActionId={(int)CrudEnum.Add}, @ClientId={clientId}, @KeyName={appSettingsDto.KeyName}, @Val={appSettingsDto.Val}, @ActionBy={userId}")
                 .ToListAsync();
-            
+
             _logger.LogInformation("Calling procedure usp_AppSettings_Ops with ActionId = {actionId}, ActionName = {actionName}, ClientId = {clientId}, KeyName = {keyName}, Val = {val}, ActionBy = {userId}, ProcResponseTime = {ProcResponseTime} ms",
            (int)CrudEnum.Add, CrudEnum.Add, clientId, appSettingsDto.KeyName, appSettingsDto.Val, userId, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
 
@@ -93,7 +93,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 (int)CrudEnum.GetEntities, CrudEnum.GetEntities, clientId, searchStr, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
                 return response ?? new List<UEntityDto>();
             });
-            if(cacheResult == null || cacheResult.Count == 0)
+            if (cacheResult == null || cacheResult.Count == 0)
                 await _cacheService.RemoveAsync(cacheKey);
             return cacheResult;
         }
@@ -111,9 +111,22 @@ namespace WhatsAppAPISolutionBL.Master.Services
               (int)CrudEnum.GetById, CrudEnum.GetById, id, clientId, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
                 return response?.FirstOrDefault();
             });
-            if(cacheResult == null)
+            if (cacheResult == null)
                 await _cacheService.RemoveAsync(cacheKey);
             return cacheResult;
+        }
+
+        public async Task<UAppSetting> GetAppSettingByKeyAsync(int clientId, int senderId, string keyName)
+        {
+            if (String.IsNullOrWhiteSpace(keyName))
+                return null;
+
+            var startProcTime = DateTime.UtcNow;
+            var response = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_AppSettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @ClientId={clientId}, @SenderId={senderId}, @KeyName={keyName}").ToListAsync();
+
+            _logger.LogInformation("Calling procedure usp_AppSettings_Ops | ActionId = {actionId}, ActionName = {actionName}, ClientId = {clientId}, senderId = {senderId}, keyName = {keyName} ProcResponseTime = {ProcResponseTime} ms", (int)CrudEnum.GetById, CrudEnum.GetById, clientId, senderId, keyName, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+
+            return response?.FirstOrDefault();
         }
     }
 }

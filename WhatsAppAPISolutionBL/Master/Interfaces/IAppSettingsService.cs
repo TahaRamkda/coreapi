@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity.Data;
-using WhatsAppAPISolutionDL.Dto.AppSettings;
+﻿using WhatsAppAPISolutionDL.Dto.AppSettings;
 using WhatsAppAPISolutionDL.UserModels.AppSetting;
 using WhatsAppAPISolutionDL.UserModels.Entity;
-using WhatsAppAPISolutionDL.UserModels.Group;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
@@ -14,5 +12,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<List<UAppSettingsList>> GetAppSettingsAsync(int ClientId, string SearchStr = "",  int PageNo = 0, int PageSize = int.MaxValue, int senderId=0);
         Task<List<UEntityDto>> GetAllAppSettingsAsync(int clientId, string searchStr = "");
         Task<UAppSetting> GetAppSettingsByIdAsync(int id, int clientId);
+        Task<UAppSetting> GetAppSettingByKeyAsync(int clientId, int senderId, string keyName);
     }
 }
