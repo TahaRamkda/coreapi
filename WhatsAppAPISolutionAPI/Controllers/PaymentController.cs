@@ -38,6 +38,33 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         //    return Ok();
         //}
+        [HttpPost("TempPaymentStatusUpdate")]
+        public async Task<IActionResult> TempPaymentStatusUpdate(PaymentStatus model)
+        {
+          
+
+            if (model == null)
+                return BadRequest();
+
+            var response = await _paymentService.TempCheckKFGPaymentStatusAsync(model);
+
+            if (response == null || response.Status <= 0)
+            {
+                return Ok(new ApiResult
+                {
+                    Result = response,
+                    Message = response?.Message
+                });
+            }
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = response,
+                Message = "Data added successfully"
+            });
+        }
+
+
         [HttpPost("KFGPaymentStatusUpdate")]
         public async Task<IActionResult> KFGPaymentStatusUpdate(KFGPaymentStatus model )
         {
@@ -67,32 +94,39 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
 
-        //[HttpPost("RecheckPaymentStatus")]
-        //public async Task<IActionResult> RecheckPaymentStatus(RecheckKFGPaymentStatus model)
-        //{
-        //    _logger.LogInformation("Calling function RecheckKFGPaymentStatus with data={Model}", model);
+        [HttpPost("RecheckPaymentStatus")]
+        public async Task<IActionResult> RecheckPaymentStatus(RecheckKFGPaymentStatus model)
+        {
+            _logger.LogInformation("Calling function RecheckPaymentStatus with data={Model}", JsonConvert.SerializeObject(model));
 
-        //    if (model == null || string.IsNullOrEmpty(model.tr))
-        //        return BadRequest();
+            // Validate the model and OrderIds list
+            if (model == null || model.OrderId == null || !model.OrderId.Any())
+            {
+                return BadRequest("OrderIds list is required and cannot be empty.");
+            }
 
-        //    var response = await _paymentService.CheckKFGPaymentStatusAsync(model.EncryptedKey);
+            // Assuming _paymentService.CheckKFGPaymentStatusAsync processes the list of OrderIds
+            var response = await _paymentService.RecheckPaymentStatusAsync(model.OrderId);
 
-        //    _logger.LogInformation("Received api WhatsAppMessageStatusUpdate response with data={data}", JsonConvert.SerializeObject(response));
+            _logger.LogInformation("Received API response for RecheckPaymentStatus with data={data}", JsonConvert.SerializeObject(response));
 
-        //    if (response == null || response.Status <= 0)
-        //    {
-        //        return Ok(new ApiResult
-        //        {
-        //            Result = response,
-        //            Message = response?.Message
-        //        });
-        //    }
-        //    return Ok(new ApiResult
-        //    {
-        //        Success = true,
-        //        Result = response,
-        //        Message = "Data added successfully"
-        //    });
-        //}
+            // Handle null or invalid response
+            if (response == null || response.Any())
+            {
+                return Ok(new ApiResult
+                {
+                    Result = response,
+                    Message = "Failed to process payment status check."
+                });
+            }
+
+            // Success response
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = response,
+                Message = "Payment status checked successfully."
+            });
+        }
     }
 }
