@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System.Drawing.Printing;
 using System.Text;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
@@ -644,7 +645,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var content = await response.Content.ReadAsStringAsync();
 
             _logger.LogInformation("Calling bridge API apiEndpoint={apiEndpoint} SendBatchMessage with request={request} and response={response} with apiResponseTime={apiResponseTime}", apiEndpoint, request, content, DateTime.UtcNow.Subtract(apiCallStart).TotalMilliseconds);
-             
+
             var result = System.Text.Json.JsonSerializer.Deserialize<SyncResultDto>(content);
             if (result != null && result.success)
             {
@@ -1170,6 +1171,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
         /// <returns></returns>
         public async Task<ApiResult> SendInteractiveMessageAsync(InteractiveMessageRequestDto model)
         {
+            _logger.LogInformation("Calling SendInteractiveMessageAsync with model={model}", JsonConvert.SerializeObject(model));
+
             Media media = null;
             var headerType = (TemplateHeaderEnum)model.HeaderType;
 
