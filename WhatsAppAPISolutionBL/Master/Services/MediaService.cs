@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System.Collections;
 using System.Net.Http.Headers;
 using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Master.Interfaces;
@@ -33,6 +31,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IOptions<BridgeConfigurationSettings> _bridgeConfigurationSettings;
         private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
         private readonly IUserService _userService;
+        private readonly IAppSettingsService _appSettingsService;
         private readonly List<string> _allowedImageExtensions = new List<string> { ".jpg", ".jpeg", ".png" };
         private readonly List<string> _allowedVideoExtensions = new List<string> { ".webp", ".3gp", ".mp4" };
         private readonly List<string> _allowedDocumentExtensions = new List<string> { ".txt", ".xls", ".xlsx", ".doc", ".docx", ".ppt", ".pptx", ".pdf" };
@@ -49,7 +48,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IOptions<BridgeConfigurationSettings> bridgeConfigurationSettings,
             IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings,
             IWebHostEnvironment webHostEnvironment,
-            IUserService userService)
+            IUserService userService,
+            IAppSettingsService appSettingsService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -58,6 +58,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _bridgeConfigurationSettings = bridgeConfigurationSettings;
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
             _userService = userService;
+            _appSettingsService = appSettingsService;
 
             _staticFolderPath = _apiSolutionConfigurationSettings.Value.StaticFolderPath;
             _uploadPath = webHostEnvironment.ContentRootPath.TrimEnd('\\');
@@ -155,8 +156,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.UMediaUploads.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SenderNameId={senderId}, @ContentTypeStr={contentTypeStr}, @PageNo={PageNo}, @PageSize={PageSize}, @MediaTypeId={mediaTypeId}, @FileName = {FileName}").ToListAsync();
             _logger.LogInformation("Calling procedure usp_Medias_Ops with parameters: ActionId={ActionId}, ActionName={ActionName}, ClientId={ClientId}, SenderId={SenderId}, ContentType={ContentType}, PageNo={PageNo}, PageSize={PageSize}, MediaTypeId={MediaTypeId}, FileName={FileName}, ProcResponseTime={ProcResponseTime}ms",
-                (int)CrudEnum.List, CrudEnum.List, clientId, senderId, contentTypeStr, PageNo, PageSize, mediaTypeId, FileName, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);            
-                return response;
+                (int)CrudEnum.List, CrudEnum.List, clientId, senderId, contentTypeStr, PageNo, PageSize, mediaTypeId, FileName, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+            return response;
         }
 
         public async Task<UResponseWithID> AddMediaAsync(MediaUploadDto media)
@@ -181,28 +182,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var mediaTypeId = GetMediaTypeIdFromExtension(fileExtension);
                 int maxFileSize = 1; //Allow atleast 1 mb files
 
-                string keyNames = string.Join(",", new[] { MediaSizeEnum.ImageSizeInMB.ToString(), MediaSizeEnum.VideoSizeInMB.ToString(), MediaSizeEnum.DocumentSizeInMB.ToString(), MediaSizeEnum.AudioSizeInMB.ToString() });
-                var startProcTime = DateTime.UtcNow;
-                var response = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_Appsettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @KeyName={keyNames}, @ClientId={model.ClientId}, @SenderId={model.SenderNameId}").ToListAsync();
-                _logger.LogDebug("Calling procedure usp_Appsettings_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.GetAppSettings, CrudEnum.GetAppSettings, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-
                 // Determine the key name based on the media type
                 string keyName = mediaTypeId switch
                 {
-                    (int)MediaTypeEnum.IMAGE => MediaSizeEnum.ImageSizeInMB.ToString(),
-                    (int)MediaTypeEnum.VIDEO => MediaSizeEnum.VideoSizeInMB.ToString(),
-                    (int)MediaTypeEnum.DOCUMENT => MediaSizeEnum.DocumentSizeInMB.ToString(),
-                    (int)MediaTypeEnum.AUDIO => MediaSizeEnum.AudioSizeInMB.ToString(),
+                    (int)MediaTypeEnum.IMAGE => AppSettingKey.ImageSizeInMB,
+                    (int)MediaTypeEnum.VIDEO => AppSettingKey.VideoSizeInMB,
+                    (int)MediaTypeEnum.DOCUMENT => AppSettingKey.DocumentSizeInMB,
+                    (int)MediaTypeEnum.AUDIO => AppSettingKey.AudioSizeInMB,
                     _ => null
                 };
 
-                if (!string.IsNullOrEmpty(keyName))
-                {
-                    var mediaSize = response.FirstOrDefault(x => x.KeyName == keyName);
-                    if (mediaSize != null)
-                        maxFileSize = Convert.ToInt32(mediaSize.Val);
-                }
-
+                var appSetting = await _appSettingsService.GetAppSettingByKeyAsync(model.ClientId, model.SenderNameId, keyName);
+                if (appSetting != null)
+                    maxFileSize = Convert.ToInt32(appSetting.Val);
+                  
                 // Check file size
                 int maxFileLength = maxFileSize * 1024 * 1024;
 

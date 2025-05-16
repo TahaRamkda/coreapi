@@ -32,6 +32,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IOneSignalService _oneSignalService;
         private readonly IAgentsService _agentsService;
         private readonly IMediatorService _mediatorService;
+        private readonly IAppSettingsService _appSettingsService;
 
         public MessageService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
@@ -42,7 +43,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IConversationService conversationService,
             IOneSignalService oneSignalService,
             IAgentsService agentsService,
-            IMediatorService mediatorService)
+            IMediatorService mediatorService,
+            IAppSettingsService appSettingsService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -54,29 +56,24 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _oneSignalService = oneSignalService;
             _agentsService = agentsService;
             _mediatorService = mediatorService;
+            _appSettingsService = appSettingsService;
         }
 
         #region Utilities
 
-        private async Task<bool> IsFoulMessage(int clientId, int? senderId = 0, string msg = null)
+        private async Task<bool> IsFoulMessage(int clientId, int senderId = 0, string msg = "")
         {
             if (String.IsNullOrWhiteSpace(msg))
                 return false;
 
-            string keyNames = CommonEnum.FoulLanguageWords.ToString();
-            var response = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_Appsettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @KeyName={keyNames}, @ClientId={clientId}, @SenderId={senderId}").ToListAsync();
+            string keyName = AppSettingKey.FoulLanguageWords;
 
-            // Check if the response contains data
-            if (response == null || !response.Any())
+            var appSetting = await _appSettingsService.GetAppSettingByKeyAsync(clientId, senderId, keyName);
+            if (appSetting == null || String.IsNullOrWhiteSpace(appSetting.Val)) 
                 return false;
-
-            // Extract foul words from the first setting
-            var foulLanguageSetting = response.FirstOrDefault();
-            if (string.IsNullOrWhiteSpace(foulLanguageSetting?.Val))
-                return false;
-
+             
             // Parse the foul words and clean up any whitespace
-            var foulWords = foulLanguageSetting.Val.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(word => word.Trim()).Where(word => !string.IsNullOrWhiteSpace(word)).ToArray();
+            var foulWords = appSetting.Val.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(word => word.Trim()).Where(word => !string.IsNullOrWhiteSpace(word)).ToArray();
 
             // Check for whole-word matches in the message using LINQ and Regex
             return foulWords.Any(word => System.Text.RegularExpressions.Regex.IsMatch(msg, $@"\b{System.Text.RegularExpressions.Regex.Escape(word)}\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase));

@@ -59,7 +59,7 @@
         GetById = 8,
 
         AssignConversationToAgent = 9,
-        GetAppSettings = 9,
+        GetAppSettingByKeyName = 9,
 
         GetAllLoanTransactions = 10,
         GetLatestConversationByConversationId = 10,

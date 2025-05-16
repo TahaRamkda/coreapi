@@ -78,7 +78,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     {
                         await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationAssigned.ToString(), conversation);
 
-                        if (await _oneSignalService.IsAgentOneSignalEnabled(conversation.ClientId, conversation.SenderId))
+                        if (await _oneSignalService.IsAgentOneSignalEnabled(conversation.ClientId ?? 0, conversation.SenderId ?? 0))
                             await _oneSignalService.SendConversationAssignedNotification(conversation.AgentId ?? 0, conversation.Language, conversation.LastMessageText);
 
                         _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", SignalREnum.ConversationAssigned.ToString(), agentId, connectionId, conversationId, i, JsonConvert.SerializeObject(conversation));

@@ -122,11 +122,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 return null;
 
             var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_AppSettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @ClientId={clientId}, @SenderId={senderId}, @KeyName={keyName}").ToListAsync();
+            var response = await _dbContext2.AppSetting.FromSqlInterpolated($"exec usp_AppSettings_Ops @ActionId={(int)CrudEnum.GetAppSettingByKeyName}, @ClientId={clientId}, @SenderId={senderId}, @KeyName={keyName}").ToListAsync();
 
             _logger.LogInformation("Calling procedure usp_AppSettings_Ops | ActionId = {actionId}, ActionName = {actionName}, ClientId = {clientId}, senderId = {senderId}, keyName = {keyName} ProcResponseTime = {ProcResponseTime} ms", (int)CrudEnum.GetById, CrudEnum.GetById, clientId, senderId, keyName, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
 
-            return response?.FirstOrDefault();
+            if (!response.Any())
+                return null;
+
+            return response[0];
         }
     }
 }
