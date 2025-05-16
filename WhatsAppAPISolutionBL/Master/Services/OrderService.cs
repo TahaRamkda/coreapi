@@ -12,10 +12,8 @@ using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Flow;
-using WhatsAppAPISolutionDL.UserModels.InteractiveTemplate;
 using WhatsAppAPISolutionDL.UserModels.Location;
 using WhatsAppAPISolutionDL.UserModels.Orders;
-using WhatsAppAPISolutionDL.UserModels.SenderName;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -50,6 +48,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             _logger.LogInformation("Calling function CreateOrdersAsync with received request={request}", JsonConvert.SerializeObject(model));
 
+            //Override the item price with actual price in database
+            foreach (var productItem in model.order.product_items)
+            {
+                int itemId = 0;
+                Int32.TryParse(productItem.product_retailer_id, out itemId);
+
+                var item = await _dbContext.Items.FindAsync(itemId);
+                if (item != null)
+                    productItem.item_price = item.Price ?? 0;
+            }
+
             var orderRequest = new
             {
                 CatalogId = model.order.catalog_id,
@@ -59,21 +68,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
 
             var senderName = await _dbContext.SenderNames.FirstOrDefaultAsync(x => x.PhoneNumberId == model.phone_number_Id.phone_number_id);
-
             var orderjson = JsonConvert.SerializeObject(orderRequest);
 
+            _logger.LogInformation("Calling Db procedure usp_Orders_PlaceOrder with request={request}", $"exec usp_Orders_PlaceOrder @ClientId={senderName.ClientId},@SenderId={senderName.SenderId},@OrderJson={orderjson}");
+
+            var startProcTime = DateTime.UtcNow;
             var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PlaceOrder @ClientId={senderName.ClientId},@SenderId={senderName.SenderId},@OrderJson={orderjson}").ToListAsync();
-            _logger.LogInformation("Received response from procedure usp_Orders_PlaceOrder with request={request} and response={response}", JsonConvert.SerializeObject(model), JsonConvert.SerializeObject(dbresponse));
+
+            _logger.LogInformation("Received response from procedure usp_Orders_PlaceOrder with request={request} and response={response} and ProcResponseTime={ProcResponseTime}", $"exec usp_Orders_PlaceOrder @ClientId={senderName.ClientId},@SenderId={senderName.SenderId},@OrderJson={orderjson}", JsonConvert.SerializeObject(dbresponse), DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
 
             await _mediatorService.ProcessDBResponse(senderName.ClientId ?? 0, senderName.SenderId, dbresponse[0]);
-
             return new ApiResult { Success = true, Message = "Order created successfully" };
         }
-
         public async Task<ApiResult> SaveFlowResponse(FlowResponseDto flowResponse, Flow flow)
         {
             _logger.LogInformation("Calling function SaveFlowResponse in OrderService with received flowResponse={flowResponse} and flow={flow}", JsonConvert.SerializeObject(flowResponse), JsonConvert.SerializeObject(flow));
-
             int orderId = 0;
             int orderStepTypeId = 0;
             var (isValid, path, matchedKeys) = flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>();
@@ -149,7 +158,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 if (matchedKeys.Contains(nameof(FlowTokenIdentifier.StepTypeId)))
                     orderStepTypeId = Convert.ToInt32(flowResponse.flowResponse.flowToken.ParseIdPath<FlowTokenIdentifier>().path.StepTypeId);
 
-               
+
                 if (order == null)
                 {
                     _logger.LogError("No order found with orderId={orderId} in SaveCompleteAddress in LocationService", orderId);
