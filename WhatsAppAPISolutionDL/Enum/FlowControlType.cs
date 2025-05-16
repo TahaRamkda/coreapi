@@ -6,6 +6,7 @@
         TextArea = 2,
         RadioButtonsGroup = 3,
         CheckboxGroup = 4,
-        TextHeading = 5
+        TextHeading = 5,
+        Dropdown = 6
     }
 }
