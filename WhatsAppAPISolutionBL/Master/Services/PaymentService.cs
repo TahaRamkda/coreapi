@@ -8,6 +8,7 @@ using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Order.KFG.Payments;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Location;
@@ -19,12 +20,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly HttpClient _httpClient;
-        private readonly string _baseUrl = "";
-        private readonly string _merchantId = "";
-        private readonly string _licenseKey = "";
-        private readonly string _secretKey = "";
-        private readonly KFGPaymentConfiguration _config;
-        //private readonly IMessageService _messageService;
+        private readonly IOptions<KFGPaymentConfiguration> _kfgpaymentConfigurationSettings;
         private readonly ILogger<PaymentService> _logger;
         public readonly IMediatorService _mediatorService;
         public readonly IAppSettingsService _appSettingsService;
@@ -32,8 +28,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public PaymentService(
             WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
-            HttpClient httpClient, 
-            IOptions<KFGPaymentConfiguration> config,
+            HttpClient httpClient,
+            IOptions<KFGPaymentConfiguration> kfgpaymentConfigurationSettings,
             ILogger<PaymentService> logger, //,
             IMediatorService mediatorService,
             IAppSettingsService appSettingsService
@@ -44,12 +40,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _httpClient = httpClient;
-            _config = config.Value;
             _mediatorService = mediatorService;
-            _baseUrl = _config.BaseURL;
-            _merchantId = _config.MerchantId;
-            _licenseKey = _config.LicenseKey;
-            _secretKey = _config.SecretKey;
+           _kfgpaymentConfigurationSettings = kfgpaymentConfigurationSettings;
             _logger = logger;
             _appSettingsService = appSettingsService;
             //_messageService = messageService;
@@ -106,9 +98,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response ;
         }
-
-
-
         public async Task<List<UResponse>> RecheckPaymentStatusAsync(List<long> orderIds)
         {
             if (orderIds == null || !orderIds.Any())
@@ -150,36 +139,32 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     var recheckUrl = _config.Val;
                     var requestBody = new 
                     {
-                        MerchantId = "",
-                        LicenceKey = "",
+                        MerchantId = _kfgpaymentConfigurationSettings.Value.MerchantId,
+                        LicenceKey = _kfgpaymentConfigurationSettings.Value.LicenseKey,
                         TransactionId = order.OrderId,
                     };
                     var jsonBody = JsonConvert.SerializeObject(requestBody);
                     var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-
                     var response = await _httpClient.PostAsync(recheckUrl, content);
-
                     if (!response.IsSuccessStatusCode)
                     {
                         _logger.LogWarning("API call failed with status code {StatusCode} and reason {ReasonPhrase}", response.StatusCode, response.ReasonPhrase);
                         responses.Add(new UResponse
                         {
-
                             Message = $"Error processing order ID {orderId}",
                             Status = 0
                         });
                     }
 
                     var responseContent = await response.Content.ReadAsStringAsync();
-
                     var encryptedpayload = JsonConvert.DeserializeObject<KFGPaymentStatus>(responseContent);
-
-                    //bool isSuccess = paymentStatus == "Completed";
+                    var paymentStatus = await CheckKFGPaymentStatusAsync(encryptedpayload.EncryptedKey);
+                   
                     responses.Add(new UResponse
                     {
 
-                        Message = "Payment status retrieved successfully.",
-                        Status = 0
+                        Message =paymentStatus.Message,
+                        Status = paymentStatus.Status
                     });
                 }
                 catch (Exception ex)
@@ -196,14 +181,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return responses;
         }
-
-
-
         public async Task<KfgDecryptedResponse?> DecryptKfgResponse(string EncryptedString)
         {
             if (string.IsNullOrWhiteSpace(EncryptedString)) return null;
 
-            byte[] keyBytes = Encoding.UTF8.GetBytes(_secretKey);
+            byte[] keyBytes = Encoding.UTF8.GetBytes(_kfgpaymentConfigurationSettings.Value.SecretKey);
             byte[] encryptedBytes = Convert.FromBase64String(EncryptedString);
 
             using var aes = Aes.Create();
@@ -217,7 +199,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return JsonConvert.DeserializeObject<KfgDecryptedResponse>(decryptedJson);
         }
-
         public async Task<UResponse?> TempCheckKFGPaymentStatusAsync(PaymentStatus paymentStatus)
         {
             UResponse response = new UResponse();

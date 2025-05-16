@@ -58,15 +58,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Entity
         public string? Ud2 { get; set; }
     }
 
-    public class KFGPaymentConfiguration
-    {
-        public string BaseURL { get; set; }
-        public string MerchantId { get; set; }
-        public string LicenseKey { get; set; }
-        public string SecretKey { get; set; }
-        public string MerchantTemplateId {  get; set; }
-    }
-
+ 
     public class WebhookPayload
     {
         public string EncryptedKey { get; set; }
