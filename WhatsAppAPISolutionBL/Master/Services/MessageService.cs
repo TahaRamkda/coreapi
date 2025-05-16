@@ -69,9 +69,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             string keyName = AppSettingKey.FoulLanguageWords;
 
             var appSetting = await _appSettingsService.GetAppSettingByKeyAsync(clientId, senderId, keyName);
-            if (appSetting == null || String.IsNullOrWhiteSpace(appSetting.Val)) 
+            if (appSetting == null || String.IsNullOrWhiteSpace(appSetting.Val))
                 return false;
-             
+
             // Parse the foul words and clean up any whitespace
             var foulWords = appSetting.Val.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(word => word.Trim()).Where(word => !string.IsNullOrWhiteSpace(word)).ToArray();
 
@@ -206,15 +206,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
             }
 
+            _logger.LogInformation("Calling Db procedure usp_MessageReceivedLogs_ops with ProcDetails={ProcDetails}", $"exec usp_MessageReceivedLogs_ops @ClientId={messageReceive.client_Id}, @SenderId={senderName?.SenderId}, @WaId={messageReceive.wam_Id}, @ContextWaId={messageReceive.context?.wam_Id},@Name={fullName}, @PhoneNumber={messageReceive.from}, @ResponseType={messageType}, @ResponseText={messageText}, @MediaId={mediaId}, @IsFoul={isFoulMsg}");
+
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_MessageReceivedLogs_ops @ClientId={messageReceive.client_Id}, @SenderId={senderName?.SenderId}, @WaId={messageReceive.wam_Id}, @ContextWaId={messageReceive.context?.wam_Id},@Name={fullName}, @PhoneNumber={messageReceive.from}, @ResponseType={messageType}, @ResponseText={messageText}, @MediaId={mediaId}, @IsFoul ={isFoulMsg}").ToListAsync();
-            _logger.LogInformation("Calling procedure usp_MessageReceivedLogs_ops with ProcResponseTime={ProcResponseTime} ", DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-            _logger.LogInformation("Calling Db procedure messagereceivedLog with parmas: {ProcDetails}", $"exec usp_MessageReceivedLogs_ops @ClientId={messageReceive.client_Id}, @SenderId={senderName?.SenderId}, @WaId={messageReceive.wam_Id}, @ContextWaId={messageReceive.context?.wam_Id},@Name={fullName}, @PhoneNumber={messageReceive.from}, @ResponseType={messageType}, @ResponseText={messageText}, @MediaId={mediaId}, @IsFoul ={isFoulMsg}");
+            
+            _logger.LogInformation("Calling procedure usp_MessageReceivedLogs_ops with ProcDetails={ProcDetails} and ProcResponseTime={ProcResponseTime} ", $"exec usp_MessageReceivedLogs_ops @ClientId={messageReceive.client_Id}, @SenderId={senderName?.SenderId}, @WaId={messageReceive.wam_Id}, @ContextWaId={messageReceive.context?.wam_Id},@Name={fullName}, @PhoneNumber={messageReceive.from}, @ResponseType={messageType}, @ResponseText={messageText}, @MediaId={mediaId}, @IsFoul={isFoulMsg}", DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
 
             //Mediator service
             if (response != null & response.Any())
             {
-                _logger.LogInformation("Message Received Log DB call response: {response}", JsonConvert.SerializeObject(response[0]));
+                _logger.LogDebug("Message Received Log DB call response: {response}", JsonConvert.SerializeObject(response[0]));
                 var action = response[0];
                 var result = await _mediatorService.ProcessDBResponse(client.ClientId, senderName.SenderId, action);
                 return result;

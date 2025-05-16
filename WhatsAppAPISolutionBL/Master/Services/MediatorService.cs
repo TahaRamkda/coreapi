@@ -260,7 +260,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         /// <returns></returns>
         public async Task<ApiResult> ProcessDBResponse(int clientId, int senderId, DBResponse model)
         {
-            _logger.LogInformation("Calling function ProcessDBResponse with received clientId={clientId} senderId={senderId} and DBResponse={DBResponse}", clientId, senderId, model);
+            _logger.LogInformation("Calling function ProcessDBResponse with received clientId={clientId} senderId={senderId} and DBResponse={DBResponse}", clientId, senderId, JsonConvert.SerializeObject(model));
 
             if (model == null || String.IsNullOrWhiteSpace(model.Json))
                 return new ApiResult { Success = false, Message = $"DBResponse was null or json was empty. DBResponse={JsonConvert.SerializeObject(model)}" };
