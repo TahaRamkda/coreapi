@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\PaymentLinkController.cs" />
     <Compile Remove="Controllers\TempController.cs" />
   </ItemGroup>
 

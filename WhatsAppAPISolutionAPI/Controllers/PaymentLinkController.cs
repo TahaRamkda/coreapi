@@ -24,7 +24,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private int ClientId = 0;
         private readonly string _secretKey;
         private readonly KFGPaymentConfiguration _config;
-        private readonly IKFGPaymentService _kfgPayementService;
+        private readonly IPaymentService _kfgPayementService;
 
         #endregion
 
@@ -35,7 +35,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
             IUserService userService, IOptions<KFGPaymentConfiguration> config,
-            IKFGPaymentService kFGPaymentService)
+            IPaymentService kFGPaymentService)
         {
             _logger = logger;
             _communicationService = communicationService;
