@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Order.KFG;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
@@ -14,6 +15,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly ILogger<KFGOrderService> _logger;
+        private readonly ISenderNameService _senderNameService;
 
         #endregion
 
@@ -22,11 +24,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public KFGOrderService(
             WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
-            ILogger<KFGOrderService> logger)
+            ILogger<KFGOrderService> logger,
+            ISenderNameService senderNameService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _logger = logger;
+            _senderNameService = senderNameService;
         }
 
         #endregion
@@ -47,7 +51,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (orderItems == null || !orderItems.Any())
                 throw new ArgumentNullException(nameof(orderItems));
 
-            var senderName = await _dbContext.SenderNames.FindAsync(order.SenderId);
+            var senderName = await _senderNameService.GetSenderNameEntityByIdAsync(order.SenderId ?? 0);
             if (senderName == null)
                 throw new ArgumentNullException(nameof(senderName));
 
@@ -188,7 +192,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return json;
         }
-         
+
         #endregion
     }
 }

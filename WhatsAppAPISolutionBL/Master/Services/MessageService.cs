@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -14,9 +13,7 @@ using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Hubs;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
-using WhatsAppAPISolutionDL.UserModels.Client;
 using WhatsAppAPISolutionDL.UserModels.Entity;
-using WhatsAppAPISolutionDL.UserModels.SenderName;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -33,6 +30,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IAgentsService _agentsService;
         private readonly IMediatorService _mediatorService;
         private readonly IAppSettingsService _appSettingsService;
+        private readonly IClientService _clientService;
+        private readonly ISenderNameService _senderNameService;
 
         public MessageService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
@@ -44,7 +43,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IOneSignalService oneSignalService,
             IAgentsService agentsService,
             IMediatorService mediatorService,
-            IAppSettingsService appSettingsService)
+            IAppSettingsService appSettingsService,
+            IClientService clientService,
+            ISenderNameService senderNameService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -57,6 +58,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _agentsService = agentsService;
             _mediatorService = mediatorService;
             _appSettingsService = appSettingsService;
+            _clientService = clientService;
+            _senderNameService = senderNameService;
         }
 
         #region Utilities
@@ -101,7 +104,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 && !String.IsNullOrEmpty(messageStatus.phone_number_Id.display_phone_number)
                 && !String.IsNullOrEmpty(messageStatus.phone_number_Id.phone_number_id))
             {
-                var senderName = await _dbContext.SenderNames.Where(x => x.ClientId == Convert.ToInt32(messageStatus.client_Id) && x.PhoneNumberId == messageStatus.phone_number_Id.phone_number_id).FirstOrDefaultAsync();
+                var senderName = await _senderNameService.GetSenderNameEntityByPhoneNumberIdAsync(messageStatus.phone_number_Id.phone_number_id); 
                 if (senderName != null)
                     senderId = senderName.SenderId;
             }
@@ -132,8 +135,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
         /// <returns></returns>
         public async Task<ApiResult> AddMessageReceivedLogAsync(WhatsAppMessageReceiveDto messageReceive)
         {
-            var client = await _dbContext.Clients.FirstOrDefaultAsync(x => x.ClientId == Convert.ToInt32(messageReceive.client_Id));
-            var senderName = await _dbContext.SenderNames.FirstOrDefaultAsync(x => x.PhoneNumberId == messageReceive.phone_number_Id.phone_number_id);
+            var client = await _clientService.GetClientEntityByIdAsync(Convert.ToInt32(messageReceive.client_Id));
+            var senderName = await _senderNameService.GetSenderNameEntityByPhoneNumberIdAsync(messageReceive.phone_number_Id.phone_number_id); 
 
             int messageType = 0;
             string messageText = String.Empty;
@@ -210,7 +213,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_MessageReceivedLogs_ops @ClientId={messageReceive.client_Id}, @SenderId={senderName?.SenderId}, @WaId={messageReceive.wam_Id}, @ContextWaId={messageReceive.context?.wam_Id},@Name={fullName}, @PhoneNumber={messageReceive.from}, @ResponseType={messageType}, @ResponseText={messageText}, @MediaId={mediaId}, @IsFoul ={isFoulMsg}").ToListAsync();
-            
+
             _logger.LogInformation("Calling procedure usp_MessageReceivedLogs_ops with request={request} and response={response} and ProcResponseTime={ProcResponseTime}", $"exec usp_MessageReceivedLogs_ops @ClientId={messageReceive.client_Id}, @SenderId={senderName?.SenderId}, @WaId={messageReceive.wam_Id}, @ContextWaId={messageReceive.context?.wam_Id},@Name={fullName}, @PhoneNumber={messageReceive.from}, @ResponseType={messageType}, @ResponseText={messageText}, @MediaId={mediaId}, @IsFoul={isFoulMsg}", JsonConvert.SerializeObject(response), DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
 
             //Mediator service

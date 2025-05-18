@@ -172,16 +172,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         [AllowAnonymous]
         [HttpGet("getclientinformation")]
-        public ActionResult GetClientInformationAsync(int ClientId)
+        public async Task<IActionResult> GetClientInformationAsync(int clientId)
         {
-            _logger.LogInformation("Calling api GetClientInformationAsync with ClientId={ClientId}", ClientId);
+            _logger.LogInformation("Calling api GetClientInformationAsync with ClientId={ClientId}", clientId);
 
-            if (ClientId <= 0)
-            {
+            if (clientId <= 0)
                 return NotFound("not found");
-            }
 
-            var client = _dbContext.Clients.Find(ClientId);
+            var client = await _clientService.GetClientEntityByIdAsync(clientId);
             if (client == null)
                 return Ok(new ApiResult { Message = "No client found" });
 

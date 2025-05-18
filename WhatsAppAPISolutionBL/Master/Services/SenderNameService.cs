@@ -6,6 +6,7 @@ using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Entity;
+using WhatsAppAPISolutionDL.UserModels.Message;
 using WhatsAppAPISolutionDL.UserModels.SenderName;
 
 namespace WhatsAppAPISolutionBL.Master.Services
@@ -27,7 +28,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
 
         public async Task<List<USenderName>> GetSenderNameListAsync(int ClientId)
-        { 
+        {
             var cacheKey = string.Format(CacheKeys.SENDERNAME_DROPDOWN_KEY, ClientId);
             var cacheResult = _cacheService.GetAsync(cacheKey, async () =>
             {
@@ -39,7 +40,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (cacheResult == null)
                 await _cacheService.RemoveAsync(cacheKey);
-          
+
             return await cacheResult;
         }
 
@@ -77,7 +78,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (cacheResult == null || cacheResult.Count == 0)
                 await _cacheService.RemoveAsync(cacheKey);
-            
+
             return cacheResult;
         }
 
@@ -94,7 +95,49 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (cacheResult == null)
                 await _cacheService.RemoveAsync(cacheKey);
-            
+
+            return cacheResult;
+        }
+
+        public async Task<SenderName> GetSenderNameEntityByIdAsync(int senderId)
+        {
+            var cacheKey = string.Format(CacheKeys.SENDERNAME_ENTITY_BY_ID_KEY, senderId);
+            var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
+            {
+                return await _dbContext.SenderNames.FindAsync(senderId);
+            });
+
+            if (cacheResult == null)
+                await _cacheService.RemoveAsync(cacheKey);
+
+            return cacheResult;
+        }
+
+        public async Task<SenderName> GetSenderNameEntityByPhoneNumberIdAsync(string phoneNumberId)
+        {
+            var cacheKey = string.Format(CacheKeys.SENDERNAME_ENTITY_BY_PHONENUMBERID_KEY, phoneNumberId);
+            var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
+            {
+                return await _dbContext.SenderNames.FirstOrDefaultAsync(x => x.PhoneNumberId == phoneNumberId);
+            });
+
+            if (cacheResult == null)
+                await _cacheService.RemoveAsync(cacheKey);
+
+            return cacheResult;
+        }
+
+        public async Task<SenderName> GetSenderNameEntityByPhoneNumberAsync(string phoneNumber)
+        {
+            var cacheKey = string.Format(CacheKeys.SENDERNAME_ENTITY_BY_PHONENUMBER_KEY, phoneNumber);
+            var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
+            {
+                return await _dbContext.SenderNames.FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber);
+            });
+
+            if (cacheResult == null)
+                await _cacheService.RemoveAsync(cacheKey);
+
             return cacheResult;
         }
     }

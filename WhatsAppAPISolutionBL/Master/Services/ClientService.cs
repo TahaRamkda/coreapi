@@ -86,5 +86,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return cacheResult;
         }
+
+        public async Task<Client> GetClientEntityByIdAsync(int clientId)
+        {
+            var cacheKey = string.Format(CacheKeys.CLIENT_ENTITY_BY_ID_KEY, clientId);
+            var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
+            {
+                return await _dbContext.Clients.FindAsync(clientId);
+            });
+
+            if (cacheResult == null)
+                await _cacheService.RemoveAsync(cacheKey);
+
+            return cacheResult;
+        }
     }
 }

@@ -36,6 +36,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly List<string> _allowedVideoExtensions = new List<string> { ".webp", ".3gp", ".mp4" };
         private readonly List<string> _allowedDocumentExtensions = new List<string> { ".txt", ".xls", ".xlsx", ".doc", ".docx", ".ppt", ".pptx", ".pdf" };
         private readonly List<string> _allowedAudioExtensions = new List<string> { ".aac", ".amr", ".mp3", ".m4a", ".ogg" };
+        private readonly ISenderNameService _senderNameService;
 
         #endregion
 
@@ -49,7 +50,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings,
             IWebHostEnvironment webHostEnvironment,
             IUserService userService,
-            IAppSettingsService appSettingsService)
+            IAppSettingsService appSettingsService,
+            ISenderNameService senderNameService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -67,6 +69,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 Directory.CreateDirectory(Path.Combine(_uploadPath, _staticFolderPath));
 
             userId = _userService.GetUserIdFromAccessToken();
+            _senderNameService = senderNameService;
         }
 
         #endregion
@@ -170,7 +173,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponseWithID> UploadMediaAsync(MediaFileDto model)
         {
-            var senderName = await _dbContext.SenderNames.Where(x => x.SenderId == model.SenderNameId).FirstOrDefaultAsync();
+            var senderName = await _senderNameService.GetSenderNameEntityByIdAsync(model.SenderNameId);
             if (model.UploadToFacebook && senderName == null)
                 return new UResponseWithID { Message = "Sender name not exist" };
 
