@@ -1,4 +1,5 @@
 ﻿using WhatsAppAPISolutionDL.Dto.Client;
+using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels.Client;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 
@@ -12,5 +13,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> DeleteClientAsync(int clientId);
         Task<List<UEntityDto>> GetClientsAsync(int clientId, string searchStr = "");
         Task<UClientDetail> GetClientByIdAsync(int clientId);
+        Task<Client> GetClientEntityByIdAsync(int clientId);
     }
 }

@@ -26,6 +26,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly ILogger<OrderService> _logger;
         private readonly ILocationService _locationService;
         private readonly IMediatorService _mediatorService;
+        private readonly ISenderNameService _senderNameService;
 
         public OrderService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
@@ -33,7 +34,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IUserService userservice,
             ILocationService locationService,
             ILogger<OrderService> logger,
-            IMediatorService mediatorService)
+            IMediatorService mediatorService,
+            ISenderNameService senderNameService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -42,6 +44,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _logger = logger;
             _locationService = locationService;
             _mediatorService = mediatorService;
+            _senderNameService = senderNameService;
         }
 
         public async Task<ApiResult> CreateOrdersAsync(MetaOrderRequestDto model)
@@ -67,7 +70,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 product_items = model.order.product_items,
             };
 
-            var senderName = await _dbContext.SenderNames.FirstOrDefaultAsync(x => x.PhoneNumberId == model.phone_number_Id.phone_number_id);
+            var senderName = await _senderNameService.GetSenderNameEntityByPhoneNumberIdAsync(model.phone_number_Id.phone_number_id); 
             var orderjson = JsonConvert.SerializeObject(orderRequest);
 
             _logger.LogInformation("Calling Db procedure usp_Orders_PlaceOrder with request={request}", $"exec usp_Orders_PlaceOrder @ClientId={senderName.ClientId},@SenderId={senderName.SenderId},@OrderJson={orderjson}");

@@ -38,6 +38,11 @@ namespace WhatsAppAPISolutionBL.Helper
         /// </summary>
         public static string CLIENT_DROPDOWN_KEY => "Api.Client.{0}-{1}";
 
+        /// <summary>
+        /// {0} - ClientId
+        /// </summary>
+        public static string CLIENT_ENTITY_BY_ID_KEY => "Api.Client.Entity.{0}";
+
         #endregion
 
         #region Contact
@@ -165,7 +170,22 @@ namespace WhatsAppAPISolutionBL.Helper
         /// {1} - SearchStr
         /// </summary>
         public static string SENDERNAME_DROPDOWN_KEY2 = "Api.SenderName.Dropdown2.{0}-{1}";
-         
+
+        /// <summary>
+        /// {0} - SenderId
+        /// </summary>
+        public static string SENDERNAME_ENTITY_BY_ID_KEY => "Api.SenderName.Entity.{0}";
+
+        /// <summary>
+        /// {0} - PhoneNumberId
+        /// </summary>
+        public static string SENDERNAME_ENTITY_BY_PHONENUMBERID_KEY => "Api.SenderName.Entity.PhoneNumberId.{0}";
+
+        /// <summary>
+        /// {0} - PhoneNumber
+        /// </summary>
+        public static string SENDERNAME_ENTITY_BY_PHONENUMBER_KEY => "Api.SenderName.Entity.PhoneNumber.{0}";
+
         #endregion
 
         #region SystemActions

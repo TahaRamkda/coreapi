@@ -16,12 +16,17 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly ILogger<MessageSentLogsService> _logger;
+        private readonly ISenderNameService _senderNameService;
 
-        public MessageSentLogsService(WhatsAppSolutionContext dbContext, WhatsAppSolutionContext2 dbContext2, ILogger<MessageSentLogsService> logger)
+        public MessageSentLogsService(WhatsAppSolutionContext dbContext, 
+            WhatsAppSolutionContext2 dbContext2, 
+            ILogger<MessageSentLogsService> logger,
+            ISenderNameService senderNameService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _logger = logger;
+            _senderNameService = senderNameService;
         }
 
         public async Task<List<UMessageSentLog>> GetMessageSentLogListAsync(int ClientId, int Id = 0, int ModuleId = 0, int ParentId = 0, string PhoneNumber = "", string WaId = "", string WaId2 = "", int SenderId = 0, DateTime? FromSentDate = null, DateTime? ToSentDate = null, DateTime? FromDeliveredDate = null, DateTime? ToDeliveredDate = null, DateTime? FromReadDate = null, DateTime? ToReadDate = null, DateTime? FromDate = null, DateTime? ToDate = null, int CurrentStatus = 0, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
@@ -51,7 +56,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 if (!string.IsNullOrEmpty(model.PhoneNumberId.DisplayPhoneNumber)
                     && !string.IsNullOrEmpty(model.PhoneNumberId.PhoneNumberId))
                 {
-                    var senderName = await _dbContext.SenderNames.Where(x => x.ClientId == model.ClientId && x.PhoneNumberId == model.PhoneNumberId.PhoneNumberId).FirstOrDefaultAsync();
+                    var senderName = await _senderNameService.GetSenderNameEntityByPhoneNumberIdAsync(model.PhoneNumberId.PhoneNumberId); 
                     model.SenderId = senderName != null ? senderName.SenderId : 0;
                 }
             }

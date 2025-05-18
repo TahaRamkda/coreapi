@@ -7,6 +7,7 @@ using WhatsAppAPISolutionDL.Dto.Media;
 using WhatsAppAPISolutionDL.Dto.SenderName;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.UserModels.Client;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -206,32 +207,31 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         [AllowAnonymous]
         [HttpGet("getsendernameinformation")]
-        public ActionResult GetSenderNameInformationAsync(int ClientId, int SenderNameId)
+        public async Task<IActionResult> GetSenderNameInformationAsync(int clientId, int senderNameId)
         {
-            _logger.LogDebug("Calling api GetSenderNameInformationAsync with ClientId={ClientId}, SenderNameId={SenderNameId}", ClientId, SenderNameId);
+            _logger.LogDebug("Calling api GetSenderNameInformationAsync with ClientId={ClientId}, SenderNameId={SenderNameId}", clientId, senderNameId);
 
-            if (ClientId <= 0)
-            {
+            if (senderNameId <= 0)
                 return NotFound("not found");
-            }
 
-            var response = (from a in _dbContext.SenderNames
-                            //join b in _dbContext.Clients on a.ClientId equals b.ClientId
-                            where a.ClientId == ClientId && a.SenderId == SenderNameId && a.RecordStatus != -1 //&& b.RecordStatus != -1
-                            select new
-                            {
-                                ClientId = a.ClientId,
-                                SenderId = a.SenderId,
-                                SenderName = a.SenderName1,
-                                PhoneNumberId = a.PhoneNumberId,
-                                PhoneNumber = a.PhoneNumber,
-                                BusinessAccountId = a.BusinessAccountId,
-                                AccessToken = a.AccessToken,
-                                AppId = a.AppId,
-                                BusinessId = a.BusinessId,
-                                PublicCertificate = a.PublicCertificate,
-                                PrivateCertificate = a.PrivateCertificate
-                            }).FirstOrDefault();
+            var senderName = await _senderNameService.GetSenderNameEntityByIdAsync(senderNameId);
+            if (senderName == null || senderName.ClientId != clientId)
+                return Ok(new ApiResult { Message = "No sender name found" });
+
+            var response = new
+            {
+                ClientId = senderName.ClientId,
+                SenderId = senderName.SenderId,
+                SenderName = senderName.SenderName1,
+                PhoneNumberId = senderName.PhoneNumberId,
+                PhoneNumber = senderName.PhoneNumber,
+                BusinessAccountId = senderName.BusinessAccountId,
+                AccessToken = senderName.AccessToken,
+                AppId = senderName.AppId,
+                BusinessId = senderName.BusinessId,
+                PublicCertificate = senderName.PublicCertificate,
+                PrivateCertificate = senderName.PrivateCertificate
+            };
 
             _logger.LogDebug("Received api GetSenderNameInformationAsync response with data={data}", JsonConvert.SerializeObject(response));
 

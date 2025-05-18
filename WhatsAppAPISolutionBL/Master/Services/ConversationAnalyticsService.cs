@@ -18,15 +18,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly HttpClient _httpClient;
         private readonly ILogger<ConversationAnalyticsService> _logger;
+        private readonly ISenderNameService _senderNameService;
         
         #endregion
 
         #region Ctor
-        public ConversationAnalyticsService(IHttpClientFactory httpClientFactory, WhatsAppSolutionContext dbContext, ILogger<ConversationAnalyticsService> logger)
+
+        public ConversationAnalyticsService(IHttpClientFactory httpClientFactory, 
+            WhatsAppSolutionContext dbContext, 
+            ILogger<ConversationAnalyticsService> logger,
+            ISenderNameService senderNameService)
         {
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             _dbContext = dbContext;
             _logger = logger;
+            _senderNameService = senderNameService;
         }
         #endregion
 
@@ -92,7 +98,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     if (existingRecord != null)
                         continue;
 
-                    var senderName = await _dbContext.SenderNames.FirstOrDefaultAsync(x => x.PhoneNumber == bridgeResult.PhoneNumber);
+                    var senderName = await _senderNameService.GetSenderNameEntityByPhoneNumberAsync(bridgeResult.PhoneNumber); 
                     if (senderName == null)
                         continue;
 
