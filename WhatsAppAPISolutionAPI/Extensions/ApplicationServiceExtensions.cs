@@ -46,6 +46,7 @@ namespace WhatsAppAPISolutionAPI.Extensions
             services.AddScoped<IMediatorService, MediatorService>();
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<ISignalRService, SignalRService>();
+            services.AddScoped<KFGOrderService>();
 
             #region Third party services
 

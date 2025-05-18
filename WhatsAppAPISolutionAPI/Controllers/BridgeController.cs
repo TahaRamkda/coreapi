@@ -47,7 +47,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             try
             {
-                _logger.LogInformation("Calling api TemplateSync");
                 _logger.LogInformation("Received Template Sync response from bridge with template data={data}", JsonConvert.SerializeObject(templateData));
 
                 var data = System.Text.Json.JsonSerializer.Serialize(templateData);
@@ -198,7 +197,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("order")]
         public async Task<IActionResult> OrderAsync([FromBody] MetaOrderRequestDto model)
         {
-            _logger.LogInformation("Calling OrderAsync api from Bridge with data={data}", JsonConvert.SerializeObject(model));
+            _logger.LogInformation("Calling OrderAsync with data={data}", JsonConvert.SerializeObject(model));
 
             if (model == null)
             {

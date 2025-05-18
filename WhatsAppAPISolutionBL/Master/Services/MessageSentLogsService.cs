@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.Enum;
@@ -31,14 +32,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 "ActionId={ActionId}, ActionName={ActionName}, ClientId={ClientId}, Id={Id}, ModuleId={ModuleId}, ParentId={ParentId}, PhoneNumber={PhoneNumber}, WaId={WaId}, WaId2={WaId2}, SenderId={SenderId}, " +
                 "FromSentDate={FromSentDate}, ToSentDate={ToSentDate}, FromDeliveredDate={FromDeliveredDate}, ToDeliveredDate={ToDeliveredDate}, FromReadDate={FromReadDate}, ToReadDate={ToReadDate}, " +
                 "FromDate={FromDate}, ToDate={ToDate}, CurrentStatus={CurrentStatus}, SearchStr={SearchStr}, SortBy={SortBy}, PageNumber={PageNo}, PageSize={PageSize}, " +
-                "ProcResponseTime={ProcResponseTime}ms", (int)CrudEnum.List,CrudEnum.List, ClientId,Id,ModuleId, ParentId,PhoneNumber, WaId,  WaId2, SenderId, FromSentDate, ToSentDate, FromDeliveredDate,ToDeliveredDate, FromReadDate, ToReadDate,FromDate, ToDate, CurrentStatus,SearchStr ?? "", SortBy, PageNo,PageSize, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+                "ProcResponseTime={ProcResponseTime}ms", (int)CrudEnum.List, CrudEnum.List, ClientId, Id, ModuleId, ParentId, PhoneNumber, WaId, WaId2, SenderId, FromSentDate, ToSentDate, FromDeliveredDate, ToDeliveredDate, FromReadDate, ToReadDate, FromDate, ToDate, CurrentStatus, SearchStr ?? "", SortBy, PageNo, PageSize, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return response;
         }
 
         public async Task<UResponse> AddMessageSentLogAsync(InsertMessageDto model)
         {
             int eventType = (int)model.Status;
-            int eventStatus = model.Status == MessageStatusEnum.FAILED ? 0 : 1; 
+            int eventStatus = model.Status == MessageStatusEnum.FAILED ? 0 : 1;
             string conversationId = "";
             string eventMessage = "";
             string pricingModel = "";
@@ -68,12 +69,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 category = model.Pricing.Category;
             }
 
-            _logger.LogInformation("Calling procedure usp_MessageSentLogs_StatusUpdate with ProcDetails={ProcDetails}", $"exec usp_MessageSentLogs_StatusUpdate @ModuleId={model.ModuleId}, @ClientId={model.ClientId}, @ParentId={model.ParentId}, @SenderId={model.SenderId}, @PhoneNumber={model.RecipientId}, @WaId={model.WaId}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={model.UpdateDateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}, @MessageReferenceId={model.MessageReferenceId}, @MessageType={model.MessageType}, @MessageContent={model.MessageContent}, @MediaId={model.MediaId}, @ButtonJson={model.ButtonJson}");
- 
+            _logger.LogInformation("Calling procedure usp_MessageSentLogs_StatusUpdate with request={request}", $"exec usp_MessageSentLogs_StatusUpdate @ModuleId={model.ModuleId}, @ClientId={model.ClientId}, @ParentId={model.ParentId}, @SenderId={model.SenderId}, @PhoneNumber={model.RecipientId}, @WaId={model.WaId}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={model.UpdateDateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}, @MessageReferenceId={model.MessageReferenceId}, @MessageType={model.MessageType}, @MessageContent={model.MessageContent}, @MediaId={model.MediaId}, @ButtonJson={model.ButtonJson}");
+
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_MessageSentLogs_StatusUpdate @ModuleId={model.ModuleId}, @ClientId={model.ClientId}, @ParentId={model.ParentId}, @SenderId={model.SenderId}, @PhoneNumber={model.RecipientId}, @WaId={model.WaId}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={model.UpdateDateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}, @MessageReferenceId={model.MessageReferenceId}, @MessageType={model.MessageType}, @MessageContent={model.MessageContent}, @MediaId={model.MediaId}, @ButtonJson={model.ButtonJson}").ToListAsync();
 
-            _logger.LogInformation("Calling procedure usp_MessageSentLogs_StatusUpdate with ProcDetails={ProcDetails} and ProcResponseTime={ProcResponseTime}", $"exec usp_MessageSentLogs_StatusUpdate @ModuleId={model.ModuleId}, @ClientId={model.ClientId}, @ParentId={model.ParentId}, @SenderId={model.SenderId}, @PhoneNumber={model.RecipientId}, @WaId={model.WaId}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={model.UpdateDateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}, @MessageReferenceId={model.MessageReferenceId}, @MessageType={model.MessageType}, @MessageContent={model.MessageContent}, @MediaId={model.MediaId}, @ButtonJson={model.ButtonJson}", DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+            _logger.LogInformation("Calling procedure usp_MessageSentLogs_StatusUpdate with request={request} and response={response} and ProcResponseTime={ProcResponseTime}", $"exec usp_MessageSentLogs_StatusUpdate @ModuleId={model.ModuleId}, @ClientId={model.ClientId}, @ParentId={model.ParentId}, @SenderId={model.SenderId}, @PhoneNumber={model.RecipientId}, @WaId={model.WaId}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={model.UpdateDateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}, @MessageReferenceId={model.MessageReferenceId}, @MessageType={model.MessageType}, @MessageContent={model.MessageContent}, @MediaId={model.MediaId}, @ButtonJson={model.ButtonJson}", JsonConvert.SerializeObject(response), DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
 
             return response[0];
         }
