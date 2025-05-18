@@ -184,7 +184,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (request != null)
             {
-                request.MerchantId =Convert.ToInt32(_kfgpaymentconfig.Value.MerchantId);
+                request.MerchantId =_kfgpaymentconfig.Value.MerchantId;
                 request.LicenceKey = _kfgpaymentconfig.Value.LicenseKey;
                 request.MerchantTemplateId = Convert.ToInt32(_kfgpaymentconfig.Value.MerchantTemplateId);
             }

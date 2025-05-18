@@ -95,7 +95,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
 
         [HttpPost("RecheckPaymentStatus")]
-        public async Task<IActionResult> RecheckPaymentStatus(RecheckKFGPaymentStatus model)
+        public async Task<IActionResult> RecheckPaymentStatus(RecheckKFGPaymentStatusReq model)
         {
             _logger.LogInformation("Calling function RecheckPaymentStatus with data={Model}", JsonConvert.SerializeObject(model));
 

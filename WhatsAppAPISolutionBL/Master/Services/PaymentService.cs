@@ -47,7 +47,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             //_messageService = messageService;
         }
 
-        public async Task<UResponse?> CheckKFGPaymentStatusAsync(string encryptedString)
+        public async Task<UResponse> CheckKFGPaymentStatusAsync(string encryptedString)
         {
             UResponse response = new UResponse();
             {
@@ -61,7 +61,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 response.Message = "No Encrypted String provided";
                 return response;
             }
-            var Decrypteddata = await DecryptKfgResponse(encryptedString);
+            var Decrypteddata =  DecryptKfgResponse(encryptedString);
             if(Decrypteddata == null)
             {
                 response.Status = 0;
@@ -139,9 +139,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     var recheckUrl = _config.Val;
                     var requestBody = new 
                     {
-                        MerchantId = _kfgpaymentConfigurationSettings.Value.MerchantId,
+                        MerchantId =_kfgpaymentConfigurationSettings.Value.MerchantId,
                         LicenceKey = _kfgpaymentConfigurationSettings.Value.LicenseKey,
-                        TransactionId = order.OrderId,
+                        TransactionId = order.OrderId.ToString(),
                     };
                     var jsonBody = JsonConvert.SerializeObject(requestBody);
                     var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
@@ -157,8 +157,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     }
 
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var encryptedpayload = JsonConvert.DeserializeObject<KFGPaymentStatus>(responseContent);
-                    var paymentStatus = await CheckKFGPaymentStatusAsync(encryptedpayload.EncryptedKey);
+                    var paymenresponse = JsonConvert.DeserializeObject<RecheckKFGPaymentStatusRes>(responseContent);
+                    var paymentStatus = await CheckKFGPaymentStatusAsync(paymenresponse.result);
                    
                     responses.Add(new UResponse
                     {
@@ -181,23 +181,57 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return responses;
         }
-        public async Task<KfgDecryptedResponse?> DecryptKfgResponse(string EncryptedString)
+        //public async Task<KfgDecryptedResponse?> DecryptKfgResponse(string EncryptedString)
+        //{
+        //    if (string.IsNullOrWhiteSpace(EncryptedString)) return null;
+
+        //    string rawKey = _kfgpaymentConfigurationSettings.Value.SecretKey; // "asx687@qw"
+        //    string paddedKey = rawKey.PadRight(16, '0'); // Pads it to 16 characters: "asx687@qw0000000"
+        //    byte[] keyBytes = Encoding.UTF8.GetBytes(paddedKey);
+
+        //    byte[] encryptedBytes = Convert.FromBase64String(EncryptedString);
+
+        //    using var aes = Aes.Create();
+        //    aes.Key = keyBytes;
+        //    aes.Mode = CipherMode.ECB;
+        //    aes.Padding = PaddingMode.PKCS7;
+
+        //    using var decryptor = aes.CreateDecryptor();
+        //    byte[] decryptedBytes = decryptor.TransformFinalBlock(encryptedBytes, 0, encryptedBytes.Length);
+        //    var decryptedJson = Encoding.UTF8.GetString(decryptedBytes);
+
+        //    return JsonConvert.DeserializeObject<KfgDecryptedResponse>(decryptedJson);
+        //}
+
+        public KfgDecryptedResponse DecryptKfgResponse(string EncryptedString)
         {
-            if (string.IsNullOrWhiteSpace(EncryptedString)) return null;
+            EncryptedString = EncryptedString.Replace(" ", "+");
+            string rawKey = _kfgpaymentConfigurationSettings.Value.SecretKey; // "asx687@qw"
+            byte[] cipherBytes = Convert.FromBase64String(EncryptedString);
 
-            byte[] keyBytes = Encoding.UTF8.GetBytes(_kfgpaymentConfigurationSettings.Value.SecretKey);
-            byte[] encryptedBytes = Convert.FromBase64String(EncryptedString);
+            using (Aes encryptor = Aes.Create())
+            {
+                Rfc2898DeriveBytes pdb = new Rfc2898DeriveBytes(rawKey, new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 });
 
-            using var aes = Aes.Create();
-            aes.Key = keyBytes;
-            aes.Mode = CipherMode.ECB;
-            aes.Padding = PaddingMode.PKCS7;
+                encryptor.Key = pdb.GetBytes(32);
 
-            using var decryptor = aes.CreateDecryptor();
-            byte[] decryptedBytes = decryptor.TransformFinalBlock(encryptedBytes, 0, encryptedBytes.Length);
-            var decryptedJson = Encoding.UTF8.GetString(decryptedBytes);
+                encryptor.IV = pdb.GetBytes(16);
 
-            return JsonConvert.DeserializeObject<KfgDecryptedResponse>(decryptedJson);
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    using (CryptoStream cs = new CryptoStream(ms, encryptor.CreateDecryptor(), CryptoStreamMode.Write))
+                    {
+                        cs.Write(cipherBytes, 0, cipherBytes.Length);
+
+                        cs.Close();
+
+                    }
+                    EncryptedString = Encoding.Unicode.GetString(ms.ToArray());
+
+                }
+            }
+            return JsonConvert.DeserializeObject<KfgDecryptedResponse>(EncryptedString);
+
         }
         public async Task<UResponse?> TempCheckKFGPaymentStatusAsync(PaymentStatus paymentStatus)
         {

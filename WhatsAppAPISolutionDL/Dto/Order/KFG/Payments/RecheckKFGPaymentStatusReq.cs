@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WhatsAppAPISolutionDL.Dto.Order.KFG.Payments
 {
-    public class RecheckKFGPaymentStatus
+    public class RecheckKFGPaymentStatusReq
     {
         public  List<long> OrderId { get; set; }
     }

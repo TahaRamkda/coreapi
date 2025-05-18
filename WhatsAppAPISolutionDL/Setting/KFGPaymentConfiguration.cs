@@ -11,7 +11,7 @@ namespace WhatsAppAPISolutionDL.Setting
         {
         public const string ConfigKey = "KFGPaymentConfiguration";
              public string BaseURL { get; set; }
-            public string MerchantId { get; set; }
+            public int MerchantId { get; set; }
             public string LicenseKey { get; set; }
             public string SecretKey { get; set; }
             public string MerchantTemplateId { get; set; }
