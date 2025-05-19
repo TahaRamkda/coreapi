@@ -174,37 +174,28 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return result;
         }
 
-        private async Task<KfgPaymentResponse?> CreatePaymentAsync(KfgPaymentRequest request, int clientId , int senderId)
-        {
-            KfgPaymentResponse response = new KfgPaymentResponse
-            {
-                success = false,
-                Result = null,
-            };
-
+        private async Task<(bool success, KfgPaymentResponse response)> CreateKFGPaymentAsync(KfgPaymentRequest request, int clientId , int senderId)
+        { 
             if (request != null)
             {
                 request.MerchantId =_kfgpaymentconfig.Value.MerchantId;
                 request.LicenceKey = _kfgpaymentconfig.Value.LicenseKey;
                 request.MerchantTemplateId = Convert.ToInt32(_kfgpaymentconfig.Value.MerchantTemplateId);
             }
+
             var _config = await _appSettingsService.GetAppSettingByKeyAsync(clientId, senderId, AppSettingKey.PaymentLinkUrl);
             var paymentUrl = _config.Val;
             var jsonBody = JsonConvert.SerializeObject(request);
             var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
             var payrequestresponse = await _httpClient.PostAsync(paymentUrl, content);
             if (!payrequestresponse.IsSuccessStatusCode)
-            {
-                return response;
-            }
+                return (false, null);
 
             var responseContent = await payrequestresponse.Content.ReadAsStringAsync();
             var paymentresponse = JsonConvert.DeserializeObject<KfgPaymentResponse>(responseContent);
-            if (paymentresponse.Code == 200 &&  paymentresponse.Message.ToUpper() == "SUCCESS")
-            {
-                paymentresponse.success = true;
-            }
-            return paymentresponse;
+            bool success = paymentresponse != null && paymentresponse.Code == 200 && (paymentresponse.Message ?? "").Equals("success", StringComparison.OrdinalIgnoreCase);
+            
+            return (success, paymentresponse);
         }
 
         private async Task<List<UAgentConversationList>> GetAgentConversationListAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue)
@@ -462,8 +453,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         return new ApiResult { Success = false, Message = $"Cannot parse DBResponse JSON. DBResponse={JsonConvert.SerializeObject(model)}" };
 
                     _logger.LogInformation("Parsed ProcessDBResponse with received clientId={clientId} senderId={senderId} and DBResponse={DBResponse} and result={result}", clientId, senderId, model, DBResponse);
-                    orderId = string.Empty;
-                   
+                    orderId = String.Empty;
+                    string phoneNumber = String.Empty;
+                    string firstName = String.Empty;
+                    string amount = String.Empty;
                     if (DBResponse.KeyValues != null && DBResponse.KeyValues.Any())
                     {
 
@@ -483,10 +476,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         GatewayType ="0",
                         ReturnURL = "https://qawhatsappapi.consulttechies.com/",
                     };
+                     
+                    bool linkGenerated = false;
+                    string paymentLink = String.Empty;
 
-                    var paymentresponse = await CreatePaymentAsync(paymentRequest,clientId,senderId);
+                    //if(KFG)//
+                    var paymentresponse = await CreateKFGPaymentAsync(paymentRequest, clientId, senderId);
+                    linkGenerated = paymentresponse.success;
+                    paymentLink = paymentresponse.response != null ? paymentresponse.response.Result : String.Empty;
 
-                    dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentRequest @OrderId={orderId},@Success={paymentresponse.success},@Link={paymentresponse.Result}").ToListAsync();
+                    dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentRequest @OrderId={orderId},@Success={linkGenerated},@Link={paymentLink}").ToListAsync();
                     _logger.LogInformation("Received response from procedure usp_Orders_PaymentRequest with OrderId={orderId} and Success={paymentresponse.success} and response={response}", orderId, paymentresponse.success, JsonConvert.SerializeObject(dbresponse));
 
                     //Call ProcessDBResponse(dbresponse);

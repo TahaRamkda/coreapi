@@ -73,13 +73,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 paymentStatus.OrderId = Convert.ToInt32(Decrypteddata.TID);
                 paymentStatus.TransactionId = Decrypteddata.RF;
-                if (Decrypteddata.ST.ToUpper() !="CAPTURED")
+                if (Decrypteddata.ST.Equals("CAPTURED",StringComparison.OrdinalIgnoreCase))
                 {
-                    paymentStatus.IsSuccess = false;
+                    paymentStatus.IsSuccess = true;
                 }
                 else
                 {
-                    paymentStatus.IsSuccess = true;
+                    paymentStatus.IsSuccess = false;
                 }
             }
             var order = await _dbContext.Orders.FindAsync(paymentStatus.OrderId);
@@ -148,7 +148,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     var response = await _httpClient.PostAsync(recheckUrl, content);
                     if (!response.IsSuccessStatusCode)
                     {
-                        _logger.LogWarning("API call failed with status code {StatusCode} and reason {ReasonPhrase}", response.StatusCode, response.ReasonPhrase);
+                        _logger.LogError("API call failed with status code {StatusCode} and reason {ReasonPhrase}", response.StatusCode, response.ReasonPhrase);
                         responses.Add(new UResponse
                         {
                             Message = $"Error processing order ID {orderId}",
@@ -157,6 +157,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     }
 
                     var responseContent = await response.Content.ReadAsStringAsync();
+                    //handle null 
                     var paymenresponse = JsonConvert.DeserializeObject<RecheckKFGPaymentStatusRes>(responseContent);
                     var paymentStatus = await CheckKFGPaymentStatusAsync(paymenresponse.result);
                    

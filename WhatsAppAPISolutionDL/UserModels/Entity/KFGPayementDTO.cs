@@ -32,8 +32,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Entity
 
     public class KfgPaymentResponse
     {
-        public int Code { get; set; }
-        public bool success { get; set; }
+        public int Code { get; set; } 
         public string Message { get; set; }
         public string Result { get; set; } // Redirect URL
        // public string QrCode { get; set; }
