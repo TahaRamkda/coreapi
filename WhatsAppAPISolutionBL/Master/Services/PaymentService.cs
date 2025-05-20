@@ -137,36 +137,41 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     
                     var _config = await _appSettingsService.GetAppSettingByKeyAsync( order.ClientId ?? 0,  order.SenderId ?? 0,AppSettingKey.PaymentStatusUrl);
                     var recheckUrl = _config.Val;
-                    var requestBody = new 
+                    var clientintegration = await _appSettingsService.GetAppSettingByKeyAsync(order.ClientId ??0, order.SenderId ??0, AppSettingKey.ClientIntegrationType);
+                    var integrationtype = Convert.ToInt32(clientintegration.Val);
+                    if (integrationtype == (int)ClientIntegrationTypeEnum.KFG)
                     {
-                        MerchantId =_kfgpaymentConfigurationSettings.Value.MerchantId,
-                        LicenceKey = _kfgpaymentConfigurationSettings.Value.LicenseKey,
-                        TransactionId = order.OrderId.ToString(),
-                    };
-                    var jsonBody = JsonConvert.SerializeObject(requestBody);
-                    var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-                    var response = await _httpClient.PostAsync(recheckUrl, content);
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        _logger.LogError("API call failed with status code {StatusCode} and reason {ReasonPhrase}", response.StatusCode, response.ReasonPhrase);
+                        var requestBody = new
+                        {
+                            MerchantId = _kfgpaymentConfigurationSettings.Value.MerchantId,
+                            LicenceKey = _kfgpaymentConfigurationSettings.Value.LicenseKey,
+                            TransactionId = order.OrderId.ToString(),
+                        };
+                        var jsonBody = JsonConvert.SerializeObject(requestBody);
+                        var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+                        var response = await _httpClient.PostAsync(recheckUrl, content);
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            _logger.LogError("API call failed with status code {StatusCode} and reason {ReasonPhrase}", response.StatusCode, response.ReasonPhrase);
+                            responses.Add(new UResponse
+                            {
+                                Message = $"Error processing order ID {orderId}",
+                                Status = 0
+                            });
+                        }
+
+                        var responseContent = await response.Content.ReadAsStringAsync();
+                        //handle null 
+                        var paymenresponse = JsonConvert.DeserializeObject<RecheckKFGPaymentStatusRes>(responseContent);
+                        var paymentStatus = await CheckKFGPaymentStatusAsync(paymenresponse.result);
+
                         responses.Add(new UResponse
                         {
-                            Message = $"Error processing order ID {orderId}",
-                            Status = 0
+
+                            Message = paymentStatus.Message,
+                            Status = paymentStatus.Status
                         });
                     }
-
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    //handle null 
-                    var paymenresponse = JsonConvert.DeserializeObject<RecheckKFGPaymentStatusRes>(responseContent);
-                    var paymentStatus = await CheckKFGPaymentStatusAsync(paymenresponse.result);
-                   
-                    responses.Add(new UResponse
-                    {
-
-                        Message =paymentStatus.Message,
-                        Status = paymentStatus.Status
-                    });
                 }
                 catch (Exception ex)
                 {
@@ -182,28 +187,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return responses;
         }
-        //public async Task<KfgDecryptedResponse?> DecryptKfgResponse(string EncryptedString)
-        //{
-        //    if (string.IsNullOrWhiteSpace(EncryptedString)) return null;
-
-        //    string rawKey = _kfgpaymentConfigurationSettings.Value.SecretKey; // "asx687@qw"
-        //    string paddedKey = rawKey.PadRight(16, '0'); // Pads it to 16 characters: "asx687@qw0000000"
-        //    byte[] keyBytes = Encoding.UTF8.GetBytes(paddedKey);
-
-        //    byte[] encryptedBytes = Convert.FromBase64String(EncryptedString);
-
-        //    using var aes = Aes.Create();
-        //    aes.Key = keyBytes;
-        //    aes.Mode = CipherMode.ECB;
-        //    aes.Padding = PaddingMode.PKCS7;
-
-        //    using var decryptor = aes.CreateDecryptor();
-        //    byte[] decryptedBytes = decryptor.TransformFinalBlock(encryptedBytes, 0, encryptedBytes.Length);
-        //    var decryptedJson = Encoding.UTF8.GetString(decryptedBytes);
-
-        //    return JsonConvert.DeserializeObject<KfgDecryptedResponse>(decryptedJson);
-        //}
-
         public KfgDecryptedResponse DecryptKfgResponse(string EncryptedString)
         {
             EncryptedString = EncryptedString.Replace(" ", "+");

@@ -430,7 +430,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                      
                     //Call decima service
                     //Response
-                    var deliveryStatus = await _locationService.GetDeliveryStatus(orderId, geoLocation);
+                    var deliveryStatus = await _locationService.GetDeliveryStatus(clientId,senderId, orderId,geoLocation);
 
                     var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_DeliveryValidation @OrderId={orderId},@Deliverable={deliveryStatus.isDeliverable},@LocationName={deliveryStatus.areaName},@LocationNameAr={deliveryStatus.areaNameAr}").ToListAsync();
                     _logger.LogInformation("Received response from procedure usp_Orders_DeliveryValidation with OrderItemId={orderItemId} and Delivery status={Deliverable} and response={response}", orderId, deliveryStatus.isDeliverable, JsonConvert.SerializeObject(dbresponse));
@@ -454,39 +454,46 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                     _logger.LogInformation("Parsed ProcessDBResponse with received clientId={clientId} senderId={senderId} and DBResponse={DBResponse} and result={result}", clientId, senderId, model, DBResponse);
                     orderId = String.Empty;
-                    string phoneNumber = String.Empty;
                     string firstName = String.Empty;
-                    string amount = String.Empty;
+                    decimal amount = 0;
                     if (DBResponse.KeyValues != null && DBResponse.KeyValues.Any())
                     {
 
                         var orderParam = DBResponse.KeyValues.FirstOrDefault(x => !String.IsNullOrWhiteSpace(x.Key) && x.Key.Equals(DBResponseKey.ORDERID, StringComparison.OrdinalIgnoreCase));
                         if (orderParam != null)
                             orderId = orderParam.Value;
+                      var AmountParam = DBResponse.KeyValues.FirstOrDefault(x => !String.IsNullOrWhiteSpace(x.Key) && x.Key.Equals(DBResponseKey.AMOUNT, StringComparison.OrdinalIgnoreCase));
+                        if (AmountParam != null)
+                            amount = Convert.ToDecimal(AmountParam.Value);
+                        var NamwParam = DBResponse.KeyValues.FirstOrDefault(x => !String.IsNullOrWhiteSpace(x.Key) && x.Key.Equals(DBResponseKey.CUSTOMERNAME, StringComparison.OrdinalIgnoreCase));
+                        if (NamwParam != null)
+                            firstName = NamwParam.Value;
                     }
-                    var orderInfo = await _dbContext.Orders.FindAsync(Convert.ToInt32(orderId));
-
-                    KfgPaymentRequest paymentRequest = new KfgPaymentRequest
-                    {
-                        TransactionId = orderId,
-                        Amount = orderInfo.Total ?? 0,
-                        FirstName = orderInfo.Name,
-                        PhoneNo = orderInfo.PhoneNumber,
-                        TransactionName = senderId.ToString(),
-                        GatewayType ="0",
-                        ReturnURL = "https://qawhatsappapi.consulttechies.com/",
-                    };
-                     
+                    //var orderInfo = await _dbContext.Orders.FindAsync(Convert.ToInt32(orderId));
+                    var clientintegration = await _appSettingsService.GetAppSettingByKeyAsync(clientId, senderId, AppSettingKey.ClientIntegrationType);
+                    var integrationtype = Convert.ToInt32(clientintegration.Val);
                     bool linkGenerated = false;
                     string paymentLink = String.Empty;
+                    if (integrationtype == (int)ClientIntegrationTypeEnum.KFG)
+                    {
 
-                    //if(KFG)//
-                    var paymentresponse = await CreateKFGPaymentAsync(paymentRequest, clientId, senderId);
-                    linkGenerated = paymentresponse.success;
-                    paymentLink = paymentresponse.response != null ? paymentresponse.response.Result : String.Empty;
-
-                    dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentRequest @OrderId={orderId},@Success={linkGenerated},@Link={paymentLink}").ToListAsync();
-                    _logger.LogInformation("Received response from procedure usp_Orders_PaymentRequest with OrderId={orderId} and Success={paymentresponse.success} and response={response}", orderId, paymentresponse.success, JsonConvert.SerializeObject(dbresponse));
+                        KfgPaymentRequest paymentRequest = new KfgPaymentRequest
+                        {
+                            TransactionId = orderId,
+                            Amount = amount,
+                            FirstName = firstName,
+                            PhoneNo = DBResponse.PhoneNumber,
+                            TransactionName = senderId.ToString(),
+                            GatewayType = "0",
+                            ReturnURL = "https://qawhatsappapi.consulttechies.com/",
+                        };
+                        var paymentresponse = await CreateKFGPaymentAsync(paymentRequest, clientId, senderId);
+                        linkGenerated = paymentresponse.success;
+                        paymentLink = paymentresponse.response != null ? paymentresponse.response.Result : String.Empty;
+                    }
+                    
+                        dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentRequest @OrderId={orderId},@Success={linkGenerated},@Link={paymentLink}").ToListAsync();
+                    _logger.LogInformation("Received response from procedure usp_Orders_PaymentRequest with OrderId={orderId} and Success={paymentresponse.success} and response={response}", orderId, linkGenerated, JsonConvert.SerializeObject(dbresponse));
 
                     //Call ProcessDBResponse(dbresponse);
                     if (dbresponse != null && dbresponse.Any())
@@ -501,7 +508,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return new ApiResult { Success = true, Message = "Data successfully added" };
         }
-
         public async Task<UResponse> AssignConversationToAgentAsync(List<AssignConversationDto> models)
         {
             foreach (var item in models)
@@ -539,7 +545,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 Message = "Data updated successfully"
             };
         }
-
         public async Task<UResponse> TransferConversationToAgentAsync(int clientId = 0, int id = 0, int oldAgentId = 0, int agentId = 0, string comment = "")
         {
             var startProcTime = DateTime.UtcNow;
@@ -558,7 +563,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response[0];
         }
-
         public async Task<UResponse> ExpiredConversationNotifyToAgentAsync(List<ExpiredConversationDto> models)
         {
             _logger.LogInformation("Calling function ExpiredConversationNotifyToAgentAsync with received data={data}", models);

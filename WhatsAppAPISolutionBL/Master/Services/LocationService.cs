@@ -9,12 +9,14 @@ using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Flow;
 using WhatsAppAPISolutionDL.Dto.Message;
+using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Flow;
 using WhatsAppAPISolutionDL.UserModels.Location;
+using static WhatsAppAPISolutionDL.Dto.Order.MetaOrderRequestDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -28,6 +30,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
         private readonly ILogger<TemplateService> _logger;
         private readonly ICacheService _cacheService;
+        private readonly IAppSettingsService _appSettingsService;
 
         public LocationService(
             WhatsAppSolutionContext dbContext,
@@ -36,7 +39,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IConfiguration configuration,
             IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings,
             ILogger<TemplateService> logger,
-            ICacheService cacheService
+            ICacheService cacheService,
+            IAppSettingsService appSettingsService
             )
         {
             _dbContext = dbContext;
@@ -46,6 +50,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
             _logger = logger;
             _cacheService = cacheService;
+            _appSettingsService = appSettingsService;
+
         }
 
         //public async Task<ApiResult> SaveCompleteAddress(FlowResponseDto flowResponse, Flow flow)
@@ -122,7 +128,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         //    return null;
         //}"24.58437538147,73.710174560547"
 
-        public async Task<DeliveryStatus> GetDeliveryStatus(string orderId, string geoLocation)
+        public async Task<DeliveryStatus> GetDeliveryStatus(int clientId, int senderId, string orderId, string geoLocation)
         {
             _logger.LogInformation("Calling GetDeliveryStatus with orderId={OrderId} and geoLocation={GeoLocation}", orderId, geoLocation);
 
@@ -130,8 +136,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 return new DeliveryStatus { isDeliverable = false, reason = "No geo location provided" };
             }
-
-            var deliveryStatus = new DeliveryStatus();
 
             try
             {
@@ -147,43 +151,67 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     };
                 }
 
-                var baseUrl = _configuration.GetValue<string>("KFGBaseUrl");
-                var locationUrl = $"{baseUrl}/whatsapp/deliveryvalidation";
+                var addressCheckUrlSetting = await _appSettingsService.GetAppSettingByKeyAsync(clientId, senderId, AppSettingKey.AddressCheckUrl);
+                var clientIntegrationSetting = await _appSettingsService.GetAppSettingByKeyAsync(clientId, senderId, AppSettingKey.ClientIntegrationType);
 
-                var requestBody = new 
+                if (addressCheckUrlSetting == null || string.IsNullOrWhiteSpace(addressCheckUrlSetting.Val))
                 {
-                    Latitude = latitude,
-                    Longitude = longitude
-                };
+                    return new DeliveryStatus { isDeliverable = false, reason = "Address check URL is not configured" };
+                }
 
-                var jsonBody = JsonConvert.SerializeObject(requestBody);
-                var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-
-                var response = await _httpClient.PostAsync(locationUrl, content);
-
-                if (!response.IsSuccessStatusCode)
+                if (clientIntegrationSetting == null || string.IsNullOrWhiteSpace(clientIntegrationSetting.Val))
                 {
-                    _logger.LogWarning("API call failed with status code {StatusCode} and reason {ReasonPhrase}", response.StatusCode, response.ReasonPhrase);
+                    return new DeliveryStatus { isDeliverable = false, reason = "Client integration type is not configured" };
+                }
+
+                var locationUrl = addressCheckUrlSetting.Val;
+                var integrationType = Convert.ToInt32(clientIntegrationSetting.Val);
+
+                if (integrationType == (int)ClientIntegrationTypeEnum.KFG)
+                {
+                    var requestBody = new
+                    {
+                        Latitude = latitude,
+                        Longitude = longitude
+                    };
+
+                    var jsonBody = JsonConvert.SerializeObject(requestBody);
+                    var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+                    var response = await _httpClient.PostAsync(locationUrl, content);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        _logger.LogWarning("API call failed with status code {StatusCode} and reason {ReasonPhrase}", response.StatusCode, response.ReasonPhrase);
+                        return new DeliveryStatus
+                        {
+                            isDeliverable = false,
+                            reason = $"API call failed: {response.ReasonPhrase}"
+                        };
+                    }
+
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var apiResult = JsonConvert.DeserializeObject<DeliveryStatus>(responseContent);
+
+                    if (apiResult == null)
+                    {
+                        return new DeliveryStatus
+                        {
+                            isDeliverable = false,
+                            reason = "Invalid API response format"
+                        };
+                    }
+
+                    return apiResult;
+                }
+                else
+                {
                     return new DeliveryStatus
                     {
                         isDeliverable = false,
-                        reason = $"API call failed: {response.ReasonPhrase}"
+                        reason = "Unsupported client integration type"
                     };
                 }
-
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                var apiResult = JsonConvert.DeserializeObject<DeliveryStatus>(responseContent);
-                if (apiResult == null)
-                {
-                    return new DeliveryStatus
-                    {
-                        isDeliverable = false,
-                        reason = "Invalid API response format"
-                    };
-                }
-
-                return apiResult;
             }
             catch (Exception ex)
             {
@@ -195,5 +223,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 };
             }
         }
+
     }
 }
