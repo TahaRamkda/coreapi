@@ -2,7 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionBL.Master.Services;
-using WhatsAppAPISolutionDL.Models;
+using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.ReOrder;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -13,10 +14,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
     {
         private readonly KFGOrderService _kFGOrderService;
         private readonly ILogger<MessageController> _logger;
+        private readonly IOrderService _orderservice;
+        private readonly IMediatorService _mediaterService;
 
-        public OrderController(KFGOrderService kFGOrderService)
+        public OrderController(KFGOrderService kFGOrderService, IOrderService orderservice, IMediatorService mediaterService)
         {
             _kFGOrderService = kFGOrderService;
+            _orderservice = orderservice;
+            _mediaterService = mediaterService;
         }
 
         [HttpGet]
@@ -24,6 +29,24 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             var json = await _kFGOrderService.CreateOrder(orderId);
             return Ok(json);
+        }
+
+        [HttpPost("RestartOrder")]
+        public async Task<IActionResult> RestartOrderAsync([FromBody] ReTryOrderDto model)
+        {
+            var response = await _orderservice.RestartOrderAsync(model.ClientId, model.SenderId);
+
+            foreach (var resp in response)
+            {
+                await _mediaterService.ProcessDBResponse(model.ClientId, model.SenderId, resp);
+            }
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = response,
+                Message = "Data fetch successfully"
+            }
+            );
         }
     }
 }

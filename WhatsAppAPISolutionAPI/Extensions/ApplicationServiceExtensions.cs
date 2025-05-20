@@ -27,6 +27,7 @@ namespace WhatsAppAPISolutionAPI.Extensions
             services.AddScoped<IMessageSentLogsService, MessageSentLogsService>();
             services.AddScoped<ICommunicationService, CommunicationService>();
             services.AddScoped<IAgentsService, AgentsService>();
+            services.AddScoped<IITemsCatalogService, ITemsCatalogService>();
             services.AddScoped<IConversationService, ConversationService>();
             services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<IImportManager, ImportManager>();

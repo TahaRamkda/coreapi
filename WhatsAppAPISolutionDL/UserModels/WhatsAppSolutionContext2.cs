@@ -12,6 +12,7 @@ using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Flow;
 using WhatsAppAPISolutionDL.UserModels.Group;
 using WhatsAppAPISolutionDL.UserModels.InteractiveTemplate;
+using WhatsAppAPISolutionDL.UserModels.ITems;
 using WhatsAppAPISolutionDL.UserModels.Location;
 using WhatsAppAPISolutionDL.UserModels.MasterData;
 using WhatsAppAPISolutionDL.UserModels.Media;
@@ -96,6 +97,9 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UAppSettingsList> AppSettingsList { get; set; } = null!;
         public virtual DbSet<USurveyReport> SurveyReports { get; set; } = null!;
         public virtual DbSet<USaveGeoLocation> SaveGeoLocation { get; set; } = null!;
+        public virtual DbSet<UItems> ITems { get; set; } = null!;
+        public virtual DbSet<UItemModiferDetails> ITemModifier { get; set; } = null!;
+        public virtual DbSet<UItemModifierItemDetails> ModifierItem { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -157,6 +161,9 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<DBResponse>().HasNoKey();
             modelBuilder.Entity<UAppSettingsList>().HasNoKey();
             modelBuilder.Entity<USurveyReport>().HasNoKey();
+            modelBuilder.Entity<UItems>().HasNoKey();
+            modelBuilder.Entity<UItemModiferDetails>().HasNoKey();
+            modelBuilder.Entity<UItemModifierItemDetails>().HasNoKey();
         }
     }
 }

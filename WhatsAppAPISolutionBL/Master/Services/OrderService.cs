@@ -259,5 +259,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return string.Empty;
         }
+
+        public async Task<List<DBResponse>> RestartOrderAsync(int ClientId, int SenderId)
+        {
+            var response = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_RestartOrder @ClientId={ClientId},@SenderId={SenderId}").ToListAsync();
+            return response;
+        }
     }
 }
