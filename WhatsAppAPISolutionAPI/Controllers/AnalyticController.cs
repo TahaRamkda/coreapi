@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -44,6 +45,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         #endregion
 
         #region Method
+        [AllowAnonymous]
         [HttpPost("GetAnalytic")]
         public async Task<IActionResult> GetConversationAnalytics([FromBody] ConversationAnalyticRequestDto model)
         {

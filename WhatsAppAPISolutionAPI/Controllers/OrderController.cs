@@ -31,6 +31,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             return Ok(json);
         }
 
+        [AllowAnonymous]
         [HttpPost("RestartOrder")]
         public async Task<IActionResult> RestartOrderAsync([FromBody] ReTryOrderDto model)
         {
