@@ -67,6 +67,19 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (duplicateModifierIds.Any())
                 return Ok(new ApiResult { Message = "Duplicate modifier id not allowed." });
 
+            var noModifiers = model.menu.modifiers
+                    .Where(x => (x.modifier_items == null || !x.modifier_items.Any()) && x.max_selection > 0)
+                    .ToList();
+
+            StringBuilder noModifierError = new StringBuilder();
+            foreach (var mod in noModifiers)
+            {
+                noModifierError.AppendLine($"Modifier {mod.id} should have modifier items");
+            }
+
+            if (noModifierError.Length > 0)
+                return Ok(new ApiResult { Message = noModifierError.ToString() });
+
             //Check if all the mandatory modifiers has default=true
             var invalidModifiers = model.menu.modifiers
                 .Where(x => x.modifier_items != null && x.modifier_items.Any())
@@ -83,9 +96,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (invalidModifierError.Length > 0)
                 return Ok(new ApiResult { Message = invalidModifierError.ToString() });
 
-            await _catalogService.ImportCatalog(ClientId, SenderId, model);
+            var success = await _catalogService.ImportCatalog(ClientId, SenderId, model);
 
-            return Ok(new ApiResult { Success = true, StatusCode = 200, Message = "Import successful" });
+            if (success)
+                return Ok(new ApiResult { Success = true, StatusCode = 200, Message = "Import successful" });
+            else
+                return Ok(new ApiResult { Success = true, StatusCode = 450, Message = "Something went wrong" });
         }
 
         [HttpGet("Export")]

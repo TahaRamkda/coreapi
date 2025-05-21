@@ -11,5 +11,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<ApiResult> CreateOrdersAsync(MetaOrderRequestDto model);
         Task<ApiResult> SaveFlowResponse(FlowResponseDto flowResponse, Flow flow);
         Task<List<DBResponse>> RestartOrderAsync(int ClientId, int SenderId);
+        Task<ApiResult> PushOrders(List<int> orderIds);
     }
 }

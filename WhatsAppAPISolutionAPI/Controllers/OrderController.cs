@@ -10,7 +10,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    [Authorize]
+    [AllowAnonymous]
     public class OrderController : ControllerBase
     {
         private readonly KFGOrderService _kFGOrderService;
@@ -25,14 +25,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _mediaterService = mediaterService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Index(int orderId)
-        {
-            var json = await _kFGOrderService.CreateOrder(orderId);
-            return Ok(json);
-        }
-
-        [AllowAnonymous]
         [HttpPost("RestartOrder")]
         public async Task<IActionResult> RestartOrderAsync([FromBody] ReTryOrderDto model)
         {
@@ -50,6 +42,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data fetch successfully"
             }
             );
+        }
+
+        [HttpPost("PushOrders")]
+        public async Task<IActionResult> PushOrdersAsync(List<int> orderIds)
+        {
+            var response = await _orderservice.PushOrders(orderIds);
+            return Ok(response);
         }
     }
 }

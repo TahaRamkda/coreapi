@@ -152,20 +152,22 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
 
                 var addressCheckUrlSetting = await _appSettingsService.GetAppSettingByKeyAsync(clientId, senderId, AppSettingKey.AddressCheckUrl);
-                var clientIntegrationSetting = await _appSettingsService.GetAppSettingByKeyAsync(clientId, senderId, AppSettingKey.ClientIntegrationType);
+                var clientIntegrationTypeSetting = await _appSettingsService.GetAppSettingByKeyAsync(clientId, senderId, AppSettingKey.ClientIntegrationType);
 
                 if (addressCheckUrlSetting == null || string.IsNullOrWhiteSpace(addressCheckUrlSetting.Val))
                 {
+                    _logger.LogError("AddressCheckUrl is not configured for clientId={clientId} and senderId={senderId}", clientId, senderId);
                     return new DeliveryStatus { isDeliverable = false, reason = "Address check URL is not configured" };
                 }
 
-                if (clientIntegrationSetting == null || string.IsNullOrWhiteSpace(clientIntegrationSetting.Val))
+                if (clientIntegrationTypeSetting == null || string.IsNullOrWhiteSpace(clientIntegrationTypeSetting.Val))
                 {
+                    _logger.LogError("ClientIntegrationType is not configured for clientId={clientId} and senderId={senderId}", clientId, senderId);
                     return new DeliveryStatus { isDeliverable = false, reason = "Client integration type is not configured" };
                 }
 
                 var locationUrl = addressCheckUrlSetting.Val;
-                var integrationType = Convert.ToInt32(clientIntegrationSetting.Val);
+                var integrationType = Convert.ToInt32(clientIntegrationTypeSetting.Val);
 
                 if (integrationType == (int)ClientIntegrationTypeEnum.KFG)
                 {
@@ -182,7 +184,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                     if (!response.IsSuccessStatusCode)
                     {
-                        _logger.LogWarning("API call failed with status code {StatusCode} and reason {ReasonPhrase}", response.StatusCode, response.ReasonPhrase);
+                        _logger.LogError("API call failed with status code {StatusCode} and reason {ReasonPhrase}", response.StatusCode, response.ReasonPhrase);
                         return new DeliveryStatus
                         {
                             isDeliverable = false,

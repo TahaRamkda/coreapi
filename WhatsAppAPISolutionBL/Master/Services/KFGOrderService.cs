@@ -69,10 +69,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 brandId = senderName.PhoneNumber,
                 prepareFrom = createdAt.AddMinutes(15).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                 deliverAt = createdAt.AddMinutes(30).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                cutleryNotes = String.Empty,
-                fulfillmentType = "Restaurant",
                 status = "placed",
-                orderNotes = String.Empty,
                 subTotal = new KFGOrder.Amount
                 {
                     amount = order.Subtotal ?? 0,

@@ -12,9 +12,6 @@
         public string id { get; set; }
         public string brandId { get; set; }
         public string status { get; set; }
-        public string fulfillmentType { get; set; }
-        public string orderNotes { get; set; }
-        public string cutleryNotes { get; set; }
         public bool asap { get; set; }
         public string orderCreatedAt { get; set; }
         public string prepareFrom { get; set; }

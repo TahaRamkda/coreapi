@@ -584,40 +584,50 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         #region Methods
 
-        public async Task ImportCatalog(int clientId, int senderId, CatalogDto catalog)
+        public async Task<bool> ImportCatalog(int clientId, int senderId, CatalogDto catalog)
         {
-            //Deactivate items and delete existing item mapping
-            await DeactivateExistingCatalog(clientId, senderId);
-
-            //Add/Update items
-            await ItemsOps(clientId, senderId, catalog);
-
-            //Add categories
-            await CategoriesOps(clientId, senderId, catalog);
-
-            //Add modifiers, item modifiers map and modifier items map
-            await ModifiersOps(clientId, senderId, catalog);
-
-            //Item modifiers Ops
-            await ItemModifiersOps(clientId, senderId, catalog);
-
-            //Update flow required by items
-            await FlowRequiredOps(clientId, senderId);
-
-            var catalogImportHistory = new CatalogImportHistory
+            try
             {
-                ClientId = clientId,
-                SenderId = senderId,
-                CreatedBy = 0,
-                CreatedDate = dateTimeNow,
-                UpdatedBy = 0,
-                UpdatedDate = dateTimeNow
-            };
+                //Deactivate items and delete existing item mapping
+                await DeactivateExistingCatalog(clientId, senderId);
 
-            await _dbContext.CatalogImportHistories.AddAsync(catalogImportHistory);
-            await _dbContext.SaveChangesAsync();
+                //Add/Update items
+                await ItemsOps(clientId, senderId, catalog);
 
-            await ExportCatalog(clientId, senderId);
+                //Add categories
+                await CategoriesOps(clientId, senderId, catalog);
+
+                //Add modifiers, item modifiers map and modifier items map
+                await ModifiersOps(clientId, senderId, catalog);
+
+                //Item modifiers Ops
+                await ItemModifiersOps(clientId, senderId, catalog);
+
+                //Update flow required by items
+                await FlowRequiredOps(clientId, senderId);
+
+                var catalogImportHistory = new CatalogImportHistory
+                {
+                    ClientId = clientId,
+                    SenderId = senderId,
+                    CreatedBy = 0,
+                    CreatedDate = dateTimeNow,
+                    UpdatedBy = 0,
+                    UpdatedDate = dateTimeNow
+                };
+
+                await _dbContext.CatalogImportHistories.AddAsync(catalogImportHistory);
+                await _dbContext.SaveChangesAsync();
+
+                await ExportCatalog(clientId, senderId);
+
+                return true;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("Catalog import failed with exception {exception}", ex);
+                return false;
+            }
         }
 
         public async Task ExportCatalog(int clientId, int senderId)
