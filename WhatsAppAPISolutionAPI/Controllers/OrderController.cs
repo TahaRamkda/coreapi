@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto.Common;
@@ -35,6 +36,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpPost("RestartOrder")]
         public async Task<IActionResult> RestartOrderAsync([FromBody] ReTryOrderDto model)
         {
+            _logger.LogInformation("RestartOrder called with model: {model}", JsonConvert.SerializeObject(model));
             var response = await _orderservice.RestartOrderAsync(model.ClientId, model.SenderId);
 
             foreach (var resp in response)

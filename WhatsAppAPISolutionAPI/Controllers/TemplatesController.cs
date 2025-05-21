@@ -260,7 +260,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("gettemplates")]
-        public async Task<IActionResult> GetTemplatesAsync(int clientId, int senderId = 0, string searchStr = "")
+        public async Task<IActionResult> GetTemplatesAsync(int senderId = 0, string searchStr = "")
         {
             _logger.LogDebug("Calling api GetTemplatesAsync with ClientId={ClientId}, senderId={senderId}, searchStr={searchStr}", clientId, senderId, searchStr);
 

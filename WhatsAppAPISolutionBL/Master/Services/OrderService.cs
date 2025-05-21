@@ -262,6 +262,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<List<DBResponse>> RestartOrderAsync(int ClientId, int SenderId)
         {
+            _logger.LogInformation("ProcessConversationAnalyticsAsync called with ClientId: {ClientId}, SenderId: {SenderId}", ClientId, SenderId);
             var response = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_RestartOrder @ClientId={ClientId},@SenderId={SenderId}").ToListAsync();
             return response;
         }
