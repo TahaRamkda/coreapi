@@ -95,7 +95,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             await _mediatorService.ProcessDBResponse(order.ClientId ?? 0, order.SenderId ?? 0, dbresponse[0]);
 
             //Call order push service
-            await _orderService.PushOrders(new List<int> { order.OrderId });
+            if (paymentStatus.IsSuccess)
+                await _orderService.PushOrders(new List<int> { order.OrderId });
 
             return response;
         }
