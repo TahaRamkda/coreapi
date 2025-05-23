@@ -302,7 +302,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
 
                 //Message received log entry, Hussain will provide procedure and Burhan has to share json
-                var flowResponseJson = System.Text.Json.JsonSerializer.Serialize(surveyResponseDetails.Select(detail => new
+                var flowResponseJson = JsonConvert.SerializeObject(surveyResponseDetails.Select(detail => new
                 {
                     detail.OptionText,
                     detail.QuestionText,
