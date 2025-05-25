@@ -73,7 +73,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             else
             {
                 paymentStatus.OrderId = Convert.ToInt32(Decrypteddata.TID);
-                paymentStatus.TransactionId = Decrypteddata.RF;
+                paymentStatus.PaymentRefNo = Decrypteddata.RF;
+                paymentStatus.PaymentGatewayType = Decrypteddata.GT;
                 if (!String.IsNullOrWhiteSpace(Decrypteddata.ST) && Decrypteddata.ST.Equals("CAPTURED", StringComparison.OrdinalIgnoreCase))
                     paymentStatus.IsSuccess = true;
                 else
@@ -89,8 +90,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 return response;
             }
 
-            var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentCompleted @OrderId={paymentStatus.OrderId},@Success={paymentStatus.IsSuccess},@TransactionId={paymentStatus.TransactionId}").ToListAsync();
-            _logger.LogInformation("Received response from procedure usp_Orders_PaymentCompleted with OrderId={OrderId} and TransactionId = {paymentStatus.IsSuccess}response={response}", paymentStatus.OrderId, paymentStatus.TransactionId, JsonConvert.SerializeObject(dbresponse));
+            var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentResponse @OrderId={paymentStatus.OrderId},@Success={paymentStatus.IsSuccess},@PaymentRefNo={paymentStatus.PaymentRefNo},@PaymentGatewayType={paymentStatus.PaymentGatewayType}").ToListAsync();
+            _logger.LogInformation("Received response from procedure usp_Orders_PaymentCompleted with OrderId={OrderId} and TransactionId = {paymentStatus.IsSuccess}response={response}", paymentStatus.OrderId, paymentStatus.PaymentRefNo, JsonConvert.SerializeObject(dbresponse));
 
             await _mediatorService.ProcessDBResponse(order.ClientId ?? 0, order.SenderId ?? 0, dbresponse[0]);
 
@@ -265,8 +266,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 response.Message = "No order found with provided response id";
                 return response;
             }
-            var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentCompleted @OrderId={paymentStatus.OrderId},@Success={paymentStatus.IsSuccess},@TransactionId={paymentStatus.TransactionId}").ToListAsync();
-            _logger.LogInformation("Received response from procedure usp_Orders_PaymentCompleted with OrderId={OrderId} and TransactionId = {paymentStatus.IsSuccess}response={response}", paymentStatus.OrderId, paymentStatus.TransactionId, JsonConvert.SerializeObject(dbresponse));
+            var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentResponse @OrderId={paymentStatus.OrderId},@Success={paymentStatus.IsSuccess},@PaymentRefNo={paymentStatus.PaymentRefNo},@PaymentGatewayType={paymentStatus.PaymentGatewayType}").ToListAsync();
+            _logger.LogInformation("Received response from procedure usp_Orders_PaymentCompleted with OrderId={OrderId} and TransactionId = {paymentStatus.IsSuccess}response={response}", paymentStatus.OrderId, paymentStatus.PaymentRefNo, JsonConvert.SerializeObject(dbresponse));
+
 
             await _mediatorService.ProcessDBResponse(order.ClientId ?? 0, order.SenderId ?? 0, dbresponse[0]);
 

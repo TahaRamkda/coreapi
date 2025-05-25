@@ -5,6 +5,7 @@ using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.ReOrder;
+using WhatsAppAPISolutionDL.UserModels;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -18,11 +19,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly IOrderService _orderservice;
         private readonly IMediatorService _mediaterService;
 
-        public OrderController(KFGOrderService kFGOrderService, IOrderService orderservice, IMediatorService mediaterService)
+        public OrderController(KFGOrderService kFGOrderService, IOrderService orderservice, IMediatorService mediaterService, ILogger<MessageController> logger)
         {
             _kFGOrderService = kFGOrderService;
             _orderservice = orderservice;
             _mediaterService = mediaterService;
+            _logger = logger;
         }
 
         [HttpPost("RestartOrder")]
@@ -42,6 +44,15 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data fetch successfully"
             }
             );
+        }
+
+        [HttpPost("SendMessageByDbResponse")]
+        public async Task<IActionResult> SendMessageByDbResponse(DBResponse model)
+        {
+            _logger.LogInformation("RestartOrder called with model: {model}", JsonConvert.SerializeObject(model));
+            await _mediaterService.ProcessDBResponse(1, 1, model);
+            return Ok();
+           
         }
 
         [HttpPost("PushOrders")]
