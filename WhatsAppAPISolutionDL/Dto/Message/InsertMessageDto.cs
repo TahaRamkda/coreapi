@@ -24,6 +24,7 @@ namespace WhatsAppAPISolutionDL.Dto.Message
         public string MessageContent { get; set; }
         public int MessageType { get; set; }
         public string ButtonJson { get; set; }
+        public bool SystemGenerated { get; set; }
         public ConversationDto Conversation { get; set; }
         public PricingDto Pricing { get; set; }
         public ErrorDto Error { get; set; }

@@ -157,7 +157,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 MessageReferenceId = model.ActionId,
                 MessageContent = messageContent.ToString(),
                 ButtonJson = buttonJson,
-                MediaId = model.MediaId, //If in campaign media id is present take reference from there, else default media
+                MediaId = model.MediaId,//If in campaign media id is present take reference from there, else default media
+                SystemGenerated = model.SystemGenerated
             };
 
             if (sendSMSResult != null && sendSMSResult.errors != null && sendSMSResult.errors.Any())
@@ -206,7 +207,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response;
         }
 
-        private async Task<InteractiveMessageRequestDto> GetInteractiveMessageRequestFromInteractiveTemplate(int clientId, int senderId, int interactiveTemplateId, int moduleId, int parentId, int actionId, string phoneNumber, List<ParamValue> parameters, string flowToken)
+        private async Task<InteractiveMessageRequestDto> GetInteractiveMessageRequestFromInteractiveTemplate(int clientId, int senderId, int interactiveTemplateId, int moduleId, int parentId, int actionId, string phoneNumber, List<ParamValue> parameters, string flowToken, bool SystemGenerated)
         {
             var interactiveTemplate = await _interactiveTemplateService.GetInteractiveTemplateDetailsAsync(clientId, senderId, interactiveTemplateId);
             if (interactiveTemplate == null)
@@ -226,7 +227,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 BodyText = interactiveTemplate.BodyText,
                 FooterText = interactiveTemplate.FooterText,
                 MediaId = interactiveTemplate.MediaId ?? 0,
-                FlowToken = flowToken
+                FlowToken = flowToken,
+                SystemGenerated = SystemGenerated
             };
 
             //Add dynamic parameters, if passed from DB
@@ -274,6 +276,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         /// <returns></returns>
         public async Task<ApiResult> ProcessDBResponse(int clientId, int senderId, DBResponse model)
         {
+            bool SystemGenerated = false;
             _logger.LogInformation("Calling function ProcessDBResponse with received clientId={clientId} senderId={senderId} and DBResponse={DBResponse}", clientId, senderId, JsonConvert.SerializeObject(model));
 
             if (model == null || String.IsNullOrWhiteSpace(model.Json))
@@ -284,7 +287,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 case (int)DBResponseEnum.InteractiveTemplate:
 
                     //Parse DB response
-                    var interactiveTemplateDBResponse = JsonConvert.DeserializeObject<InteractiveTemplateDBResponse>(model.Json);
+                    var interactiveTemplateDBResponse = JsonConvert.DeserializeObject<InteractiveTemplateDBResponse>(model. Json);
                     if (interactiveTemplateDBResponse == null)
                         return new ApiResult { Success = false, Message = $"Cannot parse DBResponse JSON. DBResponse={JsonConvert.SerializeObject(model)}" };
 
@@ -301,10 +304,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         var interactiveTemplate = await _interactiveTemplateService.GetInteractiveTemplateDetailsAsync(clientId, senderId, interactiveTemplateDBResponse.ActionId);
                         if (interactiveTemplate == null)
                             return new ApiResult { Success = false, Message = $"Cannot find interactive template with ID={interactiveTemplateDBResponse.ActionId}" };
+                        if (model.IsAutoResponse == 1)
+                            SystemGenerated = true;
 
                         var interactiveMessageRequest = await GetInteractiveMessageRequestFromInteractiveTemplate(clientId, senderId, interactiveTemplateDBResponse.ActionId, interactiveTemplateDBResponse.ModuleId,
                             interactiveTemplateDBResponse.ParentId, interactiveTemplateDBResponse.ActionId,
-                            interactiveTemplateDBResponse.PhoneNumber, interactiveTemplateDBResponse.Params, interactiveTemplateDBResponse.FlowToken
+                            interactiveTemplateDBResponse.PhoneNumber, interactiveTemplateDBResponse.Params, interactiveTemplateDBResponse.FlowToken,SystemGenerated
                             );
 
                         var messageResult = await SendInteractiveTemplate(interactiveMessageRequest);
@@ -332,7 +337,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         return new ApiResult { Success = false, Message = $"Cannot parse DBResponse JSON. DBResponse={JsonConvert.SerializeObject(model)}" };
 
                     _logger.LogInformation("Parsed ProcessDBResponse with received clientId={clientId} senderId={senderId} and DBResponse={DBResponse} and result={result}", clientId, senderId, model, manualTemplateDBResponse);
-
+                    if (model.IsAutoResponse == 1)
+                        SystemGenerated = true;
                     if (manualTemplateDBResponse.ActionType > 0 && manualTemplateDBResponse.ActionId > 0 && manualTemplateDBResponse.ActionType == (int)ActionTypeEnum.TEMPLATE)
                     {
                         if (String.IsNullOrWhiteSpace(manualTemplateDBResponse.FlowToken))
@@ -354,7 +360,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             BodyText = manualTemplateDBResponse.BodyText,
                             FooterText = manualTemplateDBResponse.FooterText,
                             MediaId = manualTemplateDBResponse.MediaId,
-                            FlowToken = manualTemplateDBResponse.FlowToken
+                            FlowToken = manualTemplateDBResponse.FlowToken,
+                            SystemGenerated = SystemGenerated
                         };
 
                         //Add dynamic parameters, if passed from DB
@@ -510,6 +517,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<UResponse> AssignConversationToAgentAsync(List<AssignConversationDto> models)
         {
+            bool SystemGenerated = true;
             foreach (var item in models)
             {
                 //If assigned agent template id is present, send a default template
@@ -520,7 +528,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         var flowToken = $"{FlowIdentifier.ClientId}:{item.ClientId}|" + $"{FlowIdentifier.SenderId}:{item.SenderId}|" + $"{FlowIdentifier.ModuleId}:{item.ModuleId}|" + $"{FlowIdentifier.ParentId}:{item.ParentId}";
 
                         var interactiveMessageRequest = await GetInteractiveMessageRequestFromInteractiveTemplate(item.ClientId, item.SenderId, item.ActionId, item.ModuleId, item.ParentId, item.ActionId,
-                         item.PhoneNumber, item.Values, flowToken);
+                         item.PhoneNumber, item.Values, flowToken, SystemGenerated);
 
                         if (interactiveMessageRequest != null)
                             await SendInteractiveTemplate(interactiveMessageRequest);
@@ -566,7 +574,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UResponse> ExpiredConversationNotifyToAgentAsync(List<ExpiredConversationDto> models)
         {
             _logger.LogInformation("Calling function ExpiredConversationNotifyToAgentAsync with received data={data}", models);
-
+            bool SystemGenerated = true;
             foreach (var item in models)
             {
                 //If assigned agent template id is present, send a default template
@@ -577,7 +585,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         var flowToken = $"{FlowIdentifier.ClientId}:{item.ClientId}|" + $"{FlowIdentifier.SenderId}:{item.SenderId}|" + $"{FlowIdentifier.ModuleId}:{item.ModuleId}|" + $"{FlowIdentifier.ParentId}:{item.ParentId}";
 
                         var interactiveMessageRequest = await GetInteractiveMessageRequestFromInteractiveTemplate(item.ClientId, item.SenderId, item.ActionId, item.ModuleId, item.ParentId, item.ActionId,
-                            item.PhoneNumber, item.Values, flowToken);
+                            item.PhoneNumber, item.Values, flowToken, SystemGenerated);
 
                         if (interactiveMessageRequest != null)
                             await SendInteractiveTemplate(interactiveMessageRequest);

@@ -60,6 +60,7 @@
 
         AssignConversationToAgent = 9,
         GetAppSettingByKeyName = 9,
+        WalleteCheckBalance = 9,
 
         GetAllLoanTransactions = 10,
         GetLatestConversationByConversationId = 10,

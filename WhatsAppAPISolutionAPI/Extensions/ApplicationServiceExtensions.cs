@@ -40,6 +40,7 @@ namespace WhatsAppAPISolutionAPI.Extensions
             services.AddScoped<ICatalogService, CatalogService>();
             services.AddSingleton<ICacheService, CacheService>();
             services.AddScoped<IAppSettingsService, AppSettingsService>();
+            services.AddScoped<IOrderSummaryDetailsService, OrderSummaryDetailsService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IConversationAnalyticsService, ConversationAnalyticsService>();
             services.AddScoped<ISurveyReportService, SurveyReportService>();
@@ -47,6 +48,7 @@ namespace WhatsAppAPISolutionAPI.Extensions
             services.AddScoped<IMediatorService, MediatorService>();
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<ISignalRService, SignalRService>();
+            services.AddScoped<IWalleteCheckBalanceService, WalleteCheckBalanceService>();
             services.AddScoped<KFGOrderService>();
 
             #region Third party services
