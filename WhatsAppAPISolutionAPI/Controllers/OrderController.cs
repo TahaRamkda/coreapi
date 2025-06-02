@@ -5,12 +5,13 @@ using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.ReOrder;
+using WhatsAppAPISolutionDL.UserModels;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    [Authorize]
+    [AllowAnonymous]
     public class OrderController : ControllerBase
     {
         private readonly KFGOrderService _kFGOrderService;
@@ -18,21 +19,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly IOrderService _orderservice;
         private readonly IMediatorService _mediaterService;
 
-        public OrderController(KFGOrderService kFGOrderService, IOrderService orderservice, IMediatorService mediaterService)
+        public OrderController(KFGOrderService kFGOrderService, IOrderService orderservice, IMediatorService mediaterService, ILogger<MessageController> logger)
         {
             _kFGOrderService = kFGOrderService;
             _orderservice = orderservice;
             _mediaterService = mediaterService;
+            _logger = logger;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Index(int orderId)
-        {
-            var json = await _kFGOrderService.CreateOrder(orderId);
-            return Ok(json);
-        }
-
-        [AllowAnonymous]
         [HttpPost("RestartOrder")]
         public async Task<IActionResult> RestartOrderAsync([FromBody] ReTryOrderDto model)
         {
@@ -50,6 +44,22 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data fetch successfully"
             }
             );
+        }
+
+        [HttpPost("SendMessageByDbResponse")]
+        public async Task<IActionResult> SendMessageByDbResponse(DBResponse model)
+        {
+            _logger.LogInformation("RestartOrder called with model: {model}", JsonConvert.SerializeObject(model));
+            await _mediaterService.ProcessDBResponse(1, 1, model);
+            return Ok();
+           
+        }
+
+        [HttpPost("PushOrders")]
+        public async Task<IActionResult> PushOrdersAsync(List<int> orderIds)
+        {
+            var response = await _orderservice.PushOrders(orderIds);
+            return Ok(response);
         }
     }
 }

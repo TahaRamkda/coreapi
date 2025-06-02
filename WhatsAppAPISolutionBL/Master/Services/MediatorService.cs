@@ -18,6 +18,7 @@ using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.Entity;
+using WhatsAppAPISolutionDL.UserModels.Location;
 using static WhatsAppAPISolutionDL.Dto.Order.MetaOrderRequestDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
@@ -185,6 +186,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
 
             var _config = await _appSettingsService.GetAppSettingByKeyAsync(clientId, senderId, AppSettingKey.PaymentLinkUrl);
+            if (_config == null || string.IsNullOrWhiteSpace(_config.Val))
+            {
+                _logger.LogError("PaymentLinkUrl is not configured for clientId={clientId} and senderId={senderId}", clientId, senderId);
+                return (false, null);
+            }
+             
             var paymentUrl = _config.Val;
             var jsonBody = JsonConvert.SerializeObject(request);
             var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");

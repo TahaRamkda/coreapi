@@ -2,7 +2,6 @@
 {
     public enum ClientIntegrationTypeEnum
     {
-        KFG = 1,
-        BCT = 2,
+        KFG = 1 
     }
 }

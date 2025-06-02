@@ -15,7 +15,7 @@ using WhatsAppAPISolutionDL.UserModels.Location;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
-    public class PaymentService: IPaymentService
+    public class PaymentService : IPaymentService
     {
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly WhatsAppSolutionContext2 _dbContext2;
@@ -24,6 +24,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly ILogger<PaymentService> _logger;
         public readonly IMediatorService _mediatorService;
         public readonly IAppSettingsService _appSettingsService;
+        public readonly IOrderService _orderService;
 
         public PaymentService(
             WhatsAppSolutionContext dbContext,
@@ -32,19 +33,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IOptions<KFGPaymentConfiguration> kfgpaymentConfigurationSettings,
             ILogger<PaymentService> logger, //,
             IMediatorService mediatorService,
-            IAppSettingsService appSettingsService
-            //IMessageService messageService
-
+            IAppSettingsService appSettingsService,
+            IOrderService orderService
             )
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _httpClient = httpClient;
             _mediatorService = mediatorService;
-           _kfgpaymentConfigurationSettings = kfgpaymentConfigurationSettings;
+            _kfgpaymentConfigurationSettings = kfgpaymentConfigurationSettings;
             _logger = logger;
             _appSettingsService = appSettingsService;
-            //_messageService = messageService;
+            _orderService = orderService;
         }
 
         public async Task<UResponse> CheckKFGPaymentStatusAsync(string encryptedString)
@@ -52,8 +52,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             UResponse response = new UResponse();
             {
                 response.Status = 1;
-                response.Message= "OK";
+                response.Message = "OK";
             }
+
             PaymentStatus paymentStatus = new PaymentStatus();
             if (string.IsNullOrWhiteSpace(encryptedString))
             {
@@ -61,27 +62,25 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 response.Message = "No Encrypted String provided";
                 return response;
             }
-            var Decrypteddata =  DecryptKfgResponse(encryptedString);
-            if(Decrypteddata == null)
+
+            var Decrypteddata = DecryptKfgResponse(encryptedString);
+            if (Decrypteddata == null)
             {
                 response.Status = 0;
                 response.Message = "Error while decrypting Payment";
                 return response;
-
             }
             else
             {
                 paymentStatus.OrderId = Convert.ToInt32(Decrypteddata.TID);
-                paymentStatus.TransactionId = Decrypteddata.RF;
-                if (Decrypteddata.ST.Equals("CAPTURED",StringComparison.OrdinalIgnoreCase))
-                {
+                paymentStatus.PaymentRefNo = Decrypteddata.RF;
+                paymentStatus.PaymentGatewayType = Decrypteddata.GT;
+                if (!String.IsNullOrWhiteSpace(Decrypteddata.ST) && Decrypteddata.ST.Equals("CAPTURED", StringComparison.OrdinalIgnoreCase))
                     paymentStatus.IsSuccess = true;
-                }
                 else
-                {
                     paymentStatus.IsSuccess = false;
-                }
             }
+
             var order = await _dbContext.Orders.FindAsync(paymentStatus.OrderId);
             if (order == null)
             {
@@ -90,19 +89,24 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 response.Message = "No order found with provided response id";
                 return response;
             }
-            var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentCompleted @OrderId={paymentStatus.OrderId},@Success={paymentStatus.IsSuccess},@TransactionId={paymentStatus.TransactionId}").ToListAsync();
-            _logger.LogInformation("Received response from procedure usp_Orders_PaymentCompleted with OrderId={OrderId} and TransactionId = {paymentStatus.IsSuccess}response={response}",paymentStatus.OrderId, paymentStatus.TransactionId, JsonConvert.SerializeObject(dbresponse));
 
-          await _mediatorService.ProcessDBResponse(order.ClientId ?? 0, order.SenderId ?? 0, dbresponse[0]);
+            var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentResponse @OrderId={paymentStatus.OrderId},@Success={paymentStatus.IsSuccess},@PaymentRefNo={paymentStatus.PaymentRefNo},@PaymentGatewayType={paymentStatus.PaymentGatewayType}").ToListAsync();
+            _logger.LogInformation("Received response from procedure usp_Orders_PaymentCompleted with OrderId={OrderId} and TransactionId = {paymentStatus.IsSuccess}response={response}", paymentStatus.OrderId, paymentStatus.PaymentRefNo, JsonConvert.SerializeObject(dbresponse));
 
+            await _mediatorService.ProcessDBResponse(order.ClientId ?? 0, order.SenderId ?? 0, dbresponse[0]);
 
-            return response ;
+            //Call order push service
+            if (paymentStatus.IsSuccess)
+                await _orderService.PushOrders(new List<int> { order.OrderId });
+
+            return response;
         }
+
         public async Task<List<UResponse>> RecheckPaymentStatusAsync(List<long> orderIds)
         {
             if (orderIds == null || !orderIds.Any())
             {
-               // _logger.LogWarning("CheckKFGPaymentStatusAsync called with null or empty orderIds.");
+                // _logger.LogWarning("CheckKFGPaymentStatusAsync called with null or empty orderIds.");
                 return new List<UResponse>
                 {
                     new UResponse
@@ -119,14 +123,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 try
                 {
-                    _logger.LogInformation("Fetching order details for OrderId={OrderId}", orderId);
-
                     // Fetch order from repository
                     var order = await _dbContext.Orders.FindAsync(Convert.ToInt32(orderId));
 
                     if (order == null)
                     {
-                        _logger.LogWarning("Order not found for OrderId={OrderId}", orderId);
+                        _logger.LogError("Order not found for OrderId={OrderId}", orderId);
                         responses.Add(new UResponse
                         {
                             Message = $"Order with ID {orderId} not found.",
@@ -134,11 +136,25 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         });
                         continue;
                     }
-                    
-                    var _config = await _appSettingsService.GetAppSettingByKeyAsync( order.ClientId ?? 0,  order.SenderId ?? 0,AppSettingKey.PaymentStatusUrl);
+
+                    var _config = await _appSettingsService.GetAppSettingByKeyAsync(order.ClientId ?? 0, order.SenderId ?? 0, AppSettingKey.PaymentStatusUrl);
+                    var clientintegration = await _appSettingsService.GetAppSettingByKeyAsync(order.ClientId ?? 0, order.SenderId ?? 0, AppSettingKey.ClientIntegrationType);
+
+                    if (_config == null || String.IsNullOrWhiteSpace(_config.Val))
+                    {
+                        _logger.LogError("PaymentStatusUrl is not configured for clientId={clientId} and senderId={senderId}", order.ClientId ?? 0, order.SenderId ?? 0);
+                        continue;
+                    }
+
+                    if (clientintegration == null || String.IsNullOrWhiteSpace(clientintegration.Val))
+                    {
+                        _logger.LogError("ClientIntegrationType is not configured for clientId={clientId} and senderId={senderId}", order.ClientId ?? 0, order.SenderId ?? 0);
+                        continue;
+                    }
+
                     var recheckUrl = _config.Val;
-                    var clientintegration = await _appSettingsService.GetAppSettingByKeyAsync(order.ClientId ??0, order.SenderId ??0, AppSettingKey.ClientIntegrationType);
                     var integrationtype = Convert.ToInt32(clientintegration.Val);
+
                     if (integrationtype == (int)ClientIntegrationTypeEnum.KFG)
                     {
                         var requestBody = new
@@ -147,8 +163,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             LicenceKey = _kfgpaymentConfigurationSettings.Value.LicenseKey,
                             TransactionId = order.OrderId.ToString(),
                         };
-                        var jsonBody = JsonConvert.SerializeObject(requestBody);
-                        var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+                        var requestStr = JsonConvert.SerializeObject(requestBody);
+                        var content = new StringContent(requestStr, Encoding.UTF8, "application/json");
                         var response = await _httpClient.PostAsync(recheckUrl, content);
                         if (!response.IsSuccessStatusCode)
                         {
@@ -160,17 +177,31 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             });
                         }
 
-                        var responseContent = await response.Content.ReadAsStringAsync();
-                        //handle null 
-                        var paymenresponse = JsonConvert.DeserializeObject<RecheckKFGPaymentStatusRes>(responseContent);
-                        var paymentStatus = await CheckKFGPaymentStatusAsync(paymenresponse.result);
+                        var responseStr = await response.Content.ReadAsStringAsync();
 
-                        responses.Add(new UResponse
+                        _logger.LogInformation("Received KFG payment status details for orderId={orderId} with request={request} and response={response}", orderId, requestStr, responseStr);
+
+                        var paymenresponse = JsonConvert.DeserializeObject<RecheckKFGPaymentStatusRes>(responseStr);
+                        if (paymenresponse == null)
                         {
+                            _logger.LogError("Cannot parse KFG payment response for orderId={orderId} with request={request} and response={response}", orderId, requestStr, responseStr);
+                            responses.Add(new UResponse
+                            {
+                                Status = 0,
+                                Message = $"Cannot parse KFG payment status details for orderId={orderId}"
+                            });
+                        }
+                        else
+                        {
+                            var paymentStatus = await CheckKFGPaymentStatusAsync(paymenresponse.result);
 
-                            Message = paymentStatus.Message,
-                            Status = paymentStatus.Status
-                        });
+                            responses.Add(new UResponse
+                            {
+
+                                Message = paymentStatus.Message,
+                                Status = paymentStatus.Status
+                            });
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -178,7 +209,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     _logger.LogError(ex, "Error processing OrderId={OrderId}", orderId);
                     responses.Add(new UResponse
                     {
-                       
+
                         Message = $"Error processing order ID {orderId}: {ex.Message}",
                         Status = 1
                     });
@@ -187,6 +218,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return responses;
         }
+
         public KfgDecryptedResponse DecryptKfgResponse(string EncryptedString)
         {
             EncryptedString = EncryptedString.Replace(" ", "+");
@@ -217,6 +249,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return JsonConvert.DeserializeObject<KfgDecryptedResponse>(EncryptedString);
 
         }
+
         public async Task<UResponse?> TempCheckKFGPaymentStatusAsync(PaymentStatus paymentStatus)
         {
             UResponse response = new UResponse();
@@ -224,7 +257,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 response.Status = 1;
                 response.Message = "OK";
             }
-          
+
             var order = await _dbContext.Orders.FindAsync(paymentStatus.OrderId);
             if (order == null)
             {
@@ -233,8 +266,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 response.Message = "No order found with provided response id";
                 return response;
             }
-            var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentCompleted @OrderId={paymentStatus.OrderId},@Success={paymentStatus.IsSuccess},@TransactionId={paymentStatus.TransactionId}").ToListAsync();
-            _logger.LogInformation("Received response from procedure usp_Orders_PaymentCompleted with OrderId={OrderId} and TransactionId = {paymentStatus.IsSuccess}response={response}", paymentStatus.OrderId, paymentStatus.TransactionId, JsonConvert.SerializeObject(dbresponse));
+            var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentResponse @OrderId={paymentStatus.OrderId},@Success={paymentStatus.IsSuccess},@PaymentRefNo={paymentStatus.PaymentRefNo},@PaymentGatewayType={paymentStatus.PaymentGatewayType}").ToListAsync();
+            _logger.LogInformation("Received response from procedure usp_Orders_PaymentCompleted with OrderId={OrderId} and TransactionId = {paymentStatus.IsSuccess}response={response}", paymentStatus.OrderId, paymentStatus.PaymentRefNo, JsonConvert.SerializeObject(dbresponse));
+
 
             await _mediatorService.ProcessDBResponse(order.ClientId ?? 0, order.SenderId ?? 0, dbresponse[0]);
 
