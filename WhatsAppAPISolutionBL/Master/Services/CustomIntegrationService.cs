@@ -68,7 +68,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 IsApiMessage = true,
                 Url = request,
                 ParentId = 0,
-                ModuleId = (int)ModuleEnum.API
+                ModuleId = (int)ModuleEnum.API,
+                UDF1 = sendSms.UDF1,
+                UDF2 = sendSms.UDF2
             };
 
             //Get template id and sender id
@@ -134,7 +136,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 Status = 0,
                 WaId = String.Empty,
                 ActionBy = UserId,
-                Url = tempPayload.Url
+                Url = tempPayload.Url,
+                UDF1 = sendSms.UDF1,
+                UDF2 = sendSms.UDF2,
             };
 
             var response = await _apiMessageService.AddAPIMessageAsync(message);

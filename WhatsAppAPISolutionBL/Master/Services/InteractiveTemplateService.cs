@@ -58,9 +58,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 && x.ClientId == clientId
                 && x.SenderId == model.SenderNameId
                 && x.TemplateName != null
-                && x.Language != null
                 && x.TemplateName.ToLower() == model.Name.ToLower()
-                && x.Language.ToLower() == model.Language.ToLower()).FirstOrDefaultAsync();
+                //&& x.Language != null
+                //&& x.Language.ToLower() == model.Language.ToLower()
+                ).FirstOrDefaultAsync();
 
             if (templateNameExist != null)
             {
@@ -230,9 +231,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 && x.ClientId == clientId
                 && x.SenderId == model.SenderNameId
                 && x.TemplateName != null
-                && x.Language != null
                 && x.TemplateName.ToLower() == model.Name.ToLower()
-                && x.Language.ToLower() == model.Language.ToLower()).FirstOrDefaultAsync();
+                //&& x.Language != null
+                //&& x.Language.ToLower() == model.Language.ToLower()
+                ).FirstOrDefaultAsync();
 
             if (templateNameExist != null)
             {

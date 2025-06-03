@@ -19,6 +19,8 @@
         public List<string> PhoneNumbers { get; set; }
         public string Url { get; set; }
         public string FlowToken { get; set; }
+        public string UDF1 { get; set; }
+        public string UDF2 { get; set; }
     }
     public class ParamData
     {

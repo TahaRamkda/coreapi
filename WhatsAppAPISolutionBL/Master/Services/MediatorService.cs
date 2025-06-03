@@ -458,9 +458,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     var DBResponse = JsonConvert.DeserializeObject<ManualTemplateDBResponse>(model.Json);
                     if (DBResponse == null)
                         return new ApiResult { Success = false, Message = $"Cannot parse DBResponse JSON. DBResponse={JsonConvert.SerializeObject(model)}" };
-
-                    _logger.LogInformation("Parsed ProcessDBResponse with received clientId={clientId} senderId={senderId} and DBResponse={DBResponse} and result={result}", clientId, senderId, model, DBResponse);
-                    orderId = String.Empty;
+                    _logger.LogInformation("Parsed ProcessDBResponse with received clientId={clientId} senderId={senderId} and DBResponse={DBResponse} and result={result}", clientId, senderId, JsonConvert.SerializeObject(DBResponse),JsonConvert.SerializeObject(model) );
+                     orderId = String.Empty;
                     string firstName = String.Empty;
                     decimal amount = 0;
                     if (DBResponse.KeyValues != null && DBResponse.KeyValues.Any())

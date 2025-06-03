@@ -29,6 +29,8 @@ namespace WhatsAppAPISolutionDL.Dto.Message
         public ErrorDto Error { get; set; }
 
         public PhoneNumberDto PhoneNumberId { get; set; }
+        public string UDF1 { get; set; }
+        public string UDF2 { get; set; }
 
         public class PhoneNumberDto
         {

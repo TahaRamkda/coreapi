@@ -21,5 +21,7 @@ namespace WhatsAppAPISolutionDL.Dto.Message
         public string WaId { get; set; }
         public int? ActionBy { get; set; }
         public DateTime? CreatedDate { get; set; }
+        public string UDF1 { get; set; }
+        public string UDF2 { get; set; }
     }
 }

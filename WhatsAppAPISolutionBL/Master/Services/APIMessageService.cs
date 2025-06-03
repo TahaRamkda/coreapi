@@ -34,7 +34,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         }
         public async Task<UResponseWithID> AddAPIMessageAsync(APIMessageDto apiMesage)
         {
-            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_APIMessages_Ops @ActionId={(int)CrudEnum.Add}, @TrxType={apiMesage.TrxType}, @UDF1={apiMesage.Udf1}, @UDF2={apiMesage.Udf2}, @TemplateId={apiMesage.TemplateId}, @ClientId={apiMesage.ClientId}, @URL={apiMesage.Url}, @Status={apiMesage.Status}, @SenderNameId={apiMesage.SenderNameId}, @WaID={apiMesage.WaId}, @PhoneNumber={apiMesage.PhoneNumber}, @ScheduleTime={apiMesage.ScheduleTime}, @ActionBy={apiMesage.ActionBy}").ToListAsync();
+            var response = await _dbContext2.ResponseWithID.FromSqlInterpolated($"exec usp_APIMessages_Ops @ActionId={(int)CrudEnum.Add}, @TrxType={apiMesage.TrxType}, @UDF1={apiMesage.Udf1}, @UDF2={apiMesage.Udf2}, @TemplateId={apiMesage.TemplateId}, @ClientId={apiMesage.ClientId}, @URL={apiMesage.Url}, @Status={apiMesage.Status}, @SenderNameId={apiMesage.SenderNameId}, @WaID={apiMesage.WaId}, @PhoneNumber={apiMesage.PhoneNumber}, @ScheduleTime={apiMesage.ScheduleTime}, @ActionBy={apiMesage.ActionBy},@UDF1={apiMesage.UDF1},@UDF2={apiMesage.UDF2}").ToListAsync();
             return response[0];
         }
     }

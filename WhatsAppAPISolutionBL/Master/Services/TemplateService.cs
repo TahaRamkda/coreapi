@@ -69,9 +69,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 && x.SenderId == model.SenderNameId
                 //&& x.RecordStatus != -1
                 && x.TemplateName != null
-                && x.Language != null
                 && x.TemplateName.ToLower() == model.Name.ToLower()
-                && x.Language.ToLower() == model.Language.ToLower()).FirstOrDefaultAsync();
+                //&& x.Language != null
+                //&& x.Language.ToLower() == model.Language.ToLower()).
+                ).FirstOrDefaultAsync();
 
             if (templateNameExist != null)
                 return new UResponseWithID { Message = "Template with same name already exist" };

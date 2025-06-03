@@ -306,7 +306,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             MessageReferenceId = (int)template.Id,
                             MessageContent = messageContent.ToString(),
                             ButtonJson = buttonJson,
-                            MediaId = (model.MediaId > 0 ? model.MediaId : template.MediaId) ?? 0 //If in campaign media id is present take reference from there, else default media
+                            MediaId = (model.MediaId > 0 ? model.MediaId : template.MediaId) ?? 0, //If in campaign media id is present take reference from there, else default media
+                            UDF1 = model.UDF1,
+                            UDF2 = model.UDF2,
+                            
                         };
 
                         if (item.errors != null && item.errors.Any())
