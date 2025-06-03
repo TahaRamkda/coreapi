@@ -2,7 +2,7 @@
 
 namespace WhatsAppAPISolutionDL.Dto.Message
 {
-    public class InteractiveMessageRequestDto
+    public class  InteractiveMessageRequestDto
     {
         public InteractiveMessageRequestDto()
         {
@@ -23,6 +23,7 @@ namespace WhatsAppAPISolutionDL.Dto.Message
         public string BodyText { get; set; }
         public string FooterText { get; set; }
         public string FlowToken { get; set; }  
+        public bool SystemGenerated { get; set; }
         public List<ParamValue> Values { get; set; }
         public List<Button> Buttons { get; set; }
 

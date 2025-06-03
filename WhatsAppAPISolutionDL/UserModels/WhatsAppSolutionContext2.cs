@@ -4,6 +4,7 @@ using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.AppSetting;
 using WhatsAppAPISolutionDL.UserModels.Campaign;
 using WhatsAppAPISolutionDL.UserModels.Catalog;
+using WhatsAppAPISolutionDL.UserModels.CheckWallet;
 using WhatsAppAPISolutionDL.UserModels.Client;
 using WhatsAppAPISolutionDL.UserModels.Contact;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
@@ -18,6 +19,7 @@ using WhatsAppAPISolutionDL.UserModels.MasterData;
 using WhatsAppAPISolutionDL.UserModels.Media;
 using WhatsAppAPISolutionDL.UserModels.Message;
 using WhatsAppAPISolutionDL.UserModels.Permission;
+using WhatsAppAPISolutionDL.UserModels.PlacedOrderInformation;
 using WhatsAppAPISolutionDL.UserModels.SenderName;
 using WhatsAppAPISolutionDL.UserModels.SurveyReport;
 using WhatsAppAPISolutionDL.UserModels.SystemActions;
@@ -100,6 +102,9 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UItems> ITems { get; set; } = null!;
         public virtual DbSet<UItemModiferDetails> ITemModifier { get; set; } = null!;
         public virtual DbSet<UItemModifierItemDetails> ModifierItem { get; set; } = null!;
+        public virtual DbSet<UOrderListingDetails> OrderListingDetails { get; set; } = null!;
+        public virtual DbSet<UOrderSummaryDetails> OrderSummaryDetails { get; set; } = null!;
+        public virtual DbSet<UWalletBalanceCheck> CheckWalleteBalance { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -164,6 +169,9 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UItems>().HasNoKey();
             modelBuilder.Entity<UItemModiferDetails>().HasNoKey();
             modelBuilder.Entity<UItemModifierItemDetails>().HasNoKey();
+            modelBuilder.Entity<UOrderListingDetails>().HasNoKey();
+            modelBuilder.Entity<UOrderSummaryDetails>().HasNoKey();
+            modelBuilder.Entity<UWalletBalanceCheck>().HasNoKey();
         }
     }
 }

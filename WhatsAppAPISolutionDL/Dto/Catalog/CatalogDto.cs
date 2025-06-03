@@ -44,6 +44,7 @@
             public List<string> modifier_ids { get; set; }
             public string type { get; set; }
             public string ItemURL { get; set; }
+            public int displayOrder { get; set; }
         }
 
         public class Modifier
