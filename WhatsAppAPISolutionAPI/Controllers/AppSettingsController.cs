@@ -9,17 +9,22 @@ using WhatsAppAPISolutionDL.Dto.Group;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
+    #region Route
     [Route("[controller]")]
     [ApiController]
     [Authorize]
+    #endregion
     public class AppSettingsController : ControllerBase
     {
+        #region Fields
         private readonly IAppSettingsService _appSettingsService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly int clientId;
         private readonly ILogger<AppSettingsController> _logger; 
         private readonly IUserService _userService;
+        #endregion
 
+        #region Ctor
         public AppSettingsController(WhatsAppSolutionContext dbContext, ILogger<AppSettingsController> logger, IAppSettingsService appSettingsService, IUserService _userService)
         {
             _dbContext = dbContext;
@@ -27,6 +32,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _appSettingsService = appSettingsService;
             clientId = _userService.GetClientIdFromAccessToken();
         }
+        #endregion
+
+        #region Method
 
         [HttpGet("getappsettinglist")]
         public async Task<ActionResult> GetAppSettingListAsync(string SearchStr = "",  int ClientId = 0, int SenderId = 0,  int PageNo = 0, int PageSize = int.MaxValue)
@@ -157,6 +165,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
-
+        #endregion
     }
 }

@@ -19,12 +19,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
     [Authorize(Policy = AuthenticationSchemes.ApiKeyPolicy)]
     public class BridgeController : ControllerBase
     {
+        #region Fields
         private readonly IMessageService _messageService;
         private readonly ITemplateService _templateService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<BridgeController> _logger;
         private readonly IFlowsService _flowService;
         private readonly IOrderService _orderService;
+        #endregion
+
+        #region Ctor
         public BridgeController(IMessageService messageService,
             ITemplateService templateService,
             WhatsAppSolutionContext dbContext,
@@ -39,6 +43,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _flowService = flowService;
             _orderService = orderService;
         }
+        #endregion
 
         #region Template
 

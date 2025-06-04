@@ -15,6 +15,7 @@ namespace WhatsAppAPISolutionAPI.Extensions
             services.Configure<ApiKeyAuthenticationConfigurationSettings>(config.GetSection(ApiKeyAuthenticationConfigurationSettings.ConfigKey));
             services.Configure<WitAiConfigurationSettings>(config.GetSection(WitAiConfigurationSettings.ConfigKey));
             services.Configure<KFGPaymentConfiguration>(config.GetSection(KFGPaymentConfiguration.ConfigKey));
+            services.Configure<MerchantSettingsConfigurationSettings>(config.GetSection(MerchantSettingsConfigurationSettings.ConfigKey));
 
             return services;
         }

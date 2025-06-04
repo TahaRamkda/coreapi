@@ -143,6 +143,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             var response = await _apiMessageService.AddAPIMessageAsync(message);
             if (response != null)
+            
             {
                 tempPayload.ParentId = response.Id;
             }

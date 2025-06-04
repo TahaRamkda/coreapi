@@ -8,17 +8,22 @@ using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
+    #region Routing
     [Route("[controller]")]
     [ApiController]
     [Authorize]
+    #endregion
     public class ApiMessageController : ControllerBase
     {
+        #region Fields
         private readonly int clientId;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<ApiMessageController> _logger;
         private readonly IAPIMessageService _aPIMessageService;
         private readonly IUserService _userService;
+        #endregion
 
+        #region Ctor
         public ApiMessageController(WhatsAppSolutionContext dbContext,
             ILogger<ApiMessageController> logger,
             IAPIMessageService aPIMessageService,
@@ -32,6 +37,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             clientId = _userService.GetClientIdFromAccessToken();
         }
+        #endregion
+
+        #region Method
 
         [HttpGet("getapimessagelist")]
         public async Task<ActionResult> GetApiMessageListAsync(int APIMessageId = 0, int TemplateId = 0, int Status = 0, string WaID = "", DateTime? FromDate = null, DateTime? ToDate = null, string SearchStr = "", string TrxType = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
@@ -48,5 +56,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data fetch successfully"
             });
         }
+        #endregion
     }
 }

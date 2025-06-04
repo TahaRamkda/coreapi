@@ -13,13 +13,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
     [Authorize]
     public class ContactsController : ControllerBase
     {
+        #region Fields
         private readonly int clientId;
         private readonly int userId;
         private readonly IContactService _contactService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<ContactsController> _logger;
         private readonly IUserService _userService;
+        #endregion
 
+        #region Ctor
         public ContactsController(IContactService contactService,
             WhatsAppSolutionContext dbContext,
             ILogger<ContactsController> logger,
@@ -34,7 +37,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             clientId = _userService.GetClientIdFromAccessToken();
             userId = _userService.GetUserIdFromAccessToken();
         }
+        #endregion
 
+        #region Methods
         [HttpGet("getcontactslist")]
         public async Task<ActionResult> GetContactsListAsync(int GroupId = 0, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
         {
@@ -175,5 +180,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data added successfully"
             });
         }
+        #endregion
     }
 }

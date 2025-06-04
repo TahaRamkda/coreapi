@@ -13,12 +13,15 @@ namespace WhatsAppAPISolutionAPI.Controllers
     [Authorize]
     public class ClientsController : ControllerBase
     {
+        #region Fields 
         private readonly int userId;
         private readonly IClientService _clientService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<ClientsController> _logger;
         private readonly IUserService _userService;
+        #endregion
 
+        #region Ctor
         public ClientsController(IClientService clientService,
             WhatsAppSolutionContext dbContext,
             ILogger<ClientsController> logger,
@@ -32,7 +35,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             userId = _userService.GetUserIdFromAccessToken();
         }
+        #endregion
 
+        #region Method
         [HttpGet("getclientslist")]
         public async Task<ActionResult> GetClientsListAsync(string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
         {
@@ -235,5 +240,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = String.Empty
             });
         }
+        #endregion
     }
 }

@@ -16,6 +16,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
     [Authorize]
     public class AgentsController : ControllerBase
     {
+        #region Fields
         private readonly int clientId;
         private readonly int userId;
         private readonly IAgentsService _agentsService;
@@ -23,8 +24,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly ILogger<AgentsController> _logger;
         private readonly IUserService _userService;
         private readonly IExportManager _exportManager;
+        #endregion
 
-        //test github
+        #region Ctor
         public AgentsController(IAgentsService agentsService,
             WhatsAppSolutionContext dbContext,
             ILogger<AgentsController> logger,
@@ -39,7 +41,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             clientId = _userService.GetClientIdFromAccessToken();
             userId = _userService.GetUserIdFromAccessToken();
         }
+        #endregion
 
+        #region Method
         [HttpGet("getagentlist")]
         public async Task<ActionResult> GetAgentsListAsync(string searchStr = "", int status = 0, int senderId = 0, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue)
         {
@@ -407,5 +411,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data added successfully"
             });
         }
+        #endregion
     }
 }

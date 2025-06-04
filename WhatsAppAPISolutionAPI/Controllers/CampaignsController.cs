@@ -13,13 +13,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
     [Authorize]
     public class CampaignsController : ControllerBase
     {
+        #region Fields
         private readonly int clientId;
         private readonly int userId;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<CampaignsController> _logger;
         private readonly ICampaignService _campaignService;
         private readonly IUserService _userService;
+        #endregion
 
+        #region Ctor
         public CampaignsController(
             WhatsAppSolutionContext dbContext,
             ILogger<CampaignsController> logger,
@@ -36,7 +39,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             clientId = _userService.GetClientIdFromAccessToken();
             userId = _userService.GetUserIdFromAccessToken();
         }
+        #endregion
 
+        #region Method
         [HttpGet("getcampaignlist")]
         public async Task<ActionResult> GetCampaignListAsync(int CampaignId = 0, DateTime? FromDate = null, DateTime? ToDate = null, string SearchStr = "", int TemplateId = 0,int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue, int SenderId = 0)
         {
@@ -280,5 +285,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data fetch successfully"
             });
         }
+        #endregion
     }
 }

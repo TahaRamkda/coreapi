@@ -11,8 +11,8 @@ namespace WhatsAppAPISolutionDL.Dto.Message
         public int? ClientId { get; set; }
         public int? SenderNameId { get; set; }
         public string TrxType { get; set; }
-        public string Udf1 { get; set; }
-        public string Udf2 { get; set; }
+        //public string Udf1 { get; set; }
+        //public string Udf2 { get; set; }
         public int? TemplateId { get; set; }
         public string PhoneNumber { get; set; }
         public string Url { get; set; }

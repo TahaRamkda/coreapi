@@ -13,11 +13,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
     [AllowAnonymous]
     public class CustomIntegrationController : ControllerBase
     {
+        #region Fields
         private readonly ICustomIntegrationService _customIntegrationService;
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly ILogger<CustomIntegrationController> _logger;
         private readonly IUserService _userService;
+        #endregion
 
+        #region Ctor
         public CustomIntegrationController(ICustomIntegrationService customIntegrationService,
             WhatsAppSolutionContext dbContext,
             ILogger<CustomIntegrationController> logger,
@@ -28,7 +31,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger = logger;
             _userService = userService;
         }
+        #endregion
 
+        #region Method
         [HttpGet("sendsms")]
         public async Task<IActionResult> GetSendSmsAsync([FromQuery] SendSmsDto sendSms)
         {
@@ -130,5 +135,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             return Ok(response);
         }
+        #endregion
     }
 }

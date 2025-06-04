@@ -17,7 +17,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         #endregion
 
-        #region 
+        #region Ctor
 
         public CacheController(ICacheService cacheService,
             ILogger<CacheController> logger)
@@ -28,6 +28,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         #endregion
 
+        #region Method
         [HttpPost("Clear")]
         public IActionResult Clear()
         {
@@ -58,5 +59,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
             var result = await _cacheService.ClearBridgeCachebyPrefixAsync(prefix);
             return StatusCode(result.StatusCode, result);
         }
+        #endregion
     }
-}
+}                                                                                                                                                    

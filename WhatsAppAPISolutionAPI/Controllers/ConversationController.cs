@@ -12,10 +12,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
     [Authorize]
     public class ConversationController : ControllerBase
     {
+
+        #region Fields
         private readonly ILogger<ConversationController> _logger;
         private readonly IConversationService _conversationService;
         private readonly IExportManager _exportManager;
-        
+        #endregion
+
+        #region Ctor
         public ConversationController(ILogger<ConversationController> logger,
             IConversationService conversationService,
             IExportManager exportManager)
@@ -24,7 +28,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _conversationService = conversationService;
             _exportManager = exportManager;
         }
+        #endregion
 
+        #region Method
         [HttpGet("getconversationlist")]
         public async Task<ActionResult> GetConversationListAsync(int clientId = 0, int senderId = 0, int id = 0, string conversationId = "",
            string waId = "", int moduleId = 0, int parentId = 0,
@@ -301,5 +307,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data fetch successfully"
             });
         }
+        #endregion   
     }
 }

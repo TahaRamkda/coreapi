@@ -16,4 +16,12 @@
     <ProjectReference Include="..\WhatsAppAPISolutionDL\WhatsAppAPISolutionDL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EditorConfigFiles Remove="D:\WhatsApp Solution API\WhatsAppAPISolutionBL\Master\Services\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="D:\WhatsApp Solution API\WhatsAppAPISolutionBL\Master\Services\.editorconfig" />
+  </ItemGroup>
+
 </Project>
