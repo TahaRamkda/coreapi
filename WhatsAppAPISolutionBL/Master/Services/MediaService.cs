@@ -118,7 +118,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             return new UResponseWithID
                             {
                                 Status = 1,
-                                Id = updateDto.Id,
+                                Id = Convert.ToInt32(updateDto.Id),
                                 Message = "Media added successfully"
                             };
                         }
@@ -534,6 +534,131 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             // Write the byte array to an Excel file
             File.WriteAllBytes(filePath, byteArray);
+        }
+
+
+        public async Task<UResponse> UpdatemediaIdAsync(int Id,string mediaId)
+        {
+            var startProcTime = DateTime.UtcNow;
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Medias_Ops @ActionId={(int)CrudEnum.UpdateMedia},@Id={Id}, @MediaId={mediaId}").ToListAsync();
+            _logger.LogInformation("Calling procedure usp_Medias_Ops with actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", (int)CrudEnum.Add, CrudEnum.Add, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+            return response[0];
+        }
+
+        public async Task<UResponseWithID> UploadExpiredMediaAsync(MediaFileDto model, int mediaId ,string mediaUrl)
+        {
+            var senderName = await _senderNameService.GetSenderNameEntityByIdAsync(model.SenderNameId);
+            if (model.UploadToFacebook && senderName == null)
+                return new UResponseWithID { Message = "Sender name not exist" };
+
+            if (model.File != null && model.File.Length > 0)
+            {
+                var originalFileName = model.File.FileName.Replace(" ", "_").Trim();
+                var fileExtension = Path.GetExtension(originalFileName);
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(originalFileName);
+                var mediaTypeId = GetMediaTypeIdFromExtension(fileExtension);
+                int maxFileSize = 1; //Allow atleast 1 mb files
+
+                // Determine the key name based on the media type
+                string keyName = mediaTypeId switch
+                {
+                    (int)MediaTypeEnum.IMAGE => AppSettingKey.ImageSizeInMB,
+                    (int)MediaTypeEnum.VIDEO => AppSettingKey.VideoSizeInMB,
+                    (int)MediaTypeEnum.DOCUMENT => AppSettingKey.DocumentSizeInMB,
+                    (int)MediaTypeEnum.AUDIO => AppSettingKey.AudioSizeInMB,
+                    _ => null
+                };
+
+                var appSetting = await _appSettingsService.GetAppSettingByKeyAsync(model.ClientId, model.SenderNameId, keyName);
+                if (appSetting != null)
+                    maxFileSize = Convert.ToInt32(appSetting.Val);
+
+                // Check file size
+                int maxFileLength = maxFileSize * 1024 * 1024;
+
+                if (model.File.Length > maxFileLength)
+                    return new UResponseWithID { Message = $"File size must not exceed {maxFileSize} MB." };
+
+                // Determine media type folder name
+                string mediaTypeFolder = String.Empty;
+
+                if (model.MediaSourceId == (int)MediaSourceEnum.Conversation)
+                    mediaTypeFolder = Path.Combine(MediaSourceEnum.Conversation.ToString(), Enum.GetName(typeof(MediaTypeEnum), mediaTypeId));
+                else if (model.MediaSourceId == (int)MediaSourceEnum.Admin)
+                    mediaTypeFolder = Path.Combine(MediaSourceEnum.Admin.ToString(), Enum.GetName(typeof(MediaTypeEnum), mediaTypeId));
+
+                // Create folder path: uploads/clientId/senderId/mediaType
+                string mediaFolder = _staticFolderPath;
+                if (model.ClientId > 0)
+                    mediaFolder = Path.Combine(mediaFolder, model.ClientId.ToString());
+
+                if (model.SenderNameId > 0)
+                    mediaFolder = Path.Combine(mediaFolder, model.SenderNameId.ToString());
+
+                mediaFolder = Path.Combine(mediaFolder, mediaTypeFolder);
+
+                // Ensure directories exist
+                if (!Directory.Exists(Path.Combine(_uploadPath, mediaFolder)))
+                    Directory.CreateDirectory(Path.Combine(_uploadPath, mediaFolder));
+
+                // Construct the final file path
+                var filePath = Path.Combine(_uploadPath, mediaFolder, originalFileName);
+
+                //int counter = 1;
+                //// Check if the file already exists and create a unique filename if it does
+                //while (File.Exists(filePath))
+                //{
+                //    var newFileName = $"{fileNameWithoutExtension}_{counter}{fileExtension}";
+                //    filePath = Path.Combine(_uploadPath, mediaFolder, newFileName);
+                //    counter++;
+                //}
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await model.File.CopyToAsync(stream);
+                }
+
+                var absolutePath = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL);
+                var mediaPath = Path.Combine(mediaFolder, Path.GetFileName(filePath));
+                var fileUrl = Path.Combine(absolutePath, mediaFolder, Path.GetFileName(filePath));
+
+                if (!string.IsNullOrEmpty(fileUrl))
+                    fileUrl = fileUrl.Replace("\\", "/");
+
+                // Create response details
+                var media = new MediaUploadDto
+                {
+                    SenderNameId = model.SenderNameId,
+                    ClientId = model.ClientId,
+                    FileName = Path.GetFileName(filePath),
+                    FileSize = (int)model.File.Length,
+                    FileExtension = fileExtension,
+                    ContentType = model.File.ContentType,
+                    MediaPath = String.Concat("\\", mediaUrl),
+                    MediaSourceId = model.MediaSourceId,
+                    ActionBy = userId,
+                    MediaTypeId = mediaTypeId
+                };
+
+                //var insMedia = await AddMediaAsync(media);
+                //if (insMedia != null && insMedia.Id > 0)
+                //{
+                    // If upload media to Facebook
+                    if (model.UploadToFacebook)
+                        return await UploadMediaToFacebook(media, mediaId, mediaUrl);
+
+                    return new UResponseWithID
+                    {
+                        Status = 1,
+                        Id = mediaId,
+                        Message = "Media added successfully"
+                    };
+                //}
+
+                return new UResponseWithID { Message = "Something went wrong, cannot upload media right now" };
+            }
+
+            return new UResponseWithID { Message = "Something went wrong, cannot upload media right now" };
         }
 
         #endregion

@@ -24,5 +24,6 @@ namespace WhatsAppAPISolutionDL.Dto.Media
         public int MediaSourceId { get; set; }
         public int ActionBy { get; set; }
         public int MediaTypeId { get; set; }
+
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -8,6 +9,7 @@ using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Agent;
 using WhatsAppAPISolutionDL.Dto.Common;
+using WhatsAppAPISolutionDL.Dto.Media;
 using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Enum;
@@ -116,12 +118,36 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var media = _dbContext.Medias.Find(model.MediaId > 0 ? model.MediaId : template.MediaId); //If in campaign media id is present take reference from there, else default media
                 if (media != null)
                 {
-                    var mediaPath = String.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, media.MediaPath);
-                    headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+
+                    var mediaPath = string.Concat( _apiSolutionConfigurationSettings.Value.BaseURL.TrimEnd('/'),"/", media.MediaPath.Replace("\\", "/").TrimStart('/') );
+                    if (media.ExpiryDate <= DateTime.UtcNow)
                     {
-                        Type = headerType.ToString(),
-                        Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath
-                    });
+                        var mediafile = new MediaFileDto
+                        {
+                            ClientId = media.ClientId ??0,
+                            SenderNameId = media.SenderNameId??0,
+                            UploadToFacebook = true,
+                            MediaSourceId = media.MediaSourceId ?? 0,
+                            File = await GetFormFileFromUrlAsync(mediaPath)
+                        };
+                        var uploadedmedia = await _mediaService.UploadExpiredMediaAsync(mediafile , media.Id,mediaPath);
+                        //var response = await _mediaService.UpdatemediaIdAsync(media.Id,uploadedmedia.Id.ToString());
+                        headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                        {
+                            Type = headerType.ToString(),
+                            Value = mediaPath
+                        });
+                    }
+                    else
+                    {
+                        headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                        {
+                            Type = headerType.ToString(),
+                            Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath
+                        });
+
+                    }
+                       
                 }
                 else
                     return new ApiResult { Message = $"error - Cannot find template media." };
@@ -1428,5 +1454,41 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return new ApiResult { StatusCode = 0, Message = "Something went wrong while sending message" };
         }
+
+
+        private async Task<IFormFile> GetFormFileFromUrlAsync(string mediaUrl)
+        {
+            try
+            {
+                using var httpClient = new HttpClient();
+                var response = await httpClient.GetAsync(mediaUrl);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Failed to download media from URL: {Url}, Status Code: {StatusCode}", mediaUrl, response.StatusCode);
+                    return null;
+                }
+
+                var contentStream = await response.Content.ReadAsStreamAsync();
+                var memoryStream = new MemoryStream();
+                await contentStream.CopyToAsync(memoryStream);
+                memoryStream.Position = 0;
+
+                var fileName = Path.GetFileName(new Uri(mediaUrl).AbsolutePath);
+
+                return new FormFile(memoryStream, 0, memoryStream.Length, "file", fileName)
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream"
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception while downloading media from URL: {Url}", mediaUrl);
+                return null;
+            }
+        }
+
+
     }
 }

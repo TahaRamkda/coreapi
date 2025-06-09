@@ -95,6 +95,7 @@
         GetProductModuleType = 60,
         GetQuotationStatus = 60,
 
-        DeleteFreqContactedContacts = 61
+        DeleteFreqContactedContacts = 61,
+        UpdateMedia = 6
     }
 }

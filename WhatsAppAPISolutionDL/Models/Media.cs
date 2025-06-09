@@ -20,5 +20,6 @@ namespace WhatsAppAPISolutionDL.Models
         public int? MediaSourceId { get; set; }
         public DateTime? CreatedDate { get; set; }
         public int? MediaTypeId { get; set; }
+        public DateTime? ExpiryDate { get; set; }
     }
 }
