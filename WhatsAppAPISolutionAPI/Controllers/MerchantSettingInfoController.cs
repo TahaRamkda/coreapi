@@ -23,10 +23,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
         #endregion
 
         #region Methods
+        [AllowAnonymous]
         [HttpGet("getMerchantDetails")]
-        public IActionResult Get(string domain)
+        public async Task<IActionResult> Get(string domain)
         {
-            var result = _merchantService.GetMerchantSetting(domain);
+            var result = await _merchantService.GetMerchantSetting(domain);
             if (result == null)
                 return NotFound("Merchant info not found");
             return Ok(result);

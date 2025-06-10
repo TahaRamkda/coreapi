@@ -19,7 +19,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         #endregion
 
         #region Method
-        public MerchantSettingInfo GetMerchantSetting(string domain)
+        public async Task<MerchantSettingInfo> GetMerchantSetting(string domain)
         {
             var info = new MerchantSettingInfo();
             info.Domain = domain;

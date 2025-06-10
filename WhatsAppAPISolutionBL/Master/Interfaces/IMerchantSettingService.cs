@@ -10,6 +10,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface IMerchantSettingService
     {
-        MerchantSettingInfo GetMerchantSetting(string key);    
+        Task<MerchantSettingInfo> GetMerchantSetting(string key);    
     }
 }
