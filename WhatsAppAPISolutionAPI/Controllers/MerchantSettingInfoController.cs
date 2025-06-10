@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionDL.Dto.Common;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -30,7 +31,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
             var result = await _merchantService.GetMerchantSetting(domain);
             if (result == null)
                 return NotFound("Merchant info not found");
-            return Ok(result);
+            return Ok(new ApiResult
+            {
+                Result = result,
+                Message = "Merchant info fetched successfully",
+                Success = true,
+            });
         }
         #endregion 
 
