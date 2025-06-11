@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionBL.Master.Services;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Conversation;
+using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -17,16 +19,21 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly ILogger<ConversationController> _logger;
         private readonly IConversationService _conversationService;
         private readonly IExportManager _exportManager;
+        private readonly IUserService _userService;
+        private readonly int clientId;
         #endregion
 
         #region Ctor
         public ConversationController(ILogger<ConversationController> logger,
             IConversationService conversationService,
-            IExportManager exportManager)
+            IExportManager exportManager,
+            IUserService userService)
         {
             _logger = logger;
             _conversationService = conversationService;
             _exportManager = exportManager;
+            _userService = userService;
+            clientId = _userService.GetClientIdFromAccessToken();
         }
         #endregion
 
@@ -111,10 +118,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("transferconversationtoagent")]
-        public async Task<ActionResult> TransferConversationToAgentAsync(int clientId = 0, int id = 0, int oldAgentId = 0, int agentId = 0, string comment = "")
+        public async Task<ActionResult> TransferConversationToAgentAsync(int id = 0, int oldAgentId = 0, int agentId = 0, string comment = "")
         {
             _logger.LogInformation("Calling api TransferConversationToAgentAsync with clientId={clientId}, id={id}, oldAgentId={oldAgentId}, agentId={agentId}, comment={comment}", clientId, id, oldAgentId, agentId, comment);
-
+            
             var response = await _conversationService.TransferConversationToAgentAsync(clientId, id, oldAgentId, agentId, comment);
 
             _logger.LogInformation("Received api TransferConversationToAgentAsync response with data={data}", JsonConvert.SerializeObject(response));
