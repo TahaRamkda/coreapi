@@ -79,10 +79,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             //Get template id and sender id
             int senderId = 0;
-            Template template = null;
             if (!String.IsNullOrWhiteSpace(templateName))
             {
-                template = await _dbContext.Templates.Where(x => x.ClientId == ClientId && x.TemplateName.ToLower() == templateName.ToLower()).FirstOrDefaultAsync();
+                var template = await _dbContext.Templates.Where(x => x.ClientId == ClientId && x.TemplateName.ToLower() == templateName.ToLower()).FirstOrDefaultAsync();
                 if (template == null)
                 {
                     return new ApiResult
@@ -157,14 +156,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             tempPayload.FlowToken = flowToken;
              if(!sendSms.IsForceSend)
                 {
-                    DBResponse dbresponse = new DBResponse();
-                    dbresponse.ResponseType = 2;
-                ManualTemplateDBResponse manualTemplateDBResponse = new ManualTemplateDBResponse();
-                {
-                    manualTemplateDBResponse.ClientId = template.ClientId ?? 0;
-
-                }
-                _mediatorservice.ProcessDBResponse(tempPayload.ClientId,senderId, dbresponse);
+                  return await _communicationService.SendInteractiveTemplateMessageAsync(tempPayload);
                     
                 }
             //Send in communication service 

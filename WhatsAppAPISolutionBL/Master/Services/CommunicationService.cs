@@ -33,6 +33,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IMediaService _mediaService;
         private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
         private readonly ILogger<CommunicationService> _logger;
+        private readonly IMediatorService _mediatorService;
 
         public CommunicationService(
             WhatsAppSolutionContext dbContext,
@@ -43,7 +44,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IInteractiveTemplateService interactiveTemplateService,
             IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings,
             IMediaService mediaService,
-            ILogger<CommunicationService> logger)
+            ILogger<CommunicationService> logger,
+            IMediatorService mediatorService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -54,6 +56,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
             _mediaService = mediaService;
             _logger = logger;
+            _mediatorService = mediatorService;
         }
 
         public async Task<ApiResult> SendTemplateMessageAsync(TemplateMessagePayloadDto model)
@@ -374,6 +377,23 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 StatusCode = 0,
                 Message = result.message
             };
+        }
+
+        public async Task<ApiResult>SendInteractiveTemplateMessageAsync(TemplateMessagePayloadDto model)
+        {
+            var template = await _templateService.GetTemplateDetailAsync(model.ClientId, model.TemplateId);
+            if (template == null)
+                return new ApiResult { StatusCode = 0, Message = "Template not found or deleted" };
+            DBResponse dbresponse = new DBResponse();
+            dbresponse.ResponseType = 2;
+            var manualTemplateDBResponse = new ManualTemplateDBResponse();
+            {
+                //ClientId = template.ClientId ?? 0;
+
+            }
+            return await _mediatorService.ProcessDBResponse(template.ClientId ?? 0, template.SenderId, dbresponse);
+
+            return new ApiResult { StatusCode = 1, Message = "Success" };
         }
 
         public async Task<ApiResult> SendCarouselTemplateMessageAsync(TemplateMessagePayloadDto model)

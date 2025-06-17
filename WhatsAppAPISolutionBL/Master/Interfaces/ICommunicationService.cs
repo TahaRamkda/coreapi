@@ -16,5 +16,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<ApiResult> SendAgentMessageAsync(SendAgentMessageRequestDto model);
         Task<ApiResult> SendAgentInteractiveMessageAsync(SendAgentInteractiveMessageRequestDto model);
         Task<ApiResult> SendInteractiveMessageAsync(InteractiveMessageRequestDto model);
+        Task<ApiResult> SendInteractiveTemplateMessageAsync(TemplateMessagePayloadDto model);
     }
 }
