@@ -10,6 +10,8 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
     public interface ICommunicationService
     {
         Task<ApiResult> SendTemplateMessageAsync(TemplateMessagePayloadDto templateMessage);
+        Task<ApiResult> SendInterativeTemplateMessageAsync(TemplateMessagePayloadDto templateMessage);
+
         Task<ApiResult> SendCarouselTemplateMessageAsync(TemplateMessagePayloadDto model);
         Task<ApiResult> SendMessageAsync(SendMessageRequestDto model);
         Task<UResponse> SendInteractiveMessageAsync(UMessageReceived model, int clientId, int senderId, string phoneNumber, int mediaId = 0, List<ParamValue> values = null, string flowToken = "");
