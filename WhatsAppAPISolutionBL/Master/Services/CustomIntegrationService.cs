@@ -11,6 +11,7 @@ using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.UserModels.Template;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -24,6 +25,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IMessageService _messageService;
         private readonly ICommunicationService _communicationService;
         private readonly IMessageSentLogsService _messageSentLogsService;
+        private readonly IMediatorService _mediatorservice;
 
         public CustomIntegrationService(
             WhatsAppSolutionContext dbContext,
@@ -33,7 +35,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IAPIMessageService apiMessageService,
             IMessageService messageService,
             ICommunicationService communicationService,
-            IMessageSentLogsService messageSentLogsService)
+            IMessageSentLogsService messageSentLogsService,
+            IMediatorService mediatorservice)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -43,6 +46,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _messageService = messageService;
             _communicationService = communicationService;
             _messageSentLogsService = messageSentLogsService;
+            _mediatorservice = mediatorservice;
         }
 
         public async Task<ApiResult> SendSmsAsync(SendSmsDto sendSms, int ClientId, int UserId)
@@ -75,9 +79,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             //Get template id and sender id
             int senderId = 0;
+            Template template = null;
             if (!String.IsNullOrWhiteSpace(templateName))
             {
-                var template = await _dbContext.Templates.Where(x => x.ClientId == ClientId && x.TemplateName.ToLower() == templateName.ToLower()).FirstOrDefaultAsync();
+                template = await _dbContext.Templates.Where(x => x.ClientId == ClientId && x.TemplateName.ToLower() == templateName.ToLower()).FirstOrDefaultAsync();
                 if (template == null)
                 {
                     return new ApiResult
@@ -150,7 +155,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             var flowToken = $"{FlowIdentifier.ClientId}:{tempPayload.ClientId}|" + $"{FlowIdentifier.SenderId}:{senderId}|" + $"{FlowIdentifier.ModuleId}:{tempPayload.ModuleId}|" + $"{FlowIdentifier.ParentId}:{tempPayload.ParentId}";
             tempPayload.FlowToken = flowToken;
-             
+             if(!sendSms.IsForceSend)
+                {
+                    DBResponse dbresponse = new DBResponse();
+                    dbresponse.ResponseType = 2;
+                ManualTemplateDBResponse manualTemplateDBResponse = new ManualTemplateDBResponse();
+                {
+                    manualTemplateDBResponse.ClientId = template.ClientId ?? 0;
+
+                }
+                _mediatorservice.ProcessDBResponse(tempPayload.ClientId,senderId, dbresponse);
+                    
+                }
             //Send in communication service 
             return await _communicationService.SendTemplateMessageAsync(tempPayload);
         }
