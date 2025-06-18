@@ -25,7 +25,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IMessageService _messageService;
         private readonly ICommunicationService _communicationService;
         private readonly IMessageSentLogsService _messageSentLogsService;
-        private readonly IMediatorService _mediatorservice;
+        private readonly    IMediatorService _mediatorService;
 
         public CustomIntegrationService(
             WhatsAppSolutionContext dbContext,
@@ -36,7 +36,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IMessageService messageService,
             ICommunicationService communicationService,
             IMessageSentLogsService messageSentLogsService,
-            IMediatorService mediatorservice)
+            IMediatorService mediatorService)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -46,7 +46,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _messageService = messageService;
             _communicationService = communicationService;
             _messageSentLogsService = messageSentLogsService;
-            _mediatorservice = mediatorservice;
+            _mediatorService = mediatorService;
         }
 
         public async Task<ApiResult> SendSmsAsync(SendSmsDto sendSms, int ClientId, int UserId)
@@ -154,12 +154,41 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             var flowToken = $"{FlowIdentifier.ClientId}:{tempPayload.ClientId}|" + $"{FlowIdentifier.SenderId}:{senderId}|" + $"{FlowIdentifier.ModuleId}:{tempPayload.ModuleId}|" + $"{FlowIdentifier.ParentId}:{tempPayload.ParentId}";
             tempPayload.FlowToken = flowToken;
-             if(!sendSms.IsForceSend)
+            if (!sendSms.IsForceSend)
+            {
+                var template = await _templateService.GetTemplateDetailAsync(tempPayload.ClientId, tempPayload.TemplateId);
+                if (template == null)
+                    return new ApiResult { StatusCode = 0, Message = "Template not found or deleted" };
+                DBResponse dbresponse = new DBResponse();
+                dbresponse.ResponseType = 2;
+                ManualTemplateDBResponse manualTemplateDBResponse = new ManualTemplateDBResponse();
                 {
+                    manualTemplateDBResponse.ActionId = template.Id;
+                    manualTemplateDBResponse.ClientId = template.ClientId ?? 0;
+                    manualTemplateDBResponse.SenderId = template.SenderId;
+                    manualTemplateDBResponse.BodyText = template.BodyText;
+                    manualTemplateDBResponse.HeaderText = template.HeaderText;
+                    manualTemplateDBResponse.FooterText = template.FooterText;
+                    manualTemplateDBResponse.ActionType = (int)TemplateTypeEnum.Template;
+                    manualTemplateDBResponse.Buttons = template.Buttons.Select(x => new ManualTemplateDBResponse.Button
+                    {
+                        ButtonId = x.ButtonId.ToString(),
+                        ButtonText = x.ButtonText,
+                        ButtonValue = x.ButtonValue,
+                        ButtonType = x.ButtonType ?? 0,
+                        Sequence = x.Sequence ?? 0,
+                        ActionId = x.ActionId ?? 0,
+                        ActionType = x.ActionType ?? 0
+                    }).ToList();
 
-                  return await _communicationService.SendInteractiveTemplateMessageAsync(tempPayload);
-                    
+                    // CONVERTING THE manualTemplateDBResponse AND PASSING IT INTO THE DbResponse Json 
+                    string json = JsonConvert.SerializeObject(manualTemplateDBResponse, Formatting.Indented);
+                    dbresponse.Json = json;
+                    var result = await _mediatorService.ProcessDBResponse(template.ClientId ?? 0, template.SenderId, dbresponse);
+                    return new ApiResult { StatusCode = 1, Message = result.Message, Result = result };
+
                 }
+            }
             //Send in communication service 
             return await _communicationService.SendTemplateMessageAsync(tempPayload);
         }

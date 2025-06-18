@@ -10,7 +10,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
     public interface ICommunicationService
     {
         Task<ApiResult> SendTemplateMessageAsync(TemplateMessagePayloadDto templateMessage);
-        Task<ApiResult> SendInterativeTemplateMessageAsync(TemplateMessagePayloadDto templateMessage);
 
         Task<ApiResult> SendCarouselTemplateMessageAsync(TemplateMessagePayloadDto model);
         Task<ApiResult> SendMessageAsync(SendMessageRequestDto model);
@@ -18,6 +17,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<ApiResult> SendAgentMessageAsync(SendAgentMessageRequestDto model);
         Task<ApiResult> SendAgentInteractiveMessageAsync(SendAgentInteractiveMessageRequestDto model);
         Task<ApiResult> SendInteractiveMessageAsync(InteractiveMessageRequestDto model);
-        Task<ApiResult> SendInteractiveTemplateMessageAsync(TemplateMessagePayloadDto model);
+        //Task<ApiResult> SendInteractiveTemplateMessageAsync(TemplateMessagePayloadDto model);
     }
 }

@@ -33,7 +33,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IMediaService _mediaService;
         private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
         private readonly ILogger<CommunicationService> _logger;
-        private readonly IMediatorService _mediatorService;
 
         public CommunicationService(
             WhatsAppSolutionContext dbContext,
@@ -44,8 +43,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IInteractiveTemplateService interactiveTemplateService,
             IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings,
             IMediaService mediaService,
-            ILogger<CommunicationService> logger,
-            IMediatorService mediatorService)
+            ILogger<CommunicationService> logger)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -56,43 +54,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
             _mediaService = mediaService;
             _logger = logger;
-            _mediatorService = mediatorService;
         }
-        public async Task<ApiResult> SendInterativeTemplateMessageAsync(TemplateMessagePayloadDto model)
-        {
-            var template = await _templateService.GetTemplateDetailAsync(model.ClientId, model.TemplateId);
-            if (template == null)
-                return new ApiResult { StatusCode = 0, Message = "Template not found or deleted" };
-            DBResponse dbresponse = new DBResponse();
-            dbresponse.ResponseType = 2;
-            ManualTemplateDBResponse manualTemplateDBResponse = new ManualTemplateDBResponse();
-            {
-                manualTemplateDBResponse.ActionId = template.Id;
-                manualTemplateDBResponse.ClientId = template.ClientId ?? 0;
-                manualTemplateDBResponse.SenderId = template.SenderId;
-                manualTemplateDBResponse.BodyText = template.BodyText;
-                manualTemplateDBResponse.HeaderText = template.HeaderText;
-                manualTemplateDBResponse.FooterText = template.FooterText;
-                manualTemplateDBResponse.ActionType = (int)TemplateTypeEnum.Template;
-                manualTemplateDBResponse.Buttons = template.Buttons.Select(x => new ManualTemplateDBResponse.Button
-                {
-                    ButtonId = x.ButtonId.ToString(),
-                    ButtonText = x.ButtonText,
-                    ButtonValue = x.ButtonValue,
-                    ButtonType = x.ButtonType ?? 0,
-                    Sequence = x.Sequence ?? 0,
-                    ActionId = x.ActionId ?? 0,
-                    ActionType = x.ActionType ?? 0
-                }).ToList();
-
-                // CONVERTING THE manualTemplateDBResponse AND PASSING IT INTO THE DbResponse Json 
-                string json = JsonConvert.SerializeObject(manualTemplateDBResponse, Formatting.Indented);
-                dbresponse.Json = json;
-                var result = await _mediatorService.ProcessDBResponse(template.ClientId ?? 0, template.SenderId, dbresponse);
-                return new ApiResult { StatusCode = 1, Message = result.Message, Result = result };
-
-            }
-        }
+      
 
         public async Task<ApiResult> SendTemplateMessageAsync(TemplateMessagePayloadDto model)
         {
@@ -412,23 +375,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 StatusCode = 0,
                 Message = result.message
             };
-        }
-
-        public async Task<ApiResult>SendInteractiveTemplateMessageAsync(TemplateMessagePayloadDto model)
-        {
-            var template = await _templateService.GetTemplateDetailAsync(model.ClientId, model.TemplateId);
-            if (template == null)
-                return new ApiResult { StatusCode = 0, Message = "Template not found or deleted" };
-            DBResponse dbresponse = new DBResponse();
-            dbresponse.ResponseType = 2;
-            var manualTemplateDBResponse = new ManualTemplateDBResponse();
-            {
-                //ClientId = template.ClientId ?? 0;
-
-            }
-            return await _mediatorService.ProcessDBResponse(template.ClientId ?? 0, template.SenderId, dbresponse);
-
-            return new ApiResult { StatusCode = 1, Message = "Success" };
         }
 
         public async Task<ApiResult> SendCarouselTemplateMessageAsync(TemplateMessagePayloadDto model)
@@ -1509,6 +1455,42 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return new ApiResult { StatusCode = 0, Message = "Something went wrong while sending message" };
         }
+
+        //public async Task<ApiResult> SendInteractiveTemplateMessageAsync(TemplateMessagePayloadDto model)
+        //{
+        //    var template = await _templateService.GetTemplateDetailAsync(model.ClientId, model.TemplateId);
+        //    if (template == null)
+        //        return new ApiResult { StatusCode = 0, Message = "Template not found or deleted" };
+        //    DBResponse dbresponse = new DBResponse();
+        //    dbresponse.ResponseType = 2;
+        //    ManualTemplateDBResponse manualTemplateDBResponse = new ManualTemplateDBResponse();
+        //    {
+        //        manualTemplateDBResponse.ActionId = template.Id;
+        //        manualTemplateDBResponse.ClientId = template.ClientId ?? 0;
+        //        manualTemplateDBResponse.SenderId = template.SenderId;
+        //        manualTemplateDBResponse.BodyText = template.BodyText;
+        //        manualTemplateDBResponse.HeaderText = template.HeaderText;
+        //        manualTemplateDBResponse.FooterText = template.FooterText;
+        //        manualTemplateDBResponse.ActionType = (int)TemplateTypeEnum.Template;
+        //        manualTemplateDBResponse.Buttons = template.Buttons.Select(x => new ManualTemplateDBResponse.Button
+        //        {
+        //            ButtonId = x.ButtonId.ToString(),
+        //            ButtonText = x.ButtonText,
+        //            ButtonValue = x.ButtonValue,
+        //            ButtonType = x.ButtonType ?? 0,
+        //            Sequence = x.Sequence ?? 0,
+        //            ActionId = x.ActionId ?? 0,
+        //            ActionType = x.ActionType ?? 0
+        //        }).ToList();
+
+        //        // CONVERTING THE manualTemplateDBResponse AND PASSING IT INTO THE DbResponse Json 
+        //        string json = JsonConvert.SerializeObject(manualTemplateDBResponse, Formatting.Indented);
+        //        dbresponse.Json = json;
+        //        var result = await _mediatorService.ProcessDBResponse(template.ClientId ?? 0, template.SenderId, dbresponse);
+        //        return new ApiResult { StatusCode = 1, Message = result.Message, Result = result };
+
+        //    }
+        //}
 
 
         private async Task<IFormFile> GetFormFileFromUrlAsync(string mediaUrl)
