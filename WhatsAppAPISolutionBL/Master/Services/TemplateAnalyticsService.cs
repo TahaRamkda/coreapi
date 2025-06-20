@@ -5,14 +5,18 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.ConversationAnalytic;
 using WhatsAppAPISolutionDL.Dto.TemplateAnalytics;
+using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
+using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.UserModels.TemplateAnalytic;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -24,16 +28,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly HttpClient _httpClient;
         private readonly ILogger<ConversationAnalyticsService> _logger;
         private readonly ISenderNameService _senderNameService;
+        private readonly WhatsAppSolutionContext2 _dbContext2;
 
         #endregion
 
         public TemplateAnalyticsService(IHttpClientFactory httpClientFactory,
           WhatsAppSolutionContext dbContext,
+          WhatsAppSolutionContext2 dbContext2,
           ILogger<ConversationAnalyticsService> logger,
           ISenderNameService senderNameService)
         {
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             _dbContext = dbContext;
+            _dbContext2 = dbContext2;
             _logger = logger;
             _senderNameService = senderNameService;
         }
@@ -141,6 +148,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 Message = "Analytics data processed and stored successfully.",
                 StatusCode = StatusCodes.Status200OK
             };
+
+
+        }
+        public async Task<UTemplateAnalyticsSummary> GetAnalyticsSummaryAsync(int clientId,int senderId, int templateId,DateTime? startDate,DateTime? endDate)
+        {
+            var result = await _dbContext2.TemplateAnalyticsSummary.FromSqlInterpolated($"exec usp_TemplateAnalytics_Ops @ActionId={(int)CrudEnum.List},@ClientId = {clientId},@SenderId = {senderId}, @TemplateId = {templateId},@StartDate = {startDate},@EndDate = {endDate}").ToListAsync();
+            return result.FirstOrDefault();
         }
 
     }
