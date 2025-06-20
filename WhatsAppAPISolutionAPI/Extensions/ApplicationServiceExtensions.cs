@@ -51,6 +51,7 @@ namespace WhatsAppAPISolutionAPI.Extensions
             services.AddScoped<IWalleteCheckBalanceService, WalleteCheckBalanceService>();
             services.AddScoped<IMerchantSettingService, MerchantSettingService>();
             services.AddScoped<KFGOrderService>();
+            services.AddScoped<ITemplateAnalyticsService, TemplateAnalyticsService>();
 
             #region Third party services
 

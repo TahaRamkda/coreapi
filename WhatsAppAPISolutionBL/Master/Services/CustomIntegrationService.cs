@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
@@ -11,6 +12,7 @@ using WhatsAppAPISolutionDL.Extensions;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Template;
 
 namespace WhatsAppAPISolutionBL.Master.Services
@@ -161,16 +163,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     return new ApiResult { StatusCode = 0, Message = "Template not found or deleted" };
                 DBResponse dbresponse = new DBResponse();
                 dbresponse.ResponseType = 2;
-                ManualTemplateDBResponse manualTemplateDBResponse = new ManualTemplateDBResponse();
+                var manualTemplateDBResponse = new ManualTemplateDBResponse
                 {
-                    manualTemplateDBResponse.ActionId = template.Id;
-                    manualTemplateDBResponse.ClientId = template.ClientId ?? 0;
-                    manualTemplateDBResponse.SenderId = template.SenderId;
-                    manualTemplateDBResponse.BodyText = template.BodyText;
-                    manualTemplateDBResponse.HeaderText = template.HeaderText;
-                    manualTemplateDBResponse.FooterText = template.FooterText;
-                    manualTemplateDBResponse.ActionType = (int)TemplateTypeEnum.Template;
-                    manualTemplateDBResponse.Buttons = template.Buttons.Select(x => new ManualTemplateDBResponse.Button
+                    ActionId = template.Id,
+                    ClientId = template.ClientId ?? 0,
+                    SenderId = template.SenderId,
+                    HeaderType = template.HeaderType?? 0,
+                    MediaId = template.MediaId ?? 0,
+                    BodyText = template.BodyText,
+                    HeaderText = template.HeaderText,
+                    FooterText = template.FooterText,
+                    ActionType = (int)TemplateTypeEnum.Template,
+                    PhoneNumber = message.PhoneNumber,
+                    Buttons = template.Buttons.Select(x => new ManualTemplateDBResponse.Button
                     {
                         ButtonId = x.ButtonId.ToString(),
                         ButtonText = x.ButtonText,
@@ -179,15 +184,25 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         Sequence = x.Sequence ?? 0,
                         ActionId = x.ActionId ?? 0,
                         ActionType = x.ActionType ?? 0
-                    }).ToList();
+                    }).ToList(),
+                    Params = template.Parameters.Select( Parameter =>
+                    {
+                        var match = tempPayload.Params
+                        .FirstOrDefault(pv => pv.ParamType == Parameter.ParamType && pv.Sequence == Parameter.Sequence);
+                        return new ParamValue
+                        {
+                            Key = Parameter.ParamName,
+                            Value = match?.ParamValue ?? ""
+                        };
 
-                    // CONVERTING THE manualTemplateDBResponse AND PASSING IT INTO THE DbResponse Json 
-                    string json = JsonConvert.SerializeObject(manualTemplateDBResponse, Formatting.Indented);
-                    dbresponse.Json = json;
-                    var result = await _mediatorService.ProcessDBResponse(template.ClientId ?? 0, template.SenderId, dbresponse);
-                    return new ApiResult { StatusCode = 1, Message = result.Message, Result = result };
+                    }).ToList()
+                };
 
-                }
+                // CONVERTING THE manualTemplateDBResponse AND PASSING IT INTO THE DbResponse Json 
+                string json = JsonConvert.SerializeObject(manualTemplateDBResponse, Formatting.Indented);
+                dbresponse.Json = json;
+                 return await _mediatorService.ProcessDBResponse(template.ClientId ?? 0, template.SenderId, dbresponse);
+                //return new ApiResult { StatusCode = 1, Message = result.Message, Result = result };
             }
             //Send in communication service 
             return await _communicationService.SendTemplateMessageAsync(tempPayload);

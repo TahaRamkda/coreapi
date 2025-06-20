@@ -54,8 +54,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var startProcTime = DateTime.UtcNow;
             var response = await _dbContext2.Templates.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SenderId= {senderId}, @SearchStr={searchStr},@SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}, @Language={languageParam}, @Category={categoryParam}").ToListAsync();
             _logger.LogInformation("Calling procedure usp_Templates_Ops with parameters: " +
-                "ActionId={ActionId}, ClientId={ClientId}, SearchStr={SearchStr}, SortBy={SortBy}, PageNo={PageNo}, PageSize={PageSize}, lang={lang}, cat ={cat}, ProcResponseTime={ProcResponseTime}ms",
-                (int)CrudEnum.List,clientId,searchStr,sortBy,pageNo,pageSize, lang, cat,  DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds); return response;
+                "ActionId={ActionId}, ClientId={ClientId},SenderId= {SenderId}, SearchStr={SearchStr}, SortBy={SortBy}, PageNo={PageNo}, PageSize={PageSize}, lang={lang}, cat ={cat}, ProcResponseTime={ProcResponseTime}ms",
+                (int)CrudEnum.List,clientId,senderId,searchStr,sortBy,pageNo,pageSize, lang, cat,  DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds); return response;
         }
 
         public async Task<UResponseWithID> AddTemplateAsync(int clientId, int userId, TemplateDto model)
