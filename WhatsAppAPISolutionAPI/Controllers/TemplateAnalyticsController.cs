@@ -46,7 +46,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             return Ok(result);
         }
         [HttpGet("GetTemplateList")]
-        public async Task<IActionResult> GetTemplateAnalyticsList([FromQuery] int clientId,[FromQuery] int senderId,[FromQuery] int templateId,[FromQuery] DateTime? startDate,[FromQuery] DateTime? endDate)
+        public async Task<IActionResult> GetTemplateAnalyticsList([FromQuery] int clientId,[FromQuery] int senderId,[FromQuery] string templateId,[FromQuery] DateTime? startDate,[FromQuery] DateTime? endDate)
         {
             _logger.LogInformation("GetTemplateAnalyticsList called with clientId: {clientId}, senderId : {senderId}, templateId : {templateId}, startDate : {startDate}, endDate : {endDate}", clientId, senderId, templateId, startDate, endDate);
             var result = await _templateAnalyticsService.GetAnalyticsSummaryAsync(clientId, senderId, templateId, startDate, endDate);

@@ -13,6 +13,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
     public interface ITemplateAnalyticsService
     {
         Task<ApiResult> ProcessTemplateAnalyticsAsync(TemplateAnalyticsRequestDto model);
-        Task<UTemplateAnalyticsSummary?> GetAnalyticsSummaryAsync(int clientId,int senderId,int templateId, DateTime? startDate, DateTime? endDate);
+        Task<UTemplateAnalyticsSummary?> GetAnalyticsSummaryAsync(int clientId,int senderId,string templateId, DateTime? startDate, DateTime? endDate);
     }
 }

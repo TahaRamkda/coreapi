@@ -12,7 +12,7 @@ namespace WhatsAppAPISolutionDL.UserModels.TemplateAnalytic
         public DateTime RecordDate { get; set; }
         public int ClientId { get; set; }
         public int SenderId { get; set; }
-        public int TemplateId { get; set; }
+        public string TemplateId { get; set; }
         public int SentCount { get; set; }
         public int DeliveredCount { get; set; }
         public int ReadCount { get; set; }
