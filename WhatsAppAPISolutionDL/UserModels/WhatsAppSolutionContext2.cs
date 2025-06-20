@@ -24,6 +24,7 @@ using WhatsAppAPISolutionDL.UserModels.SenderName;
 using WhatsAppAPISolutionDL.UserModels.SurveyReport;
 using WhatsAppAPISolutionDL.UserModels.SystemActions;
 using WhatsAppAPISolutionDL.UserModels.Template;
+using WhatsAppAPISolutionDL.UserModels.TemplateAnalytic;
 using WhatsAppAPISolutionDL.UserModels.User;
 
 namespace WhatsAppAPISolutionDL.UserModels
@@ -105,6 +106,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UOrderListingDetails> OrderListingDetails { get; set; } = null!;
         public virtual DbSet<UOrderSummaryDetails> OrderSummaryDetails { get; set; } = null!;
         public virtual DbSet<UWalletBalanceCheck> CheckWalleteBalance { get; set; } = null!;
+        public virtual DbSet<UTemplateAnalyticsSummary> TemplateAnalyticsSummary { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -172,6 +174,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UOrderListingDetails>().HasNoKey();
             modelBuilder.Entity<UOrderSummaryDetails>().HasNoKey();
             modelBuilder.Entity<UWalletBalanceCheck>().HasNoKey();
+            modelBuilder.Entity<UTemplateAnalyticsSummary>().HasNoKey();
         }
     }
 }

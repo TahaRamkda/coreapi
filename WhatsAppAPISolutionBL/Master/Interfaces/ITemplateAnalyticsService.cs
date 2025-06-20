@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.ConversationAnalytic;
 using WhatsAppAPISolutionDL.Dto.TemplateAnalytics;
+using WhatsAppAPISolutionDL.UserModels.TemplateAnalytic;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface ITemplateAnalyticsService
     {
         Task<ApiResult> ProcessTemplateAnalyticsAsync(TemplateAnalyticsRequestDto model);
+        Task<UTemplateAnalyticsSummary?> GetAnalyticsSummaryAsync(int clientId,int senderId,int templateId, DateTime? startDate, DateTime? endDate);
     }
 }
