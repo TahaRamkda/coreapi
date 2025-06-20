@@ -8,13 +8,18 @@ namespace WhatsAppAPISolutionDL.UserModels.TemplateAnalytic
 {
     public class UTemplateAnalyticsSummary
     {
-        public int TotalSent { get; set; }
-        public int TotalDelivered { get; set; }
-        public int TotalRead { get; set; }
-        public int TotalFailed { get; set; }
-        public decimal TotalAmountSpent { get; set; }
-        public decimal TotalCostPerDelivered { get; set; }
-        public decimal TotalCostPerUrlButtonClick { get; set; }
-        public string? Details { get; set; } // JSON string
+        public int Id { get; set; }
+        public DateTime RecordDate { get; set; }
+        public int ClientId { get; set; }
+        public int SenderId { get; set; }
+        public int TemplateId { get; set; }
+        public int SentCount { get; set; }
+        public int DeliveredCount { get; set; }
+        public int ReadCount { get; set; }
+        public int FailedCount { get; set; }
+        public decimal Amount_Spent { get; set; }
+        public decimal CostPerDelivered { get; set; }
+        public decimal CostPerUrlButtonClick { get; set; }
+        public string? Details { get; set; }
     }
 }
