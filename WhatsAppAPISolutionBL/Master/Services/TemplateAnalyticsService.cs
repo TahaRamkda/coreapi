@@ -151,10 +151,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
 
         }
-        public async Task<UTemplateAnalyticsSummary> GetAnalyticsSummaryAsync(int clientId,int senderId, string templateId,DateTime? startDate,DateTime? endDate)
+        public async Task<List<UTemplateAnalyticsSummary>> GetAnalyticsSummaryAsync(int clientId,int senderId, string templateId,DateTime? startDate,DateTime? endDate)
         {
             var result = await _dbContext2.TemplateAnalyticsSummary.FromSqlInterpolated($"exec usp_TemplateAnalytics_Ops @ActionId={(int)CrudEnum.List},@ClientId = {clientId},@SenderId = {senderId}, @TemplateId = {templateId},@StartDate = {startDate},@EndDate = {endDate}").ToListAsync();
-            return result.FirstOrDefault();
+            return result;
         }
 
     }
