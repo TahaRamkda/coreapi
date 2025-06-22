@@ -25,6 +25,6 @@ namespace WhatsAppAPISolutionDL.Dto.Message
         public string ParamJson { get; set; }
         public string UDF1 { get; set; }
         public string UDF2 { get; set; }
-        public bool IsForceSend { get; set; }
+        public bool IsForceSend { get; set; } = true;
     }
 }
