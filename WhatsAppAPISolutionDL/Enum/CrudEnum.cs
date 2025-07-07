@@ -45,6 +45,7 @@
         ConversationListByConversation = 6,
         CampaignContactStats = 6,
         GetAgentInteractiveTemplates = 6,
+        GetTemplateAnalyticsDetails=6,
 
         CancelOrder = 7,
         SettleDistributorPurchaseWithAmount = 7,

@@ -14,5 +14,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
     {
         Task<ApiResult> ProcessTemplateAnalyticsAsync(TemplateAnalyticsRequestDto model);
         Task<List<UTemplateAnalyticsSummary>> GetAnalyticsSummaryAsync(int clientId,int senderId,string templateId, DateTime? startDate, DateTime? endDate);
+        Task<List<UTemplateAnalyticsDetailsList>> GetAnalyticsDetailsList(int? clientId,int? senderId, DateTime? startDate, DateTime? endDate, string templateId = null);
     }
 }
