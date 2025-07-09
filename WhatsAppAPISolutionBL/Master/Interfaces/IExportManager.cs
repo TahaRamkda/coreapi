@@ -2,6 +2,7 @@
 using WhatsAppAPISolutionDL.UserModels.Catalog;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
 using WhatsAppAPISolutionDL.UserModels.Flow;
+using WhatsAppAPISolutionDL.UserModels.TemplateAnalytic;
 
 namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
@@ -18,5 +19,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         byte[] ExportCatalogItemsARToXlsx(IEnumerable<UCatalogExport> item);
         byte[] ExportCatalogItemsENToCsv(IEnumerable<UCatalogExport> item);
         byte[] ExportCatalogItemsARToCsv(IEnumerable<UCatalogExport> item);
+        byte[] ExportTemplateAnalyticReportToCsv(IEnumerable<UTemplateAnalyticsSummary> item);
+        byte[] ExportTemplateAnalyticDetailsReportToCsv(IEnumerable<UTemplateAnalyticsDetailsList> item);
     }
 }

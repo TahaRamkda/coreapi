@@ -10,6 +10,7 @@ using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.Catalog;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
 using WhatsAppAPISolutionDL.UserModels.Flow;
+using WhatsAppAPISolutionDL.UserModels.TemplateAnalytic;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -265,6 +266,40 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 new PropertyByName<UCatalogExport>("collection_name", p => p.CategoryNameAr)
             };
 
+            return ExportToXlsx(properties, item);
+        }
+        public virtual byte[] ExportTemplateAnalyticReportToCsv(IEnumerable<UTemplateAnalyticsSummary> item)
+        {
+            var properties = new[]
+{
+                new PropertyByName<UTemplateAnalyticsSummary>("RecordDate", p => p.RecordDate),
+                new PropertyByName<UTemplateAnalyticsSummary>("ClientId", p => p.ClientId),
+                new PropertyByName<UTemplateAnalyticsSummary>("SenderId", p => p.SenderId),
+                new PropertyByName<UTemplateAnalyticsSummary>("TemplateId", p => p.TemplateId),
+                new PropertyByName<UTemplateAnalyticsSummary>("SentCount", p => p.SentCount),
+                new PropertyByName<UTemplateAnalyticsSummary>("DeliveredCount", p => p.DeliveredCount),
+                new PropertyByName<UTemplateAnalyticsSummary>("ReadCount", p => p.ReadCount),
+                new PropertyByName<UTemplateAnalyticsSummary>("FailedCount", p => p.FailedCount),
+                new PropertyByName<UTemplateAnalyticsSummary>("Amount_Spent", p => p.Amount_Spent),
+                new PropertyByName<UTemplateAnalyticsSummary>("CostPerDelivered", p => p.CostPerDelivered),
+                new PropertyByName<UTemplateAnalyticsSummary>("CostPerUrlButtonClick", p => p.CostPerUrlButtonClick),
+                new PropertyByName<UTemplateAnalyticsSummary>("Details", p => p.Details)
+            };
+            return ExportToXlsx(properties, item);
+        }
+        public virtual byte[] ExportTemplateAnalyticDetailsReportToCsv(IEnumerable<UTemplateAnalyticsDetailsList> item)
+        {
+            var properties = new[]
+{
+                new PropertyByName<UTemplateAnalyticsDetailsList>("ClientId", p => p.ClientId),
+                new PropertyByName<UTemplateAnalyticsDetailsList>("SenderId", p => p.SenderId),
+                new PropertyByName<UTemplateAnalyticsDetailsList>("TemplateId", p => p.TemplateId),
+                new PropertyByName<UTemplateAnalyticsDetailsList>("SentCount", p => p.SentCount),
+                new PropertyByName<UTemplateAnalyticsDetailsList>("DeliveredCount", p => p.DeliveredCount),
+                new PropertyByName<UTemplateAnalyticsDetailsList>("ReadCount", p => p.ReadCount),
+                new PropertyByName<UTemplateAnalyticsDetailsList>("FailedCount", p => p.FailedCount),
+                new PropertyByName<UTemplateAnalyticsDetailsList>("ButtonDetails", p => p.ButtonDetails)
+            };
             return ExportToXlsx(properties, item);
         }
 

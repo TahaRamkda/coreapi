@@ -26,10 +26,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly ILogger<AnalyticController> _logger;
         private readonly int clientId;
         private readonly IUserService _userService;
+        private readonly IExportManager _exportManager;
         #endregion
 
         #region Ctor
-        public TemplateAnalyticsController(IHttpClientFactory httpClientFactory, WhatsAppSolutionContext2 _dbcontext2, WhatsAppSolutionContext dbContext, ITemplateAnalyticsService templateAnalyticsService, ILogger<AnalyticController> logger, IUserService _userService)
+        public TemplateAnalyticsController(IHttpClientFactory httpClientFactory, WhatsAppSolutionContext2 _dbcontext2, WhatsAppSolutionContext dbContext, ITemplateAnalyticsService templateAnalyticsService, ILogger<AnalyticController> logger, IUserService _userService, IExportManager exportManager)
         {
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             this._dbcontext2 = _dbcontext2;
@@ -37,6 +38,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _templateAnalyticsService = templateAnalyticsService;
             _logger = logger;
             clientId = _userService.GetClientIdFromAccessToken();
+            _exportManager = exportManager;
         }
         #endregion
 
@@ -50,7 +52,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             return Ok(result);
         }
         [HttpGet("GetTemplateList")]
-        public async Task<IActionResult> GetTemplateAnalyticsList([FromQuery] int senderId,[FromQuery] string templateId,[FromQuery] DateTime? startDate,[FromQuery] DateTime? endDate)
+        public async Task<IActionResult> GetTemplateAnalyticsList(int clientId, [FromQuery] int senderId,[FromQuery] string templateId,[FromQuery] DateTime? startDate,[FromQuery] DateTime? endDate)
         {
             _logger.LogInformation("GetTemplateAnalyticsList called with clientId: {clientId}, senderId : {senderId}, templateId : {templateId}, startDate : {startDate}, endDate : {endDate}", clientId, senderId, templateId, startDate, endDate);
             var result = await _templateAnalyticsService.GetAnalyticsSummaryAsync(clientId, senderId, templateId, startDate, endDate);
@@ -61,7 +63,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Template analytics summary retrieved successfully.",
             });
         }
-        [AllowAnonymous]
         [HttpGet("GetTemplateAnalyticDetails")]
         public async Task<IActionResult> GetTemplateAnalyticsDetailsList([FromQuery] int? senderId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string templateId = null)
         {
@@ -73,6 +74,23 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Success = true,
                 Message = "Template analytics summary retrieved successfully.",
             });
+        }
+            [HttpGet("ExportTemplateAnalyticsSummaryReport")]
+            public async Task<IActionResult> ExportTemplateAnalyticsSummaryReport([FromQuery] int senderId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string templateId = null)
+            {
+                _logger.LogInformation("GetTemplateAnalyticsDetailsList called with clientId: {clientId}, senderId : {senderId}, templateId : {templateId}, startDate : {startDate}, endDate : {endDate}", clientId, senderId, templateId, startDate, endDate);
+                var result = await _templateAnalyticsService.GetAnalyticsSummaryAsync(clientId, senderId, templateId, startDate, endDate);
+                var bytes = _exportManager.ExportTemplateAnalyticReportToCsv(result);
+                return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "TemplateAnalyticsSummary.xlsx");
+            }
+
+        [HttpGet("ExportTemplateAnalyticsDetailsReport")]
+        public async Task<IActionResult> ExportTemplateAnalyticsDetailsReport([FromQuery] int senderId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string templateId = null)
+        {
+            _logger.LogInformation("GetTemplateAnalyticsDetailsList called with clientId: {clientId}, senderId : {senderId}, templateId : {templateId}, startDate : {startDate}, endDate : {endDate}", clientId, senderId, templateId, startDate, endDate);
+            var result = await _templateAnalyticsService.GetAnalyticsDetailsList(clientId, senderId, startDate, endDate, templateId);
+            var bytes = _exportManager.ExportTemplateAnalyticDetailsReportToCsv(result);
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "TemplateAnalyticsSummary.xlsx");
         }
         #endregion
     }
