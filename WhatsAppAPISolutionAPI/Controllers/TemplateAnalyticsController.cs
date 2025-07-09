@@ -30,13 +30,14 @@ namespace WhatsAppAPISolutionAPI.Controllers
         #endregion
 
         #region Ctor
-        public TemplateAnalyticsController(IHttpClientFactory httpClientFactory, WhatsAppSolutionContext2 _dbcontext2, WhatsAppSolutionContext dbContext, ITemplateAnalyticsService templateAnalyticsService, ILogger<AnalyticController> logger, IUserService _userService, IExportManager exportManager)
+        public TemplateAnalyticsController(IHttpClientFactory httpClientFactory, WhatsAppSolutionContext2 _dbcontext2, WhatsAppSolutionContext dbContext, ITemplateAnalyticsService templateAnalyticsService, ILogger<AnalyticController> logger, IUserService userService, IExportManager exportManager)
         {
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             this._dbcontext2 = _dbcontext2;
             _dbContext = dbContext;
             _templateAnalyticsService = templateAnalyticsService;
             _logger = logger;
+            _userService = userService;
             clientId = _userService.GetClientIdFromAccessToken();
             _exportManager = exportManager;
         }

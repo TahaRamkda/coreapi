@@ -12,27 +12,31 @@ namespace WhatsAppAPISolutionAPI.Controllers
     [ApiController]
     [Authorize]
     #endregion
-    public class ItemDetailsController : Controller
+    public class CatalogItemsController : Controller
     {
         #region Fields
-        private readonly ILogger<ItemDetailsController> _logger;
+        private readonly ILogger<CatalogItemsController> _logger;
         private readonly IITemsCatalogService _itemsCatalogService;
+        private readonly int clientId;
+        private readonly IUserService _userService;
         #endregion
 
         #region Ctor
-        public ItemDetailsController(ILogger<ItemDetailsController> logger, IITemsCatalogService itemsCatalogService)
+        public CatalogItemsController(ILogger<CatalogItemsController> logger, IITemsCatalogService itemsCatalogService, IUserService userService)
         {
             _logger = logger;
             _itemsCatalogService = itemsCatalogService;
+            _userService = userService; // ✅ assign it first
+            clientId = _userService.GetClientIdFromAccessToken();
         }
         #endregion
 
         #region Methods
 
-        [HttpGet("GetItemDetails")]
-        public async Task<ActionResult> GetItemsDetailAsync(int ItemId, int SenderId, int ClientId, string SearchStr="", int PageNo = 0, int PageSize = int.MaxValue)
+        [HttpGet("GetItemList")]
+        public async Task<ActionResult> GetItemsListAsync(int SenderId, string SearchStr="", int PageNo = 0, int PageSize = int.MaxValue)
         {
-            var result = await _itemsCatalogService.GetItemDetailsAsync(ItemId, SenderId, ClientId, SearchStr);
+            var result = await _itemsCatalogService.GetItemListAsync(SenderId, clientId, SearchStr);
             return Ok(new ApiResult
             {
                 Success = true,
@@ -42,9 +46,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         }
         [HttpGet("GetItemModifierDetails")]
-        public async Task<ActionResult> GetItemModifierDetailsAsync(int ItemId, int ClientId, int SenderId, String SearchStr = "", int PageNo = 0, int PageSize = int.MaxValue)
+        public async Task<ActionResult> GetItemModifierDetailsAsync(int SenderId, String SearchStr = "", int PageNo = 0, int PageSize = int.MaxValue)
         {
-            var result = await _itemsCatalogService.GetItemModifierDetailsAsync(ItemId, ClientId, SenderId, SearchStr, PageNo, PageSize);
+            var result = await _itemsCatalogService.GetItemModifierDetailsAsync(clientId, SenderId, SearchStr, PageNo, PageSize);
             return Ok(new ApiResult
             {
                 Success = true,
@@ -53,9 +57,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
         [HttpGet("GetModifierItemDetails")]
-        public async Task<ActionResult> GetModifierItemDetailsAsync(int ItemId, int ClientId, int SenderId, String SearchStr = "", int PageNo = 0, int PageSize = int.MaxValue)
+        public async Task<ActionResult> GetModifierItemDetailsAsync(int SenderId, String SearchStr = "", int PageNo = 0, int PageSize = int.MaxValue)
         {
-            var result = await _itemsCatalogService.GetModifierItemDetails(ItemId, ClientId, SenderId, SearchStr, PageNo, PageSize);
+            var result = await _itemsCatalogService.GetModifierItemDetails(clientId, SenderId, SearchStr, PageNo, PageSize);
             return Ok(new ApiResult
             {
                 Success = true,

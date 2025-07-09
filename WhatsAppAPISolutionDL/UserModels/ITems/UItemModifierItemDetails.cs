@@ -10,5 +10,7 @@ namespace WhatsAppAPISolutionDL.UserModels.ITems
         public decimal Price { get; set; }
         public string CurrencyName { get; set; }
         public int TotalRecords { get; set; }
+        public string CreatedDate { get; set; }
+        public string UpdatedDate { get; set; }
     }
 }
