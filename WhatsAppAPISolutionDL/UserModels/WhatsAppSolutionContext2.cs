@@ -108,6 +108,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UWalletBalanceCheck> CheckWalleteBalance { get; set; } = null!;
         public virtual DbSet<UTemplateAnalyticsSummary> TemplateAnalyticsSummary { get; set; } = null!;
         public virtual DbSet<UTemplateAnalyticsDetailsList> TemplateAnalyticsDetailsList { get; set; } = null!;
+        public virtual DbSet<UTemplateAnalyticsExportList> TemplateAnalyticsExportList { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -177,6 +178,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UWalletBalanceCheck>().HasNoKey();
             modelBuilder.Entity<UTemplateAnalyticsSummary>().HasNoKey();
             modelBuilder.Entity<UTemplateAnalyticsDetailsList>().HasNoKey();
+            modelBuilder.Entity<UTemplateAnalyticsExportList>().HasNoKey();
         }
     }
 }

@@ -19,7 +19,5 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         byte[] ExportCatalogItemsARToXlsx(IEnumerable<UCatalogExport> item);
         byte[] ExportCatalogItemsENToCsv(IEnumerable<UCatalogExport> item);
         byte[] ExportCatalogItemsARToCsv(IEnumerable<UCatalogExport> item);
-        byte[] ExportTemplateAnalyticReportToCsv(IEnumerable<UTemplateAnalyticsSummary> item);
-        byte[] ExportTemplateAnalyticDetailsReportToCsv(IEnumerable<UTemplateAnalyticsDetailsList> item);
     }
 }
