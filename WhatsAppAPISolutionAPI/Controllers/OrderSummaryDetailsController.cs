@@ -11,16 +11,20 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class OrderSummaryDetailsController : ControllerBase
     {
         private readonly IOrderSummaryDetailsService _OrderSummyDetailsService;
+        private readonly int clientId;
+        private readonly IUserService _userService;
 
-        public OrderSummaryDetailsController(IOrderSummaryDetailsService OrderSummyDetailsService)
+        public OrderSummaryDetailsController(IOrderSummaryDetailsService OrderSummyDetailsService, IUserService userService)
         {
             _OrderSummyDetailsService = OrderSummyDetailsService;
+            _userService = userService;
+            clientId = _userService.GetClientIdFromAccessToken();
         }
 
         [HttpGet("OrderSummary")]
-        public async Task<IActionResult> GetOrderSummaries( int clientId,  int senderId, int orderId,  int pageNo = 1,  int pageSize = 20,  string searchStr = "")
+        public async Task<IActionResult> GetOrderSummaries(int senderId, int pageNo = 1,  int pageSize = 20,  string searchStr = "")
         {
-            var result = await _OrderSummyDetailsService.GetOrderSummariesAsync(clientId, senderId, orderId, pageNo, pageSize, searchStr);
+            var result = await _OrderSummyDetailsService.GetOrderSummariesAsync(clientId, senderId, pageNo, pageSize, searchStr);
             return Ok(new ApiResult
             {
                 Success = true,

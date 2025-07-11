@@ -12,5 +12,6 @@ namespace WhatsAppAPISolutionDL.UserModels.ITems
         public int TotalRecords { get; set; }
         public string CreatedDate { get; set; }
         public string UpdatedDate { get; set; }
+        public string DeprecatedDate { get; set; }
     }
 }

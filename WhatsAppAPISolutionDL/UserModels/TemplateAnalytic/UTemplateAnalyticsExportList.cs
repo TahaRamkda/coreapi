@@ -8,7 +8,6 @@ namespace WhatsAppAPISolutionDL.UserModels.TemplateAnalytic
 {
     public class UTemplateAnalyticsExportList
     {
-
         public int ClientId { get; set; }
         public string TemplateName { get; set; }
         public string SenderName { get; set; }

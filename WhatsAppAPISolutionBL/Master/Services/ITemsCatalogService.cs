@@ -29,15 +29,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response;
         }
 
-        public async Task<List<UItemModiferDetails>> GetItemModifierDetailsAsync(int ClientId, int SenderId, string SearchStr = "", int PageNo = 0, int PageSize = int.MaxValue)
+        public async Task<List<UItemModiferDetails>> GetItemModifierDetailsAsync(int ItemId, int ClientId, int SenderId, string SearchStr = "", int PageNo = 0, int PageSize = int.MaxValue)
         {
-            var response = await _dbContext2.ITemModifier.FromSqlInterpolated($"exec usp_Catalog_ops @ActionId={(int)ItemsTypeEnum.GetItemModifierDetails},@ClientId={ClientId}, @SenderId={SenderId}, @PageNo={PageNo}, @PageSize={PageSize}, @SearchStr={SearchStr}").ToListAsync();
+            var response = await _dbContext2.ITemModifier.FromSqlInterpolated($"exec usp_Catalog_ops @ActionId={(int)ItemsTypeEnum.GetItemModifierDetails}, @ItemId={ItemId},@ClientId={ClientId}, @SenderId={SenderId}, @PageNo={PageNo}, @PageSize={PageSize}, @SearchStr={SearchStr}").ToListAsync();
             return response;
         }
 
-        public async Task<List<UItemModifierItemDetails>> GetModifierItemDetails(int clientId, int SenderId, string SearchStr = "", int PageNo =0, int PageSize = int.MaxValue)
+        public async Task<List<UItemModifierItemDetails>> GetModifierItemDetails(int ModifierGroupId, int clientId, int SenderId, string SearchStr = "", int PageNo =0, int PageSize = int.MaxValue)
         {
-            var response = await _dbContext2.ModifierItem.FromSqlInterpolated($"exec usp_Catalog_ops @ActionId={(int)ItemsTypeEnum.GetModifierItemDetails},@ClientId={clientId}, @SenderId={SenderId}, @PageNo={PageNo}, @PageSize={PageSize}, @SearchStr={SearchStr}").ToListAsync();
+            var response = await _dbContext2.ModifierItem.FromSqlInterpolated($"exec usp_Catalog_ops @ActionId={(int)ItemsTypeEnum.GetModifierItemDetails}, @ModifierId={ModifierGroupId}, @ClientId={clientId}, @SenderId={SenderId}, @PageNo={PageNo}, @PageSize={PageSize}, @SearchStr={SearchStr}").ToListAsync();
             return response;
         }
         #endregion

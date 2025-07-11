@@ -30,10 +30,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
         #endregion
 
         #region Method 
-        public async Task<List<UOrderSummaryDetails>> GetOrderSummariesAsync(int clientId, int senderId, int orderId, int pageNo, int pageSize, string searchStr)
+        public async Task<List<UOrderSummaryDetails>> GetOrderSummariesAsync(int clientId, int senderId, int pageNo, int pageSize, string searchStr)
         {
             _logger.LogInformation("Process Usp_PlacedOrderOps_Ops called with ClientId: {ClientId}, SenderId: {SenderId}", clientId, senderId);
-            var response = await _dbContext2.OrderSummaryDetails.FromSqlInterpolated($"exec Usp_PlacedOrderOps_Ops @ActionId={(int)OrderSummaryTypeEnum.OrderListing}, @ClientId={clientId},@SenderId={senderId}, @OrderId={orderId}, @PageNo={pageNo}, @PageSize={pageSize}, @SearchStr={searchStr}").ToListAsync();
+            var response = await _dbContext2.OrderSummaryDetails.FromSqlInterpolated($"exec Usp_PlacedOrderOps_Ops @ActionId={(int)OrderSummaryTypeEnum.OrderListing}, @ClientId={clientId},@SenderId={senderId}, @PageNo={pageNo}, @PageSize={pageSize}, @SearchStr={searchStr}").ToListAsync();
             return response;
         }
 
