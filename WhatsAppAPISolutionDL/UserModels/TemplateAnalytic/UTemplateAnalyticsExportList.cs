@@ -18,6 +18,6 @@ namespace WhatsAppAPISolutionDL.UserModels.TemplateAnalytic
         public int FailedCount { get; set; }
         public string ButtonText { get; set; }
         public string ButtonType { get; set; }
-        public int ClickCount { get; set; }
+        public int? ClickCount { get; set; }
     }
 }
