@@ -10,6 +10,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
     public interface IOrderSummaryDetailsService
     {
         Task<List<UOrderSummaryDetails>> GetOrderSummariesAsync(int clientId, int senderId, int pageNo, int pageSize, string searchStr);
-        Task<List<UOrderListingDetails>> GetOrderDetailsAsync(int orderId, int pageNo, int pageSize);
+        Task<List<UOrderListingDetails>> GetOrderDetailsAsync(int orderId);
     }
 }

@@ -21,7 +21,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             clientId = _userService.GetClientIdFromAccessToken();
         }
 
-        [HttpGet("OrderSummary")]
+        [HttpGet("OrderSummaryList")]
         public async Task<IActionResult> GetOrderSummaries(int senderId, int pageNo = 1,  int pageSize = 20,  string searchStr = "")
         {
             var result = await _OrderSummyDetailsService.GetOrderSummariesAsync(clientId, senderId, pageNo, pageSize, searchStr);
@@ -34,9 +34,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("OrderDetails")]
-        public async Task<IActionResult> GetOrderDetails(int orderId, int pageNo = 1, int pageSize = int.MaxValue)
+        public async Task<IActionResult> GetOrderDetails(int orderId)
         {
-            var result = await _OrderSummyDetailsService.GetOrderDetailsAsync(orderId, pageNo, pageSize);
+            var result = await _OrderSummyDetailsService.GetOrderDetailsAsync(orderId);
             return Ok(new ApiResult
             {
                 Success = true,
