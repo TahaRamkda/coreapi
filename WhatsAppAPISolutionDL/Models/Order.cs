@@ -21,5 +21,12 @@ namespace WhatsAppAPISolutionDL.Models
         public string MetaOrderId { get; set; }
         public DateTime? CreatedDate { get; set; }
         public string Language { get; set; }
+        public DateTime? StartTime { get; set; }
+        public DateTime? EndTime { get; set; }
+        public DateTime? LastTouchDate { get; set; }
+        public DateTime? NextReminderTime { get; set; }
+        public string PaymentRefNo { get; set; }
+        public string PaymentGatewayType { get; set; }
+        public int? RetryPostCount { get; set; }
     }
 }

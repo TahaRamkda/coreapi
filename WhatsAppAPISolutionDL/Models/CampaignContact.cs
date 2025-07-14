@@ -20,5 +20,10 @@ namespace WhatsAppAPISolutionDL.Models
         public DateTime? SentTime { get; set; }
         public DateTime? DeliveredTime { get; set; }
         public DateTime? ReadTime { get; set; }
+        public DateTime? SentTryTime { get; set; }
+        public int? SentTryCount { get; set; }
+        public string FailedMessage { get; set; }
+        public DateTime? FailedTime { get; set; }
+        public int? Status { get; set; }
     }
 }
