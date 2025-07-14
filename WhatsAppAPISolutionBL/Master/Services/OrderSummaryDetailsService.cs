@@ -37,10 +37,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response;
         }
 
-        public async Task<List<UOrderListingDetails>> GetOrderDetailsAsync(int orderId, int pageNo, int pageSize)
+        public async Task<List<UOrderListingDetails>> GetOrderDetailsAsync(int orderId)
         {
             _logger.LogInformation("Process Usp_PlacedOrderOps_Ops called with orderId : {orderId}", orderId);
-            var response = await _dbContext2.OrderListingDetails.FromSqlInterpolated($"exec Usp_PlacedOrderOps_Ops @ActionId={(int)OrderSummaryTypeEnum.OrderDetails},@OrderId={orderId}, @PageNo={pageNo}, @PageSize={pageSize}").ToListAsync();
+            var response = await _dbContext2.OrderListingDetails.FromSqlInterpolated($"exec Usp_PlacedOrderOps_Ops @ActionId={(int)OrderSummaryTypeEnum.OrderDetails},@OrderId={orderId}").ToListAsync();
             return response;
         }
         #endregion

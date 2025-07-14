@@ -20,5 +20,6 @@ namespace WhatsAppAPISolutionDL.Models
         public DateTime? UpdatedDate { get; set; }
         public string AgentFnameAr { get; set; }
         public string AgentLnameAr { get; set; }
+        public int? MaxEligibleChat { get; set; }
     }
 }

@@ -26,5 +26,6 @@ namespace WhatsAppAPISolutionDL.Models
         public decimal? TotalCost { get; set; }
         public int? ReadCount { get; set; }
         public int? MediaId { get; set; }
+        public bool? IsCharged { get; set; }
     }
 }

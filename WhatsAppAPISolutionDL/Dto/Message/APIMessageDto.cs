@@ -23,5 +23,6 @@ namespace WhatsAppAPISolutionDL.Dto.Message
         public DateTime? CreatedDate { get; set; }
         public string UDF1 { get; set; }
         public string UDF2 { get; set; }
+        public bool IsForceSend { get; set; }
     }
 }

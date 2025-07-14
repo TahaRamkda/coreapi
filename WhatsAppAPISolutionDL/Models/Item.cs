@@ -30,5 +30,6 @@ namespace WhatsAppAPISolutionDL.Models
         public string ProductUrl { get; set; }
         public bool? FlowRequestProcessed { get; set; }
         public string ItemsUrl { get; set; }
+        public int? DisplayOrder { get; set; }
     }
 }
