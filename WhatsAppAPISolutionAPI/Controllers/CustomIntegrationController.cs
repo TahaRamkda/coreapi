@@ -106,7 +106,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                     if (!String.IsNullOrWhiteSpace(json.Password))
                         sendSms.Password = json.Password;
 
-                    sendSms.IsForceSend = json.IsForceSend;
+                    //sendSms.IsForceSend = json.IsForceSend;
                 }
 
                 _logger.LogInformation("Converted custom integration object={object}", JsonConvert.SerializeObject(sendSms));
