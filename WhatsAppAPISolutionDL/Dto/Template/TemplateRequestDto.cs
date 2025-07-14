@@ -12,6 +12,7 @@
         public string Name { get; set; }
         public string Category { get; set; }
         public string LanguageCode { get; set; }
+        public string TemplateId { get; set; }
 
         public HeaderDto Header { get; set; }
         public BodyDto Body { get; set; }

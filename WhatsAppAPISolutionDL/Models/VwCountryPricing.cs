@@ -3,8 +3,16 @@ using System.Collections.Generic;
 
 namespace WhatsAppAPISolutionDL.Models
 {
-    public partial class WhatsAppPricing
+    public partial class VwCountryPricing
     {
+        public int? CountryId { get; set; }
+        public string Iso { get; set; }
+        public string CountryName { get; set; }
+        public string Nicename { get; set; }
+        public string Iso3 { get; set; }
+        public int? Numcode { get; set; }
+        public int? Phonecode { get; set; }
+        public string Fbmarket { get; set; }
         public int PricingId { get; set; }
         public string Market { get; set; }
         public string Currency { get; set; }
