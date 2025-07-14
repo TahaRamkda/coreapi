@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using System.Text;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Catalog;
 using WhatsAppAPISolutionDL.Dto.Flow;
@@ -618,6 +620,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 await _dbContext.CatalogImportHistories.AddAsync(catalogImportHistory);
                 await _dbContext.SaveChangesAsync();
+
+                string catalogJson = JsonConvert.SerializeObject(catalog, Formatting.Indented);
+                byte[] jsonBytes = Encoding.UTF8.GetBytes(catalogJson);
+
+                // Step 5: Send JSON as export via media service
+                _mediaService.ExportCatalogJson(clientId, senderId, jsonBytes, "Menu");
 
                 await ExportCatalog(clientId, senderId);
 
