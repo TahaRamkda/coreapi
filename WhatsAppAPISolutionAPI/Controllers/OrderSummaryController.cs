@@ -22,9 +22,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("ordersummarylist")]
-        public async Task<IActionResult> GetOrderSummaries(int senderId, int pageNo = 1,  int pageSize = 20,  string searchStr = "")
+        public async Task<IActionResult> GetOrderSummaries(int senderId, int orderId = 0,int pageNo = 1,int pageSize = 20, DateTime? FromDate = null, DateTime? ToDate = null,string searchStr = "", string searchPhoneNo = "", string searchStatus = "")
         {
-            var result = await _OrderSummyDetailsService.GetOrderSummariesAsync(clientId, senderId, pageNo, pageSize, searchStr);
+            var result = await _OrderSummyDetailsService.GetOrderSummariesAsync(clientId, senderId, orderId,pageNo, pageSize, searchStr, searchPhoneNo, searchStatus, FromDate, ToDate);
             return Ok(new ApiResult
             {
                 Success = true,

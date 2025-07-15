@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WhatsAppAPISolutionDL.UserModels.PlacedOrderInformation
 {
-    public class UOrderSummaryDetails
+    public class UOrderSummaryList
     {
         public int OrderId { get; set; }
         public string PhoneNumber { get; set; }
