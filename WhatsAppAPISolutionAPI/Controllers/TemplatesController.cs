@@ -370,7 +370,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         {
             _logger.LogDebug("Calling api GetTemplatesAsync with ClientId={ClientId}, senderId={senderId}, searchStr={searchStr}", clientId, senderId, searchStr);
 
-            var templates = await _templateService.GetTemplatesAsync(clientId, senderId, searchStr);
+            var templates = await _templateService.GetTemplatesAsync(clientId, senderId, searchStr, category);
             if (templates == null || !templates.Any())
                 return Ok(new ApiResult { Message = "No records found" });
 
