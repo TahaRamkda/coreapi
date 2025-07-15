@@ -16,9 +16,8 @@ namespace WhatsAppAPISolutionDL.UserModels.PlacedOrderInformation
         public decimal DeliveryCharges { get; set; }
         public decimal Discount { get; set; }
         public decimal Total { get; set; }
-
+        public string CurrencyName { get; set; }
         public string Items { get; set; }
-        public string ModifierItems { get; set; }
 
         public string Block { get; set; }
         public string Street { get; set; }
