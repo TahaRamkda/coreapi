@@ -368,7 +368,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("gettemplates")]
         public async Task<IActionResult> GetTemplatesAsync(int senderId = 0, string searchStr = "", CategoryTypeEnum category = CategoryTypeEnum.none)
         {
-            _logger.LogDebug("Calling api GetTemplatesAsync with ClientId={ClientId}, senderId={senderId}, searchStr={searchStr}", clientId, senderId, searchStr);
+            _logger.LogDebug("Calling api GetTemplatesAsync with ClientId={ClientId}, senderId={senderId}, searchStr={searchStr}, category={category}", clientId, senderId, searchStr, category);
 
             var templates = await _templateService.GetTemplatesAsync(clientId, senderId, searchStr, category);
             if (templates == null || !templates.Any())
