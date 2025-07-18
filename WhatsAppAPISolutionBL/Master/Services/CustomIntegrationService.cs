@@ -230,7 +230,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         }
                         else
                         {
-                            result.StatusCode = 0;
                             result.Message = "Message cannot be sent because customer is not in active window";
                             result.Result = false;
                             return result;
@@ -239,7 +238,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     }
 
                 default:
-                    result.StatusCode = 0;
                     result.Message = "Invalid IsForceSend value";
                     result.Result = false;
                     return result;
