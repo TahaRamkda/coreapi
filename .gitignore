@@ -398,3 +398,5 @@ FodyWeavers.xsd
 *.sln.iml
 /WhatsAppAPISolutionAPI/Uploads
 /WhatsAppAPISolutionAPI/Medias 
+/WhatsAppAPISolutionAPI/Media/Catalog/1/1/ar.csv
+/WhatsAppAPISolutionAPI/Media/Catalog/1/1/en.csv

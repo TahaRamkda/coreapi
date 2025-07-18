@@ -28,5 +28,10 @@ namespace WhatsAppAPISolutionDL.Models
         public int? IsFoul { get; set; }
         public int? AgentId { get; set; }
         public int? RespondTime { get; set; }
+        public int? ModuleId { get; set; }
+        public DateTime? DeliveredTime { get; set; }
+        public DateTime? ReadTime { get; set; }
+        public string FailedMessage { get; set; }
+        public DateTime? FailedTime { get; set; }
     }
 }

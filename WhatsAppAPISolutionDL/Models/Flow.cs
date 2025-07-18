@@ -27,5 +27,6 @@ namespace WhatsAppAPISolutionDL.Models
         public int? RecordStatus { get; set; }
         public int? ActionId { get; set; }
         public int? ActionType { get; set; }
+        public int? DefaultTypeId { get; set; }
     }
 }

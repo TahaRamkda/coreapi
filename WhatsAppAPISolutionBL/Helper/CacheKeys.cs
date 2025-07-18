@@ -221,7 +221,7 @@ namespace WhatsAppAPISolutionBL.Helper
         /// {1} - SenderId
         /// {2} - SearchStr
         /// </summary>
-        public static string TEMPLATE_DROPDOWN_KEY => "Api.Template.Dropdown.{0}-{1}-{2}";
+        public static string TEMPLATE_DROPDOWN_KEY => "Api.Template.Dropdown.{0}-{1}-{2}-{3}";
 
         /// <summary>
         /// {0} - SearchStr

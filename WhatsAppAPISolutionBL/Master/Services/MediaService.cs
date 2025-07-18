@@ -535,6 +535,34 @@ namespace WhatsAppAPISolutionBL.Master.Services
             // Write the byte array to an Excel file
             File.WriteAllBytes(filePath, byteArray);
         }
+        public void ExportCatalogJson(int clientId, int senderId, byte[] byteArray, string fileNameWithoutExtension = "catalog")
+        {
+            // Determine media type folder name (e.g., "Catalog")
+            string mediaTypeFolder = Path.Combine(Enum.GetName(MediaSourceEnum.Catalog));
+
+            // Create folder path: uploads/catalog/clientId/senderId/
+            string mediaFolder = Path.Combine(_staticFolderPath, mediaTypeFolder);
+            if (clientId > 0)
+                mediaFolder = Path.Combine(mediaFolder, clientId.ToString());
+            if (senderId > 0)
+                mediaFolder = Path.Combine(mediaFolder, senderId.ToString());
+
+            // Ensure directory exists
+            string fullMediaPath = Path.Combine(_uploadPath, mediaFolder);
+            if (!Directory.Exists(fullMediaPath))
+                Directory.CreateDirectory(fullMediaPath);
+
+            // Create full file path with .json extension
+            var filePath = Path.Combine(fullMediaPath, $"{fileNameWithoutExtension}.json");
+
+            // Overwrite if file already exists
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+
+            // Write byte array to .json file
+            File.WriteAllBytes(filePath, byteArray);
+        }
+
 
 
         public async Task<UResponse> UpdatemediaIdAsync(int Id,string mediaId)

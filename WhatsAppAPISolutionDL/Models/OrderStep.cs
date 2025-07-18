@@ -22,5 +22,6 @@ namespace WhatsAppAPISolutionDL.Models
         public string ButtonText { get; set; }
         public string BodyText { get; set; }
         public int? Priority { get; set; }
+        public string ItemName { get; set; }
     }
 }

@@ -49,7 +49,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         bool CheckAllowedTemplateHeaderType(TemplateHeaderEnum headerType, string extension);
 
         void ExportCatalog(int clientId, int senderId, byte[] byteArray, string localization);
-
+        void ExportCatalogJson(int clientId, int senderId, byte[] byteArray, string localization);
         Task<UResponse> UpdatemediaIdAsync(int Id,string mediaId);
 
         Task<UResponseWithID> UploadExpiredMediaAsync(MediaFileDto model, int mediaId, string mediaUrl);

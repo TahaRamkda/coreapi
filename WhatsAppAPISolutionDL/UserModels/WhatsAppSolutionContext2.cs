@@ -103,11 +103,13 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UItems> ITems { get; set; } = null!;
         public virtual DbSet<UItemModiferDetails> ITemModifier { get; set; } = null!;
         public virtual DbSet<UItemModifierItemDetails> ModifierItem { get; set; } = null!;
-        public virtual DbSet<UOrderListingDetails> OrderListingDetails { get; set; } = null!;
-        public virtual DbSet<UOrderSummaryDetails> OrderSummaryDetails { get; set; } = null!;
+        public virtual DbSet<UOrderSummaryDetail> OrderListingDetails { get; set; } = null!;
+        public virtual DbSet<UOrderSummaryList> OrderSummaryDetails { get; set; } = null!;
         public virtual DbSet<UWalletBalanceCheck> CheckWalleteBalance { get; set; } = null!;
         public virtual DbSet<UTemplateAnalyticsSummary> TemplateAnalyticsSummary { get; set; } = null!;
         public virtual DbSet<UResponseWithConversationId> UResponseWithConversationId { get; set; } = null!;
+        public virtual DbSet<UTemplateAnalyticsDetailsList> TemplateAnalyticsDetailsList { get; set; } = null!;
+        public virtual DbSet<UTemplateAnalyticsExportList> TemplateAnalyticsExportList { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -172,11 +174,13 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UItems>().HasNoKey();
             modelBuilder.Entity<UItemModiferDetails>().HasNoKey();
             modelBuilder.Entity<UItemModifierItemDetails>().HasNoKey();
-            modelBuilder.Entity<UOrderListingDetails>().HasNoKey();
-            modelBuilder.Entity<UOrderSummaryDetails>().HasNoKey();
+            modelBuilder.Entity<UOrderSummaryDetail>().HasNoKey();
+            modelBuilder.Entity<UOrderSummaryList>().HasNoKey();
             modelBuilder.Entity<UWalletBalanceCheck>().HasNoKey();
             modelBuilder.Entity<UTemplateAnalyticsSummary>().HasNoKey();
             modelBuilder.Entity<UResponseWithConversationId>().HasNoKey();
+            modelBuilder.Entity<UTemplateAnalyticsDetailsList>().HasNoKey();
+            modelBuilder.Entity<UTemplateAnalyticsExportList>().HasNoKey();
         }
     }
 }

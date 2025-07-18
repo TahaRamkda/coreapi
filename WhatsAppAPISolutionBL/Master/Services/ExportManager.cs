@@ -10,6 +10,7 @@ using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.Catalog;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
 using WhatsAppAPISolutionDL.UserModels.Flow;
+using WhatsAppAPISolutionDL.UserModels.TemplateAnalytic;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -267,6 +268,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return ExportToXlsx(properties, item);
         }
+
 
         public virtual byte[] ExportCatalogItemsENToCsv(IEnumerable<UCatalogExport> item)
         {

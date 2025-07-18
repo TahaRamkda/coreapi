@@ -28,7 +28,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IMessageService _messageService;
         private readonly ICommunicationService _communicationService;
         private readonly IMessageSentLogsService _messageSentLogsService;
-        private readonly    IMediatorService _mediatorService;
+        private readonly IMediatorService _mediatorService;
 
         public CustomIntegrationService(
             WhatsAppSolutionContext dbContext,
@@ -146,11 +146,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 Url = tempPayload.Url,
                 UDF1 = sendSms.UDF1,
                 UDF2 = sendSms.UDF2,
+                IsForceSend = sendSms.IsForceSend
             };
 
             var response = await _apiMessageService.AddAPIMessageAsync(message);
             if (response != null)
-            
+
             {
                 tempPayload.ParentId = response.Id;
             }
@@ -162,14 +163,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var template = await _templateService.GetTemplateDetailAsync(tempPayload.ClientId, tempPayload.TemplateId);
                 if (template == null)
                     return new ApiResult { StatusCode = 0, Message = "Template not found or deleted" };
+
                 DBResponse dbresponse = new DBResponse();
                 dbresponse.ResponseType = 2;
+
                 var manualTemplateDBResponse = new ManualTemplateDBResponse
                 {
                     ActionId = template.Id,
                     ClientId = template.ClientId ?? 0,
                     SenderId = template.SenderId,
-                    HeaderType = template.HeaderType?? 0,
+                    HeaderType = template.HeaderType ?? 0,
+                    ModuleId = tempPayload.ModuleId, //API
+                    ParentId = tempPayload.ParentId, // API message table Id
                     MediaId = template.MediaId ?? 0,
                     BodyText = template.BodyText,
                     HeaderText = template.HeaderText,
@@ -186,7 +191,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         ActionId = x.ActionId ?? 0,
                         ActionType = x.ActionType ?? 0
                     }).ToList(),
-                    Params = template.Parameters.Select( Parameter =>
+                    Params = template.Parameters.Select(Parameter =>
                     {
                         var match = tempPayload.Params
                         .FirstOrDefault(pv => pv.ParamType == Parameter.ParamType && pv.Sequence == Parameter.Sequence);
@@ -202,7 +207,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 // CONVERTING THE manualTemplateDBResponse AND PASSING IT INTO THE DbResponse Json 
                 string json = JsonConvert.SerializeObject(manualTemplateDBResponse, Formatting.Indented);
                 dbresponse.Json = json;
-                 return await _mediatorService.ProcessDBResponse(template.ClientId ?? 0, template.SenderId, dbresponse);
+                return await _mediatorService.ProcessDBResponse(template.ClientId ?? 0, template.SenderId, dbresponse);
                 //return new ApiResult { StatusCode = 1, Message = result.Message, Result = result };
             }
             if(sendSms.IsForceSend == 1)
