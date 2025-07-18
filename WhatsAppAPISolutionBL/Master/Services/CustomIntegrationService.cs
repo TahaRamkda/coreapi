@@ -14,6 +14,7 @@ using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Template;
+using static WhatsAppAPISolutionDL.Dto.Message.WhatsAppMessageStatusUpdateDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -156,7 +157,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             var flowToken = $"{FlowIdentifier.ClientId}:{tempPayload.ClientId}|" + $"{FlowIdentifier.SenderId}:{senderId}|" + $"{FlowIdentifier.ModuleId}:{tempPayload.ModuleId}|" + $"{FlowIdentifier.ParentId}:{tempPayload.ParentId}";
             tempPayload.FlowToken = flowToken;
-            if (!sendSms.IsForceSend)
+            if (sendSms.IsForceSend == 0)
             {
                 var template = await _templateService.GetTemplateDetailAsync(tempPayload.ClientId, tempPayload.TemplateId);
                 if (template == null)
@@ -204,8 +205,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
                  return await _mediatorService.ProcessDBResponse(template.ClientId ?? 0, template.SenderId, dbresponse);
                 //return new ApiResult { StatusCode = 1, Message = result.Message, Result = result };
             }
-            //Send in communication service 
-            return await _communicationService.SendTemplateMessageAsync(tempPayload);
+            if(sendSms.IsForceSend == 1)
+            {
+                //Send in communication service 
+                return await _communicationService.SendTemplateMessageAsync(tempPayload);
+            }
+            if(sendSms.IsForceSend ==2)
+            {
+                var chatresponse = await _dbContext2.UResponseWithConversationId.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.CheckActiveConversation},@PhoneNumber={sendSms.PhoneNumber}").ToListAsync();
+               // _logger.LogInformation("Calling procedure usp_Conversations_Ops with phonenumber={ClientId},actionId={ActionId}",sendSms.PhoneNumber, CrudEnum.GetConversationLogs);
+
+            }
+             return await _communicationService.SendTemplateMessageAsync(tempPayload);
         }
     }
 }

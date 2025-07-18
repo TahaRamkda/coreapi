@@ -96,6 +96,7 @@
         GetQuotationStatus = 60,
 
         DeleteFreqContactedContacts = 61,
-        UpdateMedia = 6
+        UpdateMedia = 6,
+        CheckActiveConversation = 19
     }
 }

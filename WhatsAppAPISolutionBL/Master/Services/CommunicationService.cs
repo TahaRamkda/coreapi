@@ -1031,6 +1031,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Message = "No conversation found"
                 };
             }
+            if (conversation.AgentId >= 0)
+            {
+                if (conversation.AgentId != model.AgnetId) 
+                {
+                    return new ApiResult
+                    {
+                        Message = "Conversation is no more assigned to this agent"
+                    };
+
+                }
+
+            }
 
             string mediaIdStr = String.Empty;
             string fileName = String.Empty;

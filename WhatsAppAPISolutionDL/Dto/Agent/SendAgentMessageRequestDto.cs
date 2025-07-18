@@ -13,6 +13,7 @@ namespace WhatsAppAPISolutionDL.Dto.Agent
         public int SenderId { get; set; }
         public int ConversationId { get; set; }
         public int MediaId { get; set; }
+        public int AgnetId { get; set; }
         public string Message { get; set; }
         public IFormFile File { get; set; }
         public int ActionBy { get; set; }
