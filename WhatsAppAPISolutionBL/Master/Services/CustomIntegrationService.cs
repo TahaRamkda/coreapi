@@ -54,6 +54,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<ApiResult> SendSmsAsync(SendSmsDto sendSms, int ClientId, int UserId)
         {
+            ApiResult result = new ApiResult();
             sendSms.PhoneNumber = sendSms.PhoneNumber.TrimPhoneNumbers();
             var templateName = String.Empty;
 
@@ -158,77 +159,91 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             var flowToken = $"{FlowIdentifier.ClientId}:{tempPayload.ClientId}|" + $"{FlowIdentifier.SenderId}:{senderId}|" + $"{FlowIdentifier.ModuleId}:{tempPayload.ModuleId}|" + $"{FlowIdentifier.ParentId}:{tempPayload.ParentId}";
             tempPayload.FlowToken = flowToken;
-            if (sendSms.IsForceSend == 0)
+            switch (sendSms.IsForceSend)
             {
-                var template = await _templateService.GetTemplateDetailAsync(tempPayload.ClientId, tempPayload.TemplateId);
-                if (template == null)
-                    return new ApiResult { StatusCode = 0, Message = "Template not found or deleted" };
-
-                DBResponse dbresponse = new DBResponse();
-                dbresponse.ResponseType = 2;
-
-                var manualTemplateDBResponse = new ManualTemplateDBResponse
-                {
-                    ActionId = template.Id,
-                    ClientId = template.ClientId ?? 0,
-                    SenderId = template.SenderId,
-                    HeaderType = template.HeaderType ?? 0,
-                    ModuleId = tempPayload.ModuleId, //API
-                    ParentId = tempPayload.ParentId, // API message table Id
-                    MediaId = template.MediaId ?? 0,
-                    BodyText = template.BodyText,
-                    HeaderText = template.HeaderText,
-                    FooterText = template.FooterText,
-                    ActionType = (int)TemplateTypeEnum.Template,
-                    PhoneNumber = message.PhoneNumber,
-                    Buttons = template.Buttons.Select(x => new ManualTemplateDBResponse.Button
+                case 0:
                     {
-                        ButtonId = x.ButtonId.ToString(),
-                        ButtonText = x.ButtonText,
-                        ButtonValue = x.ButtonValue,
-                        ButtonType = x.ButtonType ?? 0,
-                        Sequence = x.Sequence ?? 0,
-                        ActionId = x.ActionId ?? 0,
-                        ActionType = x.ActionType ?? 0
-                    }).ToList(),
-                    Params = template.Parameters.Select(Parameter =>
-                    {
-                        var match = tempPayload.Params
-                        .FirstOrDefault(pv => pv.ParamType == Parameter.ParamType && pv.Sequence == Parameter.Sequence);
-                        return new ParamValue
+                        var template = await _templateService.GetTemplateDetailAsync(tempPayload.ClientId, tempPayload.TemplateId);
+                        if (template == null)
+                            return new ApiResult { StatusCode = 0, Message = "Template not found or deleted", Result = false };
+
+                        var dbresponse = new DBResponse
                         {
-                            Key = Parameter.ParamName,
-                            Value = match?.ParamValue ?? ""
+                            ResponseType = 2
                         };
 
-                    }).ToList()
-                };
+                        var manualTemplateDBResponse = new ManualTemplateDBResponse
+                        {
+                            ActionId = template.Id,
+                            ClientId = template.ClientId ?? 0,
+                            SenderId = template.SenderId,
+                            HeaderType = template.HeaderType ?? 0,
+                            ModuleId = tempPayload.ModuleId,
+                            ParentId = tempPayload.ParentId,
+                            MediaId = template.MediaId ?? 0,
+                            BodyText = template.BodyText,
+                            HeaderText = template.HeaderText,
+                            FooterText = template.FooterText,
+                            ActionType = (int)TemplateTypeEnum.Template,
+                            PhoneNumber = message.PhoneNumber,
+                            Buttons = template.Buttons.Select(x => new ManualTemplateDBResponse.Button
+                            {
+                                ButtonId = x.ButtonId.ToString(),
+                                ButtonText = x.ButtonText,
+                                ButtonValue = x.ButtonValue,
+                                ButtonType = x.ButtonType ?? 0,
+                                Sequence = x.Sequence ?? 0,
+                                ActionId = x.ActionId ?? 0,
+                                ActionType = x.ActionType ?? 0
+                            }).ToList(),
+                            Params = template.Parameters.Select(p =>
+                            {
+                                var match = tempPayload.Params
+                                    .FirstOrDefault(pv => pv.ParamType == p.ParamType && pv.Sequence == p.Sequence);
 
-                // CONVERTING THE manualTemplateDBResponse AND PASSING IT INTO THE DbResponse Json 
-                string json = JsonConvert.SerializeObject(manualTemplateDBResponse, Formatting.Indented);
-                dbresponse.Json = json;
-                return await _mediatorService.ProcessDBResponse(template.ClientId ?? 0, template.SenderId, dbresponse);
-                //return new ApiResult { StatusCode = 1, Message = result.Message, Result = result };
-            }
-            if(sendSms.IsForceSend == 1)
-            {
-                //Send in communication service 
-                return await _communicationService.SendTemplateMessageAsync(tempPayload);
-            }
-            if(sendSms.IsForceSend ==2)
-            {
-                var chatresponse = await _dbContext2.UResponseWithConversationId.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.CheckActiveConversation},@PhoneNumber={sendSms.PhoneNumber}").ToListAsync();
-                // _logger.LogInformation("Calling procedure usp_Conversations_Ops with phonenumber={ClientId},actionId={ActionId}",sendSms.PhoneNumber, CrudEnum.GetConversationLogs);
-                if (!chatresponse.Any())
-                {
-                    return new ApiResult { 
-                       Message = "Message cannot be send because customer have an active chat",
-                       Result = false
-                    };
+                                return new ParamValue
+                                {
+                                    Key = p.ParamName,
+                                    Value = match?.ParamValue ?? ""
+                                };
+                            }).ToList()
+                        };
 
-                }
+                        string json = JsonConvert.SerializeObject(manualTemplateDBResponse, Formatting.Indented);
+                        dbresponse.Json = json;
+
+                        return await _mediatorService.ProcessDBResponse(template.ClientId ?? 0, template.SenderId, dbresponse);
+                    }
+
+                case 1:
+                    return await _communicationService.SendTemplateMessageAsync(tempPayload);
+
+                case 2:
+                    {
+                        var chatResponse = await _dbContext2.UResponseWithConversationId
+                            .FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.CheckActiveConversation}, @PhoneNumber={sendSms.PhoneNumber}")
+                            .ToListAsync();
+
+                        if (chatResponse.Any())
+                        {
+                            return await _communicationService.SendTemplateMessageAsync(tempPayload);
+                        }
+                        else
+                        {
+                            result.StatusCode = 0;
+                            result.Message = "Message cannot be sent because customer is not in active window";
+                            result.Result = false;
+                            return result;
+                           
+                        }
+                    }
+
+                default:
+                    result.StatusCode = 0;
+                    result.Message = "Invalid IsForceSend value";
+                    result.Result = false;
+                    return result;
             }
-             return await _communicationService.SendTemplateMessageAsync(tempPayload);
         }
     }
 }
