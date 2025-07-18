@@ -218,8 +218,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if(sendSms.IsForceSend ==2)
             {
                 var chatresponse = await _dbContext2.UResponseWithConversationId.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.CheckActiveConversation},@PhoneNumber={sendSms.PhoneNumber}").ToListAsync();
-               // _logger.LogInformation("Calling procedure usp_Conversations_Ops with phonenumber={ClientId},actionId={ActionId}",sendSms.PhoneNumber, CrudEnum.GetConversationLogs);
+                // _logger.LogInformation("Calling procedure usp_Conversations_Ops with phonenumber={ClientId},actionId={ActionId}",sendSms.PhoneNumber, CrudEnum.GetConversationLogs);
+                if (!chatresponse.Any())
+                {
+                    return new ApiResult { 
+                       Message = "Message cannot be send because customer have an active chat",
+                       Result = false
+                    };
 
+                }
             }
              return await _communicationService.SendTemplateMessageAsync(tempPayload);
         }
