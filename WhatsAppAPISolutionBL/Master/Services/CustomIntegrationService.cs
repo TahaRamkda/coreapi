@@ -163,6 +163,28 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 case 0:
                     {
+                        var chatResponse = await _dbContext2.UResponseWithConversationId
+                            .FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.CheckActiveConversation}, @PhoneNumber={sendSms.PhoneNumber}")
+                            .ToListAsync();
+
+                        if (chatResponse.Any())
+                        {
+                            return await _communicationService.SendTemplateMessageAsync(tempPayload);
+                        }
+                        else
+                        {
+                            result.Message = "Message cannot be sent because customer is not in active window";
+                            result.Result = false;
+                            return result;
+
+                        }
+                    }
+
+                case 1:
+                    return await _communicationService.SendTemplateMessageAsync(tempPayload);
+
+                case 2:
+                    {
                         var template = await _templateService.GetTemplateDetailAsync(tempPayload.ClientId, tempPayload.TemplateId);
                         if (template == null)
                             return new ApiResult { StatusCode = 0, Message = "Template not found or deleted", Result = false };
@@ -213,28 +235,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         dbresponse.Json = json;
 
                         return await _mediatorService.ProcessDBResponse(template.ClientId ?? 0, template.SenderId, dbresponse);
-                    }
-
-                case 1:
-                    return await _communicationService.SendTemplateMessageAsync(tempPayload);
-
-                case 2:
-                    {
-                        var chatResponse = await _dbContext2.UResponseWithConversationId
-                            .FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.CheckActiveConversation}, @PhoneNumber={sendSms.PhoneNumber}")
-                            .ToListAsync();
-
-                        if (chatResponse.Any())
-                        {
-                            return await _communicationService.SendTemplateMessageAsync(tempPayload);
-                        }
-                        else
-                        {
-                            result.Message = "Message cannot be sent because customer is not in active window";
-                            result.Result = false;
-                            return result;
-                           
-                        }
                     }
 
                 default:
