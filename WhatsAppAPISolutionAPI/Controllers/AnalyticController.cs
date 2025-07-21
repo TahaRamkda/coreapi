@@ -31,16 +31,20 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly WhatsAppSolutionContext _dbContext;
         private readonly IConversationAnalyticsService _conversationAnalyticsService;
         private readonly ILogger<AnalyticController> _logger;
+        private readonly int ClientId;
+        private readonly IUserService _userService;
         #endregion
 
         #region Ctor
-        public AnalyticController(IHttpClientFactory httpClientFactory, WhatsAppSolutionContext2 _dbcontext2, WhatsAppSolutionContext dbContext, IConversationAnalyticsService conversationAnalyticsService, ILogger<AnalyticController> logger)
+        public AnalyticController(IHttpClientFactory httpClientFactory, WhatsAppSolutionContext2 _dbcontext2, WhatsAppSolutionContext dbContext, IConversationAnalyticsService conversationAnalyticsService, ILogger<AnalyticController> logger, IUserService userService)
         {
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             this._dbcontext2 = _dbcontext2;
             _dbContext = dbContext;
             _conversationAnalyticsService = conversationAnalyticsService;
             _logger = logger;
+            _userService = userService;
+            ClientId = _userService.GetClientIdFromAccessToken();
         }
         #endregion
 
@@ -52,6 +56,13 @@ namespace WhatsAppAPISolutionAPI.Controllers
              _logger.LogInformation("GetConversationAnalytics called with model: {model}", JsonConvert.SerializeObject(model));
             var result = await _conversationAnalyticsService.ProcessConversationAnalyticsAsync(model);
             return Ok(result);
+        }
+
+        [HttpGet("getConversationAnalyticsList")]
+        public async Task<IActionResult> GetConversations(int senderId, DateTime? startDate, DateTime? EndDate, int pageNo=0, int pageSize = 100)
+        {
+            var data = await _conversationAnalyticsService.GetFilteredConversationsAsync(senderId, ClientId, startDate, EndDate, pageNo, pageSize);
+            return Ok(data);
         }
         #endregion
     }

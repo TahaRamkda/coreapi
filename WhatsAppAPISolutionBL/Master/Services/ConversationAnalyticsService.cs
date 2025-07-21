@@ -2,11 +2,15 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.ConversationAnalytic;
+using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
+using WhatsAppAPISolutionDL.UserModels;
+using WhatsAppAPISolutionDL.UserModels.Conversation;
 
 
 namespace WhatsAppAPISolutionBL.Master.Services
@@ -19,6 +23,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly HttpClient _httpClient;
         private readonly ILogger<ConversationAnalyticsService> _logger;
         private readonly ISenderNameService _senderNameService;
+        private readonly WhatsAppSolutionContext2 _dbContext2;
         
         #endregion
 
@@ -27,13 +32,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public ConversationAnalyticsService(IHttpClientFactory httpClientFactory, 
             WhatsAppSolutionContext dbContext, 
             ILogger<ConversationAnalyticsService> logger,
-            ISenderNameService senderNameService)
+            ISenderNameService senderNameService, 
+            WhatsAppSolutionContext2 dbContext2)
         {
             _httpClient = httpClientFactory.CreateClient(HttpClientType.bridge_api);
             _dbContext = dbContext;
             _logger = logger;
             _senderNameService = senderNameService;
+            _dbContext2 = dbContext2;
+
         }
+
+
         #endregion
 
         #region Method
@@ -139,6 +149,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 StatusCode = StatusCodes.Status200OK
             };
         }
+
+        public async Task<List<UConversationAnalyticsData>> GetFilteredConversationsAsync(int senderId, int clientId, DateTime? startDate, DateTime? endDate, int pageNo= 0, int pageSize = int.MaxValue)
+        {
+            var result = await _dbContext2.ConversationAnalyticsData.FromSqlInterpolated($"EXEC usp_ConversationAnalyticData_Ops @ActionId = {(int)CrudEnum.List},@SenderId = {senderId},@ClientId = {clientId},@StartDate = {startDate},@EndDate = {endDate},@PageNo = {pageNo},@PageSize = {pageSize}").ToListAsync();
+            return result;
+        }
+
         #endregion
     }
 }

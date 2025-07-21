@@ -110,6 +110,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UResponseWithConversationId> UResponseWithConversationId { get; set; } = null!;
         public virtual DbSet<UTemplateAnalyticsDetailsList> TemplateAnalyticsDetailsList { get; set; } = null!;
         public virtual DbSet<UTemplateAnalyticsExportList> TemplateAnalyticsExportList { get; set; } = null!;
+        public virtual DbSet<UConversationAnalyticsData> ConversationAnalyticsData { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -181,6 +182,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UResponseWithConversationId>().HasNoKey();
             modelBuilder.Entity<UTemplateAnalyticsDetailsList>().HasNoKey();
             modelBuilder.Entity<UTemplateAnalyticsExportList>().HasNoKey();
+            modelBuilder.Entity<UConversationAnalyticsData>().HasNoKey();
         }
     }
 }
