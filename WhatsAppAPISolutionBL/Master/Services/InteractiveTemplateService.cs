@@ -34,12 +34,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _cacheService = cacheService;
         }
 
-        public async Task<List<UInteractiveTemplate>> GetInteractiveTemplateListAsync(int clientId, int senderId = 0, string searchStr = "", DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue, LanguageTypeEnum lang = LanguageTypeEnum.none)
+        public async Task<List<UInteractiveTemplate>> GetInteractiveTemplateListAsync(int clientId, int senderId = 0, string searchStr = "", DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue, string lang = "")
         {
-            object languageParam = lang == LanguageTypeEnum.none ? (object)DBNull.Value : lang.ToString().ToLower(); // Convert to lowercase "en" or "ar"
 
             var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.InteractiveTemplates.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId},@SenderId={senderId},@FromDate={fromDate}, @ToDate={toDate},@SearchStr={searchStr},@SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}, @Language={languageParam}").ToListAsync();
+            var response = await _dbContext2.InteractiveTemplates.FromSqlInterpolated($"exec usp_InteractiveTemplate_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId},@SenderId={senderId},@FromDate={fromDate}, @ToDate={toDate},@SearchStr={searchStr},@SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}, @Language={lang}").ToListAsync();
             _logger.LogInformation("Calling procedure usp_InteractiveTemplate_Ops with actionId={actionId}, actionName={actionName}, clientId={clientId}, senderId={senderId}, fromDate={fromDate}, toDate={toDate}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}, lang={lang},ProcResponseTime={ProcResponseTime}ms",
                 (int)CrudEnum.List, CrudEnum.List, clientId, senderId, fromDate, toDate, searchStr, sortBy, pageNo, pageSize, lang, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds
             ); return response;

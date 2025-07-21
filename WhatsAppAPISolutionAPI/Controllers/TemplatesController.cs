@@ -58,7 +58,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("gettemplateslist")]
-        public async Task<ActionResult> GetTemplatesListAsync(string searchStr = "", int senderId = 0, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue, LanguageTypeEnum lang = LanguageTypeEnum.none, CategoryTypeEnum category = CategoryTypeEnum.none)
+        public async Task<ActionResult> GetTemplatesListAsync(string searchStr = "", int senderId = 0, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue, string lang = "", string category = "")
         {
             _logger.LogDebug("Calling api GetAgentsListAsync with clientId={clientId}, searchStr={searchStr}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}, lang={lang}", clientId, searchStr, sortBy, pageNo, pageSize, lang);
 
@@ -366,7 +366,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpGet("gettemplates")]
-        public async Task<IActionResult> GetTemplatesAsync(int senderId = 0, string searchStr = "", CategoryTypeEnum category = CategoryTypeEnum.none)
+        public async Task<IActionResult> GetTemplatesAsync(int senderId = 0, string searchStr = "", string category = "")
         {
             _logger.LogDebug("Calling api GetTemplatesAsync with ClientId={ClientId}, senderId={senderId}, searchStr={searchStr}, category={category}", clientId, senderId, searchStr, category);
 

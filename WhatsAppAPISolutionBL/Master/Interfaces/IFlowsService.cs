@@ -8,7 +8,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 {
     public interface IFlowsService
     {
-        Task<List<UFlow>> GetFlowListAsync(int clientId, string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue, int senderId=0, LanguageTypeEnum lang = LanguageTypeEnum.none);
+        Task<List<UFlow>> GetFlowListAsync(int clientId, string searchStr = "", int pageNo = 0, int pageSize = int.MaxValue, int senderId=0, string lang = "");
         Task<UResponseWithID> AddFlowAsync(int clientId, int userId, FlowDTO obj);
         Task<UResponseWithID> UpdateFlowAsync(int clientId, int userId, FlowDTO obj);
         Task<UResponse> PublishFlowAsync(int clientId, int flowId);

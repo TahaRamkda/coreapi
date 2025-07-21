@@ -46,13 +46,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _cacheService = cacheService;
         }
 
-        public async Task<List<UTemplate>> GetTemplateListAsync(int clientId, int senderId, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue, LanguageTypeEnum lang = LanguageTypeEnum.none, CategoryTypeEnum cat = CategoryTypeEnum.none)
+        public async Task<List<UTemplate>> GetTemplateListAsync(int clientId, int senderId, string searchStr = "", int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue, string lang = "", string cat = "")
         {
-            object languageParam = lang == LanguageTypeEnum.none ? (object)DBNull.Value : lang.ToString().ToLower();
-            object categoryParam = cat == CategoryTypeEnum.none ? (object)DBNull.Value : cat.ToString();
-
             var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.Templates.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SenderId= {senderId}, @SearchStr={searchStr},@SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}, @Language={languageParam}, @Category={categoryParam}").ToListAsync();
+            var response = await _dbContext2.Templates.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.List}, @ClientId={clientId}, @SenderId= {senderId}, @SearchStr={searchStr},@SortBy={sortBy},@PageNo={pageNo},@PageSize={pageSize}, @Language={lang}, @Category={cat}").ToListAsync();
             _logger.LogInformation("Calling procedure usp_Templates_Ops with parameters: " +
                 "ActionId={ActionId}, ClientId={ClientId},SenderId= {SenderId}, SearchStr={SearchStr}, SortBy={SortBy}, PageNo={PageNo}, PageSize={PageSize}, lang={lang}, cat ={cat}, ProcResponseTime={ProcResponseTime}ms",
                 (int)CrudEnum.List, clientId, senderId, searchStr, sortBy, pageNo, pageSize, lang, cat, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds); return response;
@@ -735,14 +732,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return cacheResult;
         }
 
-        public async Task<List<UEntityDto>> GetTemplatesAsync(int clientId, int senderId = 0, string searchStr = "", CategoryTypeEnum cat = CategoryTypeEnum.none)
+        public async Task<List<UEntityDto>> GetTemplatesAsync(int clientId, int senderId = 0, string searchStr = "", string cat = "")
         {
-            object categoryParam = cat == CategoryTypeEnum.none ? (object)DBNull.Value : cat.ToString();
-            var cacheKey = string.Format(CacheKeys.TEMPLATE_DROPDOWN_KEY, clientId, senderId, searchStr, categoryParam);
+            var cacheKey = string.Format(CacheKeys.TEMPLATE_DROPDOWN_KEY, clientId, senderId, searchStr, cat);
             var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
             {
                 var startProcTime = DateTime.UtcNow;
-                var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId}, @SenderId={senderId}, @SearchStr={searchStr}, @Category={categoryParam}").ToListAsync();
+                var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId}, @SenderId={senderId}, @SearchStr={searchStr}, @Category={cat}").ToListAsync();
                 _logger.LogInformation("Calling procedure usp_Templates_Ops with parameters: " +
                     "ActionId={ActionId}, ClientId={ClientId}, SenderId={SenderId}, SearchStr={SearchStr}, " +
                     "ProcResponseTime={ProcResponseTime}ms", (int)CrudEnum.GetEntities, clientId, senderId, searchStr, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);

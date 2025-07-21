@@ -37,7 +37,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
 
         [HttpGet("getinteractivetemplateslist")]
-        public async Task<ActionResult> GetInteractiveTemplatesListAsync(int senderId = 0, string searchStr = "", DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue, LanguageTypeEnum lang = LanguageTypeEnum.none)
+        public async Task<ActionResult> GetInteractiveTemplatesListAsync(int senderId = 0, string searchStr = "", DateTime? fromDate = null, DateTime? toDate = null, int sortBy = 0, int pageNo = 0, int pageSize = int.MaxValue, string lang = "")
         {
             _logger.LogDebug("Calling api GetAgentsListAsync with clientId={clientId}, senderId={senderId}, searchStr={searchStr}, fromDate={fromDate}, toDate={toDate}, sortBy={sortBy}, pageNo={pageNo}, pageSize={pageSize}, lang={lang}", clientId, senderId, searchStr, fromDate, toDate, sortBy, pageNo, pageSize, lang);
 
