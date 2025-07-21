@@ -1033,7 +1033,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
             if (conversation.AgentId >= 0)
             {
-                if (conversation.AgentId != model.AgnetId) 
+                if (conversation.AgentId != model.AgentId) 
                 {
                     return new ApiResult
                     {

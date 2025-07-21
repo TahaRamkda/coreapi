@@ -56,7 +56,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 {
                     Message = "No conversation found"
                 });
-            if(model.AgnetId <= 0 || model.AgnetId == null)
+            if(model.AgentId <= 0 || model.AgentId == null)
             {
                 return Ok(new ApiResult
                 {
