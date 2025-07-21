@@ -151,48 +151,39 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
 
             var response = await _apiMessageService.AddAPIMessageAsync(message);
-            if (response != null)
-
-            {
-                tempPayload.ParentId = response.Id;
-            }
+            if (response != null) 
+                tempPayload.ParentId = response.Id; 
 
             var flowToken = $"{FlowIdentifier.ClientId}:{tempPayload.ClientId}|" + $"{FlowIdentifier.SenderId}:{senderId}|" + $"{FlowIdentifier.ModuleId}:{tempPayload.ModuleId}|" + $"{FlowIdentifier.ParentId}:{tempPayload.ParentId}";
             tempPayload.FlowToken = flowToken;
             switch (sendSms.IsForceSend)
             {
-                case 0:
+                case 0: //Check if conversation already exists in past 24 hours
                     {
                         var chatResponse = await _dbContext2.UResponseWithConversationId
                             .FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.CheckActiveConversation}, @PhoneNumber={sendSms.PhoneNumber}")
                             .ToListAsync();
 
                         if (chatResponse.Any())
-                        {
                             return await _communicationService.SendTemplateMessageAsync(tempPayload);
-                        }
                         else
                         {
-                            result.Message = "Message cannot be sent because customer is not in active window";
+                            result.Message = "Message cannot be sent, no active conversation in past 24 hours";
                             result.Result = false;
                             return result;
-
                         }
                     }
 
-                case 1:
+                case 1: //Normal template flow
                     return await _communicationService.SendTemplateMessageAsync(tempPayload);
 
-                case 2:
+                case 2: //Send as manual template
                     {
                         var template = await _templateService.GetTemplateDetailAsync(tempPayload.ClientId, tempPayload.TemplateId);
                         if (template == null)
                             return new ApiResult { StatusCode = 0, Message = "Template not found or deleted", Result = false };
 
-                        var dbresponse = new DBResponse
-                        {
-                            ResponseType = 2
-                        };
+                        var dbresponse = new DBResponse { ResponseType = (int)DBResponseEnum.ManualTemplate };
 
                         var manualTemplateDBResponse = new ManualTemplateDBResponse
                         {
