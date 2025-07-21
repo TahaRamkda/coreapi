@@ -32,5 +32,8 @@ namespace WhatsAppAPISolutionDL.Models
         public string Language { get; set; }
         public int? TotalMessages { get; set; }
         public int? ReasonId { get; set; }
+        public string Udf1 { get; set; }
+        public string Udf2 { get; set; }
+        public bool? IsCharged { get; set; }
     }
 }

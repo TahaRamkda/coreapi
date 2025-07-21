@@ -224,6 +224,8 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.Property(e => e.DeliveredDate).HasColumnType("datetime");
 
+                entity.Property(e => e.FailedTime).HasColumnType("datetime");
+
                 entity.Property(e => e.PhoneNumber).HasMaxLength(15);
 
                 entity.Property(e => e.ReadDate).HasColumnType("datetime");
@@ -639,9 +641,15 @@ namespace WhatsAppAPISolutionDL.Models
 
                 entity.Property(e => e.DeliveredDate).HasColumnType("datetime");
 
+                entity.Property(e => e.DeliveredTime).HasColumnType("datetime");
+
+                entity.Property(e => e.FailedTime).HasColumnType("datetime");
+
                 entity.Property(e => e.PhoneNumber).HasMaxLength(50);
 
                 entity.Property(e => e.ReadDate).HasColumnType("datetime");
+
+                entity.Property(e => e.ReadTime).HasColumnType("datetime");
 
                 entity.Property(e => e.WaId).HasMaxLength(255);
             });
@@ -688,6 +696,14 @@ namespace WhatsAppAPISolutionDL.Models
                     .HasColumnName("language");
 
                 entity.Property(e => e.PhoneNumber).HasMaxLength(50);
+
+                entity.Property(e => e.Udf1)
+                    .HasMaxLength(50)
+                    .HasColumnName("UDF1");
+
+                entity.Property(e => e.Udf2)
+                    .HasMaxLength(50)
+                    .HasColumnName("UDF2");
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
