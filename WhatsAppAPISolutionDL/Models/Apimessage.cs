@@ -24,7 +24,7 @@ namespace WhatsAppAPISolutionDL.Models
         public DateTime? ReadDate { get; set; }
         public DateTime? DeliveredDate { get; set; }
         public int? WalletTransactionId { get; set; }
-        public bool? IsForceSend { get; set; }
+        public int? IsForceSend { get; set; }
         public string FailedMessage { get; set; }
         public DateTime? FailedTime { get; set; }
     }
