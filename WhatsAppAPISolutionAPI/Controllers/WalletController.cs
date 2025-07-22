@@ -17,8 +17,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
         public WalletController(IWalleteCheckBalanceService walletService, IUserService userService)
         {
             _walletService = walletService;
-            userService = _userService;
-            ClientId = userService.GetClientIdFromAccessToken();
+            _userService = userService;
+            ClientId = _userService.GetClientIdFromAccessToken();
         }
 
         [HttpGet("checkBalance")]
