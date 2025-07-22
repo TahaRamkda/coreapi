@@ -11,16 +11,20 @@ namespace WhatsAppAPISolutionAPI.Controllers
     {
 
         private readonly IWalleteCheckBalanceService _walletService;
+        private readonly int ClientId;
+        private readonly IUserService _userService;
 
-        public WalletController(IWalleteCheckBalanceService walletService)
+        public WalletController(IWalleteCheckBalanceService walletService, IUserService userService)
         {
             _walletService = walletService;
+            userService = _userService;
+            ClientId = userService.GetClientIdFromAccessToken();
         }
 
         [HttpGet("checkBalance")]
-        public async Task<IActionResult> GetBalance(int clientId)
+        public async Task<IActionResult> GetBalance()
         {
-            var result = await _walletService.GetWalletBalanceAsync(clientId);
+            var result = await _walletService.GetWalletBalanceAsync(ClientId);
             if (result == null)
                 return NotFound("Wallet info not found.");
 
