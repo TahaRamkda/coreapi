@@ -9,10 +9,13 @@ namespace WhatsAppAPISolutionDL.UserModels.CheckWallet
 {
     public class UWalletBalanceCheck
     {
-        public SubscriptionType SubscriptionType { get; set; }
+        public string Type { get; set; }
         public decimal Balance { get; set; }
-        public DateTime ExpiryDate { get; set; }
+        public string ExpiryDate { get; set; }
         public int DaysRemaining { get; set; }
+        public string CountryCode { get; set; }     
+        public string CurrencyCode { get; set; }    
+        public string Status { get; set; }
 
     }
 }

@@ -25,7 +25,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<UWalletBalanceCheck> GetWalletBalanceAsync(int clientId)
         {
             var result = await _dbContext.CheckWalleteBalance
-                .FromSqlInterpolated($"EXEC usp_Clients_Ops @ActionId= {CrudEnum.WalleteCheckBalance}, @ClientId={clientId}")
+                .FromSqlInterpolated($"EXEC usp_clients_checkwalletBalance @ClientId={clientId}")
                 .ToListAsync();
 
             return result.FirstOrDefault();
