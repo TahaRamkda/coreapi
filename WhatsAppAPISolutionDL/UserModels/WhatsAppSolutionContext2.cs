@@ -2,6 +2,7 @@
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.AppSetting;
+using WhatsAppAPISolutionDL.UserModels.Bridge;
 using WhatsAppAPISolutionDL.UserModels.Campaign;
 using WhatsAppAPISolutionDL.UserModels.Catalog;
 using WhatsAppAPISolutionDL.UserModels.CheckWallet;
@@ -111,6 +112,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UTemplateAnalyticsDetailsList> TemplateAnalyticsDetailsList { get; set; } = null!;
         public virtual DbSet<UTemplateAnalyticsExportList> TemplateAnalyticsExportList { get; set; } = null!;
         public virtual DbSet<UConversationAnalyticsData> ConversationAnalyticsData { get; set; } = null!;
+        public virtual DbSet<UserPreference> UserPreferences { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -183,6 +185,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UTemplateAnalyticsDetailsList>().HasNoKey();
             modelBuilder.Entity<UTemplateAnalyticsExportList>().HasNoKey();
             modelBuilder.Entity<UConversationAnalyticsData>().HasNoKey();
+            modelBuilder.Entity<UserPreference>().HasNoKey();
         }
     }
 }

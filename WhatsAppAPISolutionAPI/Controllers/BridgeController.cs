@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionDL.Dto.Bridge;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Flow;
 using WhatsAppAPISolutionDL.Dto.Message;
@@ -11,6 +12,8 @@ using WhatsAppAPISolutionDL.Dto.Order;
 using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
+using WhatsAppAPISolutionDL.UserModels;
+using static WhatsAppAPISolutionDL.Dto.Order.KFG.KFGOrderPostingResult;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -26,6 +29,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         private readonly ILogger<BridgeController> _logger;
         private readonly IFlowsService _flowService;
         private readonly IOrderService _orderService;
+        private readonly IUserPreferenceService _userPreferenceService;
         #endregion
 
         #region Ctor
@@ -34,7 +38,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
             WhatsAppSolutionContext dbContext,
             ILogger<BridgeController> logger,
             IFlowsService flowService,
-            IOrderService orderService)
+            IOrderService orderService,
+            IUserPreferenceService userPreferenceService)
         {
             _templateService = templateService;
             _messageService = messageService;
@@ -42,6 +47,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger = logger;
             _flowService = flowService;
             _orderService = orderService;
+            _userPreferenceService = userPreferenceService;
         }
         #endregion
 
@@ -236,6 +242,16 @@ namespace WhatsAppAPISolutionAPI.Controllers
             return Ok();
         }
 
+        #endregion
+
+        #region UserPreference
+        [HttpPost("userpreferenceupdate")]
+        public async Task<IActionResult> Processuserpreference(UserPreferenceDto model)
+        {
+            _logger.LogInformation("Received api CreateOrdersAsync response with data={data}", JsonConvert.SerializeObject(model));
+            var result = await _userPreferenceService.Processuserpreference(model);
+            return Ok(result);
+        }
         #endregion
     }
 }
