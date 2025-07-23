@@ -246,9 +246,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
         #region UserPreference
         [HttpPost("userpreferenceupdate")]
+
         public async Task<IActionResult> Processuserpreference(UserPreferenceDto model)
         {
-            _logger.LogInformation("Received api CreateOrdersAsync response with data={data}", JsonConvert.SerializeObject(model));
+            _logger.LogInformation("Received api Processuserpreference response with data={data}", JsonConvert.SerializeObject(model));
             var result = await _userPreferenceService.Processuserpreference(model);
             return Ok(result);
         }
