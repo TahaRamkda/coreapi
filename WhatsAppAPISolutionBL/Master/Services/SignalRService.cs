@@ -34,82 +34,129 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (conversation != null)
             {
                 string signalRType = SignalREnum.MessageReceived.ToString();
-
-                // Look up the connection ID for the Agent ID and send the conversation
-                string connectionId = String.Empty;
-                int i;
-                for (i = 1; i <= 5; i++)
+                List<string> connectionList = null;
+                // Retry logic for finding agent's SignalR connections
+                for (int i = 0; i < 5; i++)
                 {
-                    if (ConversationHub.connections.TryGetValue(agentId, out connectionId))
+                    if (ConversationHub.connections.TryGetValue(agentId, out connectionList) && connectionList?.Any() == true)
                     {
-                        //Call one signal and call WitAI
-                        if (await _oneSignalService.IsAgentOneSignalEnabled(clientId, senderId))
-                        {
-                            if (!String.IsNullOrWhiteSpace(conversation.MessageContent))
-                            {
-                                var result = await _witAIService.SendContentToWitAi(conversation.MessageContent);
-                                conversation.MessageContent = String.Concat(conversation.MessageContent, result);
-                                await _oneSignalService.SendMessageReceivedNotification(agentId, conversation.Language, conversation.MessageContent);
-                            }
-                        }
-
-                        //Send signalR
-                        await _conversationHubContext.Clients.Client(connectionId).SendAsync(signalRType, conversation);
-
-                        _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", signalRType, agentId, connectionId, conversation.Id, i, JsonConvert.SerializeObject(conversation));
-                        break;
+                        break; // Exit loop if connections found
                     }
-                    else
-                        _logger.LogError("SignalR, No connection found for event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", signalRType, agentId, connectionId, conversation.Id, i, JsonConvert.SerializeObject(conversation));
+                    _logger.LogWarning("Retrying to find SignalR connections for AgentId:{AgentId}, attempt:{Attempt}", agentId, i + 1);
+                }
+
+                if (connectionList?.Any() == true)
+                {
+                    // Call one signal and WitAI if enabled
+                    if (await _oneSignalService.IsAgentOneSignalEnabled(clientId, senderId))
+                    {
+                        if (!string.IsNullOrWhiteSpace(conversation.MessageContent))
+                        {
+                            var result = await _witAIService.SendContentToWitAi(conversation.MessageContent);
+                            conversation.MessageContent = string.Concat(conversation.MessageContent, result);
+                            await _oneSignalService.SendMessageReceivedNotification(agentId, conversation.Language, conversation.MessageContent);
+                        }
+                    }
+
+                    // Send SignalR notification to all active connections
+                    foreach (var connectionId in connectionList)
+                    {
+                        await _conversationHubContext.Clients.Client(connectionId).SendAsync(signalRType, conversation);
+                        _logger.LogInformation("SignalR: Sent {event} to AgentId:{AgentId}, ConnectionId:{ConnectionId}, MessageId:{MessageId}", signalRType, agentId, connectionId, conversation.Id);
+                    }
+                }
+                else
+                {
+                    _logger.LogError("SignalR: No connections found for AgentId:{AgentId} after retries for event {event}", agentId, signalRType);
                 }
             }
         }
 
         public async Task ConversationAssignedNotification(int clientId, int senderId, int agentId, int oldAgentId, int conversationId, UAgentConversationList conversation)
         {
-            int i;
             if (conversation != null)
             {
-                // Look up the connection ID for the Agent ID and send the conversation
-                string connectionId = String.Empty;
-                for (i = 1; i <= 5; i++)
+                List<string> connectionIds = null;
+                for (int i = 1; i <= 5; i++)
                 {
-                    if (ConversationHub.connections.TryGetValue(agentId, out connectionId))
+                    if (ConversationHub.connections.TryGetValue(agentId, out connectionIds) && connectionIds != null && connectionIds.Count > 0)
                     {
-                        await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationAssigned.ToString(), conversation);
+                        foreach (var connectionId in connectionIds)
+                        {
+                            try
+                            {
+                                await _conversationHubContext.Clients.Client(connectionId)
+                                    .SendAsync(SignalREnum.ConversationAssigned.ToString(), conversation);
 
+                                _logger.LogInformation(
+                                    "SignalR: Triggered event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} on try {try} with object {object} and payload {payload}",
+                                    SignalREnum.ConversationAssigned.ToString(), agentId, connectionId, i, conversationId,
+                                    JsonConvert.SerializeObject(conversation));
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(
+                                    ex, "SignalR: Error sending to ConnectionId:{ConnectionId} for AgentId:{AgentId} on try {try}",
+                                    connectionId, agentId, i);
+                            }
+                        }
+                        // Send OneSignal notification only once if connections found
                         if (await _oneSignalService.IsAgentOneSignalEnabled(conversation.ClientId ?? 0, conversation.SenderId ?? 0))
                             await _oneSignalService.SendConversationAssignedNotification(conversation.AgentId ?? 0, conversation.Language, conversation.LastMessageText);
 
-                        _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try} and payload {payload}", SignalREnum.ConversationAssigned.ToString(), agentId, connectionId, conversationId, i, JsonConvert.SerializeObject(conversation));
-                        break;
+                        break; // success, no need to retry
                     }
                     else
-                        _logger.LogError("SignalR, No connection found for event {event} for AgentId:{AgentId} with object {object} on try {try}", SignalREnum.ConversationAssigned.ToString(), agentId, conversationId, i);
+                    {
+                        _logger.LogWarning("SignalR: No connection(s) found for AgentId:{AgentId} on try {try} for event {event}",
+                            agentId, i, SignalREnum.ConversationAssigned.ToString());
+                    }
                 }
             }
 
-            //Send conversation unassigned
+            // Send conversation unassigned
             if (oldAgentId > 0 && conversationId > 0)
+            {
                 await ConversationUnAssignedNotification(clientId, senderId, oldAgentId, conversationId);
+            }
         }
 
         public async Task ConversationUnAssignedNotification(int clientId, int senderId, int agentId, int conversationId)
         {
-            //Send conversation unassigned
+            // Send conversation unassigned
             if (agentId > 0 && conversationId > 0)
             {
-                string unassignedConnectionId = String.Empty;
+                List<string> unassignedConnectionIds = null;
                 for (int i = 1; i <= 5; i++)
                 {
-                    if (ConversationHub.connections.TryGetValue(agentId, out unassignedConnectionId))
+                    if (ConversationHub.connections.TryGetValue(agentId, out unassignedConnectionIds) && unassignedConnectionIds != null && unassignedConnectionIds.Any())
                     {
-                        await _conversationHubContext.Clients.Client(unassignedConnectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), conversationId);
+                        foreach (var connectionId in unassignedConnectionIds)
+                        {
+                            try
+                            {
+                                await _conversationHubContext.Clients.Client(connectionId).SendAsync(SignalREnum.ConversationUnAssigned.ToString(), conversationId);
 
+                                _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and ConnectionId:{ConnectionId} with object {object} on try {try}",
+                                    SignalREnum.ConversationUnAssigned.ToString(), agentId, connectionId, conversationId, i);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "SignalR, failed to send ConversationUnAssigned to ConnectionId:{ConnectionId} for AgentId:{AgentId} on try {try}",
+                                    connectionId, agentId, i);
+                            }
+                        }
+
+                        // Only send OneSignal once after all SignalR messages
                         if (await _oneSignalService.IsAgentOneSignalEnabled(clientId))
                             await _oneSignalService.SendConversationUnAssignedNotification(agentId);
 
-                        _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} with object {object} on try {try}", SignalREnum.ConversationUnAssigned.ToString(), agentId, conversationId, i);
+                        break; // Successfully sent, exit retry loop
+                    }
+                    else
+                    {
+                        _logger.LogError("SignalR, no connections found for event {event} for AgentId:{AgentId} on try {try}",
+                            SignalREnum.ConversationUnAssigned.ToString(), agentId, i);
                     }
                 }
             }
