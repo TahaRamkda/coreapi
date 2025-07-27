@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
 using WhatsAppAPISolutionBL.Master.Interfaces;
@@ -26,6 +27,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         #endregion
 
         #region Method
+        [Authorize]
         [HttpPost("Import")]
         public async Task<IActionResult> Import([FromQuery] int ClientId, [FromQuery] int SenderId, CatalogDto model)
         {
@@ -109,6 +111,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 return Ok(new ApiResult { Success = true, StatusCode = 450, Message = "Something went wrong" });
         }
 
+        [AllowAnonymous]
         [HttpGet("Export")]
         public async Task<IActionResult> Export(int ClientId, int SenderId)
         {
@@ -123,6 +126,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             return Ok();
         }
 
+        [AllowAnonymous]
         [HttpPost("GenerateCatalogFlows")]
         public async Task<IActionResult> GenerateCatalogFlows(List<CatalogFlowGenerationDto> model)
         {

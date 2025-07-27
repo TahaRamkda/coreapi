@@ -7,6 +7,7 @@ using WhatsAppAPISolutionAPI.Security;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.User;
+using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
 
 namespace WhatsAppAPISolutionAPI.Controllers
@@ -274,6 +275,60 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 throw;
             }
+        }
+
+
+        [AllowAnonymous]
+        [HttpGet("token")]
+        public async Task<ActionResult> token(string username, string password)
+        {
+            _logger.LogDebug("Calling api Login with Username={Username}, Password={Password}", username, password);
+
+            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+            {
+                //var res = await _userService.Login(username.Trim(), password.Trim());
+                var res = await _userService.Login(username.Trim(), password.Trim(), (int)MasterRoleTypeEnum.APIUser);
+                if (res == null || res.Status <= 0)
+                _logger.LogDebug("Received api token response with data={data}", JsonConvert.SerializeObject(res));
+
+                if (res == null || res.Status <= 0)
+                {
+                    return Ok(new ApiResult
+                    {
+                        Message = res?.Message
+                    });
+                }
+                //JWT token and refresh token and save in db
+                var claims = new List<Claim> {
+                    new Claim(ClaimTypes.Name, res.UserName),
+                    //new Claim("UserId", CommonHelper.Base64Encode(String.Concat(CommonHelper.GenerateRandomKey(), "M", res.UserId, "O",CommonHelper.GenerateRandomKey()))),
+                    //new Claim("ClientId", CommonHelper.Base64Encode(String.Concat(CommonHelper.GenerateRandomKey(), "M", res.ClientId, "O",CommonHelper.GenerateRandomKey()))),
+                    new Claim("UserId", res.UserId.ToString()),
+                    new Claim("ClientId", res.ClientId.ToString()),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                };
+
+                //take 4 letter alphanumeric _ id _ take 4 letter alphanumeric
+
+                var accessToken = _tokenService.GenerateAccessToken(claims);
+                var user = new UserDto
+                {
+                    AccessToken = accessToken,
+                };
+                var response = await _userService.AddUserTokenAsync(user);
+                _logger.LogDebug("Received function AddUserTokenAsync response with data={data}", JsonConvert.SerializeObject(response));
+                res.AccessToken = accessToken;
+                return Ok(new ApiResult
+                {
+                    Success = true,
+                    Result = res.AccessToken,
+                    Message = ""
+                });
+            }
+            return Ok(new ApiResult
+            {
+                Message = "Username and password required",
+            });
         }
     }
 }
