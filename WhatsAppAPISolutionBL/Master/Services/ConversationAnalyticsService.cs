@@ -60,7 +60,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 };
             }
             _logger.LogInformation("Calling the Bridge Api with the parameter : ClientId: {ClientId}, SenderId: {SenderId}, StartDate: {StartDate}, EndDate: {EndDate}", model.ClientId, model.SenderId, model.StartDate, model.EndDate);
-            var bridgeEndpoint = "/api/Analytics/ConversationAnalytics";
+            var bridgeEndpoint = "/api/Analytics/PriceAnalytics";
             var bridgeDto = new ConversationAnalyticBridgeRequestDto
             {
                 ClientId = model.ClientId.ToString(),
@@ -121,11 +121,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         ConversationCount = bridgeResult.Conversation,
                         PhoneNumber = bridgeResult.PhoneNumber,
                         Cost = bridgeResult.Cost,
-                        Category = bridgeResult.ConversationCategory,
+                        Category = bridgeResult.PricingCategory,
                         ClientId = senderName.ClientId,
                         SenderId = senderName.SenderId,
                         CreatedDate = DateTime.UtcNow,
-                        ConversationType = bridgeResult.ConversationType
+                        ConversationType = bridgeResult.PricingType
                     };
 
                     await _dbContext.ConversationAnalytics.AddAsync(conversationAnalytic);
@@ -137,7 +137,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 return new ApiResult
                 {
                     Success = true,
-                    Message = "No new data to insert into the ConversationAnalytics",
+                    Message = "Analytics data processed and stored successfully.",
                     StatusCode = StatusCodes.Status200OK
                 };
             }
@@ -145,7 +145,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return new ApiResult
             {
                 Success = true,
-                Message = "Analytics data processed and stored successfully.",
+                Message = "No new data to insert into the ConversationAnalytics",
                 StatusCode = StatusCodes.Status200OK
             };
         }

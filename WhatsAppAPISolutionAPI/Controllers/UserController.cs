@@ -279,15 +279,15 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
 
         [AllowAnonymous]
-        [HttpGet("token")]
-        public async Task<ActionResult> token(string username, string password)
+        [HttpPost("token")]
+        public async Task<ActionResult> token([FromBody] TokenDto model)
         {
-            _logger.LogDebug("Calling api Login with Username={Username}, Password={Password}", username, password);
+            _logger.LogDebug("Calling api Login with Username={Username}, Password={Password}", model.username, model.password);
 
-            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+            if (!string.IsNullOrEmpty(model.username) && !string.IsNullOrEmpty(model.password))
             {
                 //var res = await _userService.Login(username.Trim(), password.Trim());
-                var res = await _userService.Login(username.Trim(), password.Trim(), (int)MasterRoleTypeEnum.APIUser);
+                var res = await _userService.Login(model.username.Trim(), model.password.Trim(), (int)MasterRoleTypeEnum.APIUser);
                 if (res == null || res.Status <= 0)
                 _logger.LogDebug("Received api token response with data={data}", JsonConvert.SerializeObject(res));
 
