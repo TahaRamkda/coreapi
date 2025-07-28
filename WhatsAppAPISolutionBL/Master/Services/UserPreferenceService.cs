@@ -39,13 +39,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
         #region Method
         public async Task<ApiResult> Processuserpreference(UserPreferenceDto Dto)
         {
-            _logger.LogInformation("ProcessTemplateAnalyticsAsync called with model: {model}", JsonConvert.SerializeObject(Dto));
+            _logger.LogInformation("Processuserpreference called with model: {model}", JsonConvert.SerializeObject(Dto));
             if (Dto == null || string.IsNullOrEmpty(Dto.Phone_Number))
             {
                 return new ApiResult
                 {
                     Message = "PhoneNumber should not be empty."
-                };
+                };  
             }
             int senderId = 0;
 

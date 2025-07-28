@@ -54,6 +54,18 @@ namespace WhatsAppAPISolutionAPI.Controllers
         public async Task<IActionResult> GetConversationAnalytics([FromBody] ConversationAnalyticRequestDto model)
         {
              _logger.LogInformation("GetConversationAnalytics called with model: {model}", JsonConvert.SerializeObject(model));
+
+            if (model == null)
+                return Ok(new ApiResult { Message = "Bad Request", StatusCode = StatusCodes.Status400BadRequest });
+
+            if (model.ClientId == 0)
+                return Ok(new ApiResult { Message = "Client Id shouldn't be 0", StatusCode = StatusCodes.Status400BadRequest });
+
+            if (model.SenderId == 0)
+                return Ok(new ApiResult { Message = "Sender Name Id shouldn't be 0", StatusCode = StatusCodes.Status400BadRequest });
+
+            if (model.StartDate > model.EndDate)
+                return Ok(new ApiResult { Message = "Start date shoudn't be greater than end date", StatusCode = StatusCodes.Status400BadRequest });
             var result = await _conversationAnalyticsService.ProcessConversationAnalyticsAsync(model);
             return Ok(result);
         }
