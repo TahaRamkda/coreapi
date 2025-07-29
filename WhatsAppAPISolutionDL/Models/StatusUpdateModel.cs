@@ -13,6 +13,6 @@ namespace WhatsAppAPISolutionDL.Models
         public int MessageId { get; set; }
         public int AgentId { get; set; }
         public string EventMessage { get; set; }
-        public string MessageStatus { get; set; }
+        public int MessageStatus { get; set; }
     }
 }

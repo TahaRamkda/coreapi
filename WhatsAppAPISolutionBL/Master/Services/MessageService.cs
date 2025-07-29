@@ -137,7 +137,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _logger.LogDebug("Calling procedure usp_MessageSentLogs_StatusUpdate with ProcResponseTime={ProcResponseTime} ", DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             return new UResponse
             {
-                Status = 0,
+                Status = 1,
                 Message = "success"
 
             };
