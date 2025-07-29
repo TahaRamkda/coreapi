@@ -11,6 +11,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Conversation
         public string AgentName { get; set; }
         public int? SenderId { get; set; }
         public int? ConversationId { get; set; }
+        public int? MessageReferenceId { get; set; }
         public int? TypeId { get; set; }
         public int? MessageTypeId { get; set; }
         public string MessageContent { get; set; }
