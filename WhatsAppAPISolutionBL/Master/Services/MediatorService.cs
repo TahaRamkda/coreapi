@@ -550,7 +550,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             await _signalRService.MessageStatusNotification(
                                 clientId, senderId, jsonData.AgentId, jsonData.MessageId, jsonData.Status);
                         }
-                         break;
+                        else
+                        {
+                            return new ApiResult
+                            {
+                                Message = "Success",
+                                Success = true,
+                                StatusCode = 200
+                            };
+                        }
+                            break;
                     }
 
                 default:

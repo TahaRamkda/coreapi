@@ -17,16 +17,24 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly ILogger<MessageSentLogsService> _logger;
         private readonly ISenderNameService _senderNameService;
+       // private readonly IMediatorService _mediatorService;
+        private readonly int ClientId;
+        private readonly IUserService _userservice;
 
-        public MessageSentLogsService(WhatsAppSolutionContext dbContext, 
-            WhatsAppSolutionContext2 dbContext2, 
+        public MessageSentLogsService(WhatsAppSolutionContext dbContext,
+            WhatsAppSolutionContext2 dbContext2,
             ILogger<MessageSentLogsService> logger,
-            ISenderNameService senderNameService)
+            ISenderNameService senderNameService,
+            //IMediatorService mediatorService,
+            IUserService userservice)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _logger = logger;
             _senderNameService = senderNameService;
+            //_mediatorService = mediatorService;
+            _userservice = userservice;
+            ClientId = _userservice.GetClientIdFromAccessToken();
         }
 
         public async Task<List<UMessageSentLog>> GetMessageSentLogListAsync(int ClientId, int Id = 0, int ModuleId = 0, int ParentId = 0, string PhoneNumber = "", string WaId = "", string WaId2 = "", int SenderId = 0, DateTime? FromSentDate = null, DateTime? ToSentDate = null, DateTime? FromDeliveredDate = null, DateTime? ToDeliveredDate = null, DateTime? FromReadDate = null, DateTime? ToReadDate = null, DateTime? FromDate = null, DateTime? ToDate = null, int CurrentStatus = 0, string SearchStr = "", int SortBy = 0, int PageNo = 0, int PageSize = int.MaxValue)
@@ -43,6 +51,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<UResponse> AddMessageSentLogAsync(InsertMessageDto model)
         {
+            var response = new UResponse
+            {
+                Message = "Success",
+                Status = 1
+            };
 
             int eventType = (int)model.Status;
             int eventStatus = model.Status == MessageStatusEnum.FAILED ? 0 : 1;
@@ -57,7 +70,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 if (!string.IsNullOrEmpty(model.PhoneNumberId.DisplayPhoneNumber)
                     && !string.IsNullOrEmpty(model.PhoneNumberId.PhoneNumberId))
                 {
-                    var senderName = await _senderNameService.GetSenderNameEntityByPhoneNumberIdAsync(model.PhoneNumberId.PhoneNumberId); 
+                    var senderName = await _senderNameService.GetSenderNameEntityByPhoneNumberIdAsync(model.PhoneNumberId.PhoneNumberId);
                     model.SenderId = senderName != null ? senderName.SenderId : 0;
                 }
             }
@@ -78,11 +91,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _logger.LogInformation("Calling procedure usp_MessageSentLogs_StatusUpdate with request={request}", $"exec usp_MessageSentLogs_StatusUpdate @ModuleId={model.ModuleId}, @ClientId={model.ClientId}, @ParentId={model.ParentId}, @SenderId={model.SenderId}, @PhoneNumber={model.RecipientId}, @WaId={model.WaId}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={model.UpdateDateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}, @MessageReferenceId={model.MessageReferenceId}, @MessageType={model.MessageType}, @MessageContent={model.MessageContent}, @MediaId={model.MediaId}, @ButtonJson={model.ButtonJson}, @SystemGenerated={model.SystemGenerated}");
 
             var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_MessageSentLogs_StatusUpdate @ModuleId={model.ModuleId}, @ClientId={model.ClientId}, @ParentId={model.ParentId}, @SenderId={model.SenderId}, @PhoneNumber={model.RecipientId}, @WaId={model.WaId}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={model.UpdateDateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}, @MessageReferenceId={model.MessageReferenceId}, @MessageType={model.MessageType}, @MessageContent={model.MessageContent}, @MediaId={model.MediaId}, @ButtonJson={model.ButtonJson}, @SystemGenerated={model.SystemGenerated},@UDF1={model.UDF1} ,@UDF2={model.UDF2}").ToListAsync();
-
+            var responses = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_MessageSentLogs_StatusUpdate @ModuleId={model.ModuleId}, @ClientId={model.ClientId}, @ParentId={model.ParentId}, @SenderId={model.SenderId}, @PhoneNumber={model.RecipientId}, @WaId={model.WaId}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={model.UpdateDateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}, @MessageReferenceId={model.MessageReferenceId}, @MessageType={model.MessageType}, @MessageContent={model.MessageContent}, @MediaId={model.MediaId}, @ButtonJson={model.ButtonJson}, @SystemGenerated={model.SystemGenerated},@UDF1={model.UDF1} ,@UDF2={model.UDF2}").ToListAsync();
             _logger.LogInformation("Calling procedure usp_MessageSentLogs_StatusUpdate with request={request} and response={response} and ProcResponseTime={ProcResponseTime}", $"exec usp_MessageSentLogs_StatusUpdate @ModuleId={model.ModuleId}, @ClientId={model.ClientId}, @ParentId={model.ParentId}, @SenderId={model.SenderId}, @PhoneNumber={model.RecipientId}, @WaId={model.WaId}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={model.UpdateDateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}, @MessageReferenceId={model.MessageReferenceId}, @MessageType={model.MessageType}, @MessageContent={model.MessageContent}, @MediaId={model.MediaId}, @ButtonJson={model.ButtonJson},@UDF1={model.UDF1} ,@UDF2={model.UDF2}", JsonConvert.SerializeObject(response), DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+            if (responses.Any())
+            {
+                return response;
+            }
 
-            return response[0];
+            return response;
         }
     }
 }
