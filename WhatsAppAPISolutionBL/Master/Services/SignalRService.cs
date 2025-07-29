@@ -126,11 +126,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     if (ConversationHub.connections.TryGetValue(agentId, out connectionId))
                     {
-                    var messageStatus = new { messageId = messageId, status = status };
+                    var messageStatus = new { MessageID = messageId, Messagestatus = status };
                     //Send signalR
                     await _conversationHubContext.Clients.Client(connectionId).SendAsync(signalRType, messageStatus);
 
-                        _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and messageId:{messageId} with object {object} on try {try} and payload {payload}", signalRType, agentId, messageId, messageStatus.status, i, JsonConvert.SerializeObject(messageStatus));
+                        _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and messageId:{messageId} with object {object} on try {try} and payload {payload}", signalRType, agentId, messageId, messageStatus.Messagestatus, i, JsonConvert.SerializeObject(messageStatus));
                         break;
                     }
                     else
