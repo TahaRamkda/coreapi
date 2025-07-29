@@ -114,5 +114,30 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
             }
         }
+        public async Task MessageStatusNotification(int clientId, int senderId, int agentId, int  messageId, int status)
+        {
+
+                string signalRType = SignalREnum.StatusUpdate.ToString();
+
+                // Look up the connection ID for the Agent ID and send the conversation
+                string connectionId = String.Empty;
+                int i;
+                for (i = 1; i <= 5; i++)
+                {
+                    if (ConversationHub.connections.TryGetValue(agentId, out connectionId))
+                    {
+                    var messageStatus = new { messageId = messageId, status = status };
+                    //Send signalR
+                    await _conversationHubContext.Clients.Client(connectionId).SendAsync(signalRType, messageStatus);
+
+                        _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and messageId:{messageId} with object {object} on try {try} and payload {payload}", signalRType, agentId, messageId, messageStatus.status, i, JsonConvert.SerializeObject(messageStatus));
+                        break;
+                    }
+                    else
+                        _logger.LogError("SignalR, No connection found for event {event} for AgentId:{AgentId}, messageId:{messageId} and status={status}", signalRType, agentId, messageId, status);
+                }
+            
+        }
+
     }
 }

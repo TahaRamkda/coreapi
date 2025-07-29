@@ -7,6 +7,7 @@
         MessageReceived = 3, 
         HeartbeatAcknowledged = 5,
         Connected = 6,
-        DisConnected = 7
+        DisConnected = 7,
+        StatusUpdate = 8
     }
 }

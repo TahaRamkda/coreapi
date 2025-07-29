@@ -515,6 +515,44 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     }
 
                     break;
+                case (int)DBResponseEnum.statusUpdate:
+                    {
+                        _logger.LogInformation(
+                            "Calling function ProcessDBResponse with received clientId={clientId}, senderId={senderId}, and DBResponse={DBResponse}",
+                            clientId, senderId, JsonConvert.SerializeObject(model));
+
+                        if (model == null || string.IsNullOrWhiteSpace(model.Json))
+                        {
+                            return new ApiResult
+                            {
+                                Success = false,
+                                Message = $"DBResponse was null or JSON was empty. DBResponse={JsonConvert.SerializeObject(model)}"
+                            };
+                        }
+
+                        StatusUpdateModel jsonData;
+                        try
+                        {
+                            jsonData = JsonConvert.DeserializeObject<StatusUpdateModel>(model.Json);
+                        }
+                        catch (JsonException ex)
+                        {
+                            _logger.LogError(ex, "Failed to deserialize model.Json: {Json}", model.Json);
+                            return new ApiResult
+                            {
+                                Success = false,
+                                Message = "Invalid JSON format in DBResponse."
+                            };
+                        }
+
+                        if (jsonData != null && jsonData.AgentId != 0)
+                        {
+                            await _signalRService.MessageStatusNotification(
+                                clientId, senderId, jsonData.AgentId, jsonData.MessageId, jsonData.Status);
+                        }
+                         break;
+                    }
+
                 default:
                     break;
             }

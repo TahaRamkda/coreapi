@@ -32,6 +32,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IAppSettingsService _appSettingsService;
         private readonly IClientService _clientService;
         private readonly ISenderNameService _senderNameService;
+        private readonly IUserService _userService;
+        private readonly int ClientId;
 
         public MessageService(WhatsAppSolutionContext dbContext,
             WhatsAppSolutionContext2 dbContext2,
@@ -45,7 +47,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             IMediatorService mediatorService,
             IAppSettingsService appSettingsService,
             IClientService clientService,
-            ISenderNameService senderNameService)
+            ISenderNameService senderNameService,
+            IUserService userService
+            )
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
@@ -60,6 +64,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _appSettingsService = appSettingsService;
             _clientService = clientService;
             _senderNameService = senderNameService;
+            _userService = userService;
+            ClientId = _userService.GetClientIdFromAccessToken();
         }
 
         #region Utilities
@@ -104,7 +110,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 && !String.IsNullOrEmpty(messageStatus.phone_number_Id.display_phone_number)
                 && !String.IsNullOrEmpty(messageStatus.phone_number_Id.phone_number_id))
             {
-                var senderName = await _senderNameService.GetSenderNameEntityByPhoneNumberIdAsync(messageStatus.phone_number_Id.phone_number_id); 
+                var senderName = await _senderNameService.GetSenderNameEntityByPhoneNumberIdAsync(messageStatus.phone_number_Id.phone_number_id);
                 if (senderName != null)
                     senderId = senderName.SenderId;
             }
@@ -121,11 +127,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 billable = messageStatus.pricing.billable;
                 category = messageStatus.pricing.category;
             }
-
             var startProcTime = DateTime.UtcNow;
-            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_MessageSentLogs_StatusUpdate @ModuleId={0}, @ClientId={messageStatus.client_Id}, @ParentId={0}, @SenderId={senderId}, @PhoneNumber={messageStatus.recipient_Id}, @WaId={messageStatus.wam_Id}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={messageStatus.update_dateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}").ToListAsync();
+             var response = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_MessageSentLogs_StatusUpdate @ModuleId={0}, @ClientId={messageStatus.client_Id}, @ParentId={0}, @SenderId={senderId}, @PhoneNumber={messageStatus.recipient_Id}, @WaId={messageStatus.wam_Id}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={messageStatus.update_dateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}").ToListAsync();
+
+            if (response.Any())
+            {
+                await _mediatorService.ProcessDBResponse(ClientId, senderId, response[0]);
+            }
             _logger.LogDebug("Calling procedure usp_MessageSentLogs_StatusUpdate with ProcResponseTime={ProcResponseTime} ", DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
-            return response[0];
+            return new UResponse
+            {
+                Status = 0,
+                Message = "success"
+
+            };
         }
 
         /// <summary>
@@ -136,7 +151,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<ApiResult> AddMessageReceivedLogAsync(WhatsAppMessageReceiveDto messageReceive)
         {
             var client = await _clientService.GetClientEntityByIdAsync(Convert.ToInt32(messageReceive.client_Id));
-            var senderName = await _senderNameService.GetSenderNameEntityByPhoneNumberIdAsync(messageReceive.phone_number_Id.phone_number_id); 
+            var senderName = await _senderNameService.GetSenderNameEntityByPhoneNumberIdAsync(messageReceive.phone_number_Id.phone_number_id);
 
             int messageType = 0;
             string messageText = String.Empty;
