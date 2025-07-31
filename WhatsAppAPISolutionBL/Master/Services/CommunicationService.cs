@@ -1022,7 +1022,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         public async Task<ApiResult> SendAgentMessageAsync(SendAgentMessageRequestDto model)
         {
             model.Message = (model.Message ?? "").Trim();
-
+            var res = new UResult();
             var conversation = await _dbContext.Conversations.FindAsync(model.ConversationId);
             if (conversation == null || String.IsNullOrWhiteSpace(conversation.PhoneNumber))
             {
@@ -1134,7 +1134,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             };
                         }
 
-                        await _messageSentLogsService.AddMessageSentLogAsync(message);
+                         res = await _messageSentLogsService.AddMessageSentLogAsync(message);
                     }
                 }
             }
@@ -1150,7 +1150,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return new ApiResult
             {
                 StatusCode = 1,
-                Message = "Message Sent Successfully"
+                Message = "Message Sent Successfully",
+                Result = res.result
             };
         }
 

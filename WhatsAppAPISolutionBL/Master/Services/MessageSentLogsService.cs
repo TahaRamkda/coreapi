@@ -49,9 +49,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response;
         }
 
-        public async Task<UResponse> AddMessageSentLogAsync(InsertMessageDto model)
+        public async Task<UResult> AddMessageSentLogAsync(InsertMessageDto model)
         {
-            var response = new UResponse
+            var response = new UResult
             {
                 Message = "Success",
                 Status = 1
@@ -95,10 +95,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _logger.LogInformation("Calling procedure usp_MessageSentLogs_StatusUpdate with request={request} and response={response} and ProcResponseTime={ProcResponseTime}", $"exec usp_MessageSentLogs_StatusUpdate @ModuleId={model.ModuleId}, @ClientId={model.ClientId}, @ParentId={model.ParentId}, @SenderId={model.SenderId}, @PhoneNumber={model.RecipientId}, @WaId={model.WaId}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={model.UpdateDateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}, @MessageReferenceId={model.MessageReferenceId}, @MessageType={model.MessageType}, @MessageContent={model.MessageContent}, @MediaId={model.MediaId}, @ButtonJson={model.ButtonJson},@UDF1={model.UDF1} ,@UDF2={model.UDF2}", JsonConvert.SerializeObject(response), DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
             if (responses.Any())
             {
-                return response;
+                return new UResult
+                {
+                    result= responses[0].Json,
+                    Status = 1,
+                    Message = "Response Fetch successfully."
+                };
             }
 
-            return response;
+            return new UResult
+            {
+                Message = "Failed to fetch the result.",
+                Status = 0
+            };
         }
     }
 }

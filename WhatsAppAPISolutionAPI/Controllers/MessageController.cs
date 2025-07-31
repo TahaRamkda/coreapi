@@ -110,10 +110,19 @@ namespace WhatsAppAPISolutionAPI.Controllers
             }
 
             var result = await _messageService.SendAgentMessageAsync(model);
+            var jsonresult = result.Result;
+            var deserializeData = JsonConvert.DeserializeObject<StatusUpdateModel>(jsonresult.ToString());
+
 
             _logger.LogInformation("Received api SendAgentMessageAsync response with data={data}", JsonConvert.SerializeObject(result));
 
-            return Ok(result);
+            return Ok(new ApiResult
+            {
+                Result =
+            deserializeData.MessageId,
+                Message = "Success",
+                Success = true
+            });
         }
 
         [HttpPost("sendagentinteractivemessage")]
