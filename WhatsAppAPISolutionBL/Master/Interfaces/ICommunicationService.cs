@@ -13,7 +13,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
 
         Task<ApiResult> SendCarouselTemplateMessageAsync(TemplateMessagePayloadDto model);
         Task<ApiResult> SendMessageAsync(SendMessageRequestDto model);
-        Task<UResponse> SendInteractiveMessageAsync(UMessageReceived model, int clientId, int senderId, string phoneNumber, int mediaId = 0, List<ParamValue> values = null, string flowToken = "");
+        Task<UResult> SendInteractiveMessageAsync(UMessageReceived model, int clientId, int senderId, string phoneNumber, int mediaId = 0, List<ParamValue> values = null, string flowToken = "");
         Task<ApiResult> SendAgentMessageAsync(SendAgentMessageRequestDto model);
         Task<ApiResult> SendAgentInteractiveMessageAsync(SendAgentInteractiveMessageRequestDto model);
         Task<ApiResult> SendInteractiveMessageAsync(InteractiveMessageRequestDto model);

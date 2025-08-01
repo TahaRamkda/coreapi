@@ -55,7 +55,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _mediaService = mediaService;
             _logger = logger;
         }
-      
+
 
         public async Task<ApiResult> SendTemplateMessageAsync(TemplateMessagePayloadDto model)
         {
@@ -120,18 +120,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 if (media != null)
                 {
 
-                    var mediaPath = string.Concat( _apiSolutionConfigurationSettings.Value.BaseURL.TrimEnd('/'),"/", media.MediaPath.Replace("\\", "/").TrimStart('/') );
+                    var mediaPath = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL.TrimEnd('/'), "/", media.MediaPath.Replace("\\", "/").TrimStart('/'));
                     if (media.ExpiryDate <= DateTime.UtcNow)
                     {
                         var mediafile = new MediaFileDto
                         {
-                            ClientId = media.ClientId ??0,
-                            SenderNameId = media.SenderNameId??0,
+                            ClientId = media.ClientId ?? 0,
+                            SenderNameId = media.SenderNameId ?? 0,
                             UploadToFacebook = true,
                             MediaSourceId = media.MediaSourceId ?? 0,
                             File = await GetFormFileFromUrlAsync(mediaPath)
                         };
-                        var uploadedmedia = await _mediaService.UploadExpiredMediaAsync(mediafile , media.Id,mediaPath);
+                        var uploadedmedia = await _mediaService.UploadExpiredMediaAsync(mediafile, media.Id, mediaPath);
                         //var response = await _mediaService.UpdatemediaIdAsync(media.Id,uploadedmedia.Id.ToString());
                         headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
                         {
@@ -148,7 +148,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         });
 
                     }
-                       
+
                 }
                 else
                     return new ApiResult { Message = $"error - Cannot find template media." };
@@ -336,7 +336,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             MediaId = (model.MediaId > 0 ? model.MediaId : template.MediaId) ?? 0, //If in campaign media id is present take reference from there, else default media
                             UDF1 = model.UDF1,
                             UDF2 = model.UDF2,
-                            
+
                         };
 
                         if (item.errors != null && item.errors.Any())
@@ -593,7 +593,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             MessageReferenceId = (int)template.Id,
                             MessageContent = messageContent.ToString(),
                             ButtonJson = buttonJson,
-                            MediaId = (model.MediaId > 0 ? model.MediaId : template.MediaId) ?? 0 
+                            MediaId = (model.MediaId > 0 ? model.MediaId : template.MediaId) ?? 0
                         };
 
                         if (item.errors != null && item.errors.Any())
@@ -712,11 +712,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
         }
 
-        public async Task<UResponse> SendInteractiveMessageAsync(UMessageReceived model, int clientId, int senderId, string phoneNumber, int mediaId = 0, List<ParamValue> values = null, string flowToken = "")
+        public async Task<UResult> SendInteractiveMessageAsync(UMessageReceived model, int clientId, int senderId, string phoneNumber, int mediaId = 0, List<ParamValue> values = null, string flowToken = "")
         {
+            var responses = new UResult();
             var interactiveTemplate = await _interactiveTemplateService.GetInteractiveTemplateDetailsAsync(clientId, senderId, model.ActionId ?? 0);
             if (interactiveTemplate == null)
-                return new UResponse
+                return new UResult
                 {
                     Status = 0,
                     Message = "Interactive template not found"
@@ -831,9 +832,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             new InsertMessageDto.ErrorDto { ErrorDetails = String.Join(',', sendMessageResponse.errors) } : null
                 };
 
-                await _messageSentLogsService.AddMessageSentLogAsync(message);
+                responses = await _messageSentLogsService.AddMessageSentLogAsync(message);
+                // here as well
 
-                return new UResponse { Status = messageSentResult.StatusCode, Message = messageSentResult.Message };
+                return new UResult { Status = messageSentResult.StatusCode, Message = messageSentResult.Message, result = responses.result };
             }
 
             var sendMessage = new SendInteractiveMessageRequestDto
@@ -892,13 +894,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     var button = interactiveTemplate.Buttons.FirstOrDefault(x => x.ActionType == (int)ActionTypeEnum.FLOW);
                     var flow = await _dbContext.Flows.FindAsync(button.ActionId);
                     if (flow == null)
-                        return new UResponse { Status = 0, Message = $"Flow not found with id - {button.ActionId}" };
+                        return new UResult { Status = 0, Message = $"Flow not found with id - {button.ActionId}" };
 
                     if (String.IsNullOrWhiteSpace(flow.MetaFlowId))
-                        return new UResponse { Status = 0, Message = $"Flow with id - {button.ActionId} does not have meta id yet" };
+                        return new UResult { Status = 0, Message = $"Flow with id - {button.ActionId} does not have meta id yet" };
 
                     if ((flow.Status ?? "").ToLower() != FlowStatusEnum.PUBLISHED.ToString().ToLower())
-                        return new UResponse { Status = 0, Message = $"Flow is not published with id - {button.ActionId}" };
+                        return new UResult { Status = 0, Message = $"Flow is not published with id - {button.ActionId}" };
 
                     sendMessage.FlowAction = new SendInteractiveMessageRequestDto.FlowActionDto
                     {
@@ -992,10 +994,10 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             };
                         }
 
-                        await _messageSentLogsService.AddMessageSentLogAsync(message);
+                        responses = await _messageSentLogsService.AddMessageSentLogAsync(message);
 
                         if (!item.success)
-                            return new UResponse
+                            return new UResult
                             {
                                 Status = 0,
                                 Message = item.errors != null && item.errors.Count() > 0 ? String.Join(',', item.errors) : "Something went wrong"
@@ -1005,17 +1007,19 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
             else if (result != null && !result.success)
             {
-                return new UResponse
+                return new UResult
                 {
                     Status = 0,
                     Message = result.message
                 };
             }
 
-            return new UResponse
+            return new UResult
             {
                 Status = 1,
-                Message = "Message Sent Successfully"
+                Message = "Message Sent Successfully",
+                result = responses.result
+                //add result here 
             };
         }
 
@@ -1033,7 +1037,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
             if (conversation.AgentId >= 0)
             {
-                if (conversation.AgentId != model.AgentId) 
+                if (conversation.AgentId != model.AgentId)
                 {
                     return new ApiResult
                     {
@@ -1134,7 +1138,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             };
                         }
 
-                         res = await _messageSentLogsService.AddMessageSentLogAsync(message);
+                        res = await _messageSentLogsService.AddMessageSentLogAsync(message);
                     }
                 }
             }
@@ -1198,12 +1202,16 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (result.Status <= 0)
                 return new ApiResult { Message = result.Message };
+            var jsondata = result.result;
+            var deserializeData = JsonConvert.DeserializeObject<StatusUpdateModel>(Convert.ToString(jsondata));
+            var res = deserializeData.MessageId;
 
             return new ApiResult
             {
                 Success = true,
                 StatusCode = 200,
-                Message = result.Message
+                Message = result.Message,
+                Result = res
             };
         }
 
