@@ -114,30 +114,28 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
             }
         }
-        public async Task MessageStatusNotification(int clientId, int senderId, int agentId, int  messageId, int status, string conversationId)
+        public async Task MessageStatusNotification(int clientId, int senderId, int agentId, int messageId, int status, string conversationId)
         {
 
-                string signalRType = SignalREnum.StatusUpdate.ToString();
-
-                // Look up the connection ID for the Agent ID and send the conversation
-                string connectionId = String.Empty;
-                int i;
-                for (i = 1; i <= 5; i++)
+            string signalRType = SignalREnum.StatusUpdate.ToString();
+            int conversationIds;
+            // Look up the connection ID for the Agent ID and send the conversation
+            string connectionId = String.Empty;
+            int i;
+            for (i = 1; i <= 5; i++)
+            {
+                if (ConversationHub.connections.TryGetValue(agentId, out connectionId))
                 {
-                    if (ConversationHub.connections.TryGetValue(agentId, out connectionId))
-                    {
-                    var messageStatus = new { MessageID = messageId, Messagestatus = status, ConversationId = conversationId };
+                    var messageStatus = new { MessageID = messageId, Messagestatus = status, ConversationId = (int.TryParse(conversationId, out conversationIds)) };
                     //Send signalR
                     await _conversationHubContext.Clients.Client(connectionId).SendAsync(signalRType, messageStatus);
 
-                        _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and messageId:{messageId} with object {object} on try {try} and payload {payload}", signalRType, agentId, messageId, messageStatus.Messagestatus, i, JsonConvert.SerializeObject(messageStatus));
-                        break;
-                    }
-                    else
-                        _logger.LogError("SignalR, No connection found for event {event} for AgentId:{AgentId}, messageId:{messageId} and status={status}, conversationId={conversationId}", signalRType, agentId, messageId, status, conversationId);
+                    _logger.LogInformation("SignalR, triggered event {event} for AgentId:{AgentId} and messageId:{messageId} with object {object} on try {try} and payload {payload}", signalRType, agentId, messageId, messageStatus.Messagestatus, i, JsonConvert.SerializeObject(messageStatus));
+                    break;
                 }
-            
+                else
+                    _logger.LogError("SignalR, No connection found for event {event} for AgentId:{AgentId}, messageId:{messageId} and status={status}, conversationId={conversationId}", signalRType, agentId, messageId, status, conversationId);
+            }
         }
-
     }
 }
