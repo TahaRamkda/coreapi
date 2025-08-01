@@ -118,7 +118,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
 
             string signalRType = SignalREnum.StatusUpdate.ToString();
-            int conversationIds;
+            int conversationIds = int.Parse(conversationId);
             // Look up the connection ID for the Agent ID and send the conversation
             string connectionId = String.Empty;
             int i;
@@ -126,7 +126,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 if (ConversationHub.connections.TryGetValue(agentId, out connectionId))
                 {
-                    var messageStatus = new { MessageID = messageId, Messagestatus = status, ConversationId = (int.TryParse(conversationId, out conversationIds)) };
+                    var messageStatus = new { MessageID = messageId, Messagestatus = status, ConversationId = conversationIds };
                     //Send signalR
                     await _conversationHubContext.Clients.Client(connectionId).SendAsync(signalRType, messageStatus);
 
