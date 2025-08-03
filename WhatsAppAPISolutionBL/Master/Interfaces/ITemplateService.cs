@@ -1,4 +1,5 @@
-﻿using WhatsAppAPISolutionDL.Dto.Template;
+﻿using WhatsAppAPISolutionDL.Dto.Carousel;
+using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Template;
@@ -15,6 +16,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponseWithID> UpdateTemplateStatusByIdAsync(TemplateStatusUpdateDto model);
         Task<List<UEntityDto>> GetTemplatesAsync(int clientId, int senderId = 0, string searchStr = "", string category = "");
         Task<List<UEntity2Dto>> GetTemplateCategoriesAsync(string searchStr = "");
+        Task<UResponseWithID> AddCarouselTemplateAsync(int clientId, int useId, CreateCarouselTemplateRequestDto requestDto);
         Task<List<UEntity2Dto>> GetLanguagesAsync(string searchStr = "");
     }
 }

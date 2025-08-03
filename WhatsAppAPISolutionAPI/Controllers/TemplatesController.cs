@@ -7,6 +7,7 @@ using System.Text;
 using WhatsAppAPISolutionAPI.Setting;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionDL.Dto.Carousel;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Enum;
@@ -176,6 +177,135 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data added successfully"
             });
         }
+        [HttpPost("carouselTemplate")]
+        [HttpPost]
+        public async Task<IActionResult> CarouselTemplate([FromBody] CreateCarouselTemplateRequestDto model)
+        {
+            _logger.LogDebug("Calling api AddTemplateAsync with request {request}", JsonConvert.SerializeObject(model));
+
+            if (model == null)
+                return BadRequest();
+
+            if (string.IsNullOrWhiteSpace(model.Name))
+                return Ok(new ApiResult { Message = "Please insert template name" });
+
+            if (string.IsNullOrWhiteSpace(model.ClientId) || !int.TryParse(model.ClientId, out int clientId) || clientId <= 0)
+                return Ok(new ApiResult { Message = "Please insert valid client Id" });
+
+            if (model.SenderNameId <= 0)
+                return Ok(new ApiResult { Message = "Please insert sender Id" });
+
+            if (string.IsNullOrWhiteSpace(model.Category))
+                return Ok(new ApiResult { Message = "Please select category" });
+
+            if (model.Body == null || string.IsNullOrWhiteSpace(model.Body.Text))
+                return Ok(new ApiResult { Message = "Body text required" });
+
+            if (string.IsNullOrWhiteSpace(model.LanguageCode))
+                return Ok(new ApiResult { Message = "Please select language" });
+
+            StringBuilder MainHeaderMessageContent = new StringBuilder();
+            MainHeaderMessageContent.AppendLine(model.Body.Text);
+
+            if (MainHeaderMessageContent.Length > 900)
+                return Ok(new ApiResult { Message = "Message content should not exceed 900 characters" });
+
+            if (model.Cards == null || !model.Cards.Any())
+                return Ok(new ApiResult { Message = "At least one card is required" });
+
+            for (int cardIndex = 0; cardIndex < model.Cards.Count; cardIndex++)
+            {
+                var card = model.Cards[cardIndex];
+
+                if (card == null)
+                    return Ok(new ApiResult { Message = $"Card {cardIndex + 1} is missing" });
+
+                if (card.Header?.Format == (int)TemplateHeaderEnum.TEXT && string.IsNullOrWhiteSpace(card.Header.Text))
+                    return Ok(new ApiResult { Message = $"Card {cardIndex + 1}: Header text is required" });
+
+                //if (card.Body == null || string.IsNullOrWhiteSpace(card.Body.Text))
+                //    return Ok(new ApiResult { Message = $"Card {cardIndex + 1}: Body text is required" });
+
+                // Validate total message content for card
+                StringBuilder messageContent = new StringBuilder();
+
+                if (card.Header?.Format == (int)TemplateHeaderEnum.TEXT)
+                    messageContent.AppendLine(card.Header.Text);
+
+                //messageContent.AppendLine(card.Body.Text);
+
+                if (messageContent.Length > 150)
+                    return Ok(new ApiResult { Message = $"Card {cardIndex + 1}: Message content should not exceed 150 characters" });
+
+                // Validate buttons
+                if (card.Buttons != null && card.Buttons.Any())
+                {
+                    if (card.Buttons.Count > 10)
+                        return Ok(new ApiResult { Message = $"Card {cardIndex + 1}: Cannot add more than 10 buttons" });
+
+                    if (card.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER) > 1)
+                        return Ok(new ApiResult { Message = $"Card {cardIndex + 1}: Cannot add more than 1 phone number button" });
+
+                    if (card.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.URL) > 2)
+                        return Ok(new ApiResult { Message = $"Card {cardIndex + 1}: Cannot add more than 2 URL buttons" });
+
+                    if (card.Buttons.Any(x => string.IsNullOrWhiteSpace(x.ButtonText)))
+                        return Ok(new ApiResult { Message = $"Card {cardIndex + 1}: Please insert button text for all buttons" });
+
+                    if (card.Buttons.Any(x => x.ButtonText.Length > 25))
+                        return Ok(new ApiResult { Message = $"Card {cardIndex + 1}: Button text should not exceed 25 characters" });
+
+                    if (card.Buttons.Any(x =>
+                        (x.ButtonType == (int)ButtonTypeEnum.URL || x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER) &&
+                        string.IsNullOrWhiteSpace(x.ButtonValue)))
+                    {
+                        return Ok(new ApiResult { Message = $"Card {cardIndex + 1}: Button value required for URL/Phone number buttons" });
+                    }
+
+                    if (card.Buttons.Count(x => x.ActionType == (int)ActionTypeEnum.FLOW) > 1)
+                        return Ok(new ApiResult { Message = $"Card {cardIndex + 1}: Cannot add more than 1 flow button" });
+
+                    var duplicateNames = card.Buttons
+                        .GroupBy(x => x.ButtonText?.Trim())
+                        .Where(g => g.Count() > 1)
+                        .Select(g => g.Key)
+                        .ToList();
+
+                    if (duplicateNames.Any())
+                        return Ok(new ApiResult { Message = $"Card {cardIndex + 1}: Button names must be unique" });
+
+                    var invalidUrls = card.Buttons
+                        .Where(x => x.ButtonType == (int)ButtonTypeEnum.URL && !CommonHelper.IsValidUrl(x.ButtonValue))
+                        .ToList();
+
+                    //if (invalidUrls.Any())
+                    //    return Ok(new ApiResult { Message = $"Card {cardIndex + 1}: Invalid URL in buttons" });
+
+                    var hasDuplicateParams = card.Buttons
+                        .Where(x => x.ButtonType == (int)ButtonTypeEnum.URL && x.DynamicValue != null)
+                        .GroupBy(x => x.DynamicValue.ParamName)
+                        .Any(g => g.Count() > 1);
+
+                    //if (hasDuplicateParams)
+                    //    return Ok(new ApiResult { Message = $"Card {cardIndex + 1}: Buttons cannot have same parameter name" });
+                }
+            }
+
+            var response = await _templateService.AddCarouselTemplateAsync(clientId, userId, model);
+            _logger.LogDebug("Received api AddTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
+
+            if (response == null || response.Status <= 0)
+                return Ok(new ApiResult { Message = response?.Message ?? "Something went wrong" });
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = response,
+                Message = "Data added successfully"
+            });
+        }
+
+
 
         [HttpPost("updateTemplate")]
         public async Task<IActionResult> UpdateTemplateAsync([FromBody] TemplateDto model)

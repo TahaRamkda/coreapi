@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionDL.Dto.Carousel;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Template;
 using WhatsAppAPISolutionDL.Enum;
@@ -783,6 +784,164 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 await _cacheService.RemoveAsync(cacheKey);
 
             return cacheResult;
+        }
+
+        public async Task<UResponseWithID> AddCarouselTemplateAsync(int clientId, int useId, CreateCarouselTemplateRequestDto requestDto)
+        {
+            requestDto.Name = requestDto.Name.Replace(" ", "_").ToLower().Trim();
+
+            // Check if already exists
+            var templateNameExist = await _dbContext.Templates
+                .Where(x => x.ClientId.ToString() == requestDto.ClientId &&
+                            x.SenderId == requestDto.SenderNameId &&    
+                            x.TemplateName != null &&
+                            x.TemplateName.ToLower() == requestDto.Name.ToLower())
+                .FirstOrDefaultAsync();
+
+            if (templateNameExist != null)
+                return new UResponseWithID { Message = "Carousel template with same name already exists" };
+
+            Regex regex = new Regex(CommonHelper.DynamicPattern);
+            List<TemplateDto.TemplateParameter> parameters = new();
+            List<TemplateDto.TemplateButton> buttons = new();
+            int headerType = 0;
+            string headerText = String.Empty;
+            int headerTextCount = 0;
+            string bodyText = String.Empty;
+            int bodyTextCount = 0;
+            int templateParamSequence = 0;
+
+            for (int cardIndex = 0; cardIndex < requestDto.Cards.Count; cardIndex++)
+            {
+                var card = requestDto.Cards[cardIndex];
+
+                // --- Header ---
+                if (card.Header != null)
+                {
+                    if (card.Header.Format < 0)
+                        return new UResponseWithID { Message = $"Card {cardIndex + 1}: Header format not mentioned" };
+
+                    headerType = card.Header.Format;
+                    var headerFormat = (TemplateHeaderEnum)card.Header.Format;
+                    var headerMediaTypes = new List<TemplateHeaderEnum> { TemplateHeaderEnum.IMAGE, TemplateHeaderEnum.VIDEO, TemplateHeaderEnum.DOCUMENT };
+
+                    //if (headerMediaTypes.Contains(headerFormat))
+                    //{
+                    //    // MediaId should now come from the card.Header
+                    //    if (card.Header.MediaId <= 0)
+                    //        return new UResponseWithID { Message = $"Card {cardIndex + 1}: Media is required for media header" };
+
+                    //    var mediaDetail = await _dbContext.Medias.FindAsync(card.Header.MediaId);
+                    //    if (mediaDetail == null || string.IsNullOrEmpty(mediaDetail.MediaPath))
+                    //        return new UResponseWithID { Message = $"Card {cardIndex + 1}: Media not found" };
+
+                    //    if (mediaDetail.SenderNameId != requestDto.SenderNameId)
+                    //        return new UResponseWithID { Message = $"Card {cardIndex + 1}: Media does not belong to this sender" };
+
+                    //    var allowedMedia = _mediaService.CheckAllowedTemplateHeaderType(headerFormat, mediaDetail.FileExtension);
+                    //    if (!allowedMedia)
+                    //        return new UResponseWithID { Message = $"Card {cardIndex + 1}: Not allowed media type for header" };
+                    //}
+
+                    if (headerFormat == TemplateHeaderEnum.TEXT)
+                    {
+                        if (string.IsNullOrWhiteSpace(card.Header.Text))
+                            return new UResponseWithID { Message = $"Card {cardIndex + 1}: Header text is required" };
+
+                        card.Header.Text = card.Header.Text.Trim();
+                        headerText = card.Header.Text;
+
+                        MatchCollection matches = regex.Matches(headerText);
+                        if (matches.Count > 0)
+                        {
+                            if (card.Header.DynamicValue == null ||
+                                string.IsNullOrWhiteSpace(card.Header.DynamicValue.ParamName) ||
+                                string.IsNullOrWhiteSpace(card.Header.DynamicValue.ParamValue))
+                                return new UResponseWithID { Message = $"Card {cardIndex + 1}: Header default parameter is required" };
+
+                            if (matches.Count > 1)
+                                return new UResponseWithID { Message = $"Card {cardIndex + 1}: Only one header parameter is allowed" };
+
+                            if (matches[0].Value != card.Header.DynamicValue.ParamName)
+                                return new UResponseWithID { Message = $"Card {cardIndex + 1}: Header parameter mismatch" };
+
+                            parameters.Add(new TemplateDto.TemplateParameter
+                            {
+                                ParamType = (int)TemplateParamEnum.Header,
+                                ParamName = card.Header.DynamicValue.ParamName,
+                                ParamDefaultValue = card.Header.DynamicValue.ParamValue,
+                                Sequence = cardIndex
+                            });
+                        }
+                    }
+                }
+
+
+                // --- Buttons ---
+                if (card.Buttons != null && card.Buttons.Count > 0)
+                {
+                    foreach (var button in card.Buttons)
+                    {
+                        if (button.ActionType == (int)ActionTypeEnum.TEMPLATE && button.ActionId <= 0)
+                            return new UResponseWithID { Message = $"Card {cardIndex + 1}: Template ID required for button action" };
+
+                        button.ButtonValue = (button.ButtonValue ?? "").Trim();
+
+                        MatchCollection matches = regex.Matches(button.ButtonValue);
+                        if (matches.Count > 0)
+                        {
+                            if (button.ButtonType != (int)ButtonTypeEnum.URL)
+                                return new UResponseWithID { Message = $"Card {cardIndex + 1}: Dynamic value only allowed in URL button" };
+
+                            if (matches.Count > 1)
+                                return new UResponseWithID { Message = $"Card {cardIndex + 1}: Only one dynamic value allowed in button" };
+
+                            if (button.DynamicValue == null || string.IsNullOrWhiteSpace(button.DynamicValue.ParamName) || string.IsNullOrWhiteSpace(button.DynamicValue.ParamValue))
+                                return new UResponseWithID { Message = $"Card {cardIndex + 1}: Dynamic value required in button" };
+
+                            if (matches[0].Value != button.DynamicValue.ParamName)
+                                return new UResponseWithID { Message = $"Card {cardIndex + 1}: Button parameter mismatch" };
+
+                            parameters.Add(new TemplateDto.TemplateParameter
+                            {
+                                ParamType = (int)TemplateParamEnum.Button,
+                                ParamName = button.DynamicValue.ParamName,
+                                ParamDefaultValue = button.DynamicValue.ParamValue,
+                                Sequence = templateParamSequence++
+                            });
+                        }
+
+                        buttons.Add(new TemplateDto.TemplateButton
+                        {
+                            ButtonType = button.ButtonType,
+                            ButtonText = button.ButtonText,
+                            ButtonValue = button.ButtonValue,
+                            ActionId = button.ActionId,
+                            ActionType = button.ActionType,
+                            Sequence = button.Sequence,
+                            SytemActionId = button.SytemActionId
+                        });
+                    }
+                }
+            }
+
+            var parameterJson = JsonConvert.SerializeObject(parameters);
+            var buttonJson = JsonConvert.SerializeObject(buttons);
+
+            var responseList = await _dbContext2.ResponseWithID.FromSqlInterpolated($"EXEC usp_CarouselTemplates_Ops @ActionId={(int)CrudEnum.Add},@ClientId={requestDto.ClientId},@SenderId={requestDto.SenderNameId},@TemplateName={requestDto.Name},@Category={requestDto.Category},@Language={requestDto.LanguageCode},@BodyText={requestDto.Body?.Text},@ButtonsJson={buttonJson},@ParametersJson={parameterJson},@ActionBy={useId}").ToListAsync();
+
+            if (responseList == null || !responseList.Any())
+                return new UResponseWithID { Message = "Cannot add carousel template" };
+
+            var response = responseList[0];
+            if (response.Status <= 0)
+                return new UResponseWithID
+                {
+                    Message = response.Message
+                };
+
+            return await PushTemplateToFacebook(int.Parse(requestDto.ClientId), response.Id);
+
         }
     }
 }
