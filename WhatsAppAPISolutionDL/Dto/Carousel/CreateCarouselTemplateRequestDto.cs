@@ -20,12 +20,12 @@ namespace WhatsAppAPISolutionDL.Dto.Carousel
         }
         public int Id { get; set; }
 
-        public string ClientId { get; set; }
+       // public string ClientId { get; set; }
         public int SenderNameId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
-        public string LanguageCode { get; set; } = string.Empty;
-        public BodyDto Body { get; set; }
+        public string Language { get; set; } = string.Empty;
+        public HeaderComponent Header { get; set; }
         public List<CardDto> Cards { get; set; }
 
         public class CardDto
@@ -35,14 +35,14 @@ namespace WhatsAppAPISolutionDL.Dto.Carousel
                 Buttons = new List<ButtonDto>();
             }
             public string Type { get; set; } // "header" or "buttons"
-            public HeaderDto Header { get; set; }
-            public BodyDto Body { get; set; }
+            public HeaderComponent Header { get; set; }
+            public BodyComponent Body { get; set; }
             public List<ButtonDto> Buttons { get; set; }
         }
 
-        public class HeaderDto
+        public class HeaderComponent
         {
-            public HeaderDto()
+            public HeaderComponent()
             {
                 DynamicValue = new KeyValue();
             }
@@ -50,13 +50,12 @@ namespace WhatsAppAPISolutionDL.Dto.Carousel
             public int Format { get; set; }
             public string Text { get; set; } = string.Empty;
             public int MediaId { get; set; }
-
             public KeyValue DynamicValue { get; set; }
         }
 
-        public class BodyDto
+        public class BodyComponent
         {
-            public BodyDto()
+            public BodyComponent()
             {
                 DynamicValues = new List<KeyValue>();
             }
