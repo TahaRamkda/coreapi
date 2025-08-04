@@ -189,10 +189,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             if (string.IsNullOrWhiteSpace(model.Name))
                 return Ok(new ApiResult { Message = "Please insert template name" });
-
-            if (string.IsNullOrWhiteSpace(model.ClientId) || !int.TryParse(model.ClientId, out int clientId) || clientId <= 0)
-                return Ok(new ApiResult { Message = "Please insert valid client Id" });
-
             if (model.SenderNameId <= 0)
                 return Ok(new ApiResult { Message = "Please insert sender Id" });
 
@@ -202,7 +198,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (model.Body == null || string.IsNullOrWhiteSpace(model.Body.Text))
                 return Ok(new ApiResult { Message = "Body text required" });
 
-            if (string.IsNullOrWhiteSpace(model.LanguageCode))
+            if (string.IsNullOrWhiteSpace(model.Language))
                 return Ok(new ApiResult { Message = "Please select language" });
 
             StringBuilder MainHeaderMessageContent = new StringBuilder();
