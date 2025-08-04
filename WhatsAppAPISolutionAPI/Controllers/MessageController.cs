@@ -56,14 +56,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 {
                     Message = "No conversation found"
                 });
-            if(model.AgentId <= 0 || model.AgentId == null)
-            {
+
+            if (model.AgentId <= 0)
                 return Ok(new ApiResult
                 {
                     Message = "No Agent Id found"
                 });
-
-            }
 
             if (String.IsNullOrWhiteSpace(model.Message) && (model.File == null || model.File.Length <= 0))
             {

@@ -13,20 +13,25 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class CatalogController : ControllerBase
     {
         #region Fields
+
         private readonly ILogger<CatalogController> _logger;
         private readonly ICatalogService _catalogService;
+
         #endregion
 
         #region Ctor
+
         public CatalogController(ILogger<CatalogController> logger,
             ICatalogService catalogService)
         {
             _logger = logger;
             _catalogService = catalogService;
         }
+
         #endregion
 
         #region Method
+
         [Authorize]
         [HttpPost("Import")]
         public async Task<IActionResult> Import([FromQuery] int ClientId, [FromQuery] int SenderId, CatalogDto model)
@@ -138,6 +143,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             await _catalogService.GenerateCatalogFlows(model);
             return Ok();
         }
+
         #endregion
     }
 }

@@ -102,6 +102,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var conversationId = "";
             var eventMessage = "";
             var pricingModel = "";
+            var type = "";
             var billable = false;
             var category = "";
             int senderId = 0;
@@ -126,6 +127,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 pricingModel = messageStatus.pricing.pricing_model;
                 billable = messageStatus.pricing.billable;
                 category = messageStatus.pricing.category;
+                type = messageStatus.pricing.type;
             }
             var startProcTime = DateTime.UtcNow;
              var response = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_MessageSentLogs_StatusUpdate @ModuleId={0}, @ClientId={messageStatus.client_Id}, @ParentId={0}, @SenderId={senderId}, @PhoneNumber={messageStatus.recipient_Id}, @WaId={messageStatus.wam_Id}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={messageStatus.update_dateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}").ToListAsync();

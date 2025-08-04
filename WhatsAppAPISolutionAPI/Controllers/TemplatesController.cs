@@ -198,7 +198,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             if (model.Body == null || string.IsNullOrWhiteSpace(model.Body.Text))
                 return Ok(new ApiResult { Message = "Body text required" });
 
-            if (string.IsNullOrWhiteSpace(model.Language))
+            if (string.IsNullOrWhiteSpace(model.LanguageCode))
                 return Ok(new ApiResult { Message = "Please select language" });
 
             StringBuilder MainHeaderMessageContent = new StringBuilder();

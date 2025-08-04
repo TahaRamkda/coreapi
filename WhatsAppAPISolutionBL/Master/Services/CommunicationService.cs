@@ -1170,9 +1170,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 };
             }
 
-            var interactiveTemplate = await _dbContext.InteractiveTemplates.FindAsync(model.InteractiveTemplateId);
-            var interactiveTemplateParams = await _dbContext.InteractiveTemplateParameters.Where(x => x.InteractiveTemplateId == model.InteractiveTemplateId).ToListAsync();
-            if (interactiveTemplate == null || interactiveTemplate.RecordStatus == -1) //If deleted
+            //var interactiveTemplate = await _dbContext.InteractiveTemplates.FindAsync(model.InteractiveTemplateId);
+            //var interactiveTemplateParams = await _dbContext.InteractiveTemplateParameters.Where(x => x.InteractiveTemplateId == model.InteractiveTemplateId).ToListAsync();
+
+            var interactiveTemplate = await _interactiveTemplateService.GetInteractiveTemplateDetailsAsync(model.ClientId, model.SenderId, model.InteractiveTemplateId);
+            if (interactiveTemplate == null) //If deleted
                 return new ApiResult { Message = "Interactive template not found" };
 
             if (interactiveTemplate.ClientId != model.ClientId || interactiveTemplate.SenderId != model.SenderId)
@@ -1184,8 +1186,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             if (interactiveTemplate.DefaultTypeId > 0)
                 return new ApiResult { Message = "Agent cannot use this template" };
 
-            if (interactiveTemplateParams.Count > 0 && (model.Values == null || interactiveTemplateParams.Count != model.Values.Count))
-                return new ApiResult { Message = $"Parameter(s) sent does not match with required parameters: {interactiveTemplateParams.Count}" };
+            if (interactiveTemplate.Parameters.Count > 0 && (model.Values == null || interactiveTemplate.Parameters.Count != model.Values.Count))
+                return new ApiResult { Message = $"Parameter(s) sent does not match with required parameters: {interactiveTemplate.Parameters.Count}" };
 
             var messageReceived = new UMessageReceived
             {

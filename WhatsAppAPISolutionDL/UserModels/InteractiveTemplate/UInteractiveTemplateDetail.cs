@@ -29,6 +29,7 @@ namespace WhatsAppAPISolutionDL.UserModels.InteractiveTemplate
         public string MediaPath { get; set; }
         public string ContentType { get; set; }
         public string FileName { get; set; } 
+        public int DefaultTypeId { get; set; } 
         public string ButtonsJson { get; set; }
         public string ParametersJson { get; set; }
 

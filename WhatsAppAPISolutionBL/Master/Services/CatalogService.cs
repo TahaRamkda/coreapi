@@ -235,6 +235,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         existingItem.Price = menuItem.price_info?.price ?? 0;
                         existingItem.ImageUrl = menuItem.image?.url ?? "";
                         existingItem.ProductUrl = menuItem.ItemURL ?? "";
+                        existingItem.DisplayOrder = menuItem.displayOrder;
                         existingItem.Status = 1;
                         existingItem.DeprecatedDate = null;
                         existingItem.FlowUpdated = false;
@@ -268,6 +269,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             ImageUrl = menuItem.image?.url ?? "",
                             Price = menuItem.price_info?.price ?? 0,
                             ItemType = menuItem.type?.ToLower() == "item" ? (int)ItemType.ITEM : (int)ItemType.CHOICE,
+                            DisplayOrder = menuItem.displayOrder,
                             FlowUpdated = false,
                             FlowRequired = false,
                             FlowRequestProcessed = false,
@@ -631,7 +633,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError("Catalog import failed with exception {exception}", ex);
                 return false;

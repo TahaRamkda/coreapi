@@ -1,16 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using WhatsAppAPISolutionDL.Dto.Template;
-using WhatsAppAPISolutionDL.Enum;
-using WhatsAppAPISolutionDL.UserModels.Entity;
-
-namespace WhatsAppAPISolutionDL.Dto.Carousel
+﻿namespace WhatsAppAPISolutionDL.Dto.Carousel
 {
     public class CreateCarouselTemplateRequestDto
     {
@@ -24,8 +12,8 @@ namespace WhatsAppAPISolutionDL.Dto.Carousel
         public int SenderNameId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
-        public string Language { get; set; } = string.Empty;
-        public HeaderComponent Header { get; set; }
+        public string LanguageCode { get; set; } = string.Empty;
+        public BodyDto Body { get; set; }
         public List<CardDto> Cards { get; set; }
 
         public class BodyDto
@@ -49,28 +37,28 @@ namespace WhatsAppAPISolutionDL.Dto.Carousel
                 Body = new CardBodyDto();
                 Buttons = new List<ButtonDto>();
             }
-            public string Type { get; set; } // "header" or "buttons"
+
             public HeaderDto Header { get; set; }
-            public BodyDto Body { get; set; }
+            public CardBodyDto Body { get; set; }
             public List<ButtonDto> Buttons { get; set; }
         }
 
-        public class HeaderComponent
+        public class HeaderDto
         {
-            public HeaderComponent()
+            public HeaderDto()
             {
                 DynamicValue = new KeyValue();
             }
-            public string type { get; set; }    
+            public string type { get; set; }
             public int Format { get; set; }
             public string Text { get; set; } = string.Empty;
             public int MediaId { get; set; }
             public KeyValue DynamicValue { get; set; }
         }
 
-        public class BodyDto
+        public class CardBodyDto
         {
-            public BodyDto()
+            public CardBodyDto()
             {
                 DynamicValues = new List<KeyValue>();
             }
