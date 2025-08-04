@@ -161,9 +161,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var result = await _dbContext2.TemplateAnalyticsDetailsList.FromSqlInterpolated($"EXEC usp_TemplateAnalytics_Ops @ActionId={(int)CrudEnum.GetTemplateAnalyticsDetails}, @ClientId={clientId},@SenderId={senderId},@TemplateIds={templateId},@StartDate={startDate},@EndDate={endDate}").ToListAsync();
             return result;
         }
-        public async Task<List<UTemplateAnalyticsExportList>> GetExportAnalyticsDetailsList(int clientId, int senderId, DateTime? startDate, DateTime? endDate, string templateId = null)
+        public async Task<List<UTemplateAnalyticsExportList>> GetExportAnalyticsDetailsList(int clientId, int senderId, DateTime? startDate, DateTime? endDate, string templateId = null, string frequency = null)
         {
-            var result = await _dbContext2.TemplateAnalyticsExportList.FromSqlInterpolated($"EXEC usp_TemplateAnalytics_Ops @ActionId={61}, @ClientId={clientId},@SenderId={senderId},@TemplateIds={templateId},@StartDate={startDate},@EndDate={endDate}").ToListAsync();
+            var result = await _dbContext2.TemplateAnalyticsExportList.FromSqlInterpolated($"EXEC usp_TemplateAnalytics_Ops @ActionId={61}, @ClientId={clientId},@SenderId={senderId},@TemplateIds={templateId},@StartDate={startDate},@EndDate={endDate}, @Frequency={frequency}").ToListAsync();
             return result;
         }
 

@@ -78,10 +78,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
             [HttpGet("exporttemplatetnalyticssummaryreport")]
-            public async Task<IActionResult> ExportTemplateAnalyticsDetails([FromQuery] int senderId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string templateId = null)
+            public async Task<IActionResult> ExportTemplateAnalyticsDetails([FromQuery] int senderId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string templateId = null, string frequency = null)
             {
                 _logger.LogInformation("GetTemplateAnalyticsDetailsList called with clientId: {clientId}, senderId : {senderId}, templateId : {templateId}, startDate : {startDate}, endDate : {endDate}", clientId, senderId, templateId, startDate, endDate);
-                var result = await _templateAnalyticsService.GetExportAnalyticsDetailsList(clientId, senderId, startDate, endDate, templateId);
+                var result = await _templateAnalyticsService.GetExportAnalyticsDetailsList(clientId, senderId, startDate, endDate, templateId, frequency);
                 return Ok(new ApiResult {
                     Result = result,
                     Success = true,
