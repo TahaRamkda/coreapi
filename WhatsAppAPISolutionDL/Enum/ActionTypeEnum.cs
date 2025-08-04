@@ -10,6 +10,7 @@
         CHAT = 5,
         ORDER = 6,
         CLOSECHAT = 7,
-        FLOW = 8
+        FLOW = 8,
+        Carousel = 9
     }
 }

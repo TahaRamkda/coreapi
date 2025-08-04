@@ -177,8 +177,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = "Data added successfully"
             });
         }
+
+        [AllowAnonymous]
         [HttpPost("carouselTemplate")]
-        [HttpPost]
         public async Task<IActionResult> CarouselTemplate([FromBody] CreateCarouselTemplateRequestDto model)
         {
             _logger.LogDebug("Calling api AddTemplateAsync with request {request}", JsonConvert.SerializeObject(model));
@@ -223,6 +224,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 if (card.Header?.Format == (int)TemplateHeaderEnum.TEXT && string.IsNullOrWhiteSpace(card.Header.Text))
                     return Ok(new ApiResult { Message = $"Card {cardIndex + 1}: Header text is required" });
 
+
                 //if (card.Body == null || string.IsNullOrWhiteSpace(card.Body.Text))
                 //    return Ok(new ApiResult { Message = $"Card {cardIndex + 1}: Body text is required" });
 
@@ -240,7 +242,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 // Validate buttons
                 if (card.Buttons != null && card.Buttons.Any())
                 {
-                    if (card.Buttons.Count > 10)
+                    if (card.Buttons.Count > 2)
                         return Ok(new ApiResult { Message = $"Card {cardIndex + 1}: Cannot add more than 10 buttons" });
 
                     if (card.Buttons.Count(x => x.ButtonType == (int)ButtonTypeEnum.PHONE_NUMBER) > 1)

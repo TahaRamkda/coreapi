@@ -81,6 +81,16 @@ namespace WhatsAppAPISolutionDL.Dto.Template
             public string PersonalizationField { get; set; }
             public string PersonalizationDefaultValue { get; set; }
         }
+        public class CaraouselParameter
+        {
+            public string ParamName { get; set; }
+            public string ParamDefaultValue { get; set; }
+            public int Sequence { get; set; }
+            public int ParamType { get; set; }
+            public int PersonalizationType { get; set; }
+            public string PersonalizationField { get; set; }
+            public string PersonalizationDefaultValue { get; set; }
+        }
 
         public class TemplateButton
         {
@@ -91,6 +101,17 @@ namespace WhatsAppAPISolutionDL.Dto.Template
             public int SytemActionId { get; set; }
             public int ActionId { get; set; }
             public int ActionType { get; set; }
-        } 
+        }
+        public class CaraouselButton
+        {
+            public string ButtonText { get; set; } = string.Empty;
+            public string ButtonValue { get; set; } = string.Empty;
+            public int ButtonType { get; set; }
+            public int Sequence { get; set; }
+            public int SytemActionId { get; set; }
+            public int ActionId { get; set; }
+            public int ActionType { get; set; }
+            public int CardNumber { get; set; } 
+        }
     }
 }
