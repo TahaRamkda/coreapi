@@ -548,7 +548,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         if (jsonData != null && jsonData.AgentId != 0)
                         {
                             await _signalRService.MessageStatusNotification(
-                                clientId, senderId, jsonData.AgentId, jsonData.MessageId, jsonData.MessageStatus, jsonData.ConversationId);
+                                clientId, senderId, jsonData.AgentId, jsonData.MessageId, jsonData.MessageStatus, jsonData.ConversationId, jsonData.EventMessage);
                         }
                         else
                         {

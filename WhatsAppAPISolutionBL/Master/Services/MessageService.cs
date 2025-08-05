@@ -131,7 +131,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
             }
             var startProcTime = DateTime.UtcNow;
              var response = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_MessageSentLogs_StatusUpdate @ModuleId={0}, @ClientId={messageStatus.client_Id}, @ParentId={0}, @SenderId={senderId}, @PhoneNumber={messageStatus.recipient_Id}, @WaId={messageStatus.wam_Id}, @WaId2={conversationId}, @EventType={eventType}, @EventTime={messageStatus.update_dateTime}, @EventStatus={eventStatus}, @EventMessage={eventMessage}, @PricingModel={pricingModel}, @Billable={billable}, @Category={category}").ToListAsync();
-
             if (response.Any())
             {
                 await _mediatorService.ProcessDBResponse(ClientId, senderId, response[0]);

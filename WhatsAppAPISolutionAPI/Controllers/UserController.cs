@@ -256,6 +256,39 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
+        [HttpPut("resetpassword")]
+        public async Task<IActionResult> ResetPasswordAsync(ResetPassword password)
+        {
+            _logger.LogDebug("Calling api ResetPasswordAsync with request={requst}", JsonConvert.SerializeObject(password));
+
+            if (password == null)
+            {
+                return BadRequest();
+            }
+
+            var response = await _userService.ResetPasswordAsync(password);
+
+            _logger.LogDebug("Received api ResetPasswordAsync response with data={data}", JsonConvert.SerializeObject(response));
+
+            if (response == null || response.Status <= 0)
+            {
+                return Ok(new ApiResult
+                {
+
+                    Result = response,
+                    Message = response?.Message
+                });
+            }
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = response,
+                Message = "Password Reset successfully"
+            });
+        }
+
+
+
         [HttpGet("getuserslist")]
         public async Task<ActionResult> GetUsersListAsync(int clientId, string searchStr = "")
         {

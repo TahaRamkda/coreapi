@@ -114,7 +114,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 }
             }
         }
-        public async Task MessageStatusNotification(int clientId, int senderId, int agentId, int messageId, int status, string conversationId)
+        public async Task MessageStatusNotification(int clientId, int senderId, int agentId, int messageId, int status, string conversationId, string EventMessage)
         {
 
             string signalRType = SignalREnum.StatusUpdate.ToString();
@@ -126,7 +126,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             {
                 if (ConversationHub.connections.TryGetValue(agentId, out connectionId))
                 {
-                    var messageStatus = new { MessageID = messageId, Messagestatus = status, ConversationId = conversationIds };
+                    var messageStatus = new { MessageID = messageId, Messagestatus = status, ConversationId = conversationIds, EventMessage = EventMessage };
                     //Send signalR
                     await _conversationHubContext.Clients.Client(connectionId).SendAsync(signalRType, messageStatus);
 
