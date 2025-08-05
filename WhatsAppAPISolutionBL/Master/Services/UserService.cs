@@ -132,5 +132,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return cacheResult;
         }
+
+        public async Task<UResponse> ResetPasswordAsync(ResetPassword password)
+        {
+            var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.ResetPassword}, @ClientId={password.clientId}, @UserId={password.UserId}, @Password={password.NewPassword}").ToListAsync();
+            await _cacheService.RemoveByPrefix(CacheKeys.USER_PATTERN_KEY);
+            return response[0];
+        }
     }
 }
