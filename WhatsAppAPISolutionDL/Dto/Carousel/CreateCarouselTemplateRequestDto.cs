@@ -24,7 +24,6 @@
             }
 
             public string Type { get; set; } = "body";
-            public int Format { get; set; }
             public string Text { get; set; } = string.Empty;
             public List<KeyValue> DynamicValues { get; set; }
         }

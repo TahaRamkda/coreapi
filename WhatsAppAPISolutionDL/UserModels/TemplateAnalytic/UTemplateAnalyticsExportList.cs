@@ -18,5 +18,6 @@ namespace WhatsAppAPISolutionDL.UserModels.TemplateAnalytic
         public string ButtonText { get; set; }
         public string ButtonType { get; set; }
         public int? ClickCount { get; set; }
+        public DateTime? RecordDate { get; set; }
     }
 }

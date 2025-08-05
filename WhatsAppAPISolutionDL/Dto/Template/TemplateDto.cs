@@ -91,7 +91,6 @@ namespace WhatsAppAPISolutionDL.Dto.Template
             public string PersonalizationField { get; set; }
             public string PersonalizationDefaultValue { get; set; }
         }
-
         public class TemplateButton
         {
             public string ButtonText { get; set; } = string.Empty;
@@ -113,5 +112,17 @@ namespace WhatsAppAPISolutionDL.Dto.Template
             public int ActionType { get; set; }
             public int CardNumber { get; set; } 
         }
+        public class CarouselScreen
+        {
+            public int Sequence { get; set; }
+            public int HeaderType { get; set; }
+            public int MediaId { get; set; }
+            public int HeaderParamCount { get; set; }
+            public string HeaderText { get; set; }
+            public int BodyParamCount { get; set; }
+            public string BodyText { get; set; }
+            public string FooterText { get; set; }
+        }
+
     }
 }
