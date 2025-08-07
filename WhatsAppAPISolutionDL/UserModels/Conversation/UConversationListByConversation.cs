@@ -16,6 +16,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Conversation
         public int? MessageTypeId { get; set; }
         public string MessageContent { get; set; }
         public int? Status { get; set; }
+        public string FailedMessage { get; set; }
         public string ContentType { get; set; }
         public string FileName { get; set; }
         public string FileExtension { get; set; }
