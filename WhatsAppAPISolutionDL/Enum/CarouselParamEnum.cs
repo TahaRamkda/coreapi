@@ -9,7 +9,7 @@ namespace WhatsAppAPISolutionDL.Enum
     public enum CarouselParamEnum
     {
         Header = 1,
-        Body=2,
+        TemplateBody=2,
         Button = 3,
         Card= 4,
         CardBody = 5,

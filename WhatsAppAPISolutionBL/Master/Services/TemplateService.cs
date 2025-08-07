@@ -787,31 +787,33 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return cacheResult;
         }
 
-        public async Task<UResponseWithID> AddCarouselTemplateAsync(int clientId, int useId, CreateCarouselTemplateRequestDto requestDto)
+        public async Task<UResponseWithID> AddCarouselTemplateAsync(int clientId, int useId, TemplateDto requestDto)
         {
             requestDto.Name = requestDto.Name.Replace(" ", "_").ToLower().Trim();
 
             // Check if already exists
             var templateNameExist = await _dbContext.Templates
-                .Where(x => x.ClientId.ToString() == requestDto.ClientId &&
+                .Where(x => x.ClientId == clientId &&
                             x.SenderId == requestDto.SenderNameId &&
                             x.TemplateName != null &&
-                            x.TemplateName.ToLower() == requestDto.Name.ToLower())
+                            x.TemplateName.ToLower() == requestDto.Name.ToLower() && x.TemplateTypeId == (int)TemplateTypeEnum.Carousel)
                 .FirstOrDefaultAsync();
 
             if (templateNameExist != null)
                 return new UResponseWithID { Message = "Carousel template with same name already exists" };
 
             Regex regex = new Regex(CommonHelper.DynamicPattern);
-            List<TemplateDto.CaraouselParameter> parameters = new();
-            List<TemplateDto.CaraouselButton> buttons = new();
-            List<TemplateDto.CarouselScreen> screens = new();
+            List<CreateCarouselTemplateRequestDto.CaraouselParameter> parameters = new();
+            List<CreateCarouselTemplateRequestDto.CaraouselButton> buttons = new();
+            List<CreateCarouselTemplateRequestDto.CarouselScreen> screens = new();
             int headerType = 0;
             string mainBodyText = String.Empty;
             int BodyTextCount = 0;
             string bodyText = String.Empty;
             int bodyTextCount = 0;
             int templateParamSequence = 0;
+            var allowedcardheaderformate = requestDto.Cards[0].Header.Format;
+            int allowedbuttoncount = requestDto.Cards[0].Buttons.Count;
             if (requestDto.Body != null)
             {
 
@@ -832,29 +834,41 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     if (matches.Count > 10)
                         return new UResponseWithID { Message = "Only 10 dynamic parameters are allowed in Body" };
 
-                    var paramNames = requestDto.Body.DynamicValues.Select(d => d.ParamName).ToHashSet();
-                    var paramValues = requestDto.Body.DynamicValues.Select(d => d.ParamValue).ToHashSet();
+                    var matchValues = matches.Select(x => x.Value).ToList();
+                    var bodyParams = requestDto.Body.DynamicValues.Select(x => x.ParamName).ToList();
 
-                    //foreach (Match match in matches)
-                    //{
-                    //    string extractedParam = match.Groups[1].Value.ToLower();
-                    //    if (!paramNames.Contains(extractedParam))
-                    //        return new UResponseWithID { Message = $"Body parameter '{extractedParam}' is missing in dynamic values" };
-                    //}
+                    var areEqual = matchValues.All(item => bodyParams.Contains(item));
+                    if (!areEqual)
+                        return new UResponseWithID { Message = "Body parameters passed does not match with body text" };
 
                     BodyTextCount = matches.Count;
 
                     foreach (var kv in requestDto.Body.DynamicValues)
                     {
-                        parameters.Add(new TemplateDto.CaraouselParameter
+                        parameters.Add(new CreateCarouselTemplateRequestDto.CaraouselParameter
                         {
-                            ParamType = (int)CarouselParamEnum.Body,
+                            ParamType = (int)CarouselParamEnum.TemplateBody,
                             ParamName = kv.ParamName,
                             ParamDefaultValue = kv.ParamValue,
                             Sequence = 0
                         });
                     }
                 }
+            }
+            if (requestDto.Cards.Any(card => card.Header.Format != allowedcardheaderformate))
+            {
+
+                return new UResponseWithID
+                {
+                    Message = "All the headers Formate in the card should match" 
+                };
+            }
+            if (requestDto.Cards.Any(card => card.Buttons.Count != allowedbuttoncount))
+            {
+                return new UResponseWithID
+                {
+                    Message = "All the cards should have the same number of Buttons"
+                };
             }
 
             // preparing the card :- CardHeader, CardBody, CardButtons
@@ -864,106 +878,92 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 string BodyText = string.Empty;
                 var card = requestDto.Cards[cardIndex];
 
-                if (card.Header.type == "header")
+
+                // --- Card Header ---
+                if (card.Header != null)
                 {
-                    // --- Card Header ---
-                    if (card.Header != null)
+                    // if header format is none then
+                    if (card.Header.Format < 0)
+                        return new UResponseWithID { Message = $"Card {cardIndex + 1}: Header format not mentioned" };
+                    headerType = card.Header.Format;
+                    var headerFormat = (TemplateHeaderEnum)card.Header.Format;
+                    var CardheaderMediaTypes = new List<TemplateHeaderEnum> { TemplateHeaderEnum.IMAGE, TemplateHeaderEnum.VIDEO };
+
+                    // if it contains image, audio
+                    if (CardheaderMediaTypes.Contains(headerFormat))
                     {
-                        // if header format is none then
-                        if (card.Header.Format < 0)
-                            return new UResponseWithID { Message = $"Card {cardIndex + 1}: Header format not mentioned" };
+                        // MediaId should now come from the card.Header
+                        if (card.Header.MediaId <= 0)
+                            return new UResponseWithID { Message = $"Card {cardIndex + 1}: Media is required for media header" };
 
-                        headerType = card.Header.Format;
-                        var headerFormat = (TemplateHeaderEnum)card.Header.Format;
-                        var CardheaderMediaTypes = new List<TemplateHeaderEnum> { TemplateHeaderEnum.IMAGE, TemplateHeaderEnum.VIDEO };
+                        var mediaDetail = await _dbContext.Medias.FindAsync(card.Header.MediaId);
+                        if (mediaDetail == null || string.IsNullOrEmpty(mediaDetail.MediaPath))
+                            return new UResponseWithID { Message = $"Card {cardIndex + 1}: Media not found" };
 
-                        // if it contains image, audio
-                        if (CardheaderMediaTypes.Contains(headerFormat))
+                        if (mediaDetail.SenderNameId != requestDto.SenderNameId)
+                            return new UResponseWithID { Message = $"Card {cardIndex + 1}: Media does not belong to this sender" };
+
+                        var allowedMedia = _mediaService.CheckAllowedTemplateHeaderType(headerFormat, mediaDetail.FileExtension);
+                        if (!allowedMedia)
+                            return new UResponseWithID { Message = $"Card {cardIndex + 1}: Not allowed media type for header" };
+                    }
+                    else
+                    {
+                        return new UResponseWithID { Message = "Only Image and Video is allowed in header" };
+                    }
+
+                }
+                else
+                {
+                    return new UResponseWithID { Message = "Card Header is required" };
+
+                }
+                // Handling Body
+                if (card.Body != null)
+                {
+                    if (string.IsNullOrWhiteSpace(card.Body.Text))
+                        return new UResponseWithID { Message = "Body text is required" };
+
+                    card.Body.Text = card.Body.Text.Trim();
+                    BodyText = card.Body.Text;
+
+                    MatchCollection matches = regex.Matches(BodyText);
+                    BodyParamCount = matches.Count;
+                    if (matches.Count > 0)
+                    {
+                        if (card.Body.DynamicValues == null || !card.Body.DynamicValues.Any())
+                            return new UResponseWithID { Message = "Body dynamic parameters are required" };
+
+                        if (matches.Count > 2)
+                            return new UResponseWithID { Message = "Only 2 dynamic parameters are allowed in card body" };
+
+                        var paramNames = card.Body.DynamicValues.Select(d => d.ParamName).ToHashSet();
+                        var paramValues = card.Body.DynamicValues.Select(d => d.ParamValue).ToHashSet();
+                        foreach (Match match in matches)
                         {
-                            // MediaId should now come from the card.Header
-                            if (card.Header.MediaId <= 0)
-                                return new UResponseWithID { Message = $"Card {cardIndex + 1}: Media is required for media header" };
-
-                            var mediaDetail = await _dbContext.Medias.FindAsync(card.Header.MediaId);
-                            if (mediaDetail == null || string.IsNullOrEmpty(mediaDetail.MediaPath))
-                                return new UResponseWithID { Message = $"Card {cardIndex + 1}: Media not found" };
-
-                            if (mediaDetail.SenderNameId != requestDto.SenderNameId)
-                                return new UResponseWithID { Message = $"Card {cardIndex + 1}: Media does not belong to this sender" };
-
-                            var allowedMedia = _mediaService.CheckAllowedTemplateHeaderType(headerFormat, mediaDetail.FileExtension);
-                            if (!allowedMedia)
-                                return new UResponseWithID { Message = $"Card {cardIndex + 1}: Not allowed media type for header" };
+                            if (!paramNames.Contains(match.Value))
+                                return new UResponseWithID { Message = $"Card's Body parameter '{match.Value}' is missing in dynamic values" };
                         }
 
-                    }
-                    int cardBodyType = 0;
-
-                    // Handling Body
-                    if (card.Body != null)
-                    {
-                        if (card.Body.Format < 0)
-                            return new UResponseWithID { Message = "Header format not mentioned" };
-
-                        cardBodyType = card.Body.Format;
-                        var MainBodyFormat = (TemplateHeaderEnum)card.Body.Format;
-                        var CardBodyMediaTypes = new List<TemplateHeaderEnum>
-                            {
-                                TemplateHeaderEnum.IMAGE,
-                                TemplateHeaderEnum.VIDEO
-                            };
-
-                        // Check whether it contains the media and if contains return;
-                        if (CardBodyMediaTypes.Contains(MainBodyFormat))
-                            return new UResponseWithID { Message = "Body does not contain media" };
-
-                        // Prepare main body text for the carousel template
-                        if (MainBodyFormat == TemplateHeaderEnum.TEXT)
+                        foreach (var kv in card.Body.DynamicValues)
                         {
-                            if (string.IsNullOrWhiteSpace(card.Body.Text))
-                                return new UResponseWithID { Message = "Body text is required" };
-
-                            card.Body.Text = card.Body.Text.Trim();
-                            BodyText = card.Body.Text;
-
-                            MatchCollection matches = regex.Matches(BodyText);
-                            BodyParamCount = matches.Count;
-                            if (matches.Count > 0)
+                            parameters.Add(new CreateCarouselTemplateRequestDto.CaraouselParameter
                             {
-                                if (card.Body.DynamicValues == null || !card.Body.DynamicValues.Any())
-                                    return new UResponseWithID { Message = "Body dynamic parameters are required" };
-
-                                if (matches.Count > 2)
-                                    return new UResponseWithID { Message = "Only 2 dynamic parameters are allowed in card body" };
-
-                                var paramNames = card.Body.DynamicValues.Select(d => d.ParamName).ToHashSet();
-
-                                //foreach (Match match in matches)
-                                //{
-                                //    if (!paramNames.Contains(match.Value))
-                                //        return new UResponseWithID { Message = $"Body parameter '{match.Value}' is missing in dynamic values" };
-                                //}
-
-                                foreach (var kv in card.Body.DynamicValues)
-                                {
-                                    parameters.Add(new TemplateDto.CaraouselParameter
-                                    {
-                                        ParamType = (int)CarouselParamEnum.CardBody,
-                                        ParamName = kv.ParamName,
-                                        ParamDefaultValue = kv.ParamValue,
-                                        Sequence = cardIndex
-                                    });
-                                }
-                            }
+                                ParamType = (int)CarouselParamEnum.CardBody,
+                                ParamName = kv.ParamName,
+                                ParamDefaultValue = kv.ParamValue,
+                                Sequence = cardIndex
+                            });
                         }
                     }
+
                 }
                 // --- Buttons ---
                 if (card.Buttons != null && card.Buttons.Count > 0)
                 {
                     foreach (var button in card.Buttons)
                     {
-                        if (button.ActionType == (int)ActionTypeEnum.Carousel && button.ActionId <= 0)
+                        if (button.ActionType == (int)ActionTypeEnum.TEMPLATE && button.ActionId <= 0)
                             return new UResponseWithID { Message = $"Card {cardIndex + 1}: Template ID required for button action" };
 
                         button.ButtonValue = (button.ButtonValue ?? "").Trim();
@@ -983,7 +983,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             if (button.DynamicValue.ParamName != button.DynamicValue.ParamName)
                                 return new UResponseWithID { Message = $"Card {cardIndex + 1}: Button parameter mismatch" };
 
-                            parameters.Add(new TemplateDto.CaraouselParameter
+                            parameters.Add(new CreateCarouselTemplateRequestDto.CaraouselParameter
                             {
                                 ParamType = (int)TemplateParamEnum.Button,
                                 ParamName = button.DynamicValue.ParamName,
@@ -992,18 +992,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             });
                         }
 
-                        buttons.Add(new TemplateDto.CaraouselButton
+                        buttons.Add(new CreateCarouselTemplateRequestDto.CaraouselButton
                         {
                             ButtonType = button.ButtonType,
                             ButtonText = button.ButtonText,
                             ButtonValue = button.ButtonValue,
                             ActionId = button.ActionId,
                             ActionType = button.ActionType,
-                            Sequence = cardIndex+1,
+                            Sequence = cardIndex + 1,
                             SytemActionId = button.SytemActionId
                         });
                     }
-                    screens.Add(new TemplateDto.CarouselScreen
+                    screens.Add(new CreateCarouselTemplateRequestDto.CarouselScreen
                     {
                         Sequence = cardIndex + 1,
                         HeaderType = headerType,
@@ -1019,7 +1019,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var parameterJson = JsonConvert.SerializeObject(parameters);
             var buttonJson = JsonConvert.SerializeObject(buttons);
             var screenJson = JsonConvert.SerializeObject(screens);
-            var responseList = await _dbContext2.ResponseWithID.FromSqlInterpolated($"EXEC usp_carousel_ops @ActionId = {(int)CrudEnum.Add},@ClientId = {requestDto.ClientId},@SenderId = {requestDto.SenderNameId},@TemplateName = {requestDto.Name},@Category = {requestDto.Category},@Language = {requestDto.LanguageCode},@BodyText = {requestDto.Body?.Text},@ButtonsJson = {buttonJson},@ParametersJson = {parameterJson},@ScreensJson = {screenJson},@ActionBy = {useId}").ToListAsync();
+            var responseList = await _dbContext2.ResponseWithID.FromSqlInterpolated($"EXEC usp_carousel_ops @ActionId = {(int)CrudEnum.Add},@ClientId = {clientId},@SenderId = {requestDto.SenderNameId},@TemplateName = {requestDto.Name},@Category = {requestDto.Category},@Language = {requestDto.Language},@BodyText = {requestDto.Body?.Text},@ButtonsJson = {buttonJson},@ParametersJson = {parameterJson},@ScreensJson = {screenJson},@ActionBy = {useId}").ToListAsync();
 
             if (responseList == null || !responseList.Any())
                 return new UResponseWithID { Message = "Cannot add carousel template" };
@@ -1031,7 +1031,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Message = response.Message
                 };
 
-            return await PushTemplateToFacebook(int.Parse(requestDto.ClientId), response.Id);
+            return await PushTemplateToFacebook(clientId, response.Id);
 
         }
     }
