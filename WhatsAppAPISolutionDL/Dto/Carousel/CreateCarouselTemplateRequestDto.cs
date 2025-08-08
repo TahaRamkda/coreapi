@@ -48,7 +48,6 @@
             {
                 DynamicValue = new KeyValue();
             }
-            public string type { get; set; }
             public int Format { get; set; }
             public string Text { get; set; } = string.Empty;
             public int MediaId { get; set; }
@@ -61,7 +60,6 @@
             {
                 DynamicValues = new List<KeyValue>();
             }
-            public int Format { get; set; }
             public string Text { get; set; } = string.Empty;
             public List<KeyValue> DynamicValues { get; set; }
         }
@@ -87,6 +85,42 @@
         {
             public string ParamName { get; set; }
             public string ParamValue { get; set; }
+        }
+
+        public class CaraouselParameter
+        {
+            public string ParamName { get; set; }
+            public string ParamDefaultValue { get; set; }
+            public int Sequence { get; set; }
+            public int ParamType { get; set; }
+            public int PersonalizationType { get; set; }
+            public string PersonalizationField { get; set; }
+            public string PersonalizationDefaultValue { get; set; }
+        }
+
+
+        public class CaraouselButton
+        {
+            public string ButtonText { get; set; } = string.Empty;
+            public string ButtonValue { get; set; } = string.Empty;
+            public int ButtonType { get; set; }
+            public int Sequence { get; set; }
+            public int SytemActionId { get; set; }
+            public int ActionId { get; set; }
+            public int ActionType { get; set; }
+            public int CardNumber { get; set; }
+        }
+
+        public class CarouselScreen
+        {
+            public int Sequence { get; set; }
+            public int HeaderType { get; set; }
+            public int MediaId { get; set; }
+            public int HeaderParamCount { get; set; }
+            public string HeaderText { get; set; }
+            public int BodyParamCount { get; set; }
+            public string BodyText { get; set; }
+            public string FooterText { get; set; }
         }
     }
 }

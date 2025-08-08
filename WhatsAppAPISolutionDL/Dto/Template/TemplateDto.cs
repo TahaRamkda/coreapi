@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using static WhatsAppAPISolutionDL.Dto.Carousel.CreateCarouselTemplateRequestDto;
 
 namespace WhatsAppAPISolutionDL.Dto.Template
 {
@@ -15,11 +16,13 @@ namespace WhatsAppAPISolutionDL.Dto.Template
         public string Name { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
         public string Language { get; set; } = string.Empty;
-        public int MediaId { get; set; }
+        public int? MediaId { get; set; }
+        public int TemplateType {  get; set; }
         //public int ActionBy { get; set; }
-        public HeaderComponent Header { get; set; }
+        public HeaderComponent? Header { get; set; }
         public BodyComponent Body { get; set; }
-        public FooterComponent Footer { get; set; }
+        public FooterComponent? Footer { get; set; }
+        public List<CardDto> Cards { get; set; }
         public List<ButtonComponent> Buttons { get; set; } 
 
         public partial class HeaderComponent
@@ -31,6 +34,8 @@ namespace WhatsAppAPISolutionDL.Dto.Template
             public int Format { get; set; }
             public string Text { get; set; } = string.Empty;
             public KeyValue DynamicValue { get; set; }
+
+            public int? MediaId { get; set; }
         }
 
         public partial class BodyComponent
@@ -63,6 +68,19 @@ namespace WhatsAppAPISolutionDL.Dto.Template
             public int ActionType { get; set; }
             public int ActionId { get; set; }
             public KeyValue DynamicValue { get; set; }
+        }
+        public class CardDto
+        {
+            public CardDto()
+            {
+                Header = new HeaderComponent();
+                Body = new BodyComponent();
+                Buttons = new List<ButtonComponent>();
+            }
+
+            public HeaderComponent Header { get; set; }
+            public BodyComponent Body { get; set; }
+            public List<ButtonComponent> Buttons { get; set; }
         }
 
         public class KeyValue

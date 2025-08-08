@@ -16,7 +16,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponseWithID> UpdateTemplateStatusByIdAsync(TemplateStatusUpdateDto model);
         Task<List<UEntityDto>> GetTemplatesAsync(int clientId, int senderId = 0, string searchStr = "", string category = "");
         Task<List<UEntity2Dto>> GetTemplateCategoriesAsync(string searchStr = "");
-        Task<UResponseWithID> AddCarouselTemplateAsync(int clientId, int useId, CreateCarouselTemplateRequestDto requestDto);
+        Task<UResponseWithID> AddCarouselTemplateAsync(int clientId, int useId, TemplateDto requestDto);
         Task<List<UEntity2Dto>> GetLanguagesAsync(string searchStr = "");
     }
 }
