@@ -164,6 +164,22 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 Message = string.Empty
             });
         }
+        [HttpGet("getappsettingbykeyname")]
+        public async Task<IActionResult> GetAppSettingByKeyname(int senderId, string keyname = "")
+        {
+            _logger.LogDebug("Calling api GetAppSettingAsync with clientId={clientId}, searchStr={searchStr}", clientId, keyname);
+
+            var res = await _appSettingsService.GetAppSettingByKeyAsync(clientId, senderId, keyname);
+            if (res == null || res.Val==null)
+                return Ok(new ApiResult { Message = "No value found for keyname"});
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = res,
+                Message = string.Empty
+            });
+        }
 
         #endregion
     }

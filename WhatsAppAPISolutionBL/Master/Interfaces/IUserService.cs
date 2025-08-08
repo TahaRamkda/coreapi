@@ -1,4 +1,5 @@
-﻿using WhatsAppAPISolutionDL.Dto.User;
+﻿using WhatsAppAPISolutionDL.Dto.Client;
+using WhatsAppAPISolutionDL.Dto.User;
 using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.User;
@@ -18,6 +19,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> ChangePasswordAsync(UserDto user);
         Task<UResponse> ResetPasswordAsync(ResetPassword password);
         Task<UUserDetail> GetUserByIdAsync(int clientId, int userId);
+        Task<OnboardClientResponse> OnboardNewClient(OnboardClientDto requestDto);
         Task<List<UUserList>> GetUsersListAsync(int clientId, string searchStr = "");
     }
 }

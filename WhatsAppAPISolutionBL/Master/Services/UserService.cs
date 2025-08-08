@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionDL.Dto.Bridge;
+using WhatsAppAPISolutionDL.Dto.Client;
 using WhatsAppAPISolutionDL.Dto.User;
 using WhatsAppAPISolutionDL.Enum;
 using WhatsAppAPISolutionDL.Models;
@@ -137,6 +140,12 @@ namespace WhatsAppAPISolutionBL.Master.Services
         {
             var response = await _dbContext2.Response.FromSqlInterpolated($"exec usp_Users_Ops @ActionId={(int)CrudEnum.ResetPassword}, @ClientId={password.clientId}, @UserId={password.UserId}, @Password={password.NewPassword}").ToListAsync();
             await _cacheService.RemoveByPrefix(CacheKeys.USER_PATTERN_KEY);
+            return response[0];
+        }
+
+        public async Task<OnboardClientResponse> OnboardNewClient(OnboardClientDto r)
+        {
+            var response = await _dbContext2.OnboardClientResponse.FromSqlInterpolated($@"EXEC[dbo].[usp_OnboardNewClient]  @ClientName = { r.ClientName},@ClientLanguage = { r.ClientLanguage}, @ClientAddress = { r.ClientAddress},@ContactPerson = { r.ContactPerson},@ContactPersonEmail = { r.ContactPersonEmail},@ContactPersonPhone = { r.ContactPersonPhone},@BusinessId = { r.BusinessId},@AppId = { r.AppId},@AccessToken = { r.AccessToken},@Prefix = { r.Prefix},@Currency = { r.Currency},@SubscriptionType = { r.SubscriptionType},@SenderName = { r.SenderName},@PhoneNumber = { r.PhoneNumber},@PhoneNumberId = { r.PhoneNumberId},@BusinessAccountId = { r.BusinessAccountId},@TemplateCopyFromClientId = { r.TemplateCopyFromClientId},@CreatedBy = { r.CreatedBy}").ToListAsync();
             return response[0];
         }
     }

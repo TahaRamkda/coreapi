@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using WhatsAppAPISolutionAPI.Security;
 using WhatsAppAPISolutionBL.Master.Interfaces;
+using WhatsAppAPISolutionDL.Dto.Client;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.User;
 using WhatsAppAPISolutionDL.Enum;
@@ -287,8 +288,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
-
-
         [HttpGet("getuserslist")]
         public async Task<ActionResult> GetUsersListAsync(int clientId, string searchStr = "")
         {
@@ -309,7 +308,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 throw;
             }
         }
-
 
         [AllowAnonymous]
         [HttpPost("token")]
@@ -362,6 +360,15 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 Message = "Username and password required",
             });
+        }
+
+      
+        [HttpPost("onboardnewClient")]
+        public async Task<ActionResult> OnboardNewClient(OnboardClientDto requestDto)
+        {
+            _logger.LogInformation("Creating new Client with data ={data}", JsonConvert.SerializeObject(requestDto));
+            await _userService.OnboardNewClient(requestDto);
+            return Ok(new ApiResult());
         }
     }
 }

@@ -29,4 +29,9 @@ namespace WhatsAppAPISolutionDL.UserModels.Entity
         public string Message { get; set; } = "Error in updating data";
         public object result { get; set; }
     }
+    public class OnboardClientResponse
+    {
+        public int Status { get; set; }
+        public string Message { get; set; }
+    }
 }

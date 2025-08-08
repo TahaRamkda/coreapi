@@ -4,6 +4,7 @@ using WhatsAppAPISolutionDL.UserModels.Agent;
 using WhatsAppAPISolutionDL.UserModels.AppSetting;
 using WhatsAppAPISolutionDL.UserModels.Bridge;
 using WhatsAppAPISolutionDL.UserModels.Campaign;
+using WhatsAppAPISolutionDL.UserModels.carousel;
 using WhatsAppAPISolutionDL.UserModels.Catalog;
 using WhatsAppAPISolutionDL.UserModels.CheckWallet;
 using WhatsAppAPISolutionDL.UserModels.Client;
@@ -45,6 +46,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UPermission> Permissions { get; set; } = null!;
         public virtual DbSet<UPermissionList> PermissionsList { get; set; } = null!;
         public virtual DbSet<UResponse> Response { get; set; } = null!;
+        public virtual DbSet<OnboardClientResponse> OnboardClientResponse { get; set; } = null!;
         public virtual DbSet<UResponseWithID> ResponseWithID { get; set; } = null!;
         public virtual DbSet<UEntityDto> Entity { get; set; } = null!;
         public virtual DbSet<UEntity2Dto> Entity2 { get; set; } = null!;
@@ -58,6 +60,7 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UTemplateParameter> TemplateParameters { get; set; } = null!;
         public virtual DbSet<UMediaUpload> UMediaUploads { get; set; } = null!;
         public virtual DbSet<UTemplateDetail> TemplateDetails { get; set; } = null!;
+        public virtual DbSet<UCarouselTemplate> CarouselTemplate { get; set; } = null!;
         public virtual DbSet<UCampaign> Campaigns { get; set; } = null!;
         public virtual DbSet<UAPIMessage> APIMessages { get; set; } = null!;
         public virtual DbSet<UMessageSentLog> MessageSentLogs { get; set; } = null!;
@@ -186,6 +189,7 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UTemplateAnalyticsExportList>().HasNoKey();
             modelBuilder.Entity<UConversationAnalyticsData>().HasNoKey();
             modelBuilder.Entity<UserPreference>().HasNoKey();
+            modelBuilder.Entity<OnboardClientResponse>().HasNoKey();
         }
     }
 }
