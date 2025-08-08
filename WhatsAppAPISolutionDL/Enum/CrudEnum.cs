@@ -84,6 +84,7 @@
         GetTemplateCategories = 51,
         ConversationReportList = 51,
         GetActiveAgents = 51,
+        GetAppSettings = 52,
 
 
 

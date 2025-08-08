@@ -148,12 +148,12 @@ namespace WhatsAppAPISolutionAPI.Controllers
             });
         }
 
-        [HttpGet("getappsettings")]
-        public async Task<IActionResult> GetAppSettingAsync(string searchStr = "")
+        [HttpGet("getappsettingsdropdown")]
+        public async Task<IActionResult> GetAppSettingsdropdown(string searchStr = "")
         {
-            _logger.LogDebug("Calling api GetAppSettingAsync with clientId={clientId}, searchStr={searchStr}", clientId, searchStr);
+            _logger.LogDebug("Calling api GetAppSettingsdropdown with clientId={clientId}, searchStr={searchStr}", clientId, searchStr);
 
-            var groups = await _appSettingsService.GetAllAppSettingsAsync(clientId, searchStr);
+            var groups = await _appSettingsService.GetAppsettingsdropdown(clientId, searchStr);
             if (groups == null || !groups.Any())
                 return Ok(new ApiResult { Message = "No records found" });
 
@@ -161,22 +161,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 Success = true,
                 Result = groups,
-                Message = string.Empty
-            });
-        }
-        [HttpGet("getappsettingbykeyname")]
-        public async Task<IActionResult> GetAppSettingByKeyname(int senderId, string keyname = "")
-        {
-            _logger.LogDebug("Calling api GetAppSettingAsync with clientId={clientId}, searchStr={searchStr}", clientId, keyname);
-
-            var res = await _appSettingsService.GetAppSettingByKeyAsync(clientId, senderId, keyname);
-            if (res == null || res.Val==null)
-                return Ok(new ApiResult { Message = "No value found for keyname"});
-
-            return Ok(new ApiResult
-            {
-                Success = true,
-                Result = res,
                 Message = string.Empty
             });
         }

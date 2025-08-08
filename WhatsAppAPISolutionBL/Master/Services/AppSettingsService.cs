@@ -131,5 +131,21 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return response[0];
         }
+        public async Task<List<UEntityDto>> GetAppsettingsdropdown(int clientId, string searchStr = "")
+        {
+            var startProcTime = DateTime.UtcNow;
+
+            var response = await _dbContext2.Entity
+                .FromSqlInterpolated($"exec usp_AppSettings_Ops @ActionId={(int)CrudEnum.GetAppSettings}, @ClientId={clientId}, @SearchStr={searchStr}")
+                .ToListAsync();
+
+            _logger.LogInformation(
+                "Calling procedure usp_AppSettings_Ops | ActionId = {actionId}, ActionName = {actionName}, ClientId = {clientId}, SearchStr = {searchStr}, ProcResponseTime = {ProcResponseTime} ms",
+                (int)CrudEnum.GetEntities, CrudEnum.GetEntities, clientId, searchStr, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds
+            );
+
+            return response ?? new List<UEntityDto>();
+        }
+
     }
 }

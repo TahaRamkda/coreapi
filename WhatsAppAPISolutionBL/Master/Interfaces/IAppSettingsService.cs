@@ -13,5 +13,6 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<List<UEntityDto>> GetAllAppSettingsAsync(int clientId, string searchStr = "");
         Task<UAppSetting> GetAppSettingsByIdAsync(int id, int clientId);
         Task<UAppSetting> GetAppSettingByKeyAsync(int clientId, int senderId, string keyName);
+        Task<List<UEntityDto>> GetAppsettingsdropdown(int clientId, string searchStr = "");
     }
 }
