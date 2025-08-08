@@ -31,7 +31,7 @@ namespace WhatsAppAPISolutionDL.UserModels.Entity
     }
     public class OnboardClientResponse
     {
-        public int Status { get; set; }
-        public string Message { get; set; }
+        public string AccessToken { get; set; }
+        public string PublicCertificate { get; set; }
     }
 }

@@ -2,7 +2,10 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System.Security.Claims;
+using System.Text;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionDL.Dto.Bridge;
@@ -23,17 +26,23 @@ namespace WhatsAppAPISolutionBL.Master.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<UserService> _logger;
         private readonly ICacheService _cacheService;
+        private readonly FacebookWhatsAppSettings _fbSettings;
+        private readonly HttpClient _httpClient;
         private ClaimsPrincipal User => _httpContextAccessor.HttpContext?.User;
 
         public UserService(WhatsAppSolutionContext2 dbContext2,
             WhatsAppSolutionContext dbContext,
             IHttpContextAccessor httpContextAccessor,
-            ICacheService cacheService)
+            ICacheService cacheService,
+            IOptions<FacebookWhatsAppSettings> fbSettings,
+            HttpClient httpClient)
         {
             _dbContext = dbContext;
             _dbContext2 = dbContext2;
             _httpContextAccessor = httpContextAccessor;
             _cacheService = cacheService;
+            _fbSettings = fbSettings.Value;
+            _httpClient = httpClient;
         }
 
         public int GetClientIdFromAccessToken()
@@ -107,7 +116,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             if (cacheResult == null)
                 await _cacheService.RemoveAsync(cacheKey);
-            
+
             return cacheResult;
         }
 
@@ -143,10 +152,28 @@ namespace WhatsAppAPISolutionBL.Master.Services
             return response[0];
         }
 
-        public async Task<OnboardClientResponse> OnboardNewClient(OnboardClientDto r)
+        public async Task<UResponse> OnboardNewClient(OnboardClientDto r)
         {
-            var response = await _dbContext2.OnboardClientResponse.FromSqlInterpolated($@"EXEC[dbo].[usp_OnboardNewClient]  @ClientName = { r.ClientName},@ClientLanguage = { r.ClientLanguage}, @ClientAddress = { r.ClientAddress},@ContactPerson = { r.ContactPerson},@ContactPersonEmail = { r.ContactPersonEmail},@ContactPersonPhone = { r.ContactPersonPhone},@BusinessId = { r.BusinessId},@AppId = { r.AppId},@AccessToken = { r.AccessToken},@Prefix = { r.Prefix},@Currency = { r.Currency},@SubscriptionType = { r.SubscriptionType},@SenderName = { r.SenderName},@PhoneNumber = { r.PhoneNumber},@PhoneNumberId = { r.PhoneNumberId},@BusinessAccountId = { r.BusinessAccountId},@TemplateCopyFromClientId = { r.TemplateCopyFromClientId},@CreatedBy = { r.CreatedBy}").ToListAsync();
-            return response[0];
+            var phoneNumberId = r.PhoneNumberId;
+            var dbresult = await _dbContext2.OnboardClientResponse.FromSqlInterpolated($"EXEC [dbo].[usp_OnboardNewClient]  @ClientName = {r.ClientName},@ClientLanguage = {r.ClientLanguage}, @ClientAddress = {r.ClientAddress},@ContactPerson = {r.ContactPerson},@ContactPersonEmail = {r.ContactPersonEmail},@ContactPersonPhone = {r.ContactPersonPhone},@BusinessId = {r.BusinessId},@AppId = {r.AppId},@AccessToken = {r.AccessToken},@Prefix = {r.Prefix},@Currency = {r.Currency},@SubscriptionType = {r.SubscriptionType},@SenderName = {r.SenderName},@PhoneNumber = {r.PhoneNumber},@PhoneNumberId = {r.PhoneNumberId},@BusinessAccountId = {r.BusinessAccountId},@TemplateCopyFromClientId = {r.TemplateCopyFromClientId},@CreatedBy = {r.CreatedBy}").ToListAsync();
+            var publicKey = dbresult[0].PublicCertificate;
+            var accesstoken = dbresult[0].AccessToken;
+            var content = new StringContent(publicKey ?? string.Empty, Encoding.UTF8, "text/plain");
+
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accesstoken);
+            var response = await _httpClient.PostAsync(
+                $"{_fbSettings.BaseUrl}/{phoneNumberId}/whatsapp_business_encryption",
+                content
+            );
+
+            response.EnsureSuccessStatusCode();
+            var fbResponseContent = await response.Content.ReadAsStringAsync();
+            return new UResponse
+            {
+                Status=1,
+                Message= "Client Onboard Successfully."
+            };
         }
     }
 }

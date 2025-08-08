@@ -19,7 +19,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> ChangePasswordAsync(UserDto user);
         Task<UResponse> ResetPasswordAsync(ResetPassword password);
         Task<UUserDetail> GetUserByIdAsync(int clientId, int userId);
-        Task<OnboardClientResponse> OnboardNewClient(OnboardClientDto requestDto);
+        Task<UResponse> OnboardNewClient(OnboardClientDto requestDto);
         Task<List<UUserList>> GetUsersListAsync(int clientId, string searchStr = "");
     }
 }
