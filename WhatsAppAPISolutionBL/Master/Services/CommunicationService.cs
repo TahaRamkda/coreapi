@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System.Drawing.Printing;
 using System.Text;
 using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
@@ -18,7 +17,7 @@ using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Entity;
-using WhatsAppAPISolutionDL.UserModels.Message;
+using WhatsAppAPISolutionDL.UserModels.Message; 
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -116,42 +115,52 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     ComponentType = TemplateParamEnum.Header.ToString()
                 };
 
-                var media = _dbContext.Medias.Find(model.MediaId > 0 ? model.MediaId : template.MediaId); //If in campaign media id is present take reference from there, else default media
-                if (media != null)
+                //If media is sent as URL from third party or any other service
+                if (!String.IsNullOrWhiteSpace(model.MediaUrl))
                 {
-
-                    var mediaPath = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL.TrimEnd('/'), "/", media.MediaPath.Replace("\\", "/").TrimStart('/'));
-                    if (media.ExpiryDate <= DateTime.UtcNow)
+                    headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
                     {
-                        var mediafile = new MediaFileDto
-                        {
-                            ClientId = media.ClientId ?? 0,
-                            SenderNameId = media.SenderNameId ?? 0,
-                            UploadToFacebook = true,
-                            MediaSourceId = media.MediaSourceId ?? 0,
-                            File = await GetFormFileFromUrlAsync(mediaPath)
-                        };
-                        var uploadedmedia = await _mediaService.UploadExpiredMediaAsync(mediafile, media.Id, mediaPath);
-                        //var response = await _mediaService.UpdatemediaIdAsync(media.Id,uploadedmedia.Id.ToString());
-                        headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                        {
-                            Type = headerType.ToString(),
-                            Value = mediaPath
-                        });
-                    }
-                    else
-                    {
-                        headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
-                        {
-                            Type = headerType.ToString(),
-                            Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath
-                        });
-
-                    }
-
+                        Type = headerType.ToString(),
+                        Value = model.MediaUrl
+                    });
                 }
                 else
-                    return new ApiResult { Message = $"error - Cannot find template media." };
+                {
+                    var media = _dbContext.Medias.Find(model.MediaId > 0 ? model.MediaId : template.MediaId); //If in campaign media id is present take reference from there, else default media
+                    if (media != null)
+                    {
+
+                        var mediaPath = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL.TrimEnd('/'), "/", media.MediaPath.Replace("\\", "/").TrimStart('/'));
+                        if (media.ExpiryDate <= DateTime.UtcNow)
+                        {
+                            var mediafile = new MediaFileDto
+                            {
+                                ClientId = media.ClientId ?? 0,
+                                SenderNameId = media.SenderNameId ?? 0,
+                                UploadToFacebook = true,
+                                MediaSourceId = media.MediaSourceId ?? 0,
+                                File = await GetFormFileFromUrlAsync(mediaPath)
+                            };
+                            var uploadedmedia = await _mediaService.UploadExpiredMediaAsync(mediafile, media.Id, mediaPath);
+                            //var response = await _mediaService.UpdatemediaIdAsync(media.Id,uploadedmedia.Id.ToString());
+                            headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                            {
+                                Type = headerType.ToString(),
+                                Value = mediaPath
+                            });
+                        }
+                        else
+                        {
+                            headerComponents.Values.Add(new SendTemplateMessageDto.TemplateKeyValue()
+                            {
+                                Type = headerType.ToString(),
+                                Value = !String.IsNullOrWhiteSpace(media.MediaId) ? media.MediaId : mediaPath
+                            });
+                        }
+                    }
+                    else
+                        return new ApiResult { Message = $"error - Cannot find template media." };
+                }
 
                 sendMessage.Components.Add(headerComponents);
             }

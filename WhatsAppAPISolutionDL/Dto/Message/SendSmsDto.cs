@@ -23,6 +23,7 @@ namespace WhatsAppAPISolutionDL.Dto.Message
         public string Username { get; set; }
         public string Password { get; set; }
         public string ParamJson { get; set; }
+        public string MediaUrl { get; set; }
         public string UDF1 { get; set; }
         public string UDF2 { get; set; }
         public int IsForceSend { get; set; } //0- send interactive template 1-send utility message 2-check and send interactive teplate
