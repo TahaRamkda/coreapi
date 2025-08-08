@@ -78,7 +78,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 ParentId = 0,
                 ModuleId = (int)ModuleEnum.API,
                 UDF1 = sendSms.UDF1,
-                UDF2 = sendSms.UDF2
+                UDF2 = sendSms.UDF2,
+                MediaUrl = sendSms.MediaUrl
             };
 
             //Get template id and sender id
@@ -151,8 +152,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
             };
 
             var response = await _apiMessageService.AddAPIMessageAsync(message);
-            if (response != null) 
-                tempPayload.ParentId = response.Id; 
+            if (response != null)
+                tempPayload.ParentId = response.Id;
 
             var flowToken = $"{FlowIdentifier.ClientId}:{tempPayload.ClientId}|" + $"{FlowIdentifier.SenderId}:{senderId}|" + $"{FlowIdentifier.ModuleId}:{tempPayload.ModuleId}|" + $"{FlowIdentifier.ParentId}:{tempPayload.ParentId}";
             tempPayload.FlowToken = flowToken;

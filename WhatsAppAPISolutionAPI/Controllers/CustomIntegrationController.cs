@@ -105,7 +105,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
                     if (!String.IsNullOrWhiteSpace(json.Password))
                         sendSms.Password = json.Password;
-
+                     
+                    if (!String.IsNullOrWhiteSpace(json.MediaUrl))
+                        sendSms.MediaUrl = json.MediaUrl;
+                    
                     //sendSms.IsForceSend = json.IsForceSend;
                 }
 
