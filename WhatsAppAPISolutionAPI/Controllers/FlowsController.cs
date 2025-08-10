@@ -136,7 +136,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
             {
                 Success = true,
                 Result = response,
-                Message = "Data added successfully"
+                Message = response.Message
             });
         }
 
