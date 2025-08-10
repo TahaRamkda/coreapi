@@ -36,6 +36,7 @@
         GetTemplateDetails = 5,
         SettleCampaign = 5,
         AgentConversationList = 5,
+        GetEnquiryDetails=5,
 
         AddUserToken = 6,
         GetPurchaseHeader = 6,

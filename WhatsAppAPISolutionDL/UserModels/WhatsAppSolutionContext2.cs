@@ -11,6 +11,7 @@ using WhatsAppAPISolutionDL.UserModels.Client;
 using WhatsAppAPISolutionDL.UserModels.Contact;
 using WhatsAppAPISolutionDL.UserModels.Conversation;
 using WhatsAppAPISolutionDL.UserModels.Dashboard;
+using WhatsAppAPISolutionDL.UserModels.EnquirySubmission;
 using WhatsAppAPISolutionDL.UserModels.Entity;
 using WhatsAppAPISolutionDL.UserModels.Flow;
 using WhatsAppAPISolutionDL.UserModels.Group;
@@ -116,6 +117,8 @@ namespace WhatsAppAPISolutionDL.UserModels
         public virtual DbSet<UTemplateAnalyticsExportList> TemplateAnalyticsExportList { get; set; } = null!;
         public virtual DbSet<UConversationAnalyticsData> ConversationAnalyticsData { get; set; } = null!;
         public virtual DbSet<UserPreference> UserPreferences { get; set; } = null!;
+        public virtual DbSet<UEnquirySubmissionList> EnquirySubmissionList { get; set; } = null!;
+        public virtual DbSet<UEnquirySubmissionDetails> EnquirySubmissionDetails { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -190,6 +193,8 @@ namespace WhatsAppAPISolutionDL.UserModels
             modelBuilder.Entity<UConversationAnalyticsData>().HasNoKey();
             modelBuilder.Entity<UserPreference>().HasNoKey();
             modelBuilder.Entity<OnboardClientResponse>().HasNoKey();
+            modelBuilder.Entity<UEnquirySubmissionList>().HasNoKey();
+            modelBuilder.Entity<UEnquirySubmissionDetails>().HasNoKey();
         }
     }
 }

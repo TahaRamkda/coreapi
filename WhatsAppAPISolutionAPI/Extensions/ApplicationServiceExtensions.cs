@@ -53,6 +53,7 @@ namespace WhatsAppAPISolutionAPI.Extensions
             services.AddScoped<KFGOrderService>();
             services.AddScoped<ITemplateAnalyticsService, TemplateAnalyticsService>();
             services.AddScoped<IUserPreferenceService, UserPreferenceService>();
+            services.AddScoped<IEnquirySubmission, EnquirySubmission>();
 
             #region Third party services
 
