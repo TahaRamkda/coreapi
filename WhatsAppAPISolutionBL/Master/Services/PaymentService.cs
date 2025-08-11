@@ -90,7 +90,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 return response;
             }
 
-            var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentResponse @OrderId={paymentStatus.OrderId},@Success={paymentStatus.IsSuccess},@PaymentRefNo={paymentStatus.PaymentRefNo},@PaymentGatewayType={paymentStatus.PaymentGatewayType}").ToListAsync();
+            //For KFG, 1 = KNET and 2 = CREDIT CARD
+            string paymentGateway = "credit_card";
+            if (!String.IsNullOrWhiteSpace(paymentStatus.PaymentGatewayType) 
+                && (paymentStatus.PaymentGatewayType == "1" || paymentStatus.PaymentGatewayType.ToLower() == "knet"))
+                paymentGateway = "knet";
+
+            var dbresponse = await _dbContext2.DBResponses.FromSqlInterpolated($"exec usp_Orders_PaymentResponse @OrderId={paymentStatus.OrderId},@Success={paymentStatus.IsSuccess},@PaymentRefNo={paymentStatus.PaymentRefNo},@PaymentGatewayType={paymentGateway}").ToListAsync();
             _logger.LogInformation("Received response from procedure usp_Orders_PaymentCompleted with OrderId={OrderId} and TransactionId = {paymentStatus.IsSuccess}response={response}", paymentStatus.OrderId, paymentStatus.PaymentRefNo, JsonConvert.SerializeObject(dbresponse));
 
             await _mediatorService.ProcessDBResponse(order.ClientId ?? 0, order.SenderId ?? 0, dbresponse[0]);

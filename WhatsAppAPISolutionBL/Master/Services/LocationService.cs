@@ -1,57 +1,42 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Text;
-using WhatsAppAPISolutionBL.Helper;
 using WhatsAppAPISolutionBL.Master.Interfaces;
-using WhatsAppAPISolutionDL.Dto.Common;
-using WhatsAppAPISolutionDL.Dto.Flow;
-using WhatsAppAPISolutionDL.Dto.Message;
 using WhatsAppAPISolutionDL.Enum;
-using WhatsAppAPISolutionDL.Extensions;
-using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
-using WhatsAppAPISolutionDL.UserModels;
-using WhatsAppAPISolutionDL.UserModels.Flow;
 using WhatsAppAPISolutionDL.UserModels.Location;
-using static WhatsAppAPISolutionDL.Dto.Order.MetaOrderRequestDto;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
     public class LocationService : ILocationService
     {
-
-        private readonly WhatsAppSolutionContext _dbContext;
-        private readonly WhatsAppSolutionContext2 _dbContext2;
         private readonly HttpClient _httpClient;
         public readonly IConfiguration _configuration;
         private readonly IOptions<APISolutionConfigurationSettings> _apiSolutionConfigurationSettings;
         private readonly ILogger<TemplateService> _logger;
         private readonly ICacheService _cacheService;
         private readonly IAppSettingsService _appSettingsService;
+        private readonly ISenderNameService _senderNameService;
 
         public LocationService(
-            WhatsAppSolutionContext dbContext,
-            WhatsAppSolutionContext2 dbContext2,
             HttpClient httpClient,
             IConfiguration configuration,
             IOptions<APISolutionConfigurationSettings> apiSolutionConfigurationSettings,
             ILogger<TemplateService> logger,
             ICacheService cacheService,
-            IAppSettingsService appSettingsService
+            IAppSettingsService appSettingsService,
+            ISenderNameService senderNameService
             )
         {
-            _dbContext = dbContext;
-            _dbContext2 = dbContext2;
             _httpClient = httpClient;
             _configuration = configuration;
             _apiSolutionConfigurationSettings = apiSolutionConfigurationSettings;
             _logger = logger;
             _cacheService = cacheService;
             _appSettingsService = appSettingsService;
-
+            _senderNameService = senderNameService;
         }
 
         //public async Task<ApiResult> SaveCompleteAddress(FlowResponseDto flowResponse, Flow flow)
@@ -130,7 +115,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
         public async Task<DeliveryStatus> GetDeliveryStatus(int clientId, int senderId, string orderId, string geoLocation)
         {
-            _logger.LogInformation("Calling GetDeliveryStatus with orderId={OrderId} and geoLocation={GeoLocation}", orderId, geoLocation);
+            _logger.LogInformation("Calling GetDeliveryStatus with clientId={clientId}, senderId={senderId}, orderId={orderId} and geoLocation={geoLocation}", clientId, senderId, orderId, geoLocation);
 
             if (string.IsNullOrWhiteSpace(geoLocation))
             {
@@ -166,6 +151,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     return new DeliveryStatus { isDeliverable = false, reason = "Client integration type is not configured" };
                 }
 
+                var senderName = await _senderNameService.GetSenderNameEntityByIdAsync(senderId);
+
                 var locationUrl = addressCheckUrlSetting.Val;
                 var integrationType = Convert.ToInt32(clientIntegrationTypeSetting.Val);
 
@@ -173,6 +160,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     var requestBody = new
                     {
+                        BrandId = senderName.PhoneNumber,
                         Latitude = latitude,
                         Longitude = longitude
                     };
@@ -180,11 +168,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     var jsonBody = JsonConvert.SerializeObject(requestBody);
                     var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
+                    _logger.LogInformation("GetDeliveryStatus - Calling KFG API call with request={request}", jsonBody);
+
                     var response = await _httpClient.PostAsync(locationUrl, content);
+                    var responseContent = await response.Content.ReadAsStringAsync();
 
                     if (!response.IsSuccessStatusCode)
                     {
-                        _logger.LogError("API call failed with status code {StatusCode} and reason {ReasonPhrase}", response.StatusCode, response.ReasonPhrase);
+                        _logger.LogError("GetDeliveryStatus - Received KFG API call response with error with request={request} and response={response} and statusCode={statusCode} and reasonPhrase={reasonPhrase}", jsonBody, responseContent, response.StatusCode, response.ReasonPhrase);
                         return new DeliveryStatus
                         {
                             isDeliverable = false,
@@ -192,8 +183,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         };
                     }
 
-                    var responseContent = await response.Content.ReadAsStringAsync();
                     var apiResult = JsonConvert.DeserializeObject<DeliveryStatus>(responseContent);
+
+                    _logger.LogInformation("GetDeliveryStatus - Received KFG API call response with request={request} and response={response}", jsonBody, responseContent);
 
                     if (apiResult == null)
                     {

@@ -164,7 +164,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     amount = order.Total ?? 0,
                     currencyCode = currency,
-                    name = "KNET",
+                    name = order.PaymentGatewayType,
                     referenceNumber = order.OrderId.ToString()
                 });
 

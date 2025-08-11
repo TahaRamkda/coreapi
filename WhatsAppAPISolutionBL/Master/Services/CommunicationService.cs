@@ -17,7 +17,7 @@ using WhatsAppAPISolutionDL.Models;
 using WhatsAppAPISolutionDL.Setting;
 using WhatsAppAPISolutionDL.UserModels;
 using WhatsAppAPISolutionDL.UserModels.Entity;
-using WhatsAppAPISolutionDL.UserModels.Message; 
+using WhatsAppAPISolutionDL.UserModels.Message;
 
 namespace WhatsAppAPISolutionBL.Master.Services
 {
@@ -911,11 +911,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     if ((flow.Status ?? "").ToLower() != FlowStatusEnum.PUBLISHED.ToString().ToLower())
                         return new UResult { Status = 0, Message = $"Flow is not published with id - {button.ActionId}" };
 
+                    //Only 20 characters allowed
+                    var buttonText = button.ButtonText ?? "";
+                    buttonText = buttonText.Length > 20 ? buttonText.Substring(0, 20) : buttonText;
+ 
                     sendMessage.FlowAction = new SendInteractiveMessageRequestDto.FlowActionDto
                     {
                         FlowId = flow.MetaFlowId,
                         Version = "3", //flow.DataApiVersion, //must be 3 //https://developers.facebook.com/docs/whatsapp/flows/guides/sendingaflow/
-                        ButtonText = button.ButtonText,
+                        ButtonText = buttonText,
                         Token = (flowToken ?? "") + $"|{FlowIdentifier.FlowId}:{flow.FlowId}" //Append flow id for identification
                     };
                 }
@@ -938,10 +942,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             button.ButtonValue = String.Concat("tel:", button.ButtonValue ?? "").Replace("-", "").Trim(); //Replace +965-99310864
                         }
 
+                        //Only 20 characters allowed
+                        var buttonText = button.ButtonText ?? "";
+                        buttonText = buttonText.Length > 20 ? buttonText.Substring(0, 20) : buttonText;
+ 
                         sendMessage.Buttons.Add(new SendInteractiveMessageRequestDto.ButtonDto
                         {
                             Id = Convert.ToString(button.ButtonId),
-                            Text = button.ButtonText,
+                            Text = buttonText,
                             Type = buttonType.ToString(),
                             Url = button.ButtonValue
                         });
@@ -1399,11 +1407,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     if (!matchedKeys.Contains(nameof(FlowTokenIdentifier.FlowId)))
                         model.FlowToken = model.FlowToken + $"|{FlowIdentifier.FlowId}:{flow.FlowId}";
 
+                    //Only 20 characters allowed
+                    var buttonText = button.ButtonText ?? "";
+                    buttonText = buttonText.Length > 20 ? buttonText.Substring(0, 20) : buttonText;
+
                     sendMessage.FlowAction = new SendInteractiveMessageRequestDto.FlowActionDto
                     {
                         FlowId = flow.MetaFlowId,
                         Version = "3", //flow.DataApiVersion, //must be 3 //https://developers.facebook.com/docs/whatsapp/flows/guides/sendingaflow/
-                        ButtonText = button.ButtonText,
+                        ButtonText = buttonText,
                         Token = model.FlowToken ?? ""
                     };
                 }
@@ -1426,10 +1438,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             button.ButtonValue = String.Concat("tel:", button.ButtonValue ?? "").Replace("-", "").Trim(); //Replace +965-99310864
                         }
 
+                        //Only 20 characters allowed
+                        var buttonText = button.ButtonText ?? "";
+                        buttonText = buttonText.Length > 20 ? buttonText.Substring(0, 20) : buttonText;
+
                         sendMessage.Buttons.Add(new SendInteractiveMessageRequestDto.ButtonDto
                         {
                             Id = Convert.ToString(button.ButtonId),
-                            Text = button.ButtonText,
+                            Text = buttonText,
                             Type = buttonType.ToString(),
                             Url = button.ButtonValue
                         });

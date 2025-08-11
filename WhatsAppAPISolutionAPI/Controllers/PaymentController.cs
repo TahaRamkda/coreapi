@@ -20,28 +20,11 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger = logger;
             _paymentService = paymentservice;
         }
-
-        //[HttpPost("KFG")]
-        //public async Task<ActionResult> KFG(object payload)
-        //{
-        //    var data = System.Text.Json.JsonSerializer.Serialize(payload);
-        //    _logger.LogInformation("Calling KFG payment webhook received with data={data}", data);
-
-        //    return Ok();
-        //}
-
-        //[HttpPost("KFGCheckPayment")]
-        //public async Task<ActionResult> CheckKFGPayment(object payload)
-        //{
-        //    var data = System.Text.Json.JsonSerializer.Serialize(payload);
-        //    _logger.LogInformation("Calling KFG check payment received with data={data}", data);
-
-        //    return Ok();
-        //}
+         
         [HttpPost("TempPaymentStatusUpdate")]
         public async Task<IActionResult> TempPaymentStatusUpdate(PaymentStatus model)
         {
-          
+
 
             if (model == null)
                 return BadRequest();
@@ -66,7 +49,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
 
         [HttpPost("KFGPaymentStatusUpdate")]
-        public async Task<IActionResult> KFGPaymentStatusUpdate(KFGPaymentStatus model )
+        public async Task<IActionResult> KFGPaymentStatusUpdate(KFGPaymentStatus model)
         {
             _logger.LogInformation("Calling function CheckPaymentStatus with data={data}", model);
 

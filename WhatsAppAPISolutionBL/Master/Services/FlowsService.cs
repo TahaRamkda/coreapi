@@ -83,9 +83,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     && x.FlowLanguage.ToLower() == obj.FlowLanguage.ToLower()).FirstOrDefaultAsync();
 
                 if (flowNameExist != null)
-                    return new UResponseWithID { Message = "Flow with same name already exist" };
-
-
+                    return new UResponseWithID { Id = flowNameExist.FlowId, Status = 1, Message = "Flow with same name already exist" };
+                 
                 var flowDataApiVersionAppSetting = await _appSettingsService.GetAppSettingByKeyAsync(clientId, obj.SenderId, AppSettingKey.FlowDataApiVersion);
                 var flowVersionAppSetting = await _appSettingsService.GetAppSettingByKeyAsync(clientId, obj.SenderId, AppSettingKey.FlowVersion);
                 var flowLayoutAppSetting = await _appSettingsService.GetAppSettingByKeyAsync(clientId, obj.SenderId, AppSettingKey.FlowLayout);
@@ -312,7 +311,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     .AnyAsync(x => x.ClientId == clientId && x.SenderId == obj.SenderId && x.FlowId != obj.FlowId && x.FlowName == obj.FlowName && x.FlowLanguage == obj.FlowLanguage);
                 if (flowNameExist)
                     return new UResponseWithID { Message = "Flow with same name already exists" };
-                 
+
                 int? surveyId = null;
                 if (obj.ModuleId == (int)ModuleEnum.Survey)
                 {
@@ -363,9 +362,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var existingScreens = await _dbContext.FlowScreens.Where(s => s.FlowId == obj.FlowId).ToListAsync();
                 _dbContext.FlowScreens.RemoveRange(existingScreens);
                 await _dbContext.SaveChangesAsync();
-                 
+
                 var flowLayoutAppSetting = await _appSettingsService.GetAppSettingByKeyAsync(clientId, obj.SenderId, AppSettingKey.FlowLayout);
- 
+
                 // Add new screens with updated logic for Name, RedirectionScreen, and Type
                 string[] suffixes = { "_One", "_Two", "_Three", "_Four", "_Five", "_Six", "_Seven", "_Eight", "_Nine", "_Ten" };
                 var screens = obj.FlowScreens.Select((screenDto, index) => new FlowScreen()
@@ -373,7 +372,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     FlowId = obj.FlowId,
                     Name = $"{screenDto.Name}{(index < suffixes.Length ? suffixes[index] : $"_{index + 1}")}", // Add suffix
                     Title = screenDto.Title,
-                    Type = flowLayoutAppSetting != null ? flowLayoutAppSetting.Val : String.Empty, 
+                    Type = flowLayoutAppSetting != null ? flowLayoutAppSetting.Val : String.Empty,
                     ScreenButtonText = screenDto.ScreenButtonText,
                     RedirectionScreen = index < obj.FlowScreens.Count - 1 ? // If not last screen, set next screen's name
                                         $"{obj.FlowScreens[index + 1].Name}{(index + 1 < suffixes.Length ? suffixes[index + 1] : $"_{index + 2}")}"
