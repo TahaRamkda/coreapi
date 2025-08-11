@@ -19,7 +19,9 @@
         public FooterDto Footer { get; set; }
         public List<ButtonDto> Buttons { get; set; }
         public FlowComponent Flow { get; set; }
+         public List<CardDto> Cards { get; set; }
 
+       
         public class HeaderDto
         {
             public string Format { get; set; }
@@ -57,6 +59,17 @@
         {
             public string FlowId { get; set; }
             public string ButtonText { get; set; }
+        }
+        public class CardDto
+        {
+            public CardDto()
+            {
+                Buttons = new List<ButtonDto>();
+            }
+
+            public HeaderDto Header { get; set; }
+            public BodyDto Body { get; set; }
+            public List<ButtonDto> Buttons { get; set; }
         }
     }
 }

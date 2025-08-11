@@ -619,14 +619,31 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     }
                 }
             }
-
             #endregion
+            #region Template Screen
 
-            var request = Newtonsoft.Json.JsonConvert.SerializeObject(templateRequest);
+            if (model.Screens.Count > 0)
+            {
+                foreach (var screen in model.Screens)
+                {
+                }
+
+            }
+                #endregion
+
+                var request = Newtonsoft.Json.JsonConvert.SerializeObject(templateRequest);
 
             var apiCallStart = DateTime.UtcNow;
+            string apiEndpoint = string.Empty;
+            if (model.TemplateTypeId == (int)TemplateTypeEnum.Template)
+            {
+                 apiEndpoint = $"/api/Template/TemplateMessageOps";
+            }
+            else
+            {
+                 apiEndpoint = $"/api/Template/CarousalTemplateMessageOps";
+            }
 
-            string apiEndpoint = $"/api/Template/TemplateMessageOps";
             var res = new StringContent(request, Encoding.UTF8, "application/json");
             var response1 = await _httpClient.PostAsync(apiEndpoint, res);
             var content = await response1.Content.ReadAsStringAsync();
