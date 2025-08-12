@@ -617,7 +617,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         var cardButton = new List<TemplateRequestDto.ButtonDto>();
                         if (model.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW))
                         {
-                            var button = model.Buttons.FirstOrDefault(x => x.ActionType == (int)ActionTypeEnum.FLOW && x.TemplateScreenId == screen.TemplateScreenId);
+                            var button = model.Buttons.FirstOrDefault(x => x.ActionType == (int)ActionTypeEnum.FLOW);
                             var flow = await _dbContext.Flows.FindAsync(button.ActionId);
                             if (flow == null)
                                 return new UResponseWithID { Status = 0, Message = $"Flow not found with id - {button.ActionId}" };
@@ -883,7 +883,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
             {
                 var startProcTime = DateTime.UtcNow;
-                var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId}, @SenderId={senderId}, @SearchStr={searchStr}, @Category={cat}").ToListAsync();
+                var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_carousel_ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId}, @SenderId={senderId}, @SearchStr={searchStr}, @Category={cat}").ToListAsync();
                 _logger.LogInformation("Calling procedure usp_Templates_Ops with parameters: " +
                     "ActionId={ActionId}, ClientId={ClientId}, SenderId={SenderId}, SearchStr={SearchStr}, " +
                     "ProcResponseTime={ProcResponseTime}ms", (int)CrudEnum.GetEntities, clientId, senderId, searchStr, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
