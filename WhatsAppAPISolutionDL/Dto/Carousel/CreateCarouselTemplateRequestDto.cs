@@ -96,6 +96,8 @@
             public int PersonalizationType { get; set; }
             public string PersonalizationField { get; set; }
             public string PersonalizationDefaultValue { get; set; }
+            public int ScreenSequence { get; set; }
+            public string TemplateScreenId { get; set; }
         }
 
 
@@ -108,7 +110,7 @@
             public int SytemActionId { get; set; }
             public int ActionId { get; set; }
             public int ActionType { get; set; }
-            public int CardNumber { get; set; }
+            public int ScreenSequence { get; set; }
         }
 
         public class CarouselScreen
