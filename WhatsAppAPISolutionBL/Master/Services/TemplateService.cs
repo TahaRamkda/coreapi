@@ -541,7 +541,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 int placeholderCount = 0;
                 string bodyText = Regex.Replace(model.BodyText, pattern, match => { placeholderCount++; return $"{{{{{placeholderCount}}}}}"; });
 
-                var bodyParams = model.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Body).ToDictionary(item => item.ParamName, item => item.ParamDefaultValue);
+                var bodyParams = model.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Body && x.TemplateScreenId ==null).ToDictionary(item => item.ParamName, item => item.ParamDefaultValue);
 
                 // Create a list to store default values in the order they appear
                 var bodyDefaultValues = new List<string>();
@@ -593,7 +593,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         int placeholderCount = 0;
                         string CardbodyText = Regex.Replace(screen.BodyText, pattern, match => { placeholderCount++; return $"{{{{{placeholderCount}}}}}"; });
 
-                        var bodyParams = model.Parameters.Where(x => x.ParamType == (int)CarouselParamEnum.CardBody).ToDictionary(item => item.ParamName, item => item.ParamDefaultValue);
+                        var bodyParams = model.Parameters.Where(x => x.ParamType == (int)CarouselParamEnum.CardBody && x.TemplateScreenId == screen.TemplateScreenId).ToDictionary(item => item.ParamName, item => item.ParamDefaultValue);
 
                         // Create a list to store default values in the order they appear
                         var bodyDefaultValues = new List<string>();
@@ -636,11 +636,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         }
                         else
                         {
-                            foreach (var item in model.Buttons)
+                            var cardbuttons = model.Buttons.FindAll(x => x.TemplateScreenId == screen.TemplateScreenId);
+                            foreach (var item in cardbuttons)
                             {
+
+                                
                                 var buttonType = ((ButtonTypeEnum)item.ButtonType);
                                 string buttonValue = item.ButtonValue ?? "";
-
                                 UTemplateDetail.Parameter buttonParam = null;
                                 if (buttonType == ButtonTypeEnum.URL)
                                 {
@@ -666,17 +668,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                     Example = buttonParam != null ? buttonParam.ParamDefaultValue : String.Empty
                                 });
                             }
-
+                            cards.Add(new TemplateRequestDto.CardDto
+                            {
+                                Header = cardheader,
+                                Body = cardBody,
+                                Buttons = cardButton,
+                            });
                         }
 
                     }
+
                 }
-                 cards.Add(new TemplateRequestDto.CardDto
-                {
-                    Header = cardheader,
-                    Body = cardBody,
-                    Buttons = cardButton,
-                });
+                
                 templateRequest.Cards = cards;
             }
 
