@@ -570,7 +570,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 var cardheader = new TemplateRequestDto.HeaderDto();
                 var cardBody = new TemplateRequestDto.BodyDto();
                 var cardFlow = new List<TemplateRequestDto.FlowComponent>();
-                var cardButton = new List<TemplateRequestDto.ButtonDto>();
                 var cards = new List<TemplateRequestDto.CardDto>();
                 foreach (var screen in model.Screens)
                 {
@@ -615,6 +614,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     }
                     if (screen != null && model.Buttons.Count > 0)
                     {
+                        var cardButton = new List<TemplateRequestDto.ButtonDto>();
                         if (model.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW))
                         {
                             var button = model.Buttons.FirstOrDefault(x => x.ActionType == (int)ActionTypeEnum.FLOW && x.TemplateScreenId == screen.TemplateScreenId);
@@ -639,8 +639,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             var cardbuttons = model.Buttons.FindAll(x => x.TemplateScreenId == screen.TemplateScreenId);
                             foreach (var item in cardbuttons)
                             {
-
-                                
                                 var buttonType = ((ButtonTypeEnum)item.ButtonType);
                                 string buttonValue = item.ButtonValue ?? "";
                                 UTemplateDetail.Parameter buttonParam = null;
@@ -826,7 +824,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             return new UResponseWithID { Message = "Something went wrong while sending request to facebook" };
         }
-
 
         public async Task<UResponseWithID> DeleteTemplateAsync(int Id)
         {
