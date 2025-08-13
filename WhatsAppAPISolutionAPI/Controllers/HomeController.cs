@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WhatsAppAPISolutionBL.Master.Interfaces;
 
 namespace WhatsAppAPISolutionAPI.Controllers
 {
@@ -10,13 +9,10 @@ namespace WhatsAppAPISolutionAPI.Controllers
     public class HomeController : ControllerBase
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly IMediatorService _mediatorService;
 
-        public HomeController(ILogger<HomeController> logger,
-            IMediatorService mediatorService)
+        public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
-            _mediatorService = mediatorService;
         }
 
         [HttpGet("index")]
@@ -29,7 +25,6 @@ namespace WhatsAppAPISolutionAPI.Controllers
         [HttpGet("check")]
         public IActionResult Check()
         {
-            //_mediatorService.ProcessDBResponse();
             _logger.LogInformation("I am alive");
             return Ok("Alive");
         }

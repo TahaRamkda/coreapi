@@ -131,10 +131,18 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     items = new List<KFGOrder.Item>()
                 };
 
+                string firstName = order.Name;
+                string lastName = String.Empty;
+                if (!String.IsNullOrWhiteSpace(firstName) && firstName.Contains(' '))
+                {
+                    lastName = firstName.Split(' ')[1];
+                    firstName = firstName.Split(' ')[0];
+                }
+
                 kFGOrder.customer = new KFGOrder.Customer
                 {
-                    firstName = order.Name,
-                    lastName = String.Empty,
+                    firstName = firstName,
+                    lastName = lastName,
                     contactNumber = order.PhoneNumber,
                     email = String.Empty
                 };
@@ -160,6 +168,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     };
                 }
 
+
+                _logger.LogInformation("PushOrderToKFG OrderId={orderId} and PaymentGatewayType={PaymentGatewayType}", order.OrderId, order.PaymentGatewayType);
                 kFGOrder.payments.Add(new KFGOrder.Payment
                 {
                     amount = order.Total ?? 0,
