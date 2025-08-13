@@ -89,7 +89,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 response.Message = "No order found with provided response id";
                 return response;
             }
-
+ 
             //For KFG, 1 = KNET and 2 = CREDIT CARD
             string paymentGateway = "credit_card";
             if (!String.IsNullOrWhiteSpace(paymentStatus.PaymentGatewayType) 
@@ -100,11 +100,15 @@ namespace WhatsAppAPISolutionBL.Master.Services
             _logger.LogInformation("Received response from procedure usp_Orders_PaymentCompleted with OrderId={OrderId} and TransactionId = {paymentStatus.IsSuccess}response={response}", paymentStatus.OrderId, paymentStatus.PaymentRefNo, JsonConvert.SerializeObject(dbresponse));
 
             await _mediatorService.ProcessDBResponse(order.ClientId ?? 0, order.SenderId ?? 0, dbresponse[0]);
-
+             
             //Call order push service
             if (paymentStatus.IsSuccess)
+            {
+                //Reload order entity
+                _dbContext.Entry<Order>(order).Reload();
                 await _orderService.PushOrders(new List<int> { order.OrderId });
-
+            }
+                 
             return response;
         }
 
