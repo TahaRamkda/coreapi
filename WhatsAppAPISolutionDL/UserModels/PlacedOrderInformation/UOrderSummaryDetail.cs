@@ -18,10 +18,11 @@ namespace WhatsAppAPISolutionDL.UserModels.PlacedOrderInformation
         public decimal Total { get; set; }
         public string CurrencyName { get; set; }
         public string Items { get; set; }
-
         public string Block { get; set; }
         public string Street { get; set; }
         public string Floor { get; set; }
+        public string FlatNo { get; set; }
+        public string House { get; set; }
         public string Direction { get; set; }
     }
 }
