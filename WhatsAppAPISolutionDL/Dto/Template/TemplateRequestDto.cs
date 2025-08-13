@@ -19,7 +19,7 @@
         public FooterDto Footer { get; set; }
         public List<ButtonDto> Buttons { get; set; }
         public FlowComponent Flow { get; set; }
-         public List<CardDto> Cards { get; set; }
+        public List<CardDto> Cards { get; set; }
 
        
         public class HeaderDto
@@ -65,6 +65,7 @@
             public CardDto()
             {
                 Buttons = new List<ButtonDto>();
+                Header = new HeaderDto();
             }
 
             public HeaderDto Header { get; set; }

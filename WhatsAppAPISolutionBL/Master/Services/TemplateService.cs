@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Data;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Text.RegularExpressions;
 using WhatsAppAPISolutionBL.Helper;
@@ -493,30 +494,43 @@ namespace WhatsAppAPISolutionBL.Master.Services
             string pattern = CommonHelper.DynamicPattern;
 
             #region Header
-
             string headerText = String.Empty;
             string headerMediaUrl = String.Empty;
-            if (!String.IsNullOrWhiteSpace(model.HeaderText))
+
+            if (model.TemplateTypeId != 2)
             {
-                int placeholderCount = 0;
-                headerText = Regex.Replace(model.HeaderText, pattern, match => { placeholderCount++; return $"{{{{{placeholderCount}}}}}"; });
+                // Process header text
+                if (!String.IsNullOrWhiteSpace(model.HeaderText))
+                {
+                    int placeholderCount = 0;
+                    headerText = Regex.Replace(model.HeaderText, pattern, match =>
+                    {
+                        placeholderCount++;
+                        return $"{{{{{placeholderCount}}}}}";
+                    });
+                }
+
+                // Process media
+                if (model.MediaId > 0)
+                {
+                    var media = await _dbContext.Medias.FindAsync(model.MediaId);
+                    headerMediaUrl = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, media.MediaPath);
+                }
+
+                // Set header parameters
+                var headerParam = model.Parameters
+                    .Where(x => x.ParamType == (int)TemplateParamEnum.Header)
+                    .Select(x => new { x.ParamName, x.ParamDefaultValue })
+                    .FirstOrDefault();
+
+                templateRequest.Header = new TemplateRequestDto.HeaderDto
+                {
+                    Format = ((TemplateHeaderEnum)model.HeaderType).ToString(),
+                    MediaUrl = headerMediaUrl,
+                    Text = headerText,
+                    Example = headerParam != null ? headerParam.ParamDefaultValue : String.Empty
+                };
             }
-
-            if (model.MediaId > 0)
-            {
-                var media = await _dbContext.Medias.FindAsync(model.MediaId);
-                headerMediaUrl = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, media.MediaPath);
-            }
-
-            var headerParam = model.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Header).Select(x => new { x.ParamName, x.ParamDefaultValue }).FirstOrDefault();
-            templateRequest.Header = new TemplateRequestDto.HeaderDto
-            {
-                Format = ((TemplateHeaderEnum)model.HeaderType).ToString(),
-                MediaUrl = headerMediaUrl,
-                Text = headerText,
-                Example = headerParam != null ? headerParam.ParamDefaultValue : String.Empty
-            };
-
             #endregion
 
             #region Body
@@ -527,7 +541,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 int placeholderCount = 0;
                 string bodyText = Regex.Replace(model.BodyText, pattern, match => { placeholderCount++; return $"{{{{{placeholderCount}}}}}"; });
 
-                var bodyParams = model.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Body).ToDictionary(item => item.ParamName, item => item.ParamDefaultValue);
+                var bodyParams = model.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Body && x.TemplateScreenId ==null).ToDictionary(item => item.ParamName, item => item.ParamDefaultValue);
 
                 // Create a list to store default values in the order they appear
                 var bodyDefaultValues = new List<string>();
@@ -550,21 +564,142 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
             #endregion
 
-            #region Footer
-
-            if (!String.IsNullOrWhiteSpace(model.FooterText))
+            #region Cards 
+            if (model.Screens != null)
             {
-                templateRequest.Footer = new TemplateRequestDto.FooterDto
+                var cardheader = new TemplateRequestDto.HeaderDto();
+                var cardBody = new TemplateRequestDto.BodyDto();
+                var cardFlow = new List<TemplateRequestDto.FlowComponent>();
+                var cards = new List<TemplateRequestDto.CardDto>();
+                foreach (var screen in model.Screens)
                 {
-                    Text = model.FooterText
-                };
+                    //processing screen header
+                    if (screen.MediaId > 0)
+                    {
+                        var Headermedia = await _dbContext.Medias.FindAsync(screen.MediaId);
+                        headerMediaUrl = string.Concat(_apiSolutionConfigurationSettings.Value.BaseURL, Headermedia.MediaPath);
+                    }
+                    cardheader = new TemplateRequestDto.HeaderDto
+                    {
+                        Format = ((TemplateHeaderEnum)screen.HeaderType).ToString(),
+                        MediaUrl = headerMediaUrl
+                    };
+
+                    // processing the bodytext
+                    if (!String.IsNullOrWhiteSpace(screen.BodyText))
+                    {
+                        //Replace the {{example}} with {{1}} and so on...
+                        int placeholderCount = 0;
+                        string CardbodyText = Regex.Replace(screen.BodyText, pattern, match => { placeholderCount++; return $"{{{{{placeholderCount}}}}}"; });
+
+                        var bodyParams = model.Parameters.Where(x => x.ParamType == (int)CarouselParamEnum.CardBody && x.TemplateScreenId == screen.TemplateScreenId).ToDictionary(item => item.ParamName, item => item.ParamDefaultValue);
+
+                        // Create a list to store default values in the order they appear
+                        var bodyDefaultValues = new List<string>();
+
+                        // Regex to match placeholders
+                        MatchCollection matches = Regex.Matches(screen.BodyText, pattern);
+                        foreach (Match match in matches)
+                        {
+                            string paramName = match.Value; // Get the matched placeholder
+                            if (bodyParams.ContainsKey(paramName))
+                                bodyDefaultValues.Add(bodyParams[paramName]); // Add the corresponding default value
+                        }
+
+                        cardBody=new TemplateRequestDto.BodyDto
+                        {
+                            Text = CardbodyText,
+                            Examples = bodyDefaultValues
+                        };
+                    }
+                    if (screen != null && model.Buttons.Count > 0)
+                    {
+                        var cardButton = new List<TemplateRequestDto.ButtonDto>();
+                        if (model.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW))
+                        {
+                            var button = model.Buttons.FirstOrDefault(x => x.ActionType == (int)ActionTypeEnum.FLOW);
+                            var flow = await _dbContext.Flows.FindAsync(button.ActionId);
+                            if (flow == null)
+                                return new UResponseWithID { Status = 0, Message = $"Flow not found with id - {button.ActionId}" };
+
+                            if (String.IsNullOrWhiteSpace(flow.MetaFlowId))
+                                return new UResponseWithID { Status = 0, Message = $"Flow with id - {button.ActionId} does not have meta id yet" };
+
+                            if ((flow.Status ?? "").ToLower() != FlowStatusEnum.PUBLISHED.ToString().ToLower())
+                                return new UResponseWithID { Status = 0, Message = $"Flow is not published with id - {button.ActionId}" };
+
+                            cardFlow.Add(new TemplateRequestDto.FlowComponent
+                            {
+                                FlowId = flow.MetaFlowId,
+                                ButtonText = button.ButtonText
+                            });
+                        }
+                        else
+                        {
+                            var cardbuttons = model.Buttons.FindAll(x => x.TemplateScreenId == screen.TemplateScreenId);
+                            foreach (var item in cardbuttons)
+                            {
+                                var buttonType = ((ButtonTypeEnum)item.ButtonType);
+                                string buttonValue = item.ButtonValue ?? "";
+                                UTemplateDetail.Parameter buttonParam = null;
+                                if (buttonType == ButtonTypeEnum.URL)
+                                {
+                                    //Replace the {{example}} with {{1}} and so on...
+                                    int placeholderCount = 0;
+                                    buttonValue = Regex.Replace(item.ButtonValue, pattern, match => { placeholderCount++; return $"{{{{{placeholderCount}}}}}"; });
+
+                                    MatchCollection matches = Regex.Matches(item.ButtonValue, pattern);
+                                    if (matches != null && matches.Count > 0)
+                                        buttonParam = model.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button && x.ParamName == matches[0].Value).FirstOrDefault();
+                                }
+
+                                //Replace country code seperation, +965-99310864 -> +96599310864
+                                if (buttonType == ButtonTypeEnum.PHONE_NUMBER)
+                                    buttonValue = buttonValue.Replace("-", "");
+
+                                 cardButton.Add(new TemplateRequestDto.ButtonDto
+                                {
+                                    Type = buttonType.ToString(),
+                                    Text = item.ButtonText,
+                                    PhoneNumber = buttonType == ButtonTypeEnum.PHONE_NUMBER ? buttonValue : String.Empty,
+                                    Url = buttonType == ButtonTypeEnum.URL ? buttonValue : String.Empty,
+                                    Example = buttonParam != null ? buttonParam.ParamDefaultValue : String.Empty
+                                });
+                            }
+                            cards.Add(new TemplateRequestDto.CardDto
+                            {
+                                Header = cardheader,
+                                Body = cardBody,
+                                Buttons = cardButton,
+                            });
+                        }
+
+                    }
+
+                }
+                
+                templateRequest.Cards = cards;
+            }
+
+
+            #endregion
+
+            #region Footer
+            if (model.TemplateTypeId != 2)
+            {
+                if (!String.IsNullOrWhiteSpace(model.FooterText))
+                {
+                    templateRequest.Footer = new TemplateRequestDto.FooterDto
+                    {
+                        Text = model.FooterText
+                    };
+                }
             }
 
             #endregion
 
             #region Button
-
-            if (model.Buttons != null && model.Buttons.Count > 0)
+            if (model.Buttons != null && model.Buttons.Count > 0 && model.TemplateTypeId == 1)
             {
                 if (model.Buttons.Any(x => x.ActionType == (int)ActionTypeEnum.FLOW))
                 {
@@ -603,7 +738,6 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             if (matches != null && matches.Count > 0)
                                 buttonParam = model.Parameters.Where(x => x.ParamType == (int)TemplateParamEnum.Button && x.ParamName == matches[0].Value).FirstOrDefault();
                         }
-
                         //Replace country code seperation, +965-99310864 -> +96599310864
                         if (buttonType == ButtonTypeEnum.PHONE_NUMBER)
                             buttonValue = buttonValue.Replace("-", "");
@@ -619,29 +753,20 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     }
                 }
             }
+
             #endregion
-            #region Template Screen
 
-            if (model.Screens.Count > 0)
-            {
-                foreach (var screen in model.Screens)
-                {
-                }
-
-            }
-                #endregion
-
-                var request = Newtonsoft.Json.JsonConvert.SerializeObject(templateRequest);
+            var request = Newtonsoft.Json.JsonConvert.SerializeObject(templateRequest);
 
             var apiCallStart = DateTime.UtcNow;
             string apiEndpoint = string.Empty;
             if (model.TemplateTypeId == (int)TemplateTypeEnum.Template)
             {
-                 apiEndpoint = $"/api/Template/TemplateMessageOps";
+                apiEndpoint = $"/api/Template/TemplateMessageOps";
             }
             else
             {
-                 apiEndpoint = $"/api/Template/CarousalTemplateMessageOps";
+                apiEndpoint = $"/api/Template/CarouselTemplateMessageOps";
             }
 
             var res = new StringContent(request, Encoding.UTF8, "application/json");
@@ -695,6 +820,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                     Id = model.Id
                 };
             }
+
 
             return new UResponseWithID { Message = "Something went wrong while sending request to facebook" };
         }
@@ -757,7 +883,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
             var cacheResult = await _cacheService.GetAsync(cacheKey, async () =>
             {
                 var startProcTime = DateTime.UtcNow;
-                var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_Templates_Ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId}, @SenderId={senderId}, @SearchStr={searchStr}, @Category={cat}").ToListAsync();
+                var response = await _dbContext2.Entity.FromSqlInterpolated($"exec usp_carousel_ops @ActionId={(int)CrudEnum.GetEntities}, @ClientId={clientId}, @SenderId={senderId}, @SearchStr={searchStr}, @Category={cat}").ToListAsync();
                 _logger.LogInformation("Calling procedure usp_Templates_Ops with parameters: " +
                     "ActionId={ActionId}, ClientId={ClientId}, SenderId={SenderId}, SearchStr={SearchStr}, " +
                     "ProcResponseTime={ProcResponseTime}ms", (int)CrudEnum.GetEntities, clientId, senderId, searchStr, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
@@ -877,7 +1003,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
 
                 return new UResponseWithID
                 {
-                    Message = "All the headers Formate in the card should match" 
+                    Message = "All the headers Formate in the card should match"
                 };
             }
             if (requestDto.Cards.Any(card => card.Buttons.Count != allowedbuttoncount))
@@ -969,7 +1095,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 ParamType = (int)CarouselParamEnum.CardBody,
                                 ParamName = kv.ParamName,
                                 ParamDefaultValue = kv.ParamValue,
-                                Sequence = cardIndex
+                                Sequence = cardIndex,
+                                ScreenSequence = cardIndex + 1
                             });
                         }
                     }
@@ -980,7 +1107,7 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 {
                     foreach (var button in card.Buttons)
                     {
-                        if (button.ActionType == (int)ActionTypeEnum.TEMPLATE && button.ActionId <= 0)
+                        if (button.ActionType == (int)ActionTypeEnum.Carousel && button.ActionId <= 0)
                             return new UResponseWithID { Message = $"Card {cardIndex + 1}: Template ID required for button action" };
 
                         button.ButtonValue = (button.ButtonValue ?? "").Trim();
@@ -1005,7 +1132,8 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                 ParamType = (int)TemplateParamEnum.Button,
                                 ParamName = button.DynamicValue.ParamName,
                                 ParamDefaultValue = button.DynamicValue.ParamValue,
-                                Sequence = templateParamSequence++
+                                Sequence = templateParamSequence,
+                                ScreenSequence = cardIndex + 1
                             });
                         }
 
@@ -1016,8 +1144,9 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             ButtonValue = button.ButtonValue,
                             ActionId = button.ActionId,
                             ActionType = button.ActionType,
-                            Sequence = cardIndex + 1,
-                            SytemActionId = button.SytemActionId
+                            Sequence = cardIndex,
+                            SytemActionId = button.SytemActionId,
+                            ScreenSequence = cardIndex+1
                         });
                     }
                     screens.Add(new CreateCarouselTemplateRequestDto.CarouselScreen
