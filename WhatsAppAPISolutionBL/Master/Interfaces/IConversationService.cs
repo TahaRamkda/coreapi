@@ -27,5 +27,7 @@ namespace WhatsAppAPISolutionBL.Master.Interfaces
         Task<UResponse> CloseChatBySupervisor(int id);
         Task<List<UConversationLogsList>> GetConversationLogsListAsync(int clientId = 0, int conversationId = 0);
         Task<UConversationStatistics> GetConversationStatisticsAsync(int clientId = 0, int senderId = 0, int id = 0, int agentId = 0, int pageNo = 0, int pageSize = int.MaxValue, string status = "", DateTime? fromDate = null, DateTime? toDate = null, string searchStr = "", string fChatInitiated = "");
+
+        Task<List<UConversationListByConversation>> GetConversationBySenderNameAsync(int clientId = 0, int senderId = 0, string PhoneNumber = "", int pageNo = 0, int pageSize = int.MaxValue);
     }
 }

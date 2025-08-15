@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using WhatsAppAPISolutionBL.Master.Interfaces;
 using WhatsAppAPISolutionBL.Master.Services;
+using WhatsAppAPISolutionDL.Dto.Bridge;
 using WhatsAppAPISolutionDL.Dto.Common;
 using WhatsAppAPISolutionDL.Dto.Conversation;
 using WhatsAppAPISolutionDL.Models;
@@ -80,6 +81,23 @@ namespace WhatsAppAPISolutionAPI.Controllers
             _logger.LogInformation("Calling api GetConversationMessageByIdAsync with clientId={clientId}, senderId={senderId}, id={id}, agentId={agentId}, messageId={messageId}, pageNo={pageNo}, pageSize={pageSize}", clientId, senderId, id, agentId, messageId, pageNo, pageSize);
 
             var res = await _conversationService.GetConversationListByConversationAsync(clientId, senderId, id, agentId, messageId, pageNo, pageSize);
+
+            _logger.LogInformation("Received api GetConversationMessageByIdAsync response with data={data}", JsonConvert.SerializeObject(res));
+
+            return Ok(new ApiResult
+            {
+                Success = true,
+                Result = res,
+                Message = "Data fetch successfully"
+            });
+        }
+        [AllowAnonymous]
+        [HttpGet("getconversationmessagebySenderName")]
+        public async Task<ActionResult> GetConversationMessageBySenderNameAsync(int clientId = 0, int senderId = 0, string PhoneNumber="" , int pageNo = 0, int pageSize = int.MaxValue)
+        {
+            _logger.LogInformation("Calling api GetConversationMessageByIdAsync with clientId={clientId}, senderId={senderId}, PhoneNumber={PhoneNumber}, pageNo={pageNo}, pageSize={pageSize}", clientId, senderId, PhoneNumber, pageNo, pageSize);
+
+            var res = await _conversationService.GetConversationBySenderNameAsync(clientId, senderId, PhoneNumber, pageNo, pageSize);
 
             _logger.LogInformation("Received api GetConversationMessageByIdAsync response with data={data}", JsonConvert.SerializeObject(res));
 

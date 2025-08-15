@@ -628,11 +628,11 @@ namespace WhatsAppAPISolutionBL.Master.Services
                             if ((flow.Status ?? "").ToLower() != FlowStatusEnum.PUBLISHED.ToString().ToLower())
                                 return new UResponseWithID { Status = 0, Message = $"Flow is not published with id - {button.ActionId}" };
 
-                            cardFlow.Add(new TemplateRequestDto.FlowComponent
+                            templateRequest.Flow=new TemplateRequestDto.FlowComponent
                             {
                                 FlowId = flow.MetaFlowId,
                                 ButtonText = button.ButtonText
-                            });
+                            };
                         }
                         else
                         {
@@ -666,13 +666,14 @@ namespace WhatsAppAPISolutionBL.Master.Services
                                     Example = buttonParam != null ? buttonParam.ParamDefaultValue : String.Empty
                                 });
                             }
-                            cards.Add(new TemplateRequestDto.CardDto
-                            {
-                                Header = cardheader,
-                                Body = cardBody,
-                                Buttons = cardButton,
-                            });
+
                         }
+                        cards.Add(new TemplateRequestDto.CardDto
+                        {
+                            Header = cardheader,
+                            Body = cardBody,
+                            Buttons = cardButton,
+                        });
 
                     }
 

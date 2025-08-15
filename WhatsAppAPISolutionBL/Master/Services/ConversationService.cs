@@ -178,5 +178,13 @@ namespace WhatsAppAPISolutionBL.Master.Services
                 clientId, senderId, id, agentId, status, pageNo, pageSize, fromDate, toDate, searchStr, fChatInitiated, (int)CrudEnum.GetConversationStatistics, CrudEnum.GetConversationStatistics, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds
             ); return response[0];
         }
+
+        public async Task<List<UConversationListByConversation>> GetConversationBySenderNameAsync(int clientId = 0, int senderId = 0, string PhoneNumber="", int pageNo = 0, int pageSize = int.MaxValue)
+        {
+            var startProcTime = DateTime.UtcNow;
+            var response = await _dbContext2.ConversationListByConversations.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetConversationBySenderName},@ClientId={clientId},@SenderId={senderId}, @PhoneNumber={PhoneNumber}, @PageNo={pageNo}, @PageSize={pageSize}").ToListAsync();
+            _logger.LogInformation("Calling procedure usp_Conversations_Ops with parameters: ActionId={ActionId}, ActionName={ActionName}, ClientId={ClientId}, SenderId={SenderId}, PhoneNumber={PhoneNumber}, PageNo={PageNo}, PageSize={PageSize},ProcResponseTime={ProcResponseTime}ms", (int)CrudEnum.AgentConversationList, CrudEnum.AgentConversationList, clientId, senderId, PhoneNumber, pageNo, pageSize, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+            return response;
+        }
     }
 }

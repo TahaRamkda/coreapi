@@ -73,6 +73,8 @@
 
         GetConversationLogs = 17,
 
+        GetConversationBySenderName=20,
+
         GetAgentSupervisorReport = 40,
 
         GetDetails = 41,
