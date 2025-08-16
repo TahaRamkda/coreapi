@@ -6,6 +6,7 @@
         ManualTemplate = 2,
         AddressCheck = 3,
         PaymentRequest = 4,
-        statusUpdate=5
+        statusUpdate=5,
+        WebChatManualTemplate=8
     } 
 }

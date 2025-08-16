@@ -9,6 +9,7 @@
         public string type { get; set; }
         public PhoneNumber phone_number_Id { get; set; }
         public Contact contact { get; set; }
+        public int ChatType { get; set; } = 1; // 1 for whatsapp
 
         public Context context { get; set; }
         public Button button { get; set; }

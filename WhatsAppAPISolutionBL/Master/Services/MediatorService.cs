@@ -561,6 +561,89 @@ namespace WhatsAppAPISolutionBL.Master.Services
                         }
                             break;
                     }
+                case (int)DBResponseEnum.WebChatManualTemplate:
+
+                    //Parse DB response
+                    var WebChatManualDbResponse = JsonConvert.DeserializeObject<ManualTemplateDBResponse>(model.Json);
+                    if (WebChatManualDbResponse == null)
+                        return new ApiResult { Success = false, Message = $"Cannot parse DBResponse JSON. DBResponse={JsonConvert.SerializeObject(model)}" };
+
+                    _logger.LogInformation("Parsed ProcessDBResponse with received clientId={clientId} senderId={senderId} and DBResponse={DBResponse} and result={result}", clientId, senderId, model, WebChatManualDbResponse);
+                    if (model.IsAutoResponse == 1)
+                        SystemGenerated = true;
+                    if (WebChatManualDbResponse.ActionType > 0 && WebChatManualDbResponse.ActionId > 0 && WebChatManualDbResponse.ActionType == (int)ActionTypeEnum.TEMPLATE)
+                    {
+                        if (String.IsNullOrWhiteSpace(WebChatManualDbResponse.FlowToken))
+                            WebChatManualDbResponse.FlowToken = $"{FlowIdentifier.ClientId}:{clientId}|" + $"{FlowIdentifier.SenderId}:{senderId}|" + $"{FlowIdentifier.ModuleId}:{WebChatManualDbResponse.ModuleId}|" + $"{FlowIdentifier.ParentId}:{WebChatManualDbResponse.ParentId}";
+                        else
+                            WebChatManualDbResponse.FlowToken = String.Concat(WebChatManualDbResponse.FlowToken.TrimEnd('|'), "|", $"{FlowIdentifier.ClientId}:{clientId}|" + $"{FlowIdentifier.SenderId}:{senderId}|" + $"{FlowIdentifier.ModuleId}:{WebChatManualDbResponse.ModuleId}|" + $"{FlowIdentifier.ParentId}:{WebChatManualDbResponse.ParentId}");
+
+                        var interactiveMessageRequest = new InteractiveMessageRequestDto
+                        {
+                            ClientId = clientId,
+                            SenderId = senderId,
+                            ActionId = WebChatManualDbResponse.ActionId,
+                            ModuleId = WebChatManualDbResponse.ModuleId,
+                            ParentId = WebChatManualDbResponse.ParentId,
+                            MessageReferenceId = WebChatManualDbResponse.ActionId,
+                            PhoneNumber = WebChatManualDbResponse.PhoneNumber,
+                            HeaderType = WebChatManualDbResponse.HeaderType,
+                            HeaderText = WebChatManualDbResponse.HeaderText,
+                            BodyText = WebChatManualDbResponse.BodyText,
+                            FooterText = WebChatManualDbResponse.FooterText,
+                            MediaId = WebChatManualDbResponse.MediaId,
+                            FlowToken = WebChatManualDbResponse.FlowToken,
+                            SystemGenerated = SystemGenerated
+                        };
+
+                        //Add dynamic parameters, if passed from DB
+                        if (WebChatManualDbResponse.Params != null && WebChatManualDbResponse.Params != null)
+                        {
+                            foreach (var item in WebChatManualDbResponse.Params)
+                            {
+                                interactiveMessageRequest.Values.Add(new ParamValue
+                                {
+                                    Key = item.Key,
+                                    Value = item.Value
+                                });
+                            }
+                        }
+
+                        //Add button from interactive template itself
+                        if (WebChatManualDbResponse.Buttons != null && WebChatManualDbResponse.Buttons.Any())
+                        {
+                            foreach (var button in WebChatManualDbResponse.Buttons)
+                            {
+                                interactiveMessageRequest.Buttons.Add(new InteractiveMessageRequestDto.Button
+                                {
+                                    ButtonId = Convert.ToString(button.ButtonId),
+                                    ButtonText = button.ButtonText,
+                                    ButtonType = button.ButtonType,
+                                    ButtonValue = button.ButtonValue,
+                                    Sequence = button.Sequence,
+                                    ActionId = button.ActionId,
+                                    ActionType = button.ActionType
+                                });
+                            }
+                        }
+
+                        var messageResult = await SendInteractiveTemplate(interactiveMessageRequest);
+                    }
+
+                    //If agent id is available, send signalR notification
+                    if (WebChatManualDbResponse.ModuleId == (int)ModuleEnum.Chat
+                        && WebChatManualDbResponse.ConversationMessageId > 0
+                        && WebChatManualDbResponse.AgentId > 0
+                        && WebChatManualDbResponse.IsFoul == 0)
+                    {
+                        var startProcTime = DateTime.UtcNow;
+                        var response = await _dbContext2.LatestConversationByConversations.FromSqlInterpolated($"exec usp_Conversations_Ops @ActionId={(int)CrudEnum.GetConversationByMessageId},@ClientId={clientId}, @SenderId={senderId}, @MessageId={WebChatManualDbResponse.ConversationMessageId}, @Status={(int)ConversationStatusEnum.AgentAssigned}").ToListAsync();
+                        _logger.LogInformation("Calling procedure usp_Conversations_Ops with clientId={clientId}, senderId={senderId}, conversationMessageId={conversationMessageId}, status={status}, actionId={actionId}, actionName={actionName} and ProcResponseTime={ProcResponseTime} ", clientId, senderId, WebChatManualDbResponse.ConversationMessageId, (int)ConversationStatusEnum.AgentAssigned, (int)CrudEnum.GetConversationByMessageId, CrudEnum.GetConversationByMessageId, DateTime.UtcNow.Subtract(startProcTime).TotalMilliseconds);
+                        if (response.Any())
+                            await _signalRService.MessageReceivedNotification(clientId, senderId, WebChatManualDbResponse.AgentId, response[0]);
+                    }
+
+                    break;
 
                 default:
                     break;

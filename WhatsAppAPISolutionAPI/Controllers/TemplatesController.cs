@@ -74,7 +74,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
         }
 
         [HttpPost("addTemplate")]
-        public async Task<IActionResult> AddTemplateAsync([FromBody] TemplateDto model)
+        public async Task<IActionResult> AddTemplateAsync([FromBody] TemplateDto model) 
         {
             UResponseWithID response = new UResponseWithID
             {
@@ -100,7 +100,8 @@ namespace WhatsAppAPISolutionAPI.Controllers
 
             if (String.IsNullOrWhiteSpace(model.Language))
                 return Ok(new ApiResult { Message = "Please select language" });
-            if(model.TemplateType != (int)TemplateTypeEnum.Carousel)
+            #region Templates
+            if (model.TemplateType != (int)TemplateTypeEnum.Carousel)
             {
                 if (model.Header != null && model.Header.Format == (int)TemplateHeaderEnum.TEXT && String.IsNullOrEmpty(model.Header.Text))
                     return Ok(new ApiResult { Message = "Header text is required" });
@@ -172,6 +173,9 @@ namespace WhatsAppAPISolutionAPI.Controllers
                  response = await _templateService.AddTemplateAsync(clientId, userId, model);
                 _logger.LogDebug("Received api AddTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
             }
+            #endregion
+
+            #region Caraousel
             else
             {
                 if(model.Body == null)
@@ -188,6 +192,7 @@ namespace WhatsAppAPISolutionAPI.Controllers
                 _logger.LogDebug("Received api AddTemplateAsync response with data={data}", JsonConvert.SerializeObject(response));
 
             }
+            #endregion
 
             if (response == null || response.Status <= 0)
                 return Ok(new ApiResult { Message = response?.Message });
