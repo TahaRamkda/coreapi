@@ -61,13 +61,13 @@ builder.Services.AddSignalRServices(configuration);
 builder.Services.AddControllers();
 
 //builder.Services.AddHttpClient<KFGPaymentService>();
-
 var app = builder.Build();
 app.UseStaticFiles(new StaticFileOptions()
 {
     FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Media/")),
     RequestPath = new PathString("/Media")
 });
+
 
 bool enableGlobalExceptionHandler = Convert.ToBoolean(builder.Configuration["EnableGlobalExceptionHandler"]);
 if (enableGlobalExceptionHandler)
@@ -105,3 +105,4 @@ app.MapControllers();
 app.MapHub<ConversationHub>("/Conversation");
 // Start the app
 app.Run();
+
