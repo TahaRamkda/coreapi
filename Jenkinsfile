@@ -18,7 +18,7 @@ pipeline {
             steps {
                 sh """
                   echo Building Docker image: $ECR_REPO:$VERSION
-                  docker build -t $ECR_REPO:$VERSION -f .
+                  docker build -t $ECR_REPO:$VERSION .
                 """
             }
         }
