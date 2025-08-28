@@ -31,7 +31,7 @@ jobs:
       - name: Docker Build
         run: |
           echo "Building Docker image: $ECR_REPO:${{ env.VERSION }}"
-          docker build -t $ECR_REPO:${{ env.VERSION }} -f WhatsAppBridge/WhatsAppBridge/Dockerfile .
+          docker build -t $ECR_REPO:${{ env.VERSION }} .
 
       - name: Login to Amazon ECR
         run: |
