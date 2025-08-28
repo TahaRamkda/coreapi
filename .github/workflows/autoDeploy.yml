@@ -48,7 +48,7 @@ jobs:
 
       - name: Update Kubernetes Deployment
         run: |
-          kubectl set image deployment/bridge-deploy \
+          kubectl set image deployment/api-deploy \
             bridge=$ECR_REPO:${{ env.VERSION }} \
             --namespace=qa
-          kubectl rollout status deployment/bridge-deploy --namespace=qa
+          kubectl rollout status deployment/api-deploy --namespace=qa
