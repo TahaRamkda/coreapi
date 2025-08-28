@@ -15,12 +15,12 @@ ConfigurationManager configuration = builder.Configuration;
 //builder.Host.UseSerilog((context, configuration) => configuration.ReadFrom.Configuration(context.Configuration).Enrich.FromLogContext());
 
 //Logging related logic
-var loggingEnabled = builder.Configuration.GetValue<bool>("LogSettings:LoggingEnabled");
+var loggingEnabled = builder.Configuration.GetValue<bool>("SettingsForLog:LogSettings:LoggingEnabled");
 if (loggingEnabled)
 {
     // Get log level from configuration
     var queueSize = builder.Configuration.GetValue<long>("Axiom:QueueLimitBytes");
-    var logLevel = builder.Configuration.GetValue<string>("LogSettings:LogLevel");
+    var logLevel = builder.Configuration.GetValue<string>("SettingsForLog:LogSettings:LogLevel");
     var minLevel = logLevel switch
     {
         "Debug" => LogEventLevel.Debug,
